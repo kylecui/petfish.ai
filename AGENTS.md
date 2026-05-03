@@ -1,4 +1,4 @@
-﻿# PEtFiSh 项目开发纪律
+# PEtFiSh 项目开发纪律
 
 本节定义项目级开发规则，所有agent和人工操作必须遵守。
 
@@ -734,3 +734,56 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 - `petfish-style-rewriter + anti-sycophancy-calibration`：在润色同时指出论证漏洞和边界条件
 - `strategy-writer + anti-sycophancy-calibration`：把支持理由、反对理由、替代路线拆开表达
 <!-- END pack: anti-sycophancy-calibration-pack -->
+
+<!-- BEGIN pack: context-router-skill -->
+# Context Router — 话题治理器
+
+本pack为项目提供上下文治理能力，降低跨话题污染风险。
+
+## Always-On行为（每次交互自动执行）
+
+### 交互前检查
+
+每次收到用户消息时，调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。根据返回的风险等级执行对应行为：
+
+| 风险等级 | 行为 |
+|---------|------|
+| low (0-30) | 静默继续，不做任何提示 |
+| medium (31-60) | 在回复开头用一行简要说明上下文继承范围，例如："当前继续topic「X」，继承上下文包含Y和Z。" |
+| high (61-100) | 主动向用户说明话题变更风险，建议处理策略（fork/switch/reset），加载context-router skill执行深度治理 |
+
+### 交互后更新
+
+当本次交互产生实质性成果（代码变更、文档输出、决策结论等）时，调用`topic_update`更新当前topic的summary和status。
+
+### 话题关系类型
+
+检测到的关系类型决定上下文处理策略：
+
+- **continue**：完全继承当前上下文
+- **fork**：从当前topic分叉，继承部分上下文，创建子topic
+- **switch**：切换到已有topic，加载该topic的Context Package
+- **merge**：合并两个topic（需用户确认）
+- **archive**：归档当前topic，冻结上下文
+- **reset**：清空上下文，建立干净包
+- **bridge**：两个topic间建立桥接，只继承交叉部分（需用户确认）
+
+对merge、archive、bridge三种类型，检测置信度较低时必须提示用户确认，不得自动执行。
+
+### MCP不可用时的降级行为
+
+当context-state MCP server未启动、连接失败或调用超时时：
+
+- 不报错，不阻塞正常工作
+- 在回复中附带一行提示："⚠ context-router MCP未连接，话题治理未激活。"
+- 跳过所有topic_detect和topic_update调用
+- 每次会话最多提示一次，避免重复干扰
+
+## 深度治理触发条件
+
+以下情况自动加载`.opencode/skills/context-router/SKILL.md`执行完整5步工作流：
+
+- topic_detect返回风险等级high
+- 用户主动要求话题管理（"整理一下话题"、"切换到X"、"把这两个话题合并"等）
+- 用户使用context-router相关关键词（topic、话题、上下文、污染、继承、隔离等）
+<!-- END pack: context-router-skill -->

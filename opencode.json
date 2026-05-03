@@ -3,7 +3,21 @@
     "skill": {
       "petfish-style-rewriter": "allow",
       "ppt-reader": "allow",
-      "ppt-writer": "allow"
+      "ppt-writer": "allow",
+      "context-router": "allow"
+    }
+  },
+  "mcp": {
+    "context-state": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "${SKILL_DIR}/mcp/context-state/server.py"
+      ],
+      "env": {},
+      "cwd": "${PROJECT_DIR}"
     }
   }
 }
