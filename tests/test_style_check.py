@@ -65,13 +65,11 @@ class TestZhEnSpacing:
         # Inner line is not skipped — this is by design
         assert len(issues) >= 0  # document actual behavior
 
-    def test_indented_code_not_skipped(self):
-        # NOTE: _is_code_or_heading checks stripped.startswith("    ") which
-        # never matches after strip(). This is a known limitation — indented
-        # code blocks are NOT excluded from spacing checks.
+    def test_indented_code_skipped(self):
+        # 4-space indented lines ARE skipped (checks raw line, not stripped)
         text = "    使用 Git 提交"
         issues = sc.find_zh_en_spacing_issues(text)
-        assert len(issues) >= 0  # documents actual behavior
+        assert len(issues) == 0
 
     def test_clean_text_no_issues(self):
         issues = sc.find_zh_en_spacing_issues("使用Git提交代码")

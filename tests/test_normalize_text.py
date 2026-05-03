@@ -66,14 +66,11 @@ class TestNormalizeZhEnSpacing:
         assert result.startswith("```")
         assert result.endswith("```")
 
-    def test_indented_code_not_preserved(self):
-        # NOTE: normalize_zh_en_spacing checks stripped.startswith("    ") which
-        # never matches after strip(). Indented code content gets normalized.
-        # This is a known limitation documented here.
+    def test_preserves_indented_code(self):
+        # 4-space indented lines are preserved (checks raw line, not stripped)
         text = "    使用 Git 提交"
         result = nt.normalize_zh_en_spacing(text)
-        # Content IS normalized despite indentation
-        assert "Git提交" in result
+        assert "使用 Git 提交" in result
 
     def test_number_spacing(self):
         result = nt.normalize_zh_en_spacing("超过 100 个")

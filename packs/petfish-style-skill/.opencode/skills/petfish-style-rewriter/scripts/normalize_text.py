@@ -85,7 +85,7 @@ def normalize_zh_en_spacing(text: str) -> str:
     for line in lines:
         # Skip code blocks and markdown headings with only English
         stripped = line.strip()
-        if stripped.startswith("```") or stripped.startswith("    "):
+        if stripped.startswith("```") or line.startswith("    "):
             result_lines.append(line)
             continue
 

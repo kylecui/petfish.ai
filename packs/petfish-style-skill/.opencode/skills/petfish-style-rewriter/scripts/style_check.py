@@ -111,7 +111,7 @@ def split_sentences(text: str) -> list[str]:
 def _is_code_or_heading(line: str) -> bool:
     """Return True for lines that should be skipped in spacing checks."""
     stripped = line.strip()
-    return stripped.startswith("```") or stripped.startswith("    ")
+    return stripped.startswith("```") or line.startswith("    ")
 
 
 def _iter_non_code_lines(text: str):
