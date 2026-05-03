@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install dependencies
+        run: uv pip install pytest --system
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+
+      - name: Validate pack manifests
+        run: pytest tests/test_pack_integrity.py -v
+
+      - name: Validate install scripts
+        run: pytest tests/test_install_scripts.py -v

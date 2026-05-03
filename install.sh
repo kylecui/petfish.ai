@@ -139,6 +139,113 @@ with open(reg_file, 'w') as f:
 " "$registry_dir" "$pack_name" "$manifest_file"
 }
 
+read_installed_pack_version() {
+    local registry_dir="$1" pack_name="$2"
+
+    python3 - "$registry_dir" "$pack_name" <<'PY'
+import json
+import os
+import sys
+
+registry_dir, pack_name = sys.argv[1:3]
+reg_file = os.path.join(registry_dir, 'installed-packs.json')
+
+if not os.path.isfile(reg_file):
+    sys.exit(0)
+
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+
+version = ((reg.get('packs') or {}).get(pack_name) or {}).get('version')
+if version:
+    print(version)
+PY
+}
+
+read_manifest_pack_version() {
+    local manifest_file="$1"
+
+    python3 - "$manifest_file" <<'PY'
+import json
+import os
+import sys
+
+manifest_file = sys.argv[1]
+if not os.path.isfile(manifest_file):
+    sys.exit(0)
+
+with open(manifest_file, 'r', encoding='utf-8') as f:
+    manifest = json.load(f)
+
+version = manifest.get('version')
+if version:
+    print(version)
+PY
+}
+
+check_pack_version() {
+    local registry_dir="$1" pack_name="$2" manifest_file="$3"
+
+    python3 - "$registry_dir" "$pack_name" "$manifest_file" <<'PY'
+import json
+import os
+import sys
+
+registry_dir, pack_name, manifest_file = sys.argv[1:4]
+
+if not registry_dir or not os.path.isfile(manifest_file):
+    print('unknown')
+    sys.exit(0)
+
+with open(manifest_file, 'r', encoding='utf-8') as f:
+    manifest = json.load(f)
+
+source_version = manifest.get('version')
+if not source_version:
+    print('unknown')
+    sys.exit(0)
+
+reg_file = os.path.join(registry_dir, 'installed-packs.json')
+if not os.path.isfile(reg_file):
+    print('not-installed')
+    sys.exit(0)
+
+with open(reg_file, 'r', encoding='utf-8') as f:
+    registry = json.load(f)
+
+pack_entry = ((registry.get('packs') or {}).get(pack_name) or {})
+installed_version = pack_entry.get('version')
+if not pack_entry:
+    print('not-installed')
+    sys.exit(0)
+if not installed_version:
+    print('unknown')
+    sys.exit(0)
+
+def parse_semver(version: str):
+    parts = version.split('.')
+    if len(parts) < 3:
+        return None
+    values = []
+    for part in parts[:3]:
+        if not part.isdigit():
+            return None
+        values.append(int(part))
+    return values
+
+installed_parts = parse_semver(installed_version)
+source_parts = parse_semver(source_version)
+if installed_parts is None or source_parts is None:
+    print('unknown')
+elif installed_parts == source_parts:
+    print('same')
+elif installed_parts < source_parts:
+    print('newer')
+else:
+    print('unknown')
+PY
+}
+
 # --- Pack alias registry ---
 declare -A ALIASES=(
     [course]="opencode-course-skills-pack"
@@ -149,6 +256,7 @@ declare -A ALIASES=(
     [ppt]="opencode-ppt-skills"
     [init]="project-initializer-skill"
     [trust]="trustskills-governance-pack"
+    [calibrate]="anti-sycophancy-calibration-pack"
 )
 
 # --- Defaults ---
@@ -596,6 +704,33 @@ install_for_platform() {
         echo "  Installing pack: $pack_name"
 
         local pack_root="$PACKS_DIR/$pack_name"
+        local manifest_file="$pack_root/pack-manifest.json"
+        local target_registry=""
+        if [[ -n "$registry_dir" ]]; then
+            target_registry="$TARGET/$registry_dir"
+        fi
+
+        if ! $FORCE; then
+            local version_status
+            version_status="$(check_pack_version "$target_registry" "$pack_name" "$manifest_file")"
+            case "$version_status" in
+                same)
+                    local installed_version
+                    installed_version="$(read_installed_pack_version "$target_registry" "$pack_name")"
+                    echo "  ✓ $pack_name v$installed_version is current. Use -Force/-force to reinstall." >&2
+                    ((skipped++)) || true
+                    continue
+                    ;;
+                newer)
+                    local installed_version source_version
+                    installed_version="$(read_installed_pack_version "$target_registry" "$pack_name")"
+                    source_version="$(read_manifest_pack_version "$manifest_file")"
+                    echo "  ⬆ UPDATE: $pack_name v$installed_version → v$source_version (use -Force/--force to upgrade)" >&2
+                    ((skipped++)) || true
+                    continue
+                    ;;
+            esac
+        fi
 
         # --- Merge AGENTS.md ---
         if [[ -f "$pack_root/AGENTS.md" ]]; then
@@ -721,9 +856,8 @@ install_for_platform() {
         fi
 
         # --- Update installed-packs registry ---
-        if [[ -n "$registry_dir" ]]; then
-            local target_registry="$TARGET/$registry_dir"
-            update_installed_packs "$target_registry" "$pack_name" "$pack_root/pack-manifest.json"
+        if [[ -n "$target_registry" ]]; then
+            update_installed_packs "$target_registry" "$pack_name" "$manifest_file"
             echo "    + $registry_dir/installed-packs.json (registry updated)"
         fi
     done
@@ -753,11 +887,14 @@ install_global_for_platform() {
     global_skills_dir="$(expand_home_path "$(get_platform_field "$platform_name" "global.skills_dir")")"
     local global_commands_dir
     global_commands_dir="$(expand_home_path "$(get_platform_field "$platform_name" "global.commands_dir")")"
+    local global_registry_dir=""
 
     if [[ -z "$global_skills_dir" ]]; then
         echo "WARN: $platform_name does not support global skill installation. Skipping."
         return
     fi
+
+    global_registry_dir="$(get_platform_registry_dir "$global_skills_dir")"
 
     echo ""
     echo "[$platform_name] Global install -> $global_skills_dir"
@@ -766,7 +903,7 @@ install_global_for_platform() {
     else
         echo "  Global commands dir: <not supported>"
     fi
-    echo "  Skills only; skipping AGENTS.md, opencode.json, and registry."
+    echo "  Skills only; skipping AGENTS.md and opencode.json."
 
     local installed=0
     local skipped=0
@@ -775,6 +912,8 @@ install_global_for_platform() {
 
     for pack_name in "${packs[@]}"; do
         local pack_opencode="$PACKS_DIR/$pack_name/.opencode"
+        local pack_root="$PACKS_DIR/$pack_name"
+        local manifest_file="$pack_root/pack-manifest.json"
         local src_skills="$pack_opencode/skills"
 
         if [[ ! -d "$src_skills" ]]; then
@@ -784,6 +923,28 @@ install_global_for_platform() {
 
         echo ""
         echo "  Installing pack globally: $pack_name"
+
+        if ! $FORCE; then
+            local version_status
+            version_status="$(check_pack_version "$global_registry_dir" "$pack_name" "$manifest_file")"
+            case "$version_status" in
+                same)
+                    local installed_version
+                    installed_version="$(read_installed_pack_version "$global_registry_dir" "$pack_name")"
+                    echo "  ✓ $pack_name v$installed_version is current. Use -Force/-force to reinstall." >&2
+                    ((skipped++)) || true
+                    continue
+                    ;;
+                newer)
+                    local installed_version source_version
+                    installed_version="$(read_installed_pack_version "$global_registry_dir" "$pack_name")"
+                    source_version="$(read_manifest_pack_version "$manifest_file")"
+                    echo "  ⬆ UPDATE: $pack_name v$installed_version → v$source_version (use -Force/--force to upgrade)" >&2
+                    ((skipped++)) || true
+                    continue
+                    ;;
+            esac
+        fi
 
         for item in "$src_skills"/*/; do
             [[ -d "$item" ]] || continue
@@ -826,6 +987,11 @@ install_global_for_platform() {
                 echo "    + commands/$item_name"
                 ((installed++)) || true
             done
+        fi
+
+        if [[ -n "$global_registry_dir" ]]; then
+            update_installed_packs "$global_registry_dir" "$pack_name" "$manifest_file"
+            echo "    + $global_registry_dir/installed-packs.json (registry updated)"
         fi
     done
 

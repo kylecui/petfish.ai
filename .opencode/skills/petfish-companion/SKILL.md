@@ -48,6 +48,7 @@ metadata:
 | 测试用例、test case、覆盖率 | opencode-skill-pack-testcases-usage-docs | testdocs |
 | 文档、README、使用说明、API文档 | opencode-skill-pack-testcases-usage-docs | testdocs |
 | 说人话、润色、去AI味、风格、改写 | petfish-style-skill | petfish |
+| 评审、评价、批判、review、critique、校准、迎合 | anti-sycophancy-calibration-pack | calibrate |
 | 创建skill、新建技能、generate skill | skill-author (内置) | — |
 | 检查skill质量、lint、验证skill | skill-lint (内置) | — |
 | 搜索skill、找MCP、marketplace | marketplace-connector (内置) | — |
@@ -63,6 +64,7 @@ metadata:
 1. 读取项目根目录下的`installed-packs.json`（位于`.opencode/`、`.claude/`、`.agents/`等平台目录中）
 2. 比对用户需求与已安装pack列表
 3. 如果缺少对应pack，进入**推荐流程**
+4. 如果pack已安装但版本低于最新release，进入**升级提示流程**
 
 ### 2.3 推荐流程
 
@@ -72,6 +74,22 @@ metadata:
 胖鱼: "你的需求涉及[领域]，但[pack名]尚未安装。要我现在安装吗？
       安装后即可使用，无需重启。"
 ```
+
+### 2.4 升级提示流程
+
+当检测到已安装pack版本低于最新版时：
+
+```
+胖鱼: "[pack名]有新版本可用（v0.1.0 → v0.2.0）。要升级吗？
+      升级命令：重新运行安装命令并加 --force 参数。"
+```
+
+**规则：**
+- 每次会话最多主动推荐**1次**同一个pack的升级（避免打扰）
+- 升级检测依赖`installed-packs.json`中的`version`字段与远端`pack-manifest.json`的版本对比
+- 用户拒绝后，本次会话不再提示该pack的升级
+
+### 2.5 推荐与升级通用规则
 
 **规则：**
 - 每次会话最多主动推荐**1次**同一个pack（避免打扰）

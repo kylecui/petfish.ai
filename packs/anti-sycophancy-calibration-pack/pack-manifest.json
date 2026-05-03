@@ -1,0 +1,19 @@
+{
+  "name": "anti-sycophancy-calibration-pack",
+  "version": "0.1.0",
+  "description": "反迎合决策校准 — 在评审、方案设计、代码审查等判断型任务中降低AI迎合倾向，通过中性化提问、评分卡、替代方案比较和置信度分离提升判断质量",
+  "compatibility": "opencode",
+  "skill_count": 1,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": ["anti-sycophancy-calibration"],
+  "commands": [],
+  "agents": [],
+  "contents": [
+    "AGENTS.md",
+    ".opencode/skills/anti-sycophancy-calibration/SKILL.md",
+    ".opencode/skills/anti-sycophancy-calibration/references/rubrics.md",
+    ".opencode/skills/anti-sycophancy-calibration/references/prompt-patterns.md",
+    ".opencode/skills/anti-sycophancy-calibration/evals/evals.json"
+  ]
+}

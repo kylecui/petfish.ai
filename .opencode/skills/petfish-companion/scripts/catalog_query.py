@@ -35,7 +35,8 @@ ALIAS_MAP = {
     "petfish": "petfish-style-skill",
     "ppt": "opencode-ppt-skills",
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
-    "trustskills": "trustskills",
+    "trust": "trustskills-governance-pack",
+    "calibrate": "anti-sycophancy-calibration-pack",
 }
 
 # Reverse map: pack name → alias
@@ -94,7 +95,7 @@ TRIGGERS = {
         "usage docs",
         "API docs",
     ],
-    "trustskills": [
+    "trust": [
         "skill trust",
         "skill安全",
         "治理",
@@ -104,6 +105,27 @@ TRIGGERS = {
         "risk score",
         "redline",
     ],
+    "calibrate": [
+        "评审",
+        "评价",
+        "批判",
+        "review",
+        "critique",
+        "feedback",
+        "judgment",
+        "decision",
+        "evaluation",
+        "校准",
+        "迎合",
+        "sycophancy",
+        "方案评估",
+        "可行性分析",
+        "code review",
+        "这个想法怎么样",
+        "你觉得呢",
+        "对吗",
+        "是不是",
+    ],
 }
 
 PROFILES = {
@@ -111,10 +133,10 @@ PROFILES = {
     "course": ["course", "petfish"],
     "code": ["deploy", "petfish", "testdocs"],
     "ops": ["deploy", "petfish"],
-    "security": ["deploy", "petfish", "testdocs", "trustskills"],
+    "security": ["deploy", "petfish", "testdocs", "trust"],
     "writing": ["petfish", "ppt"],
     "skills-package": ["petfish", "testdocs"],
-    "comprehensive": ["course", "deploy", "petfish", "ppt", "testdocs", "trustskills"],
+    "comprehensive": ["course", "deploy", "petfish", "ppt", "testdocs", "trust"],
 }
 
 
