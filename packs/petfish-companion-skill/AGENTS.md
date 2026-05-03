@@ -15,6 +15,7 @@
 | 测试用例/文档 | testdocs | `/petfish install testdocs` |
 | 写作风格/润色 | petfish | `/petfish install petfish` |
 | 评审/评价/批判/校准/反迎合 | calibrate | `/petfish install calibrate` |
+| 话题治理/上下文污染/topic管理 | context | `/petfish install context` |
 
 当用户需要创建新skill、搜索外部skill、或验证skill质量时，使用companion内置的skill-author、marketplace-connector、skill-lint。
 

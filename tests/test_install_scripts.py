@@ -108,7 +108,7 @@ def _extract_ps1_aliases(path: Path) -> set[str]:
             aliases.add(candidate.lower())
     # Also check $AllPacks or similar array definitions
     for m in re.finditer(
-        r'["\'](init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate)["\']',
+        r'["\'](init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate|context)["\']',
         content,
     ):
         aliases.add(m.group(1).lower())
@@ -124,13 +124,13 @@ def _extract_bash_aliases(path: Path) -> set[str]:
         aliases.add(m.group(1).lower())
     # Match quoted alias strings
     for m in re.finditer(
-        r'["\'](init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate)["\']',
+        r'["\'](init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate|context)["\']',
         content,
     ):
         aliases.add(m.group(1).lower())
     # Match case patterns: alias) or "alias")
     for m in re.finditer(
-        r"(?:^|\|)\s*(init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate)\s*\)",
+        r"(?:^|\|)\s*(init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate|context)\s*\)",
         content,
         re.MULTILINE,
     ):

@@ -37,6 +37,7 @@ ALIAS_MAP = {
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
     "trust": "trustskills-governance-pack",
     "calibrate": "anti-sycophancy-calibration-pack",
+    "context": "context-router-skill",
 }
 
 # Reverse map: pack name → alias
@@ -126,6 +127,20 @@ TRIGGERS = {
         "对吗",
         "是不是",
     ],
+    "context": [
+        "话题",
+        "上下文",
+        "topic",
+        "context",
+        "污染",
+        "继承",
+        "隔离",
+        "话题切换",
+        "话题治理",
+        "context package",
+        "topic detect",
+        "contamination",
+    ],
 }
 
 PROFILES = {
@@ -136,7 +151,15 @@ PROFILES = {
     "security": ["deploy", "petfish", "testdocs", "trust"],
     "writing": ["petfish", "ppt"],
     "skills-package": ["petfish", "testdocs"],
-    "comprehensive": ["course", "deploy", "petfish", "ppt", "testdocs", "trust"],
+    "comprehensive": [
+        "course",
+        "deploy",
+        "petfish",
+        "ppt",
+        "testdocs",
+        "trust",
+        "context",
+    ],
 }
 
 

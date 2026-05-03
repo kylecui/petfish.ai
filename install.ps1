@@ -91,6 +91,7 @@ $Aliases = @{
     "ppt"      = "opencode-ppt-skills"
     "trust"    = "trustskills-governance-pack"
     "calibrate" = "anti-sycophancy-calibration-pack"
+    "context"  = "context-router-skill"
 }
 
 # --- Platform path configuration ---
