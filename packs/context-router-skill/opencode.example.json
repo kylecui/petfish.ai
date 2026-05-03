@@ -1,0 +1,15 @@
+{
+  "mcp": {
+    "context-state": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "python", "-m", "mcp.context-state.server"],
+      "env": {}
+    }
+  },
+  "permission": {
+    "skill": {
+      "context-router": "allow"
+    }
+  }
+}
