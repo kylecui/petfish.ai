@@ -63,6 +63,7 @@ $Aliases = @{
     "ppt"       = "opencode-ppt-skills"
     "trust"     = "trustskills-governance-pack"
     "calibrate" = "anti-sycophancy-calibration-pack"
+    "context"   = "context-router-skill"
 }
 
 $AllPacks = @(
@@ -74,7 +75,8 @@ $AllPacks = @(
     "petfish-companion-skill",
     "opencode-ppt-skills",
     "trustskills-governance-pack",
-    "anti-sycophancy-calibration-pack"
+    "anti-sycophancy-calibration-pack",
+    "context-router-skill"
 )
 
 $PackDisplayOrder = @(
@@ -86,7 +88,8 @@ $PackDisplayOrder = @(
     @{ Name = "petfish-companion-skill"; Alias = "companion" },
     @{ Name = "opencode-ppt-skills"; Alias = "ppt" },
     @{ Name = "trustskills-governance-pack"; Alias = "trust" },
-    @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate" }
+    @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate" },
+    @{ Name = "context-router-skill"; Alias = "context" }
 )
 
 # --- Platform path configuration ---

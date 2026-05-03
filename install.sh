@@ -257,6 +257,7 @@ declare -A ALIASES=(
     [init]="project-initializer-skill"
     [trust]="trustskills-governance-pack"
     [calibrate]="anti-sycophancy-calibration-pack"
+    [context]="context-router-skill"
 )
 
 # --- Defaults ---
