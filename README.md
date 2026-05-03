@@ -171,6 +171,7 @@ When searching for skills, PEtFiSh follows this priority chain:
 | `deploy` | repo-deploy-ops-skill-pack | CI/CD, deploy, ops automation / 部署与运维 | Project / 项目级 |
 | `petfish` | petfish-style-skill | 说人话 — engineering writing style / 工程写作风格 | Project / 项目级 |
 | `ppt` | opencode-ppt-skills | Slide design & presentation / PPT设计与制作 | Project / 项目级 |
+| `calibrate` | anti-sycophancy-calibration-pack | 反迎合决策校准 — anti-sycophancy calibration for reviews / 评审校准 | Project / 项目级 |
 
 ### Profile → Auto-Install Mapping / 项目类型→自动安装映射
 
@@ -277,6 +278,39 @@ curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
 # Auto-detect platform and install / 自动检测平台并安装
 ./install.sh --pack course --detect --target ~/my-project
 ```
+
+---
+
+## Upgrade / 升级
+
+Already have PEtFiSh installed? Re-run the same install command with `--force` to upgrade to the latest version. The installer automatically detects outdated packs and shows available updates.
+
+已经安装了胖鱼？重新运行安装命令并加上`--force`即可升级到最新版本。安装器会自动检测过时的pack并提示可用更新。
+
+```powershell
+# PowerShell — upgrade all packs / 升级全部pack
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack all -Force
+```
+
+```bash
+# Bash — upgrade all packs / 升级全部pack
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack all --force
+```
+
+```bash
+# Upgrade a single pack / 升级单个pack
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack companion --force
+```
+
+**What happens without `--force` / 不加`--force`时的行为：**
+
+- If a pack is already installed and up to date → skipped with `✓ pack is current` message
+- If a newer version is available → shows `⬆ UPDATE: pack v0.1.0 → v0.2.0 (use --force to upgrade)`
+- New packs that aren't installed yet → installed normally
+
+- 已安装且版本相同 → 跳过，显示`✓ pack is current`
+- 有新版本可用 → 显示`⬆ UPDATE: pack v0.1.0 → v0.2.0 (use --force to upgrade)`
+- 尚未安装的新pack → 正常安装
 
 ---
 

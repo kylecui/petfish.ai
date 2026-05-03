@@ -604,6 +604,33 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
       安装脚本自动获取<strong>最新稳定release版本</strong>，无需手动指定版本号。<br/>
       装完后，在你的AI工具里输入 <code>/initproject</code> — 胖鱼询问项目类型，自动安装匹配的Skill Pack，完成配置向导。
     </div>
+
+    <h3 style="margin-top:2.5rem;">已安装？升级也是一条命令</h3>
+    <p class="section-sub">重新运行安装命令并加上 <code>--force</code> 即可升级。安装器自动检测版本差异，提示可用更新。</p>
+
+    <div class="install-block">
+      <p class="install-label">▸ macOS / Linux / WSL</p>
+      <div class="code-wrap">
+        <pre><span class="comment"># 升级全部已安装的pack</span>
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh \
+  | bash -s -- --pack all --force</pre>
+        <button class="copy-btn" onclick="copyCode(this, 'curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack all --force')">copy</button>
+      </div>
+    </div>
+
+    <div class="install-block">
+      <p class="install-label">▸ Windows PowerShell</p>
+      <div class="code-wrap">
+        <pre><span class="comment"># 升级全部已安装的pack</span>
+&amp; ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack all -Force</pre>
+        <button class="copy-btn" onclick="copyCode(this, '& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack all -Force')">copy</button>
+      </div>
+    </div>
+
+    <div class="install-note">
+      不加 <code>--force</code> 时，安装器只显示版本差异提示，不会覆盖已有文件。
+    </div>
+
   </div>
 </section>
 

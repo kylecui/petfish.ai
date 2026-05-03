@@ -90,6 +90,7 @@ $Aliases = @{
     "companion" = "petfish-companion-skill"
     "ppt"      = "opencode-ppt-skills"
     "trust"    = "trustskills-governance-pack"
+    "calibrate" = "anti-sycophancy-calibration-pack"
 }
 
 # --- Platform path configuration ---
@@ -291,6 +292,81 @@ function Update-InstalledPacks([string]$registryDir, [string]$packName, [string]
     $reg | ConvertTo-Json -Depth 10 | Set-Content $regFile -Encoding UTF8
 }
 
+function Compare-PackVersion([string]$registryDir, [string]$packName, [string]$manifestFile) {
+    $script:ComparePackVersionInstalledVersion = $null
+    $script:ComparePackVersionSourceVersion = $null
+
+    if ([string]::IsNullOrWhiteSpace($registryDir) -or -not (Test-Path $manifestFile)) {
+        return "unknown"
+    }
+
+    try {
+        $manifest = Get-Content $manifestFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+    catch {
+        return "unknown"
+    }
+
+    $sourceVersion = if ($manifest.PSObject.Properties['version']) { "$($manifest.version)" } else { $null }
+    if ([string]::IsNullOrWhiteSpace($sourceVersion)) {
+        return "unknown"
+    }
+    $script:ComparePackVersionSourceVersion = $sourceVersion
+
+    $regFile = Join-Path $registryDir "installed-packs.json"
+    if (-not (Test-Path $regFile)) {
+        return "not-installed"
+    }
+
+    try {
+        $registry = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    }
+    catch {
+        return "unknown"
+    }
+
+    if (-not $registry.PSObject.Properties['packs']) {
+        return "not-installed"
+    }
+
+    $packEntryProp = $registry.packs.PSObject.Properties[$packName]
+    if (-not $packEntryProp) {
+        return "not-installed"
+    }
+
+    $packEntry = $packEntryProp.Value
+    $installedVersion = if ($packEntry.PSObject.Properties['version']) { "$($packEntry.version)" } else { $null }
+    if ([string]::IsNullOrWhiteSpace($installedVersion)) {
+        return "unknown"
+    }
+    $script:ComparePackVersionInstalledVersion = $installedVersion
+
+    $sourceParts = $sourceVersion -split '\.'
+    $installedParts = $installedVersion -split '\.'
+    if ($sourceParts.Count -lt 3 -or $installedParts.Count -lt 3) {
+        return "unknown"
+    }
+
+    foreach ($index in 0..2) {
+        if ($sourceParts[$index] -notmatch '^\d+$' -or $installedParts[$index] -notmatch '^\d+$') {
+            return "unknown"
+        }
+
+        $installedPart = [int]$installedParts[$index]
+        $sourcePart = [int]$sourceParts[$index]
+
+        if ($installedPart -lt $sourcePart) {
+            return "newer"
+        }
+
+        if ($installedPart -gt $sourcePart) {
+            return "unknown"
+        }
+    }
+
+    return "same"
+}
+
 function Update-TranslatedInstructions([string]$sourceFile, [string]$destinationFile, [string]$platformName) {
     $cfg = Get-PlatformConfig $platformName
     $translation = $cfg.InstructionsTranslation
@@ -419,6 +495,25 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         Write-Host "`n  Installing pack: $packName" -ForegroundColor Green
 
         $packRoot = Join-Path $PacksDir $packName
+        $manifestFile = Join-Path $packRoot "pack-manifest.json"
+
+        if (-not $ForceInstall) {
+            $versionState = Compare-PackVersion $targetRegistry $packName $manifestFile
+            $skipPack = $false
+            switch ($versionState) {
+                "same" {
+                    Write-Warning "  ✓ $packName v$($script:ComparePackVersionInstalledVersion) is current. Use -Force/-force to reinstall."
+                    $script:skipped++
+                    $skipPack = $true
+                }
+                "newer" {
+                    Write-Warning "  ⬆ UPDATE: $packName v$($script:ComparePackVersionInstalledVersion) → v$($script:ComparePackVersionSourceVersion) (use -Force/--force to upgrade)"
+                    $script:skipped++
+                    $skipPack = $true
+                }
+            }
+            if ($skipPack) { continue }
+        }
 
         # --- Merge AGENTS.md ---
         $agentsMd = Join-Path $packRoot "AGENTS.md"
@@ -488,7 +583,6 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         }
 
         # --- Update installed-packs registry ---
-        $manifestFile = Join-Path $packRoot "pack-manifest.json"
         Update-InstalledPacks $targetRegistry $packName $manifestFile
         Write-Host "    + $($cfg.RegistryDir)/installed-packs.json (registry updated)" -ForegroundColor DarkGreen
 
@@ -559,6 +653,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
 function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [switch]$ForceInstall) {
     $cfg = Get-GlobalPlatformConfig $platformName
     $targetSkills = $cfg.SkillsDir
+    $targetRegistry = $cfg.RegistryDir
 
     if (-not $targetSkills) {
         Write-Warning "$platformName does not support global skill installation. Skipping."
@@ -584,6 +679,27 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
         }
 
         Write-Host "`n  Installing pack: $packName" -ForegroundColor Green
+
+        $packRoot = Join-Path $PacksDir $packName
+        $manifestFile = Join-Path $packRoot "pack-manifest.json"
+
+        if (-not $ForceInstall) {
+            $versionState = Compare-PackVersion $targetRegistry $packName $manifestFile
+            $skipPack = $false
+            switch ($versionState) {
+                "same" {
+                    Write-Warning "  ✓ $packName v$($script:ComparePackVersionInstalledVersion) is current. Use -Force/-force to reinstall."
+                    $script:skipped++
+                    $skipPack = $true
+                }
+                "newer" {
+                    Write-Warning "  ⬆ UPDATE: $packName v$($script:ComparePackVersionInstalledVersion) → v$($script:ComparePackVersionSourceVersion) (use -Force/--force to upgrade)"
+                    $script:skipped++
+                    $skipPack = $true
+                }
+            }
+            if ($skipPack) { continue }
+        }
 
         $srcSkills = Join-Path $packOpencode "skills"
         if (-not (Test-Path $srcSkills)) {
@@ -627,6 +743,11 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
                 Write-Host "    + commands/$($item.Name)" -ForegroundColor DarkGreen
                 $script:installed++
             }
+        }
+
+        if ($targetRegistry) {
+            Update-InstalledPacks $targetRegistry $packName $manifestFile
+            Write-Host "    + $($cfg.RegistryDir)/installed-packs.json (registry updated)" -ForegroundColor DarkGreen
         }
     }
 
