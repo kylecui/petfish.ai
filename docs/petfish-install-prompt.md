@@ -28,12 +28,12 @@ Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/SKILL_bu
 
 **Bash (macOS/Linux/WSL):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion --detect
 ```
 
 **PowerShell (Windows):**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init -Detect
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion -Detect
 ```
 
 装完后输入`/initproject`，胖鱼会引导你选择项目类型并自动安装匹配的skill pack。
@@ -52,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
 
 - 安装脚本会**自动获取最新稳定release版本**（当前v0.2.0），无需手动指定版本号
 - `--detect` 自动检测当前AI平台，将skill安装到正确路径
-- `--pack init` 安装初始化器，后续通过`/initproject`按需装其他pack
+- `--pack init,companion` 一次安装初始化器和`/petfish`伙伴命令，后续通过`/initproject`按需装其他pack
 - 如需指定平台：`--platform cursor` / `--platform claude` / `--platform copilot` 等
 - 如需指定版本：`--branch v0.2.0`（bash）或 `-Branch v0.2.0`（PowerShell）
 

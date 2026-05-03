@@ -191,10 +191,10 @@ uv run .opencode/skills/quality-gate/scripts/run_gate.py --path .opencode/skills
   <h2>怎么用</h2>
   <p><strong>30 秒上手：</strong></p>
   <pre><code># macOS / Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion
 
 # Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init</code></pre>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion</code></pre>
   <p>装完后输入 <code>/initproject</code>，胖鱼会问你项目类型，然后自动装上匹配的 skill pack。</p>
   <p><em>安装脚本自动获取最新稳定release版本，无需手动指定版本号。</em></p>
 
@@ -263,7 +263,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
   <h2>链接</h2>
   <ul>
     <li><strong>GitHub</strong>: <a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">github.com/kylecui/SKILL_builder</a></li>
-    <li><strong>安装</strong>: <code>curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init</code></li>
+    <li><strong>安装</strong>: <code>curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion</code></li>
     <li><strong>License</strong>: 开源</li>
   </ul>
   <p>欢迎 Star ⭐，更欢迎 PR。</p>

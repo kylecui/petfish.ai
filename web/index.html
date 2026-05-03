@@ -589,19 +589,19 @@
     <div class="install-block">
       <p class="install-label">▸ macOS / Linux / WSL</p>
       <div class="code-wrap">
-        <pre><span class="comment"># 安装 init pack（推荐起点）</span>
+        <pre><span class="comment"># 安装 init + companion packs（推荐起点）</span>
 curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh \
-  | bash -s -- --pack init --detect</pre>
-        <button class="copy-btn" onclick="copyCode(this, 'curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init --detect')">copy</button>
+  | bash -s -- --pack init,companion --detect</pre>
+        <button class="copy-btn" onclick="copyCode(this, 'curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion --detect')">copy</button>
       </div>
     </div>
 
     <div class="install-block">
       <p class="install-label">▸ Windows PowerShell</p>
       <div class="code-wrap">
-        <pre><span class="comment"># 安装 init pack（推荐起点）</span>
-&amp; ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init -Detect</pre>
-        <button class="copy-btn" onclick="copyCode(this, '& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init -Detect')">copy</button>
+        <pre><span class="comment"># 安装 init + companion packs（推荐起点）</span>
+&amp; ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion -Detect</pre>
+        <button class="copy-btn" onclick="copyCode(this, '& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion -Detect')">copy</button>
       </div>
     </div>
 

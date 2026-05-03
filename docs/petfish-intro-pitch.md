@@ -102,12 +102,12 @@ lint按error(-10)、warn(-5)、info(-1)从100分往下扣。security audit按fin
 
 ```bash
 # macOS / Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion
 ```
 
 ```powershell
 # Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion
 ```
 
 > 安装脚本自动获取最新稳定release版本，无需手动指定版本号。

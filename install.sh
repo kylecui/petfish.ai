@@ -1017,13 +1017,22 @@ if [[ -z "$PACK" ]]; then
 fi
 
 # --- Resolve packs ---
+INSTALLS_INIT=false
 if [[ "$PACK" == "all" ]]; then
     mapfile -t PACKS < <(get_all_packs)
 else
-    PACKS=("$(resolve_pack "$PACK")")
+    IFS=',' read -ra _PACK_ITEMS <<< "$PACK"
+    PACKS=()
+    for _item in "${_PACK_ITEMS[@]}"; do
+        _item="$(echo "$_item" | xargs)"
+        if [[ "$_item" == "init" || "$_item" == "project-initializer-skill" ]]; then
+            INSTALLS_INIT=true
+        fi
+        PACKS+=("$(resolve_pack "$_item")")
+    done
 fi
 
-if [[ "$PACK" == "init" || "$PACK" == "project-initializer-skill" ]] && ! $GLOBAL && ! $TARGET_EXPLICIT && [[ "$TARGET" == "." ]]; then
+if $INSTALLS_INIT && ! $GLOBAL && ! $TARGET_EXPLICIT && [[ "$TARGET" == "." ]]; then
     GLOBAL=true
     echo "  [info] init pack defaults to global install. Use --target to install locally."
 fi
