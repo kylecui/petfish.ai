@@ -3,8 +3,9 @@
     "context-state": {
       "type": "stdio",
       "command": "uv",
-      "args": ["run", "python", "-m", "mcp.context-state.server"],
-      "env": {}
+      "args": ["run", "python", "${SKILL_DIR}/mcp/context-state/server.py"],
+      "env": {},
+      "cwd": "${PROJECT_DIR}"
     }
   },
   "permission": {
