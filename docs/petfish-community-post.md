@@ -84,7 +84,7 @@ uv run .opencode/skills/quality-gate/scripts/run_gate.py --path .opencode/skills
 curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion
 
 # Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack "init,companion"
 ```
 
 > 安装脚本自动获取最新稳定release版本，无需手动指定版本号。

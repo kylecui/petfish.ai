@@ -61,6 +61,29 @@ AI_FLAVOR_PATTERNS = [
     "全链路闭环",
 ]
 
+EN_AI_HIGH_FREQ_WORDS = [
+    "delve",
+    "nuanced",
+    "robust",
+    "seamless",
+    "leverage",
+    "transformative",
+    "foster",
+    "encompass",
+    "utilize",
+    "multifaceted",
+    "holistic",
+    "synergy",
+    "paradigm",
+    "empower",
+    "harness",
+    "pivotal",
+    "cutting-edge",
+    "game-changer",
+    "revolutionize",
+    "unlock",
+]
+
 LOGICAL_CONNECTORS = [
     # V3 connectors
     "因此",
@@ -77,6 +100,8 @@ LOGICAL_CONNECTORS = [
     "From this perspective",
 ]
 
+_LAST_EXTRA_ISSUES: dict[str, list[str]] = {}
+
 
 def split_sentences(text: str) -> list[str]:
     parts = re.split(r"(?<=[。！？.!?])\s*", text)
@@ -86,7 +111,20 @@ def split_sentences(text: str) -> list[str]:
 def _is_code_or_heading(line: str) -> bool:
     """Return True for lines that should be skipped in spacing checks."""
     stripped = line.strip()
-    return stripped.startswith("```") or stripped.startswith("    ")
+    return stripped.startswith("```") or line.startswith("    ")
+
+
+def _iter_non_code_lines(text: str):
+    in_code_block = False
+
+    for line in text.split("\n"):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+        yield line
 
 
 def find_zh_en_spacing_issues(text: str) -> list[str]:
@@ -133,12 +171,76 @@ def find_slash_spacing_issues(text: str) -> list[str]:
     return sorted(set(issues))[:20]
 
 
+def find_en_ai_words(text: str) -> list[str]:
+    found: list[str] = []
+
+    for word in EN_AI_HIGH_FREQ_WORDS:
+        pattern = re.compile(
+            rf"(?<![A-Za-z0-9_]){re.escape(word)}(?![A-Za-z0-9_])",
+            re.IGNORECASE,
+        )
+        if any(pattern.search(line) for line in _iter_non_code_lines(text)):
+            found.append(word)
+
+    return found
+
+
+def find_dash_abuse(text: str) -> list[str]:
+    issues: list[str] = []
+
+    for line in _iter_non_code_lines(text):
+        if "——" in line:
+            issues.append(line.strip())
+
+    return issues
+
+
+def find_triplet_patterns(text: str) -> list[str]:
+    issues: list[str] = []
+    pattern = re.compile(r"[\u4e00-\u9fff]+、[\u4e00-\u9fff]+[、和与][\u4e00-\u9fff]+")
+
+    for line in _iter_non_code_lines(text):
+        stripped = line.lstrip()
+        if stripped.startswith("|") or stripped.startswith("-"):
+            continue
+        issues.extend(pattern.findall(line))
+
+    return issues
+
+
+def find_empty_contrast(text: str) -> list[str]:
+    issues: list[str] = []
+    patterns = [
+        re.compile(r"不是[^。！？.!?\n]{0,80}?而是[^。！？.!?\n]{0,80}"),
+        re.compile(r"不仅是[^。！？.!?\n]{0,80}?更是[^。！？.!?\n]{0,80}"),
+        re.compile(r"不仅[^。！？.!?\n]{0,80}?而且[^。！？.!?\n]{0,80}"),
+        re.compile(
+            r"\bnot\s+just\b[^.!?\n]{0,80}?\bbut\b[^.!?\n]{0,80}", re.IGNORECASE
+        ),
+        re.compile(
+            r"\bnot\s+merely\b[^.!?\n]{0,80}?\bbut\b[^.!?\n]{0,80}", re.IGNORECASE
+        ),
+    ]
+
+    for line in _iter_non_code_lines(text):
+        for pattern in patterns:
+            issues.extend(match.group(0) for match in pattern.finditer(line))
+
+    return issues
+
+
 def check(text: str) -> dict:
+    global _LAST_EXTRA_ISSUES
+
     sentences = split_sentences(text)
     long_sentences = [s for s in sentences if len(s) > 80]
     ai_terms = [p for p in AI_FLAVOR_PATTERNS if p in text]
     spacing_issues = find_zh_en_spacing_issues(text)
     slash_issues = find_slash_spacing_issues(text)
+    en_ai_words = find_en_ai_words(text)
+    dash_abuse = find_dash_abuse(text)
+    triplet_patterns = find_triplet_patterns(text)
+    empty_contrast = find_empty_contrast(text)
 
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
     has_closure = False
@@ -162,14 +264,25 @@ def check(text: str) -> dict:
 
     score = 100
     score -= min(len(ai_terms) * 8, 32)
+    score -= min(len(en_ai_words) * 6, 24)
     score -= min(len(long_sentences) * 5, 25)
     score -= min(len(spacing_issues) * 4, 24)
     score -= min(len(slash_issues) * 4, 16)
+    score -= min(len(dash_abuse) * 3, 15)
+    score -= min(len(triplet_patterns) * 4, 16)
+    score -= min(len(empty_contrast) * 5, 15)
     if connector_count == 0 and len(sentences) >= 3:
         score -= 10
     if not has_closure and len(paragraphs) >= 2:
         score -= 10
     score = max(score, 0)
+
+    _LAST_EXTRA_ISSUES = {
+        "en_ai_high_freq_words": en_ai_words,
+        "dash_abuse": dash_abuse,
+        "triplet_patterns": triplet_patterns,
+        "empty_contrast": empty_contrast,
+    }
 
     return {
         "score": score,
@@ -181,9 +294,13 @@ def check(text: str) -> dict:
         },
         "issues": {
             "ai_flavor_terms": ai_terms,
+            "en_ai_high_freq_words": en_ai_words,
             "long_sentences": long_sentences[:10],
             "zh_en_spacing_issues": spacing_issues,
             "slash_spacing_issues": slash_issues,
+            "dash_abuse": dash_abuse,
+            "triplet_patterns": triplet_patterns,
+            "empty_contrast": empty_contrast,
         },
         "recommendations": build_recommendations(
             ai_terms,
@@ -200,9 +317,18 @@ def build_recommendations(
     ai_terms, long_sentences, spacing_issues, slash_issues, connector_count, has_closure
 ):
     recs = []
+    en_ai_words = _LAST_EXTRA_ISSUES.get("en_ai_high_freq_words", [])
+    dash_abuse = _LAST_EXTRA_ISSUES.get("dash_abuse", [])
+    triplet_patterns = _LAST_EXTRA_ISSUES.get("triplet_patterns", [])
+    empty_contrast = _LAST_EXTRA_ISSUES.get("empty_contrast", [])
+
     if ai_terms:
         recs.append(
             "Remove rhetorical or slogan-like expressions and replace them with concrete technical claims."
+        )
+    if en_ai_words:
+        recs.append(
+            "Replace AI-frequent English words (delve, nuanced, robust, etc.) with specific technical terms or concrete descriptions."
         )
     if long_sentences:
         recs.append(
@@ -215,6 +341,18 @@ def build_recommendations(
     if slash_issues:
         recs.append(
             "Remove spaces around slashes in slash-separated English terms adjacent to Chinese, for example API/CLI/SDK instead of API / CLI / SDK."
+        )
+    if dash_abuse:
+        recs.append(
+            "Review em-dash (——) usage. Replace with commas, periods, or colons where the dash adds no meaningful pause or contrast."
+        )
+    if triplet_patterns:
+        recs.append(
+            "Check triplet parallel structures (A、B和C). Keep only when all three items carry distinct, concrete meaning."
+        )
+    if empty_contrast:
+        recs.append(
+            "Review 'not X but Y' structures. Remove or rewrite if the Y-part lacks specific mechanism, object, or outcome."
         )
     if connector_count == 0:
         recs.append(

@@ -3,7 +3,7 @@ name: petfish-style-rewriter
 description: Use this skill when the user asks to rewrite, polish, humanize, simplify, de-AI, formalize, or express content in Petfish's writing style. It rewrites Chinese or English technical, academic, business, course, proposal, patent, and email content into a clear, structured, concise, evidence-based, engineering-oriented style. Trigger especially for phrases such as "用我的语言习惯表达", "说人话", "润色", "去AI味", "按我的风格写", or "make it sound human but still professional".
 compatibility: opencode
 metadata:
-  version: "3.0.0"
+  version: "4.0.0"
   owner: "Petfish"
   default_mode: "strict"
 ---
@@ -252,6 +252,19 @@ Avoid the following:
 
 Read `references/anti-patterns.md` if the source text is highly AI-like or slogan-heavy.
 
+## AI腔风险检查
+
+在完成初稿后，必须检查以下四类AI腔痕迹。详细规则、改写示例和保留条件见 `references/ai-slop-detector.md`。
+
+1. **破折号滥用**：能用逗号、句号、冒号表达的，不用破折号
+2. **英文AI高频词**：delve, nuanced, robust, seamless, leverage, transformative等词需替换为具体表达
+3. **三人组排比**：空泛并列项必须改写；有信息增量的结构化并列可保留
+4. **空洞not X but Y**：后半句没有具体机制、对象、结果时删掉
+
+### 说人话评分卡
+
+每段完成后自评（5分制）：信息密度、句子自然度、结构必要性、术语克制、风格一致性。低于4分必须改写。详见 `references/ai-slop-detector.md`。
+
 ## Chinese Writing Profile
 
 Chinese output should be formal but readable.
@@ -333,6 +346,7 @@ Use these files only when needed:
 
 - `references/style-guide.md`: detailed writing principles and patterns.
 - `references/anti-patterns.md`: phrases and structures to avoid.
+- `references/ai-slop-detector.md`: AI腔四类特征检测、改写动作表、保留条件和说人话评分卡.
 - `references/templates.md`: reusable output templates for papers, reports, proposals, emails, and course materials.
 - `references/formatting-rules.md`: detailed Chinese-English spacing rules and examples.
 

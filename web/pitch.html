@@ -252,7 +252,7 @@
   <pre><code># macOS / Linux / WSL
 curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion</code></pre>
   <pre><code># Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion</code></pre>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack "init,companion"</code></pre>
   <p>装完输入 <code>/initproject</code>。胖鱼问你项目类型，自动装上匹配的 skill pack。</p>
   <p><em>安装脚本自动获取最新稳定release版本，无需手动指定版本号。</em></p>
 
