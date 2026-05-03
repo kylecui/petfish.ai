@@ -57,6 +57,8 @@ If user chooses **custom**, show available packs:
 - `testdocs` — Test cases & documentation (2 skills)
 - `petfish` — Engineering writing style (1 skill)
 - `ppt` — Presentation design (2 skills)
+- `calibrate` — Anti-sycophancy calibration for reviews (1 skill)
+- `context` — Topic governance and context isolation (1 skill)
 - `trust` — Skill trust governance engine (1 skill)
 
 Ask which packs they want.
@@ -65,35 +67,23 @@ Ask which packs they want.
 
 ## Step 3: Install
 
-### 3a: Install the initializer first
+### 3a: Install init + companion together
 
 **Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion --detect
 ```
 
 **PowerShell:**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init -Detect
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion -Detect
 ```
 
 Run this command and verify it succeeds.
 
 > **Note**: The install script automatically downloads from the **latest stable release** (currently v0.2.0). No need to specify a version — you always get the latest verified build.
 
-### 3b: Install the companion (always recommended)
-
-**Bash:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack companion --detect
-```
-
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack companion -Detect
-```
-
-### 3c: Install the packs based on the user's choice from Step 2
+### 3b: Install the packs based on the user's choice from Step 2
 
 For each pack the user selected, run:
 

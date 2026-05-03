@@ -81,10 +81,10 @@ uv run .opencode/skills/quality-gate/scripts/run_gate.py --path .opencode/skills
 
 ```bash
 # macOS / Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion
 
 # Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack init,companion
 ```
 
 > 安装脚本自动获取最新稳定release版本，无需手动指定版本号。
@@ -155,7 +155,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
 ## 链接
 
 - **GitHub**: https://github.com/kylecui/SKILL_builder
-- **安装**: `curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init`
+- **安装**: `curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion`
 - **License**: 开源
 
 欢迎 Star ⭐，更欢迎 PR。

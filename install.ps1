@@ -775,10 +775,11 @@ if (-not $Pack) {
 $packsToInstall = if ($Pack -eq "all") {
     Get-AllPacks
 } else {
-    @(Get-PackFullName $Pack)
+    $Pack -split ',' | ForEach-Object { Get-PackFullName $_.Trim() }
 }
 
-if (($Pack -eq "init" -or $Pack -eq "project-initializer-skill") -and -not $GlobalExplicitlyPassed -and -not $TargetExplicitlyPassed) {
+$packItems = ($Pack -split ',') | ForEach-Object { $_.Trim() }
+if (($packItems -contains "init" -or $packItems -contains "project-initializer-skill") -and -not $GlobalExplicitlyPassed -and -not $TargetExplicitlyPassed) {
     $Global = $true
     Write-Host "  [info] init pack defaults to global install. Use -Target to install locally." -ForegroundColor DarkCyan
 }
