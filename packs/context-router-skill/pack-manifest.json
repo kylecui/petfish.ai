@@ -21,11 +21,10 @@
     ".opencode/skills/context-router/references/context-package-spec.md",
     ".opencode/skills/context-router/assets/topic-entry.template.json",
     ".opencode/skills/context-router/assets/context-package.template.md",
-    "mcp/context-state/server.py",
-    "mcp/context-state/topic_store.py",
-    "mcp/context-state/topic_detector.py",
-    "mcp/context-state/contamination_scorer.py",
-    "mcp/context-state/context_builder.py",
-    "mcp/context-state/__init__.py"
-  ]
+    ".opencode/skills/context-router/mcp/context-state/server.py",
+    ".opencode/skills/context-router/mcp/context-state/topic_store.py",
+    ".opencode/skills/context-router/mcp/context-state/topic_detector.py",
+    ".opencode/skills/context-router/mcp/context-state/contamination_scorer.py",
+    ".opencode/skills/context-router/mcp/context-state/context_builder.py",
+    ".opencode/skills/context-router/mcp/context-state/__init__.py"  ]
 }

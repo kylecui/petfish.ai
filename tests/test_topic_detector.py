@@ -10,6 +10,9 @@ sys.path.insert(
         Path(__file__).resolve().parents[1]
         / "packs"
         / "context-router-skill"
+        / ".opencode"
+        / "skills"
+        / "context-router"
         / "mcp"
         / "context-state"
     ),
