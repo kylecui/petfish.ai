@@ -1,6 +1,6 @@
 {
   "name": "context-router-skill",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "alias": "context",
   "description": "话题治理器 — 在项目内维护topic边界、继承策略和切换记录，降低跨话题上下文污染。三层架构：AGENTS.md always-on感知 + MCP server状态管理 + SKILL.md深度治理方法论",
   "compatibility": "opencode",

@@ -261,6 +261,88 @@ class SessionStore:
         finally:
             self._exit_lock()
 
+    def auto_close_inactive(self, threshold_hours: float = 24.0) -> list:
+        self._enter_lock()
+        try:
+            now = datetime.fromisoformat(self._now())
+            summary = "Auto-closed: inactive for {0}h".format(
+                "{0:g}".format(threshold_hours)
+            )
+            closed_session_ids = []
+
+            for session_id, entry in list(self._index.get("sessions", {}).items()):
+                if entry.get("status") != "active":
+                    continue
+
+                last_activity_at = entry.get("last_activity_at")
+                if not last_activity_at:
+                    continue
+
+                last_activity = datetime.fromisoformat(last_activity_at)
+                if last_activity.tzinfo is None:
+                    last_activity = last_activity.replace(tzinfo=timezone.utc)
+
+                age_hours = (now - last_activity).total_seconds() / 3600.0
+                if age_hours <= threshold_hours:
+                    continue
+
+                self.close(session_id, summary=summary)
+                closed_session_ids.append(session_id)
+
+            return closed_session_ids
+        finally:
+            self._exit_lock()
+
+    def get_timeline_summary(self, session_id: str, max_events: int = 20) -> dict:
+        session = self._require_session(session_id)
+        timeline = session.get("timeline")
+        if not isinstance(timeline, list):
+            timeline = []
+
+        if max_events <= 0:
+            recent_events = []
+        else:
+            recent_events = timeline[-max_events:]
+
+        return {
+            "session_id": session_id,
+            "status": session.get("status"),
+            "started_at": session.get("started_at"),
+            "ended_at": session.get("ended_at"),
+            "active_topic_id": session.get("active_topic_id"),
+            "topic_refs": session.get("topic_refs"),
+            "summary": session.get("summary"),
+            "recent_events": recent_events,
+            "total_events": len(timeline),
+        }
+
+    def get_resume_context(self, session_id: str) -> dict:
+        session = self._require_session(session_id)
+        timeline = session.get("timeline")
+        if not isinstance(timeline, list):
+            timeline = []
+
+        timeline_digest = []
+        for event in timeline[-10:]:
+            timeline_digest.append(
+                {
+                    "ts": event.get("ts"),
+                    "type": event.get("type"),
+                    "topic_id": event.get("topic_id"),
+                }
+            )
+
+        return {
+            "session_id": session_id,
+            "inherited_from": session_id,
+            "status": session.get("status"),
+            "active_topic_id": session.get("active_topic_id"),
+            "topic_refs": session.get("topic_refs"),
+            "summary": session.get("summary"),
+            "last_activity_at": session.get("last_activity_at"),
+            "timeline_digest": timeline_digest,
+        }
+
     def _empty_index(self) -> Dict[str, Any]:
         return {
             "version": 1,

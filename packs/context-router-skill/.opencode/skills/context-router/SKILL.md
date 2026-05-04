@@ -52,6 +52,23 @@
 - `external` session: 由外部平台提供session_id，ID格式 `oc_<external_id>`
 - `inferred` session: 无外部ID时自动创建，ID格式 `inf_<YYYYMMDD>_<4位hex>`
 
+### Session Boundary Policy
+
+会话边界由以下机制自动管理：
+
+- **Archive/Reset自动关闭**：`topic_detect`检测到archive或reset信号时，自动关闭关联session
+- **不活跃自动关闭**：`session_bind`时自动关闭不活跃超过24小时的session
+- **显式关闭**：通过`session_close`手动关闭session并附带summary
+- **批量清理**：`session_close`支持`auto_close_inactive`参数批量关闭过期session
+
+### Cross-Session Resume
+
+`session_resume`返回resume context用于跨会话上下文继承：
+
+- `resume_context`包含：session summary、topic refs、最近10条timeline事件摘要
+- 可通过`ContextBuilder.build_resume_package()`生成完整的Resume Package（Markdown格式）
+- Resume Package写入`.ai-context/contexts/{session_id}.resume.md`
+
 ## 工作流（5步）
 
 当本skill被触发时，按以下5步执行：
@@ -265,7 +282,9 @@ input: {
 | `session_bind` | external_session_id?, topic_id?, metadata? | session记录 |
 | `session_get` | session_id | 完整session含timeline |
 | `session_list` | topic_id?, since?, status?, limit? | session列表 |
-| `session_resume` | topic_id?, session_id? | session + topic_id |
+| `session_resume` | topic_id?, session_id? | session + topic_id + resume_context |
+| `session_close` | session_id, summary?, auto_close_inactive?, threshold_hours? | closed session + auto_closed list |
+| `session_timeline` | session_id, max_events? | timeline summary with recent events |
 
 ## 降级与容错
 

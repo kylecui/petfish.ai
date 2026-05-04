@@ -43,6 +43,16 @@ context-router支持会话级追踪。会话（session）绑定外部平台的se
 
 对merge、archive、bridge三种类型，检测置信度较低时必须提示用户确认，不得自动执行。
 
+### 会话边界自动管理
+
+context-router自动管理会话边界：
+
+- `topic_detect`检测到archive或reset信号时，自动关闭关联session
+- `session_bind`时自动清理不活跃超过24小时的session
+- 使用`session_close`显式关闭session并附带summary
+- `session_resume`返回resume context（session summary + timeline digest），支持跨会话上下文继承
+- 新增`session_timeline`查看session时间线摘要
+
 ### MCP不可用时的降级行为
 
 当context-state MCP server未启动、连接失败或调用超时时：

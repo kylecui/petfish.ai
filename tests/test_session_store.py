@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,7 @@ MODULE_DIR = (
 )
 sys.path.insert(0, str(MODULE_DIR))
 
+from context_builder import ContextBuilder  # pyright: ignore[reportMissingImports]
 from session_store import SessionStore  # pyright: ignore[reportMissingImports]
 
 
@@ -395,3 +397,225 @@ def test_get_path_traversal_in_session_id_raises_value_error(tmp_path: Path):
 
     with pytest.raises(ValueError):
         store.get("../escape")
+
+
+def set_last_activity_at(
+    store: SessionStore,
+    session_id: str,
+    last_activity_at: datetime,
+) -> None:
+    session_path = store._session_path(session_id)
+    session = json.loads(session_path.read_text(encoding="utf-8"))
+    timestamp = last_activity_at.isoformat()
+    session["last_activity_at"] = timestamp
+    session_path.write_text(json.dumps(session), encoding="utf-8")
+
+    store._index["sessions"][session_id]["last_activity_at"] = timestamp
+    store.index_path.write_text(json.dumps(store._index), encoding="utf-8")
+
+
+def test_auto_close_inactive_closes_only_stale_active_sessions_and_returns_ids(
+    tmp_path: Path,
+):
+    store = make_store(tmp_path)
+    stale = store.bind(external_session_id="stale")
+    recent = store.bind(external_session_id="recent")
+    already_closed = store.bind(external_session_id="already-closed")
+    store.close(already_closed["id"], summary="manually closed")
+
+    now = datetime.now(timezone.utc)
+    set_last_activity_at(store, stale["id"], now - timedelta(hours=25))
+    set_last_activity_at(store, recent["id"], now - timedelta(hours=23))
+    set_last_activity_at(store, already_closed["id"], now - timedelta(hours=72))
+
+    closed_session_ids = store.auto_close_inactive()
+
+    assert closed_session_ids == [stale["id"]]
+
+    stale_session = store.get(stale["id"])
+    recent_session = store.get(recent["id"])
+    already_closed_session = store.get(already_closed["id"])
+
+    assert stale_session is not None
+    assert stale_session["status"] == "closed"
+    assert stale_session["summary"] == "Auto-closed: inactive for 24h"
+    assert stale_session["ended_at"] is not None
+
+    assert recent_session is not None
+    assert recent_session["status"] == "active"
+    assert recent_session["ended_at"] is None
+
+    assert already_closed_session is not None
+    assert already_closed_session["status"] == "closed"
+    assert already_closed_session["summary"] == "manually closed"
+
+
+def test_auto_close_inactive_respects_custom_threshold_hours(tmp_path: Path):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="custom-threshold")
+
+    set_last_activity_at(
+        store,
+        session["id"],
+        datetime.now(timezone.utc) - timedelta(hours=2),
+    )
+
+    assert store.auto_close_inactive(threshold_hours=3.0) == []
+    assert store.get(session["id"])["status"] == "active"
+
+    closed_session_ids = store.auto_close_inactive(threshold_hours=1.5)
+
+    assert closed_session_ids == [session["id"]]
+    assert store.get(session["id"])["summary"] == "Auto-closed: inactive for 1.5h"
+
+
+def test_get_timeline_summary_returns_expected_structure_and_recent_tail(
+    tmp_path: Path,
+):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="timeline", topic_id="topic_alpha")
+
+    first = store.add_event(session["id"], "message", content="one")
+    second = store.add_event(session["id"], "switch", topic_id="topic_beta")
+    third = store.add_event(session["id"], "message", content="three")
+    updated = store.update(session["id"], summary="Timeline summary")
+
+    summary = store.get_timeline_summary(session["id"], max_events=2)
+
+    assert summary == {
+        "session_id": session["id"],
+        "status": updated["status"],
+        "started_at": updated["started_at"],
+        "ended_at": updated["ended_at"],
+        "active_topic_id": updated["active_topic_id"],
+        "topic_refs": updated["topic_refs"],
+        "summary": "Timeline summary",
+        "recent_events": [second, third],
+        "total_events": 3,
+    }
+    assert first not in summary["recent_events"]
+
+
+def test_get_timeline_summary_returns_empty_recent_events_for_empty_timeline(
+    tmp_path: Path,
+):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="empty-timeline")
+
+    summary = store.get_timeline_summary(session["id"])
+
+    assert summary["recent_events"] == []
+    assert summary["total_events"] == 0
+
+
+def test_get_timeline_summary_raises_key_error_for_missing_session(tmp_path: Path):
+    store = make_store(tmp_path)
+
+    with pytest.raises(KeyError):
+        store.get_timeline_summary("oc_missing")
+
+
+def test_get_resume_context_returns_expected_structure_and_last_ten_events(
+    tmp_path: Path,
+):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="resume", topic_id="topic_alpha")
+    store.update(session["id"], summary="Resume summary")
+
+    for index in range(12):
+        store.add_event(
+            session["id"],
+            f"step_{index}",
+            topic_id=f"topic_{index}",
+            detail=f"detail-{index}",
+        )
+
+    persisted = store.get(session["id"])
+    resume_context = store.get_resume_context(session["id"])
+
+    assert persisted is not None
+    assert resume_context["session_id"] == session["id"]
+    assert resume_context["inherited_from"] == session["id"]
+    assert resume_context["status"] == persisted["status"]
+    assert resume_context["active_topic_id"] == persisted["active_topic_id"]
+    assert resume_context["topic_refs"] == persisted["topic_refs"]
+    assert resume_context["summary"] == "Resume summary"
+    assert resume_context["last_activity_at"] == persisted["last_activity_at"]
+
+    timeline_digest = resume_context["timeline_digest"]
+
+    assert len(timeline_digest) == 10
+    assert [event["type"] for event in timeline_digest] == [
+        f"step_{index}" for index in range(2, 12)
+    ]
+    assert all(
+        set(event.keys()) == {"ts", "type", "topic_id"} for event in timeline_digest
+    )
+
+
+def test_get_resume_context_raises_key_error_for_missing_session(tmp_path: Path):
+    store = make_store(tmp_path)
+
+    with pytest.raises(KeyError):
+        store.get_resume_context("oc_missing")
+
+
+def test_build_resume_package_uses_topic_title_and_writes_resume_file(
+    tmp_path: Path,
+):
+    base_dir = tmp_path / ".ai-context"
+    builder = ContextBuilder(str(base_dir))
+    session_context = {
+        "session_id": "oc_resume_topic",
+        "inherited_from": "oc_seed",
+        "status": "active",
+        "active_topic_id": "topic_alpha",
+        "summary": "Session summary",
+        "last_activity_at": "2026-01-01T00:00:00+00:00",
+        "timeline_digest": [
+            {
+                "ts": "2026-01-01T00:00:00+00:00",
+                "type": "switch",
+                "topic_id": "topic_alpha",
+            }
+        ],
+    }
+    topic = {
+        "id": "topic_alpha",
+        "title": "Topic Alpha",
+        "status": "active",
+        "scope": "Routing",
+        "summary": "Topic summary",
+    }
+
+    result = builder.build_resume_package(session_context, topic, [], [])
+
+    expected_path = base_dir / "contexts" / "oc_resume_topic.resume.md"
+    content = expected_path.read_text(encoding="utf-8")
+
+    assert expected_path.exists()
+    assert result == {"path": str(expected_path), "size": expected_path.stat().st_size}
+    assert "# Context Package: Resume: Topic Alpha" in content
+
+
+def test_build_resume_package_uses_session_id_when_topic_is_none(tmp_path: Path):
+    base_dir = tmp_path / ".ai-context"
+    builder = ContextBuilder(str(base_dir))
+    session_context = {
+        "session_id": "oc_resume_session",
+        "inherited_from": "none",
+        "status": "closed",
+        "active_topic_id": None,
+        "summary": "Session-only summary",
+        "last_activity_at": "2026-01-02T00:00:00+00:00",
+        "timeline_digest": [],
+    }
+
+    result = builder.build_resume_package(session_context, None, [], [])
+
+    expected_path = base_dir / "contexts" / "oc_resume_session.resume.md"
+    content = expected_path.read_text(encoding="utf-8")
+
+    assert expected_path.exists()
+    assert result == {"path": str(expected_path), "size": expected_path.stat().st_size}
+    assert "# Context Package: Resume: Session oc_resume_session" in content

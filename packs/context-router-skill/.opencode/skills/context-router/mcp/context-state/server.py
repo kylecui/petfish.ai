@@ -403,7 +403,7 @@ TOOLS = [
     },
     {
         "name": "session_resume",
-        "description": "Find the best session to resume for a topic or session ID.",
+        "description": "Find the best session to resume for a topic or session ID. Returns session data plus inherited context package.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -418,6 +418,50 @@ TOOLS = [
             },
         },
     },
+    {
+        "name": "session_close",
+        "description": "Close a session with an optional summary. Also auto-closes inactive sessions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID to close",
+                },
+                "summary": {
+                    "type": "string",
+                    "description": "Session summary for handoff",
+                },
+                "auto_close_inactive": {
+                    "type": "boolean",
+                    "description": "Also close sessions inactive >24h (default false)",
+                },
+                "threshold_hours": {
+                    "type": "number",
+                    "description": "Inactivity threshold in hours (default 24)",
+                },
+            },
+            "required": ["session_id"],
+        },
+    },
+    {
+        "name": "session_timeline",
+        "description": "Get session timeline summary with recent events.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID",
+                },
+                "max_events": {
+                    "type": "integer",
+                    "description": "Max recent events to return (default 20)",
+                },
+            },
+            "required": ["session_id"],
+        },
+    },
 ]
 
 
@@ -427,7 +471,7 @@ TOOLS = [
 
 
 class ContextStateServer:
-    """MCP server that wires the 22 context-router tools to TopicStore et al."""
+    """MCP server that wires the 25 context-router tools to TopicStore et al."""
 
     def __init__(self, base_dir: str):
         self.store = TopicStore(base_dir)
@@ -471,6 +515,8 @@ class ContextStateServer:
         h["session_get"] = self._handle_session_get
         h["session_list"] = self._handle_session_list
         h["session_resume"] = self._handle_session_resume
+        h["session_close"] = self._handle_session_close
+        h["session_timeline"] = self._handle_session_timeline
 
     # -- JSON-RPC dispatch --------------------------------------------------
 
@@ -661,6 +707,15 @@ class ContextStateServer:
             except KeyError:
                 pass  # session not found — don't fail detection
 
+            # Auto-close session on archive/reset signals
+            relation = result.get("relation")
+            if relation in ("archive", "reset"):
+                try:
+                    summary = "Auto-closed: {} detected".format(relation)
+                    self.sessions.close(session_id, summary=summary)
+                except KeyError:
+                    pass
+
         # Include session_id in result for caller convenience
         if session_id:
             result["session_id"] = session_id
@@ -746,6 +801,8 @@ class ContextStateServer:
     # -- Session handlers ---------------------------------------------------
 
     def _handle_session_bind(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        # Auto-close stale sessions on bind
+        self.sessions.auto_close_inactive()
         return self.sessions.bind(
             external_session_id=args.get("external_session_id"),
             topic_id=args.get("topic_id"),
@@ -768,9 +825,35 @@ class ContextStateServer:
         )
 
     def _handle_session_resume(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        return self.sessions.resume(
+        result = self.sessions.resume(
             topic_id=args.get("topic_id"),
             session_id=args.get("session_id"),
+        )
+        # Enrich with resume context
+        session = result.get("session", {})
+        sid = session.get("id")
+        if sid:
+            result["resume_context"] = self.sessions.get_resume_context(sid)
+        return result
+
+    def _handle_session_close(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        session_id = args["session_id"]
+        summary = args.get("summary")
+        session = self.sessions.close(session_id, summary=summary)
+
+        response = {"session": session, "auto_closed": []}
+
+        if args.get("auto_close_inactive"):
+            threshold = args.get("threshold_hours", 24)
+            closed = self.sessions.auto_close_inactive(threshold_hours=threshold)
+            response["auto_closed"] = closed
+
+        return response
+
+    def _handle_session_timeline(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.sessions.get_timeline_summary(
+            session_id=args["session_id"],
+            max_events=args.get("max_events", 20),
         )
 
     # -- Helpers ------------------------------------------------------------
