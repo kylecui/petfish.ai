@@ -47,8 +47,10 @@
       height: 52px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .nav-brand { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 600; letter-spacing: .02em; }
+    .nav-brand { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 600; letter-spacing: .02em; margin-left: 10px; }
     .nav-brand a { color: inherit; }
+    .nav-logo-link { display: flex; align-items: center; flex-shrink: 0; }
+    .nav-logo-icon { width: 30px; height: 30px; object-fit: contain; display: block; }
     .nav-links { display: flex; gap: 20px; font-size: 13px; }
     .nav-links a { color: var(--text-muted); }
     .nav-links a:hover { color: var(--text); text-decoration: none; }
@@ -104,10 +106,13 @@
 <body>
 
 <nav>
+  <a href="/" class="nav-logo-link">
+    <img src="assets/petfish-icon-256.png" alt="胖鱼 PEtFiSh" class="nav-logo-icon">
+  </a>
   <span class="nav-brand"><a href="/">><(((^> 胖鱼 PEtFiSh</a></span>
   <div class="nav-links">
     <a href="/">首页</a>
-    <a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/kylecui/petfish.ai" target="_blank" rel="noopener">GitHub</a>
   </div>
 </nav>
 
@@ -429,9 +434,9 @@
   <div style="max-width:800px;margin:0 auto">
     <span class="footer-fish">><(((^>&nbsp;&nbsp;><(((^>&nbsp;&nbsp;><(((^></span>
     <p><strong style="color:var(--text)">胖鱼 PEtFiSh</strong> &nbsp;—&nbsp; AI Worker's Companion</p>
-    <p style="margin-top:4px">谐音"朋友"。不是又一个提示词集合，是帮你管 Skill 的工具链。</p>
+    <p style="margin-top:4px">不是又一个提示词集合，是帮你管 Skill 的工具链。</p>
     <p style="margin-top:16px">
-      <a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/kylecui/petfish.ai" target="_blank" rel="noopener">GitHub</a>
       &nbsp;&middot;&nbsp;
       <a href="/">首页</a>
       &nbsp;&middot;&nbsp;

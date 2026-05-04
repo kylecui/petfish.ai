@@ -73,12 +73,12 @@ Ask which packs they want.
 
 **Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion --platform <PLATFORM>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --platform <PLATFORM>
 ```
 
 **PowerShell:**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack "init,companion" -Platform <PLATFORM>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Platform <PLATFORM>
 ```
 
 Replace `<PLATFORM>` with the platform you detected in Step 1 (e.g. `codex`, `opencode`, `claude`, etc.).
@@ -93,12 +93,12 @@ For each pack the user selected, run:
 
 **Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <ALIAS> --platform <PLATFORM>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <ALIAS> --platform <PLATFORM>
 ```
 
 **PowerShell:**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <ALIAS> -Platform <PLATFORM>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <ALIAS> -Platform <PLATFORM>
 ```
 
 Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc.) and `<PLATFORM>` with the platform from Step 1.
@@ -163,6 +163,6 @@ This installs the external trust governance engine for behavioral analysis of sk
 
 ## About PEtFiSh
 
-**GitHub**: https://github.com/kylecui/SKILL_builder
+**GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
 **What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track.

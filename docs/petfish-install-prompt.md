@@ -7,13 +7,13 @@
 将以下一句话粘贴到任意AI编程助手的对话框中，AI会自动完成安装：
 
 ```
-Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/SKILL_builder/master/docs/agent-install.md
+Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
 
 中文版：
 
 ```
-请按照这个文档安装胖鱼PEtFiSh：https://raw.githubusercontent.com/kylecui/SKILL_builder/master/docs/agent-install.md
+请按照这个文档安装胖鱼PEtFiSh：https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
 
 **工作原理**：AI助手读取该URL中的安装指令文档，自动检测操作系统和AI平台，询问项目类型，然后执行对应的安装命令。整个过程是对话式的，你只需要回答几个问题。
@@ -28,12 +28,12 @@ Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/SKILL_bu
 
 **Bash (macOS/Linux/WSL):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --detect
 ```
 
 **PowerShell (Windows):**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack "init,companion" -Detect
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
 ```
 
 装完后输入`/initproject`，胖鱼会引导你选择项目类型并自动安装匹配的skill pack。
@@ -43,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
 ## 安装全部pack
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack all --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --detect
 ```
 
 ---

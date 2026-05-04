@@ -1,8 +1,8 @@
 # trustskills Pack
 
-`trustskills` pack wraps the external `kylecui/trustskills` Python governance engine as a standalone OpenCode skill pack for SKILL_builder.
+`trustskills` pack wraps the external `kylecui/trustskills` Python governance engine as a standalone OpenCode skill pack for petfish.ai.
 
-`trustskills` pack把外部 `kylecui/trustskills` Python治理引擎封装成一个可独立安装的OpenCode skill pack，用于SKILL_builder中的skill可信度评估与治理决策。
+`trustskills` pack把外部 `kylecui/trustskills` Python治理引擎封装成一个可独立安装的OpenCode skill pack，用于petfish.ai中的skill可信度评估与治理决策。
 
 ## What this pack does / 这个pack做什么
 
