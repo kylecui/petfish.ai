@@ -88,11 +88,17 @@ def detect_files(root: Path) -> dict[str, list[str]]:
             hits["systemd_units"].append(rp)
         if name in {".env.example", ".env.sample", ".env.template"}:
             hits["env_examples"].append(rp)
-        if any(
-            part in {"deploy", "deployment", "ops", "infra", "scripts"}
-            for part in path.parts
-        ) and not any(
-            part.startswith(".") for part in path.relative_to(root).parts[:-1]
+        if (
+            any(
+                part in {"deploy", "deployment", "ops", "infra", "scripts"}
+                for part in path.parts
+            )
+            and not any(
+                part.startswith(".") for part in path.relative_to(root).parts[:-1]
+            )
+            and not any(
+                part in {"skills", "skill"} for part in path.relative_to(root).parts
+            )
         ):
             hits["deploy_dirs"].append(rp)
         if any(part in {"tests", "test", "__tests__", "e2e"} for part in path.parts):

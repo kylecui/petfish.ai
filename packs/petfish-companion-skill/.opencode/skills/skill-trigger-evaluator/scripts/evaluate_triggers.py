@@ -217,6 +217,25 @@ def extract_frontmatter(text: str) -> tuple[dict, str]:
     return data, body
 
 
+def _is_doc_snippet(phrase: str) -> bool:
+    """Return True if the phrase looks like a SKILL.md description snippet, not a user query."""
+    # Contains backtick-quoted code fragments (mode names, config keys)
+    if "`" in phrase:
+        return True
+    # Starts with a backtick-quoted word followed by colon (e.g. `strict`: ...)
+    if re.match(r"^`[^`]+`\s*:", phrase):
+        return True
+    # Very long phrases are unlikely to be user queries
+    if len(phrase) > 120:
+        return True
+    # Contains doc-like patterns: "Best for", "Use when", "Default:", "Returns:"
+    if re.search(
+        r"\b(?:Best for|Use when|Default[s]?:|Returns?:)\b", phrase, re.IGNORECASE
+    ):
+        return True
+    return False
+
+
 def extract_trigger_phrases(text: str) -> list[str]:
     phrases: list[str] = []
     for line in text.splitlines():
@@ -231,7 +250,7 @@ def extract_trigger_phrases(text: str) -> list[str]:
     seen: set[str] = set()
     for phrase in phrases:
         lowered = phrase.lower()
-        if lowered and lowered not in seen:
+        if lowered and lowered not in seen and not _is_doc_snippet(phrase):
             seen.add(lowered)
             deduped.append(phrase)
     return deduped
