@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>技术白皮书 — 胖鱼 PEtFiSh</title>
-  <meta name="description" content="胖鱼 PEtFiSh 技术白皮书 v0.2 — 架构总览、平台适配层、质量门禁体系、TrustSkills 治理引擎。" />
+  <meta name="description" content="胖鱼 PEtFiSh 技术白皮书 v0.4 — 架构总览、平台适配层、质量门禁体系、TrustSkills 治理引擎、上下文治理与会话管理。" />
   <meta property="og:title" content="技术白皮书 — 胖鱼 PEtFiSh" />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://petfish.ai/whitepaper.html" />
@@ -142,7 +142,7 @@
 │            └───────┬───────┘      └───────┬───────┘      │
 │                    │                      │               │
 │            ┌───────┴──────────────────────┴───────┐      │
-│            │         Pack Layer (8 packs)          │      │
+│            │         Pack Layer (10 packs)         │      │
 │            │  pack-manifest.json 统一schema        │      │
 │            └───────────────────┬──────────────────┘      │
 │                                │                          │
@@ -158,7 +158,7 @@
     <tbody>
       <tr><td>用户接口层</td><td><code>/petfish</code> 14 个子命令 + 4 个 install 脚本</td><td><code>petfish.md</code>, <code>install.ps1/sh</code>, <code>remote-install.ps1/sh</code></td></tr>
       <tr><td>Companion 层</td><td>10 个内置 skill，覆盖 skill 全生命周期</td><td><code>packs/petfish-companion-skill/.opencode/skills/</code></td></tr>
-      <tr><td>Pack 层</td><td>8 个 skill pack，按领域组织</td><td><code>packs/*/pack-manifest.json</code></td></tr>
+      <tr><td>Pack 层</td><td>10 个 skill pack，按领域组织</td><td><code>packs/*/pack-manifest.json</code></td></tr>
       <tr><td>平台适配层</td><td>8 平台路径映射、指令翻译、配置合并</td><td><code>platforms.json</code></td></tr>
     </tbody>
   </table>
@@ -227,7 +227,7 @@
   "agents": []
 }</code></pre>
 
-  <h3>8 个 Pack 的定位</h3>
+  <h3>10 个 Pack 的定位</h3>
   <table>
     <thead><tr><th>Pack</th><th>Alias</th><th>定位</th><th>Skills</th><th>Cmds</th><th>Agents</th></tr></thead>
     <tbody>
@@ -239,6 +239,8 @@
       <tr><td>petfish-style-skill</td><td><code>petfish</code></td><td>工程写作风格</td><td>1</td><td>0</td><td>0</td></tr>
       <tr><td>opencode-ppt-skills</td><td><code>ppt</code></td><td>PPT 设计与制作</td><td>2</td><td>0</td><td>0</td></tr>
       <tr><td>trustskills-governance-pack</td><td><code>trust</code></td><td>skill 可信度治理</td><td>1</td><td>0</td><td>0</td></tr>
+      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code></td><td>反迎合决策校准</td><td>1</td><td>0</td><td>0</td></tr>
+      <tr><td>context-router-skill</td><td><code>context</code></td><td>上下文治理 + 会话管理（28 MCP tools）</td><td>1</td><td>0</td><td>0</td></tr>
     </tbody>
   </table>
 
@@ -350,7 +352,54 @@
 
   <hr />
 
-  <h2>H. 可扩展性</h2>
+  <h2>H. 上下文治理与会话管理（Context Router）</h2>
+  <p>v0.4 引入 <code>context-router</code> pack，通过本地 MCP server 提供话题感知的上下文治理。纯 Python 标准库实现，零外部依赖。</p>
+
+  <h3>核心能力</h3>
+  <table>
+    <thead><tr><th>能力</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>话题检测</td><td>自动识别用户消息所属话题，支持 CJK 文本，输出关系类型（continue/fork/switch/merge/archive/reset/bridge）和风险等级</td></tr>
+      <tr><td>污染评分</td><td>量化跨话题上下文污染风险（0-100），高于 60 时主动提示用户</td></tr>
+      <tr><td>上下文隔离</td><td>按话题构建 Context Package，隔离不同话题的文件引用、决策和成果</td></tr>
+      <tr><td>会话管理</td><td>话题感知的会话绑定、跨会话恢复、多 Agent 归因、活动查询</td></tr>
+    </tbody>
+  </table>
+
+  <h3>28 个 MCP Tools</h3>
+  <p>MCP server 暴露 28 个工具，分四组：</p>
+  <table>
+    <thead><tr><th>组</th><th>工具数</th><th>典型工具</th></tr></thead>
+    <tbody>
+      <tr><td>话题管理</td><td>8</td><td><code>topic_detect</code>, <code>topic_create</code>, <code>topic_update</code>, <code>topic_merge</code></td></tr>
+      <tr><td>上下文构建</td><td>5</td><td><code>context_build</code>, <code>context_get_active</code>, <code>contamination_score</code></td></tr>
+      <tr><td>使用追踪</td><td>5</td><td><code>track_file_reference</code>, <code>track_decision</code>, <code>track_artifact</code></td></tr>
+      <tr><td>会话管理</td><td>10</td><td><code>session_bind</code>, <code>session_resume</code>, <code>session_query_activity</code>, <code>session_recommend_topics</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>架构决策</h3>
+  <ul>
+    <li><strong>纯标准库</strong>：不引入 pydantic、aiohttp 等依赖，降低安装门槛</li>
+    <li><strong>本地 MCP</strong>：通过 <code>opencode.json</code> 中 <code>"type": "local"</code> 配置，由 AI 平台自动启动</li>
+    <li><strong>7 种关系类型</strong>：continue / fork / switch / merge / archive / reset / bridge，覆盖实际工作中的话题演化模式</li>
+    <li><strong>降级策略</strong>：MCP 不可用时静默降级，不阻塞正常工作</li>
+  </ul>
+
+  <hr />
+
+  <h2>I. 反迎合校准（Anti-Sycophancy Calibration）</h2>
+  <p>v0.3 引入 <code>calibrate</code> pack，解决 AI 在评审、方案评估等判断型任务中倾向于顺着用户说的问题。</p>
+  <ul>
+    <li>先中性化问题，再给结论——不直接顺着用户预设表态</li>
+    <li>先给评分维度，再做判断——至少补一个反方或替代方案</li>
+    <li>结论与置信度分开表达——证据不足时明确降级</li>
+    <li>可与其他 skill 组合使用：<code>course-outline-design + calibrate</code>、<code>code-review + calibrate</code></li>
+  </ul>
+
+  <hr />
+
+  <h2>J. 可扩展性</h2>
   <h3>添加新 Pack</h3>
   <p>在 <code>packs/</code> 下创建目录，放入 <code>.opencode/</code>（含 <code>skills/</code>, <code>commands/</code>, <code>agents/</code>），创建 <code>pack-manifest.json</code>，如需 AGENTS.md 合并使用 <code>&lt;!-- BEGIN/END pack --&gt;</code> 标记，在 install 脚本中添加 alias。<code>catalog_query.py</code> 自动发现新 pack，无需修改代码。</p>
 
@@ -369,6 +418,9 @@
       <tr><td>trustskills 集成</td><td>subprocess 调用外部 CLI</td><td>不 vendoring 引擎源码，版本独立升级</td></tr>
       <tr><td>Lint JSON 输出</td><td><code>findings</code> 字段（非 <code>issues</code>）</td><td>与 security audit 统一命名</td></tr>
       <tr><td>Security JSON 输出</td><td><code>{"results": [...]}</code></td><td>便于 gate 解包和聚合</td></tr>
+      <tr><td>Context Router MCP</td><td>纯 Python 标准库</td><td>零依赖，任何环境可运行</td></tr>
+      <tr><td>会话管理</td><td>话题绑定而非全局 session</td><td>支持多话题并行、跨会话恢复</td></tr>
+      <tr><td>反迎合校准</td><td>组合式 skill，非独立 agent</td><td>可叠加到任何评审类 skill，不改变原 skill 逻辑</td></tr>
     </tbody>
   </table>
 </div>
