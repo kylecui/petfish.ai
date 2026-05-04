@@ -98,12 +98,18 @@ with open(sys.argv[1], 'r') as f:
 with open(sys.argv[2], 'r') as f:
     dst = json.load(f)
 
-def deep_merge(s, d, force_flag):
+# Keys whose level-2 entries should be replaced atomically (not deep-merged)
+ATOMIC_L2 = {'mcp'}
+
+def deep_merge(s, d, force_flag, parent_key=''):
     for k, v in s.items():
         if k not in d:
             d[k] = v
+        elif parent_key in ATOMIC_L2 and force_flag:
+            # Replace entire entry (e.g. mcp.context-state) atomically
+            d[k] = v
         elif isinstance(v, dict) and isinstance(d[k], dict):
-            deep_merge(v, d[k], force_flag)
+            deep_merge(v, d[k], force_flag, parent_key=k)
         elif force_flag:
             d[k] = v
 
