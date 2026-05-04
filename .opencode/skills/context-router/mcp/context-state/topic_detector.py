@@ -59,12 +59,18 @@ class TopicDetector:
             "分出来",
             "单独处理",
             "岔开一下",
+            "分叉",
+            "子话题",
             "by the way",
             "also",
             "separately",
             "side task",
             "branch off",
             "quick tangent",
+            "fork",
+            "split off",
+            "spin off",
+            "subtopic",
         ]
         self.bridge_signals = [
             "关联",
@@ -155,7 +161,7 @@ class TopicDetector:
             "switch": (40, "medium"),
             "merge": (50, "medium"),
             "archive": (10, "low"),
-            "reset": (0, "low"),
+            "reset": (40, "medium"),
             "bridge": (35, "medium"),
         }
         self.min_fuzzy_switch_overlap = 0.4

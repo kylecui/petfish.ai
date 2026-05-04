@@ -28,21 +28,63 @@ from session_store import SessionStore  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Minimal MCP server over stdio (LSP base protocol framing)
+# Auto-detects transport: Content-Length headers vs bare JSONL.
 # ---------------------------------------------------------------------------
+
+# Transport mode: None = not yet detected, "clength" or "jsonl"
+_transport_mode: Optional[str] = None
 
 
 def _read_message(stream) -> Optional[Dict[str, Any]]:
-    """Read one JSON-RPC message using Content-Length framing."""
+    """Read one JSON-RPC message.  Auto-detects transport on the first call.
+
+    Supported transports:
+      - Content-Length framing (LSP-style): ``Content-Length: N\\r\\n\\r\\n{...}``
+      - Bare JSONL: one JSON object per line (``{...}\\n``)
+    """
+    global _transport_mode
+
+    while True:
+        first_line = stream.readline()
+        if not first_line:
+            return None  # EOF
+        if isinstance(first_line, bytes):
+            first_line = first_line.decode("utf-8")
+        stripped = first_line.strip()
+        if stripped == "":
+            continue  # skip blank lines between messages
+        break
+
+    # --- Auto-detect on first non-blank line ---
+    if _transport_mode is None:
+        if stripped.startswith("{"):
+            _transport_mode = "jsonl"
+        else:
+            _transport_mode = "clength"
+
+    # --- JSONL transport ---
+    if _transport_mode == "jsonl":
+        if stripped.startswith("{"):
+            return json.loads(stripped)
+        # In JSONL mode but got a non-JSON line — skip and retry
+        return _read_message(stream)
+
+    # --- Content-Length transport ---
+    # first_line is the first header line
     headers = {}
+    if ":" in stripped:
+        key, value = stripped.split(":", 1)
+        headers[key.strip().lower()] = value.strip()
+
     while True:
         line = stream.readline()
         if not line:
-            return None  # EOF
+            return None
         if isinstance(line, bytes):
             line = line.decode("utf-8")
         line = line.rstrip("\r\n")
         if line == "":
-            break  # end of headers
+            break
         if ":" in line:
             key, value = line.split(":", 1)
             headers[key.strip().lower()] = value.strip()
@@ -58,12 +100,17 @@ def _read_message(stream) -> Optional[Dict[str, Any]]:
 
 
 def _write_message(stream, msg: Dict[str, Any]) -> None:
-    """Write one JSON-RPC message with Content-Length framing."""
+    """Write one JSON-RPC message using the detected transport mode."""
     body = json.dumps(msg, ensure_ascii=False)
-    body_bytes = body.encode("utf-8")
-    header = "Content-Length: {}\r\n\r\n".format(len(body_bytes))
-    stream.write(header.encode("utf-8") if hasattr(stream, "mode") else header)
-    stream.write(body_bytes if hasattr(stream, "mode") else body)
+
+    if _transport_mode == "jsonl":
+        line = body + "\n"
+        stream.write(line.encode("utf-8") if hasattr(stream, "mode") else line)
+    else:
+        body_bytes = body.encode("utf-8")
+        header = "Content-Length: {}\r\n\r\n".format(len(body_bytes))
+        stream.write(header.encode("utf-8") if hasattr(stream, "mode") else header)
+        stream.write(body_bytes if hasattr(stream, "mode") else body)
     stream.flush()
 
 
