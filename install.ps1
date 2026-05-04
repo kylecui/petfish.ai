@@ -551,8 +551,9 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
 
         $packRoot = Join-Path $PacksDir $packName
         $manifestFile = Join-Path $packRoot "pack-manifest.json"
+        $forceThisPack = $ForceInstall
 
-        if (-not $ForceInstall) {
+        if (-not $forceThisPack) {
             $versionState = Compare-PackVersion $targetRegistry $packName $manifestFile
             $skipPack = $false
             switch ($versionState) {
@@ -562,9 +563,8 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                     $skipPack = $true
                 }
                 "newer" {
-                    Write-Warning "  ⬆ UPDATE: $packName v$($script:ComparePackVersionInstalledVersion) → v$($script:ComparePackVersionSourceVersion) (use -Force/--force to upgrade)"
-                    $script:skipped++
-                    $skipPack = $true
+                    Write-Host "  ⬆ Upgrading $packName v$($script:ComparePackVersionInstalledVersion) → v$($script:ComparePackVersionSourceVersion)" -ForegroundColor Cyan
+                    $forceThisPack = $true
                 }
             }
             if ($skipPack) { continue }
@@ -574,7 +574,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         $agentsMd = Join-Path $packRoot "AGENTS.md"
         if (Test-Path $agentsMd) {
             $dstAgents = Join-Path $targetPath "AGENTS.md"
-            $result = Merge-AgentsMd $agentsMd $dstAgents $packName -ForceOverwrite:$ForceInstall
+            $result = Merge-AgentsMd $agentsMd $dstAgents $packName -ForceOverwrite:$forceThisPack
             switch ($result) {
                 "created"  { Write-Host "    + AGENTS.md (created)" -ForegroundColor DarkGreen; $script:installed++ }
                 "merged"   { Write-Host "    + AGENTS.md (merged)" -ForegroundColor DarkGreen; $script:installed++ }
@@ -599,7 +599,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Antigravity: also create/merge GEMINI.md
             if ($cfg.GeminiMd) {
                 $dstGemini = Join-Path $targetPath "GEMINI.md"
-                $result = Merge-AgentsMd $agentsMd $dstGemini $packName -ForceOverwrite:$ForceInstall
+                $result = Merge-AgentsMd $agentsMd $dstGemini $packName -ForceOverwrite:$forceThisPack
                 switch ($result) {
                     "created"  { Write-Host "    + GEMINI.md (created)" -ForegroundColor DarkGreen; $script:installed++ }
                     "merged"   { Write-Host "    + GEMINI.md (merged)" -ForegroundColor DarkGreen; $script:installed++ }
@@ -616,7 +616,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 switch ($platformName) {
                     "opencode" {
                         $dstOc = Join-Path $targetPath $cfg.ConfigFile
-                        $result = Merge-OpencodeJson $ocExample $dstOc -ForceOverwrite:$ForceInstall -SkillsDir $cfg.SkillsDir
+                        $result = Merge-OpencodeJson $ocExample $dstOc -ForceOverwrite:$forceThisPack -SkillsDir $cfg.SkillsDir
                         switch ($result) {
                             "created" { Write-Host "    + $($cfg.ConfigFile) (created from example)" -ForegroundColor DarkGreen; $script:installed++ }
                             "merged"  { Write-Host "    + $($cfg.ConfigFile) (merged)" -ForegroundColor DarkGreen; $script:installed++ }
@@ -649,7 +649,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             }
             foreach ($item in (Get-ChildItem -Path $srcSkills -Directory)) {
                 $dstItem = Join-Path $targetSkills $item.Name
-                if ((Test-Path $dstItem) -and -not $ForceInstall) {
+                if ((Test-Path $dstItem) -and -not $forceThisPack) {
                     Write-Warning "    SKIP skills/$($item.Name) (exists, use -Force to overwrite)"
                     $script:skipped++
                     continue
@@ -669,7 +669,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             }
             foreach ($item in (Get-ChildItem -Path $srcAgents -Directory)) {
                 $dstItem = Join-Path $targetAgents $item.Name
-                if ((Test-Path $dstItem) -and -not $ForceInstall) {
+                if ((Test-Path $dstItem) -and -not $forceThisPack) {
                     Write-Warning "    SKIP agents/$($item.Name) (exists, use -Force to overwrite)"
                     $script:skipped++
                     continue
@@ -689,7 +689,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             }
             foreach ($item in (Get-ChildItem -Path $srcCommands -Directory)) {
                 $dstItem = Join-Path $targetCommands $item.Name
-                if ((Test-Path $dstItem) -and -not $ForceInstall) {
+                if ((Test-Path $dstItem) -and -not $forceThisPack) {
                     Write-Warning "    SKIP commands/$($item.Name) (exists, use -Force to overwrite)"
                     $script:skipped++
                     continue
@@ -743,8 +743,9 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
 
         $packRoot = Join-Path $PacksDir $packName
         $manifestFile = Join-Path $packRoot "pack-manifest.json"
+        $forceThisPack = $ForceInstall
 
-        if (-not $ForceInstall) {
+        if (-not $forceThisPack) {
             $versionState = Compare-PackVersion $targetRegistry $packName $manifestFile
             $skipPack = $false
             switch ($versionState) {
@@ -754,9 +755,8 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
                     $skipPack = $true
                 }
                 "newer" {
-                    Write-Warning "  ⬆ UPDATE: $packName v$($script:ComparePackVersionInstalledVersion) → v$($script:ComparePackVersionSourceVersion) (use -Force/--force to upgrade)"
-                    $script:skipped++
-                    $skipPack = $true
+                    Write-Host "  ⬆ Upgrading $packName v$($script:ComparePackVersionInstalledVersion) → v$($script:ComparePackVersionSourceVersion)" -ForegroundColor Cyan
+                    $forceThisPack = $true
                 }
             }
             if ($skipPack) { continue }
@@ -770,7 +770,7 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
 
         foreach ($item in (Get-ChildItem -Path $srcSkills -Directory)) {
             $dstItem = Join-Path $targetSkills $item.Name
-            if ((Test-Path $dstItem) -and -not $ForceInstall) {
+            if ((Test-Path $dstItem) -and -not $forceThisPack) {
                 Write-Warning "    SKIP skills/$($item.Name) (exists, use -Force to overwrite)"
                 $script:skipped++
                 continue
@@ -790,7 +790,7 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
             }
             foreach ($item in (Get-ChildItem -Path $srcCommands)) {
                 $dstItem = Join-Path $targetCommands $item.Name
-                if ((Test-Path $dstItem) -and -not $ForceInstall) {
+                if ((Test-Path $dstItem) -and -not $forceThisPack) {
                     Write-Warning "    SKIP commands/$($item.Name) (exists, use -Force to overwrite)"
                     $script:skipped++
                     continue

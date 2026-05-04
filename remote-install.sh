@@ -752,8 +752,9 @@ install_for_platform() {
 
         local manifest_file="$pack_root/pack-manifest.json"
         local target_registry="$TARGET/$registry_dir"
+        local force_this_pack=$FORCE
 
-        if ! $FORCE; then
+        if ! $force_this_pack; then
             local version_status
             version_status="$(check_pack_version "$target_registry" "$pack_name" "$manifest_file")"
             case "$version_status" in
@@ -768,9 +769,8 @@ install_for_platform() {
                     local installed_version source_version
                     installed_version="$(read_installed_pack_version "$target_registry" "$pack_name")"
                     source_version="$(read_manifest_pack_version "$manifest_file")"
-                    echo "  ⬆ UPDATE: $pack_name v$installed_version → v$source_version (use -Force/--force to upgrade)" >&2
-                    ((skipped++)) || true
-                    continue
+                    echo "  ⬆ Upgrading $pack_name v$installed_version → v$source_version" >&2
+                    force_this_pack=true
                     ;;
             esac
         fi
@@ -779,7 +779,7 @@ install_for_platform() {
         if [[ -n "$instructions_file" && -f "$pack_root/AGENTS.md" ]]; then
             local dst_instructions="$TARGET/$instructions_file"
             local result
-            result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_instructions" "$pack_name" "$FORCE")"
+            result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_instructions" "$pack_name" "$force_this_pack")"
             case "$result" in
                 created) echo "    + $instructions_file (created)"; ((installed++)) || true ;;
                 merged)  echo "    + $instructions_file (merged)";  ((installed++)) || true ;;
@@ -790,7 +790,7 @@ install_for_platform() {
             # Antigravity: also create/merge GEMINI.md
             if [[ "$platform_name" == "antigravity" ]]; then
                 local dst_gemini="$TARGET/GEMINI.md"
-                result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_gemini" "$pack_name" "$FORCE")"
+                result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_gemini" "$pack_name" "$force_this_pack")"
                 case "$result" in
                     created) echo "    + GEMINI.md (created)"; ((installed++)) || true ;;
                     merged)  echo "    + GEMINI.md (merged)";  ((installed++)) || true ;;
@@ -803,14 +803,14 @@ install_for_platform() {
             local trans_target
             trans_target="$(get_platform_field "$platform_name" "instructions_translation.target")"
             if [[ -n "$trans_target" ]]; then
-                update_translated_instructions "$dst_instructions" "$TARGET/$trans_target" "$platform_name" "$FORCE"
+                update_translated_instructions "$dst_instructions" "$TARGET/$trans_target" "$platform_name" "$force_this_pack"
             fi
         fi
 
         # --- Merge opencode.json (OpenCode only) ---
         if [[ "$platform_name" == "opencode" && -n "$config_file" && -f "$pack_root/opencode.example.json" ]]; then
             local dst_config="$TARGET/$config_file"
-            result="$(merge_opencode_json "$pack_root/opencode.example.json" "$dst_config" "$FORCE" "$skills_dir")"
+            result="$(merge_opencode_json "$pack_root/opencode.example.json" "$dst_config" "$force_this_pack" "$skills_dir")"
             case "$result" in
                 created) echo "    + $config_file (created from example)"; ((installed++)) || true ;;
                 merged)  echo "    + $config_file (merged)";              ((installed++)) || true ;;
@@ -832,7 +832,7 @@ install_for_platform() {
                 item_name="$(basename "$item")"
                 local dst_item="$target_skills/$item_name"
 
-                if [[ -d "$dst_item" ]] && ! $FORCE; then
+                if [[ -d "$dst_item" ]] && ! $force_this_pack; then
                     echo "    SKIP skills/$item_name (exists, use --force to overwrite)"
                     ((skipped++)) || true
                     continue
@@ -856,7 +856,7 @@ install_for_platform() {
                     item_name="$(basename "$item")"
                     local dst_item="$target_agents/$item_name"
 
-                    if [[ -d "$dst_item" ]] && ! $FORCE; then
+                    if [[ -d "$dst_item" ]] && ! $force_this_pack; then
                         echo "    SKIP agents/$item_name (exists, use --force to overwrite)"
                         ((skipped++)) || true
                         continue
@@ -881,7 +881,7 @@ install_for_platform() {
                     item_name="$(basename "$item")"
                     local dst_item="$target_commands/$item_name"
 
-                    if [[ -e "$dst_item" ]] && ! $FORCE; then
+                    if [[ -e "$dst_item" ]] && ! $force_this_pack; then
                         echo "    SKIP commands/$item_name (exists, use --force to overwrite)"
                         ((skipped++)) || true
                         continue
@@ -949,7 +949,9 @@ install_global_for_platform() {
         echo ""
         echo "    Installing pack (global): $pack_name"
 
-        if ! $FORCE; then
+        local force_this_pack=$FORCE
+
+        if ! $force_this_pack; then
             local version_status
             version_status="$(check_pack_version "$global_registry_dir" "$pack_name" "$manifest_file")"
             case "$version_status" in
@@ -964,9 +966,8 @@ install_global_for_platform() {
                     local installed_version source_version
                     installed_version="$(read_installed_pack_version "$global_registry_dir" "$pack_name")"
                     source_version="$(read_manifest_pack_version "$manifest_file")"
-                    echo "  ⬆ UPDATE: $pack_name v$installed_version → v$source_version (use -Force/--force to upgrade)" >&2
-                    ((skipped++)) || true
-                    continue
+                    echo "  ⬆ Upgrading $pack_name v$installed_version → v$source_version" >&2
+                    force_this_pack=true
                     ;;
             esac
         fi
@@ -980,7 +981,7 @@ install_global_for_platform() {
                 item_name="$(basename "$item")"
                 local dst_item="$global_skills_dir/$item_name"
 
-                if [[ -d "$dst_item" ]] && ! $FORCE; then
+                if [[ -d "$dst_item" ]] && ! $force_this_pack; then
                     echo "    SKIP global skills/$item_name (exists, use --force to overwrite)"
                     ((skipped++)) || true
                     continue
@@ -1002,7 +1003,7 @@ install_global_for_platform() {
                 item_name="$(basename "$item")"
                 local dst_item="$global_commands_dir/$item_name"
 
-                if [[ -e "$dst_item" ]] && ! $FORCE; then
+                if [[ -e "$dst_item" ]] && ! $force_this_pack; then
                     echo "    SKIP global commands/$item_name (exists, use --force to overwrite)"
                     ((skipped++)) || true
                     continue
