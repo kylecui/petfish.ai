@@ -59,6 +59,58 @@ AI_FLAVOR_PATTERNS = [
     "全面提升",
     "完整闭环",
     "全链路闭环",
+    # V5 — Chinese AI-slop expansion (issue #24)
+    # Empty summary phrases
+    "综上所述",
+    "总而言之",
+    "众所周知",
+    "不言而喻",
+    "毋庸置疑",
+    # Rhetorical filler idioms
+    "瞬息万变",
+    "日新月异",
+    "翻天覆地",
+    "前所未有",
+    "史无前例",
+    "方兴未艾",
+    # Slogan-style phrases
+    "与时俱进",
+    "拥抱变化",
+    "拥抱未来",
+    "引领未来",
+    "面向未来",
+    "开创未来",
+    "开创美好未来",
+    # Empty positive action phrases
+    "迎接挑战",
+    "抓住机遇",
+    "乘风破浪",
+    "砥砺前行",
+    "勇毅前行",
+    "奋楫笃行",
+    "踔厉奋发",
+    # Corporate/AI grandstanding
+    "使命",
+    "担当",
+    "深耕",
+    "赋能",
+    "携手共创",
+    "共同打造",
+    "助力",
+    "加持",
+    "底座",
+    "护城河",
+    "生态",
+    "布局",
+    "落地",
+    "闭环",
+    "链路",
+    "矩阵",
+    "沉淀",
+    "对齐",
+    "拉通",
+    "透传",
+    "打通",
 ]
 
 EN_AI_HIGH_FREQ_WORDS = [
@@ -197,23 +249,31 @@ def find_dash_abuse(text: str) -> list[str]:
 
 def find_triplet_patterns(text: str) -> list[str]:
     issues: list[str] = []
+    # Original: explicit 、和与 separators
     pattern = re.compile(r"[\u4e00-\u9fff]+、[\u4e00-\u9fff]+[、和与][\u4e00-\u9fff]+")
+    # Extended: 3+ comma-separated 4-char phrases (e.g., 迎接挑战，抓住机遇，开创未来)
+    idiom_chain = re.compile(
+        r"[\u4e00-\u9fff]{2,6}[，,][\u4e00-\u9fff]{2,6}[，,][\u4e00-\u9fff]{2,6}"
+    )
 
     for line in _iter_non_code_lines(text):
         stripped = line.lstrip()
         if stripped.startswith("|") or stripped.startswith("-"):
             continue
         issues.extend(pattern.findall(line))
+        issues.extend(idiom_chain.findall(line))
 
-    return issues
+    return list(dict.fromkeys(issues))
 
 
 def find_empty_contrast(text: str) -> list[str]:
     issues: list[str] = []
     patterns = [
         re.compile(r"不是[^。！？.!?\n]{0,80}?而是[^。！？.!?\n]{0,80}"),
+        re.compile(r"不仅仅是[^。！？.!?\n]{0,80}?更是[^。！？.!?\n]{0,80}"),
         re.compile(r"不仅是[^。！？.!?\n]{0,80}?更是[^。！？.!?\n]{0,80}"),
         re.compile(r"不仅[^。！？.!?\n]{0,80}?而且[^。！？.!?\n]{0,80}"),
+        re.compile(r"不仅[^。！？.!?\n]{0,80}?更[^。！？.!?\n]{0,80}"),
         re.compile(
             r"\bnot\s+just\b[^.!?\n]{0,80}?\bbut\b[^.!?\n]{0,80}", re.IGNORECASE
         ),

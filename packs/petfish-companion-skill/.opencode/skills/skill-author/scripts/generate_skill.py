@@ -218,22 +218,16 @@ def render_skill_md(name: str, skill_type: str, description: str) -> str:
             """
         ).strip(),
     }[skill_type]
-    return (
-        textwrap.dedent(
-            f"""
-        ---
-        name: {name}
-        description: {description}
-        metadata:
-          version: 0.1.0
-          author: your-team
-        ---
-
-        {body}
-        """
-        ).strip()
-        + "\n"
+    frontmatter = (
+        f"---\n"
+        f"name: {name}\n"
+        f"description: {description}\n"
+        f"metadata:\n"
+        f"  version: 0.1.0\n"
+        f"  author: your-team\n"
+        f"---"
     )
+    return f"{frontmatter}\n\n{body}\n"
 
 
 def render_automation_script(name: str) -> str:
