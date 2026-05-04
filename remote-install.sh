@@ -3,13 +3,13 @@
 # 胖鱼 PEtFiSh - Remote installer for AI coding platform skill packs from GitHub.
 #
 # Usage (curl one-liner):
-#   curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack course
-#   curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack all --platform claude
-#   curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack petfish --platform all
-#   curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack deploy --detect
+#   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack course
+#   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --platform claude
+#   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack petfish --platform all
+#   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack deploy --detect
 #
 # For private repos, set GITHUB_TOKEN:
-#   curl -fsSL -H "Authorization: token $GITHUB_TOKEN" https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack course
+#   curl -fsSL -H "Authorization: token $GITHUB_TOKEN" https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack course
 #
 set -euo pipefail
 
@@ -32,7 +32,7 @@ if ! command -v uv &>/dev/null; then
     fi
 fi
 
-REPO="kylecui/SKILL_builder"
+REPO="kylecui/petfish.ai"
 BRANCH="master"
 BRANCH_OVERRIDE=false
 

@@ -6,7 +6,7 @@
 
 **AI Worker's Companion — Skill lifecycle management for AI-assisted projects.**
 
-Repo name: `SKILL_builder`
+Repo name: `petfish.ai`
 Product name: `胖鱼 PEtFiSh`
 
 <p align="center">
@@ -49,12 +49,12 @@ PEtFiSh is your AI coding companion. It manages the full lifecycle of AI skills 
 
 ```powershell
 # Windows (PowerShell)
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack "init,companion"
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion"
 ```
 
 ```bash
 # macOS / Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion
 ```
 
 Then type `/initproject` — PEtFiSh will:
@@ -235,12 +235,12 @@ Batch install across multiple platforms with a single command:
 
 ```powershell
 # PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <alias> [-Target .] [-Platform opencode] [-Detect] [-Force] [-Global]
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> [-Target .] [-Platform opencode] [-Detect] [-Force] [-Global]
 ```
 
 ```bash
 # Bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <alias> [--target .] [--platform opencode] [--detect] [--force] [--global]
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias> [--target .] [--platform opencode] [--detect] [--force] [--global]
 ```
 
 ### Local Install (cloned repo) / 本地安装（已clone仓库）
@@ -259,12 +259,12 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
 
 ```bash
 curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-  https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh \
+  https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
   | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack course
 ```
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack course -GitHubToken $env:GITHUB_TOKEN
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack course -GitHubToken $env:GITHUB_TOKEN
 ```
 
 ### Cross-Platform Examples / 跨平台示例
@@ -290,17 +290,17 @@ Already have PEtFiSh installed? Re-run the same install command with `--force` t
 
 ```powershell
 # PowerShell — upgrade all packs / 升级全部pack
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack all -Force
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
 ```
 
 ```bash
 # Bash — upgrade all packs / 升级全部pack
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack all --force
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force
 ```
 
 ```bash
 # Upgrade a single pack / 升级单个pack
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack companion --force
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack companion --force
 ```
 
 **What happens without `--force` / 不加`--force`时的行为：**
@@ -387,7 +387,7 @@ Or use `/petfish create <name>` to scaffold a new skill interactively / 或使�
 ## Repo Structure / 仓库结构
 
 ```
-SKILL_builder/                          # 胖鱼 PEtFiSh repo
+petfish.ai/                          # 胖鱼 PEtFiSh repo
 ├── packs/
 │   ├── project-initializer-skill/      ← init (global-default)
 │   ├── petfish-companion-skill/        ← companion (global-default)

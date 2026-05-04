@@ -10,7 +10,7 @@ param(
     [switch]$Force,
     [switch]$List,
     [switch]$Global,
-    [string]$Repo = "kylecui/SKILL_builder",
+    [string]$Repo = "kylecui/petfish.ai",
     [string]$Branch = "master",
     [string]$GitHubToken
 )
