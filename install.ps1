@@ -57,10 +57,33 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# --- uv availability check ---
+# --- uv availability check & auto-install ---
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
-    Write-Warning "[胖鱼 PEtFiSh] uv not found. Some skill packs require uv to run Python scripts."
-    Write-Warning "         Install: https://docs.astral.sh/uv/getting-started/installation/"
+    Write-Host "[胖鱼 PEtFiSh] uv not found. Installing uv (required for Python-based skills)..." -ForegroundColor Yellow
+    try {
+        $uvInstallScript = (Invoke-RestMethod https://astral.sh/uv/install.ps1)
+        $uvBlock = [scriptblock]::Create($uvInstallScript)
+        & $uvBlock 2>$null
+        # Refresh PATH to pick up newly installed uv
+        $uvPath = Join-Path $env:USERPROFILE ".local\bin"
+        if (Test-Path $uvPath) {
+            $env:PATH = "$uvPath;$env:PATH"
+        }
+        # Also check cargo bin (alternative install location)
+        $cargoPath = Join-Path $env:USERPROFILE ".cargo\bin"
+        if (Test-Path $cargoPath) {
+            $env:PATH = "$cargoPath;$env:PATH"
+        }
+        if (Get-Command uv -ErrorAction SilentlyContinue) {
+            Write-Host "[胖鱼 PEtFiSh] ✅ uv installed successfully: $(uv --version)" -ForegroundColor Green
+        } else {
+            Write-Warning "[胖鱼 PEtFiSh] uv install completed but not found in PATH."
+            Write-Warning "         You may need to restart your shell."
+        }
+    } catch {
+        Write-Warning "[胖鱼 PEtFiSh] Failed to install uv automatically."
+        Write-Warning "         Install manually: https://docs.astral.sh/uv/getting-started/installation/"
+    }
 }
 
 if (-not $List) {

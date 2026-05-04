@@ -13,10 +13,23 @@
 #
 set -euo pipefail
 
-# --- uv availability check ---
+# --- uv availability check & auto-install ---
 if ! command -v uv &>/dev/null; then
-    echo "[胖鱼 PEtFiSh] WARNING: uv not found. Some skill packs require uv to run Python scripts."
-    echo "         Install: https://docs.astral.sh/uv/getting-started/installation/"
+    echo "[胖鱼 PEtFiSh] uv not found. Installing uv (required for Python-based skills)..."
+    if curl -LsSf https://astral.sh/uv/install.sh | sh 2>/dev/null; then
+        # Source the env to make uv available in this session
+        [ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env" 2>/dev/null
+        export PATH="$HOME/.local/bin:$PATH"
+        if command -v uv &>/dev/null; then
+            echo "[胖鱼 PEtFiSh] ✅ uv installed successfully: $(uv --version)"
+        else
+            echo "[胖鱼 PEtFiSh] WARNING: uv install completed but not found in PATH."
+            echo "         You may need to restart your shell or add ~/.local/bin to PATH."
+        fi
+    else
+        echo "[胖鱼 PEtFiSh] WARNING: Failed to install uv automatically."
+        echo "         Install manually: https://docs.astral.sh/uv/getting-started/installation/"
+    fi
 fi
 
 REPO="kylecui/SKILL_builder"
