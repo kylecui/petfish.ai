@@ -8,11 +8,69 @@ Data storage schema, metric formulas, retention policies, and integration patter
 
 ## 1. JSON Schema Specification / JSON架构规范
 
-### 1.1 根对象结构
+### 1.1 根对象结构（当前实现）
+
+> **Status: Current** — This is the actual schema written by track_usage.py v0.4.
 
 ```json
 {
-  "tracker_version": "1.0",
+  "project": "/absolute/path/to/project",
+  "platform": "opencode|claude|cursor|codex|copilot|windsurf|antigravity",
+  "created": "2026-05-01T10:00:00",
+  "updated": "2026-05-02T15:30:00",
+  "skills": { /* 见1.2 */ }
+}
+```
+
+**约束条件：**
+- `project`：记录项目根目录绝对路径
+- `platform`：来自 `--target` 目录下的平台检测结果
+- `created`, `updated`：ISO 8601格式，本地时间（无时区后缀）
+- 无 `tracker_version`、无 `schema_updated_at`、无 `metadata` 汇总块
+
+### 1.2 Skill 对象结构（当前实现）
+
+> **Status: Current** — This is the actual per-skill schema written by track_usage.py v0.4.
+
+```json
+{
+  "skills": {
+    "petfish-companion": {
+      "activations": 45,
+      "last_used": "2026-05-02T15:30:00",
+      "first_used": "2026-05-01T10:00:00",
+      "sessions": 8,
+      "feedback": {
+        "helpful": 8,
+        "not_helpful": 1
+      }
+    }
+  }
+}
+```
+
+**字段说明：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `activations` | int | 该skill的总激活次数 |
+| `last_used` | string | 最后一次激活时间（ISO 8601，本地时间） |
+| `first_used` | string | 首次激活时间（ISO 8601，本地时间） |
+| `sessions` | int | 触发过该skill的会话数（每次 `--action session` +1） |
+| `feedback.helpful` | int | 标记为 helpful 的反馈计数 |
+| `feedback.not_helpful` | int | 标记为 not_helpful 的反馈计数 |
+
+---
+
+### 1.3 计划架构 v2（Planned Schema v2）
+
+> **Status: Planned** — Not yet implemented in track_usage.py v0.4. Current behavior: only the flat schema in 1.1–1.2 is written.
+
+以下为 v2 计划扩展的根对象结构：
+
+```json
+{
+  "tracker_version": "2.0",
   "platform": "opencode|claude|cursor|codex|copilot|windsurf|antigravity",
   "project_root": "/absolute/path/to/project",
   "created_at": "2026-05-01T10:00:00Z",
@@ -24,17 +82,11 @@ Data storage schema, metric formulas, retention policies, and integration patter
     "active_skills": 12,
     "dormant_skills": 3
   },
-  "skills": { /* 见1.2 */ }
+  "skills": { /* 见计划v2 skill结构 */ }
 }
 ```
 
-**约束条件：**
-- `tracker_version`：固定为 `"1.0"`，用于版本检查和迁移判断
-- `platform`：必须与当前项目平台匹配（否则警告）
-- `created_at`, `updated_at`：ISO 8601格式，毫秒精度
-- `project_root`：绝对路径，用于检测项目移动
-
-### 1.2 Skill 对象结构
+计划 v2 skill 对象结构：
 
 ```json
 {
@@ -69,7 +121,7 @@ Data storage schema, metric formulas, retention policies, and integration patter
 }
 ```
 
-**字段约束：**
+计划 v2 字段约束：
 
 | 字段 | 类型 | 范围/枚举 | 必须 | 说明 |
 |------|------|---------|------|------|
@@ -82,6 +134,8 @@ Data storage schema, metric formulas, retention policies, and integration patter
 ---
 
 ## 2. Metric Calculation Formulas / 指标计算公式
+
+> **Note on current implementation**: The `report` action in track_usage.py v0.4 implements basic versions of three metrics: activation share% (该skill激活数/总激活数), satisfaction% (helpful/(helpful+not_helpful)), and dormancy (7+ days since last use). The full formulas below are the planned calculation targets for v2.
 
 ### 2.1 激活相关指标
 
@@ -168,7 +222,20 @@ Health 分层：
 
 ## 3. Feedback Scoring Methodology / 反馈评分方法
 
-### 3.1 五级制评分体系
+> **Status: Planned (5-level system)** — Not yet implemented in track_usage.py v0.4. Current behavior: feedback is binary — `--feedback helpful` or `--feedback not_helpful`. No ratings, no neutral category. The 5-level system below is the planned v2 target.
+
+### 3.1 当前实现：二元反馈
+
+track_usage.py v0.4 仅支持：
+
+```bash
+--feedback helpful       # feedback.helpful += 1
+--feedback not_helpful   # feedback.not_helpful += 1
+```
+
+满意度报告计算方式：`satisfaction = helpful / (helpful + not_helpful) × 100%`
+
+### 3.2 计划：五级制评分体系
 
 | 分数 | 标签 | 用户行为 | 含义 |
 |------|------|--------|------|
@@ -178,7 +245,7 @@ Health 分层：
 | 2 | Not Helpful | 👎 | Skill激活成功但输出无关或低质 |
 | 1 | Harmful | 👎 + 标记问题 | Skill导致错误决策或浪费时间 |
 
-### 3.2 加权反馈权值
+### 3.3 计划：加权反馈权值
 
 为了防止极端反馈扭曲数据，采用 **时间衰减加权**：
 
@@ -201,7 +268,7 @@ decay = 2^(-(距今天数 / 7))
 - 14天前的5分反馈：1.0 × 2^(-2) = 0.25
 ```
 
-### 3.3 反馈异常检测
+### 3.4 计划：反馈异常检测
 
 标记可疑反馈（防止水军或误操作）：
 
@@ -221,7 +288,9 @@ decay = 2^(-(距今天数 / 7))
 
 ## 4. Data Retention & Rotation Policy / 数据保留与轮换策略
 
-### 4.1 保留周期
+> **Status: Planned** — Not yet implemented in track_usage.py v0.4. Current behavior: data persists indefinitely in `.opencode/skill-usage.json` until manual `--action reset`. No compression, no auto-cleanup, no rotation occurs.
+
+### 4.1 计划：保留周期
 
 | 数据类型 | 保留时长 | 触发操作 |
 |---------|--------|---------|
@@ -230,7 +299,7 @@ decay = 2^(-(距今天数 / 7))
 | 按月聚合 | 12个月 | 自动压缩到年维度 |
 | 按年聚合 | 永久 | 保留用于长期趋势 |
 
-### 4.2 压缩 (Compression) 规则
+### 4.2 计划：压缩 (Compression) 规则
 
 **从session级压缩到月级：**
 
@@ -258,7 +327,7 @@ decay = 2^(-(距今天数 / 7))
 ]
 ```
 
-### 4.3 自动清理 (Auto-Cleanup)
+### 4.3 计划：自动清理 (Auto-Cleanup)
 
 ```python
 # 伪代码：在每次生成report时执行
@@ -286,42 +355,62 @@ def cleanup_old_data(usage_json, retention_days=90):
 
 ### 5.1 其他Skill如何上报数据
 
-任何skill可通过调用tracker来上报自定义事件：
+任何skill可通过调用tracker来上报事件。以下为当前实现支持的实际CLI用法：
 
 ```bash
-# 基础激活上报（companion自动调用）
+# 激活上报（companion自动调用）
 uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
   --action activate \
-  --skill-name my-skill \
-  --target /path/to/project \
-  --context "call_omo_agent"
+  --skill my-skill \
+  --target /path/to/project
 
-# 带元数据的激活上报
+# 会话记录（每次新会话调用一次）
 uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
-  --action activate \
-  --skill-name my-skill \
-  --target /path/to/project \
-  --context "skill_trigger" \
-  --metadata '{"execution_time_ms": 324, "output_tokens": 1250}'
+  --action session \
+  --skill my-skill \
+  --target /path/to/project
 
-# 用户反馈上报
+# 用户反馈上报（二元：helpful 或 not_helpful）
 uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
   --action feedback \
-  --skill-name my-skill \
-  --target /path/to/project \
-  --rating 4 \
-  --comment "有用但有小问题"
+  --skill my-skill \
+  --feedback helpful \
+  --target /path/to/project
 
-# 批量上报（用于离线会话）
+# 生成报告（文本格式）
 uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
-  --action batch-upload \
-  --events-file /tmp/events.jsonl \
+  --action report \
+  --target /path/to/project
+
+# 生成报告（JSON格式）
+uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
+  --action report \
+  --target /path/to/project \
+  --json
+
+# 重置所有数据
+uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
+  --action reset \
   --target /path/to/project
 ```
 
+**支持的 CLI 参数：** `--action`, `--skill`, `--feedback (helpful|not_helpful)`, `--target`, `--json`
+
+> **Status: Planned** — The following args are **not** supported in v0.4: `--context`, `--metadata`, `--rating`, `--comment`, `--events-file`, `--on-change`, `--output`. The `batch-upload` action does not exist.
+>
+> 计划中的批量上报示例（v2）：
+> ```bash
+> uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
+>   --action batch-upload \
+>   --events-file /tmp/events.jsonl \
+>   --target /path/to/project
+> ```
+
 ### 5.2 Skill内嵌集成
 
-Skill脚本可导入tracker的Python库直接调用：
+> **Status: Planned** — Not yet implemented in track_usage.py v0.4. There is no Python library module. Current behavior: integration must go through the CLI subprocess pattern shown in 5.1.
+
+计划中的 Python 库调用方式（v2）：
 
 ```python
 # my_skill/scripts/my_main.py
@@ -352,9 +441,11 @@ except Exception as e:
     )
 ```
 
-### 5.3 监听模式 (Webhook)
+### 5.3 监听模式 (Watch Mode)
 
-对于需要被动监听所有skill激活的用例（如实时仪表板），tracker支持简单的文件监听模式：
+> **Status: Planned** — Not yet implemented in track_usage.py v0.4. The `--action watch` and `--on-change` args do not exist. Current behavior: no passive monitoring; callers must invoke the script explicitly.
+
+计划中的文件监听模式（v2）：
 
 ```bash
 # 监听 .opencode/skill-usage.json 变更，并运行自定义处理脚本
@@ -408,31 +499,88 @@ uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
 # 查看当前记录的所有skill
 cat .opencode/skill-usage.json | jq '.skills | keys'
 
-# 删除特定skill的所有记录
+# 清空整个项目的tracking数据
 uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
-  --action purge \
-  --skill-name unwanted-skill \
+  --action reset \
   --target .
 
-# 清空整个项目的tracking数据
+# 或直接删除文件
 rm .opencode/skill-usage.json
-
-# 导出数据副本（用于外部分析）
-uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
-  --action export \
-  --target . \
-  --output /tmp/my_usage_backup.json
 ```
+
+> **Status: Planned** — The following user-control actions are **not** supported in v0.4: `purge` (per-skill delete) and `export`. Current behavior: use `reset` to clear all data, or delete the file manually.
+>
+> 计划中的精细控制（v2）：
+> ```bash
+> # 删除特定skill的所有记录
+> uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
+>   --action purge \
+>   --skill unwanted-skill \
+>   --target .
+>
+> # 导出数据副本（用于外部分析）
+> uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
+>   --action export \
+>   --target . \
+>   --output /tmp/my_usage_backup.json
+> ```
 
 ---
 
 ## 7. Example Tracking Records / 示例追踪记录
 
-### 7.1 完整的usage.json示例
+### 7.1 当前实现的 usage.json 示例
+
+> **Status: Current** — This is what track_usage.py v0.4 actually writes.
 
 ```json
 {
-  "tracker_version": "1.0",
+  "project": "/home/user/my-project",
+  "platform": "opencode",
+  "created": "2026-05-01T10:00:00",
+  "updated": "2026-05-02T15:30:00",
+  "skills": {
+    "petfish-companion": {
+      "activations": 45,
+      "last_used": "2026-05-02T15:30:00",
+      "first_used": "2026-05-01T10:00:00",
+      "sessions": 8,
+      "feedback": {
+        "helpful": 8,
+        "not_helpful": 1
+      }
+    },
+    "skill-lint": {
+      "activations": 15,
+      "last_used": "2026-05-02T14:00:00",
+      "first_used": "2026-05-01T12:00:00",
+      "sessions": 2,
+      "feedback": {
+        "helpful": 3,
+        "not_helpful": 0
+      }
+    },
+    "marketplace-connector": {
+      "activations": 2,
+      "last_used": "2026-04-25T10:30:00",
+      "first_used": "2026-04-20T08:00:00",
+      "sessions": 1,
+      "feedback": {
+        "helpful": 0,
+        "not_helpful": 1
+      }
+    }
+  }
+}
+```
+
+### 7.2 计划 v2 Schema 示例（Planned v2 Schema Example）
+
+> **Status: Planned** — Not yet implemented in track_usage.py v0.4.
+
+```json
+{
+  "tracker_version": "2.0",
   "platform": "opencode",
   "project_root": "/home/user/my-project",
   "created_at": "2026-05-01T10:00:00Z",
@@ -513,94 +661,19 @@ uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py \
         "satisfaction_score": 0.94,
         "feedback_coverage": 0.22
       }
-    },
-    "skill-lint": {
-      "metadata": {
-        "first_seen": "2026-05-01T12:00:00Z",
-        "last_used": "2026-05-02T14:00:00Z",
-        "install_source": "project",
-        "activation_context": "manual_invocation",
-        "health_score": 75
-      },
-      "activation": {
-        "total": 15,
-        "by_session": [
-          {
-            "session_id": "ses_abc123",
-            "count": 8,
-            "first_at": "2026-05-01T12:10:00Z",
-            "last_at": "2026-05-01T14:20:00Z"
-          },
-          {
-            "session_id": "ses_xyz789",
-            "count": 7,
-            "first_at": "2026-05-02T13:00:00Z",
-            "last_at": "2026-05-02T14:00:00Z"
-          }
-        ]
-      },
-      "feedback": {
-        "helpful": {
-          "count": 3,
-          "ratings": [5, 4, 5],
-          "avg_score": 4.67
-        },
-        "not_helpful": {
-          "count": 0,
-          "ratings": [],
-          "avg_score": null
-        }
-      },
-      "performance": {
-        "avg_response_time_ms": 156,
-        "max_response_time_ms": 420,
-        "min_response_time_ms": 78,
-        "p95_response_time_ms": 380,
-        "timeout_count": 0
-      }
-    },
-    "marketplace-connector": {
-      "metadata": {
-        "first_seen": "2026-04-20T08:00:00Z",
-        "last_used": "2026-04-25T10:30:00Z",
-        "install_source": "global",
-        "activation_context": "skill_trigger",
-        "health_score": 45,
-        "status": "DORMANT"
-      },
-      "activation": {
-        "total": 2,
-        "by_session": [
-          {
-            "session_id": "ses_old001",
-            "count": 2,
-            "first_at": "2026-04-25T09:00:00Z",
-            "last_at": "2026-04-25T10:30:00Z"
-          }
-        ]
-      },
-      "feedback": {
-        "helpful": {
-          "count": 0
-        },
-        "not_helpful": {
-          "count": 1,
-          "ratings": [2]
-        }
-      }
     }
   }
 }
 ```
 
-### 7.2 字段注解
+### 7.3 字段注解（v2 计划字段）
 
 | 字段 | 示例 | 注释 |
 |------|------|------|
-| `health_score` | 92 | 综合评分，用于UI展示排序 |
-| `weighted_avg` | 4.62 | 应用时间衰减后的加权平均，用于报告 |
-| `p95_response_time_ms` | 950 | 第95百分位响应时间，识别性能瓶颈 |
-| `activation_density` | 22.5 | 每天激活次数（avg），高值=重度依赖 |
-| `session_coverage` | 0.64 | 使用该skill的会话占比，广度指标 |
-| `feedback_coverage` | 0.22 | 反馈数/激活数，低值=反馈不足，需提醒用户 |
-| `status: DORMANT` | — | 7天+未用时自动标记，提示可能问题 |
+| `health_score` | 92 | 综合评分，用于UI展示排序（计划v2） |
+| `weighted_avg` | 4.62 | 应用时间衰减后的加权平均，用于报告（计划v2） |
+| `p95_response_time_ms` | 950 | 第95百分位响应时间，识别性能瓶颈（计划v2） |
+| `activation_density` | 22.5 | 每天激活次数（avg），高值=重度依赖（计划v2） |
+| `session_coverage` | 0.64 | 使用该skill的会话占比，广度指标（计划v2） |
+| `feedback_coverage` | 0.22 | 反馈数/激活数，低值=反馈不足，需提醒用户（计划v2） |
+| `status: DORMANT` | — | 7天+未用时自动标记（当前report已实现dormant flag） |

@@ -17,6 +17,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+import platform as platform_mod
 
 # Platform → registry file path (relative to project root)
 PLATFORM_REGISTRY_PATHS = {
@@ -39,12 +40,29 @@ KNOWN_PACKS = {
     "petfish": "petfish-style-skill",
     "ppt": "opencode-ppt-skills",
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
-    "trustskills": "trustskills",
+    "calibrate": "anti-sycophancy-calibration-pack",
+    "context": "context-router-skill",
+    "trust": "trustskills-governance-pack",
 }
 
 
+def get_global_registry_paths() -> dict[str, Path]:
+    """Build global registry paths per platform."""
+    home = Path.home()
+    return {
+        "opencode": home / ".config/opencode/installed-packs.json",
+        "claude": home / ".claude/installed-packs.json",
+        "codex": home / ".codex/installed-packs.json",
+        "cursor": home / ".cursor/installed-packs.json",
+        "copilot": home / ".github/installed-packs.json",
+        "windsurf": home / ".codeium/windsurf/installed-packs.json",
+        "antigravity": home / ".gemini/antigravity/installed-packs.json",
+        "universal": home / ".agents/installed-packs.json",
+    }
+
+
 def find_registry(target: Path, platform: str | None = None) -> Path | None:
-    """Find installed-packs.json in the target project."""
+    """Find installed-packs.json in the target project or global paths."""
     if platform:
         candidates = [PLATFORM_REGISTRY_PATHS.get(platform, "")]
     else:
@@ -58,10 +76,25 @@ def find_registry(target: Path, platform: str | None = None) -> Path | None:
             seen.add(c)
             unique.append(c)
 
+    # Check project-level paths first
     for rel in unique:
         path = target / rel
         if path.exists():
             return path
+
+    # Check global paths
+    global_paths = get_global_registry_paths()
+    if platform:
+        # Only check the specified platform's global path
+        global_candidate = global_paths.get(platform)
+        if global_candidate and global_candidate.exists():
+            return global_candidate
+    else:
+        # Check all global paths
+        for global_path in global_paths.values():
+            if global_path.exists():
+                return global_path
+
     return None
 
 
