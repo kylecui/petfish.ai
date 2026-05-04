@@ -243,13 +243,26 @@ function Merge-AgentsMd([string]$srcFile, [string]$dstFile, [string]$packName, [
     return "merged"
 }
 
-function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOverwrite) {
+function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOverwrite, [string]$SkillsDir = ".opencode/skills") {
+    $src = Get-Content $srcFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    $normalizedSkillsDir = if ([string]::IsNullOrWhiteSpace($SkillsDir)) { ".opencode/skills" } else { ($SkillsDir -replace '[\\/]+$','') }
+    if ([string]::IsNullOrWhiteSpace($normalizedSkillsDir)) {
+        $normalizedSkillsDir = ".opencode/skills"
+    }
+
+    $srcStr = $src | ConvertTo-Json -Depth 10
+    $srcStr = $srcStr.Replace('.opencode/skills/', ($normalizedSkillsDir + '/'))
+    $src = $srcStr | ConvertFrom-Json
+
     if (-not (Test-Path $dstFile)) {
-        Copy-Item $srcFile $dstFile
+        $parentDir = Split-Path -Parent $dstFile
+        if ($parentDir -and -not (Test-Path $parentDir)) {
+            New-Item -ItemType Directory -Path $parentDir -Force | Out-Null
+        }
+        $src | ConvertTo-Json -Depth 10 | Set-Content $dstFile -Encoding UTF8
         return "created"
     }
 
-    $src = Get-Content $srcFile -Raw -Encoding UTF8 | ConvertFrom-Json
     $dst = Get-Content $dstFile -Raw -Encoding UTF8 | ConvertFrom-Json
 
     # Recursive shallow merge (3 levels deep: permission.skill.X = "allow")
@@ -500,6 +513,19 @@ function Show-PackList {
     Write-Host ""
 }
 
+function Get-RestartHint([string]$platformName) {
+    switch ($platformName) {
+        "opencode" { return '⚠️  Restart needed. Exit: Ctrl+C | Resume: opencode -s <session_id>' }
+        "claude" { return '⚠️  Restart needed. Exit: /exit or Ctrl+C | Resume: claude --continue' }
+        "codex" { return '⚠️  Restart needed. Exit: Ctrl+C' }
+        "cursor" { return '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"' }
+        "copilot" { return '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"' }
+        "windsurf" { return '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"' }
+        "antigravity" { return '⚠️  Restart needed. Exit: Ctrl+C' }
+        default { return $null }
+    }
+}
+
 # --- Install function for a given platform ---
 
 function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$targetPath, [switch]$ForceInstall) {
@@ -590,7 +616,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 switch ($platformName) {
                     "opencode" {
                         $dstOc = Join-Path $targetPath $cfg.ConfigFile
-                        $result = Merge-OpencodeJson $ocExample $dstOc -ForceOverwrite:$ForceInstall
+                        $result = Merge-OpencodeJson $ocExample $dstOc -ForceOverwrite:$ForceInstall -SkillsDir $cfg.SkillsDir
                         switch ($result) {
                             "created" { Write-Host "    + $($cfg.ConfigFile) (created from example)" -ForegroundColor DarkGreen; $script:installed++ }
                             "merged"  { Write-Host "    + $($cfg.ConfigFile) (merged)" -ForegroundColor DarkGreen; $script:installed++ }
@@ -677,6 +703,12 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
     }
 
     Write-Host "`n  [$platformName] Done: $($script:installed) installed, $($script:skipped) skipped." -ForegroundColor Cyan
+    if ($script:installed -gt 0) {
+        $restartHint = Get-RestartHint $platformName
+        if ($restartHint) {
+            Write-Host $restartHint -ForegroundColor Yellow
+        }
+    }
 }
 
 function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [switch]$ForceInstall) {
@@ -781,6 +813,12 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
     }
 
     Write-Host "`n  [$platformName] Done: $($script:installed) installed, $($script:skipped) skipped." -ForegroundColor Cyan
+    if ($script:installed -gt 0) {
+        $restartHint = Get-RestartHint $platformName
+        if ($restartHint) {
+            Write-Host $restartHint -ForegroundColor Yellow
+        }
+    }
 }
 
 # --- List mode ---
