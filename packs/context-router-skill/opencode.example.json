@@ -1,9 +1,8 @@
 {
   "mcp": {
     "context-state": {
-      "type": "stdio",
-      "command": "uv",
-      "args": ["run", "python", ".opencode/skills/context-router/mcp/context-state/server.py"]
+      "type": "local",
+      "command": ["uv", "run", "python", ".opencode/skills/context-router/mcp/context-state/server.py"]
     }
   },
   "permission": {

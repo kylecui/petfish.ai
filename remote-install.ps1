@@ -249,6 +249,9 @@ function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOv
     $src = Get-Content $srcFile -Raw -Encoding UTF8 | ConvertFrom-Json
     $dst = Get-Content $dstFile -Raw -Encoding UTF8 | ConvertFrom-Json
 
+    # Recursive shallow merge (3 levels deep: permission.skill.X = "allow")
+    # Exception: mcp entries are replaced atomically at level 2 (not deep-merged)
+    $atomicL2 = @("mcp")
     foreach ($p1 in $src.PSObject.Properties) {
         if (-not $dst.PSObject.Properties[$p1.Name]) {
             $dst | Add-Member -NotePropertyName $p1.Name -NotePropertyValue $p1.Value
@@ -257,6 +260,9 @@ function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOv
                 $level2 = $dst.($p1.Name)
                 if (-not $level2.PSObject.Properties[$p2.Name]) {
                     $level2 | Add-Member -NotePropertyName $p2.Name -NotePropertyValue $p2.Value
+                } elseif ($p1.Name -in $atomicL2 -and $ForceOverwrite) {
+                    # Replace entire entry atomically (e.g. mcp.context-state)
+                    $level2.($p2.Name) = $p2.Value
                 } elseif ($p2.Value -is [PSCustomObject] -and $level2.($p2.Name) -is [PSCustomObject]) {
                     foreach ($p3 in $p2.Value.PSObject.Properties) {
                         $level3 = $level2.($p2.Name)
