@@ -285,6 +285,14 @@ input: {
 | `session_resume` | topic_id?, session_id? | session + topic_id + resume_context |
 | `session_close` | session_id, summary?, auto_close_inactive?, threshold_hours? | closed session + auto_closed list |
 | `session_timeline` | session_id, max_events? | timeline summary with recent events |
+| `session_query` | since?, until?, topic_id?, agent_id?, limit? | activity summary + matched events |
+| `session_agents` | session_id?, topic_id? | by_agent + by_topic attribution maps |
+
+### Topic recommendations
+
+| Tool | 参数 | 返回 |
+|------|------|------|
+| `topic_recommend` | topic_id, max_depth? | related topics ranked by graph proximity |
 
 ## 降级与容错
 

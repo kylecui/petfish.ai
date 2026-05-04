@@ -619,3 +619,241 @@ def test_build_resume_package_uses_session_id_when_topic_is_none(tmp_path: Path)
     assert expected_path.exists()
     assert result == {"path": str(expected_path), "size": expected_path.stat().st_size}
     assert "# Context Package: Resume: Session oc_resume_session" in content
+
+
+def test_query_activity_returns_expected_structure(tmp_path: Path):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="activity-structure")
+
+    first = store.add_event(
+        session["id"],
+        "message",
+        topic_id="topic_alpha",
+        agent_id="agent_a",
+        content="first",
+    )
+    second = store.add_event(
+        session["id"],
+        "message",
+        topic_id="topic_beta",
+        agent_id="agent_b",
+        content="second",
+    )
+
+    result = store.query_activity()
+
+    assert result == {
+        "sessions_scanned": 1,
+        "sessions_matched": 1,
+        "topics_active": ["topic_alpha", "topic_beta"],
+        "agents_active": ["agent_a", "agent_b"],
+        "events": [first, second],
+        "total_events": 2,
+    }
+
+
+def test_query_activity_filters_by_since_and_until(tmp_path: Path):
+    store = make_store(tmp_path)
+    first_session = store.bind(external_session_id="activity-older")
+    first = store.add_event(first_session["id"], "message", topic_id="topic_alpha")
+    time.sleep(0.01)
+
+    second_session = store.bind(external_session_id="activity-middle")
+    second = store.add_event(second_session["id"], "message", topic_id="topic_beta")
+    time.sleep(0.01)
+
+    third_session = store.bind(external_session_id="activity-newer")
+    store.add_event(third_session["id"], "message", topic_id="topic_gamma")
+
+    result = store.query_activity(since=second["ts"], until=second["ts"])
+
+    assert result["sessions_scanned"] == 3
+    assert result["sessions_matched"] == 1
+    assert result["topics_active"] == ["topic_beta"]
+    assert result["agents_active"] == []
+    assert result["events"] == [second]
+    assert result["total_events"] == 1
+    assert first not in result["events"]
+
+
+def test_query_activity_filters_by_topic_id(tmp_path: Path):
+    store = make_store(tmp_path)
+    first_session = store.bind(external_session_id="activity-topic-1")
+    matching_first = store.add_event(
+        first_session["id"], "message", topic_id="topic_alpha", agent_id="agent_a"
+    )
+
+    second_session = store.bind(external_session_id="activity-topic-2")
+    store.add_event(
+        second_session["id"], "message", topic_id="topic_beta", agent_id="agent_b"
+    )
+    matching_second = store.add_event(
+        second_session["id"], "message", topic_id="topic_alpha", agent_id="agent_c"
+    )
+
+    result = store.query_activity(topic_id="topic_alpha")
+
+    assert result["sessions_scanned"] == 2
+    assert result["sessions_matched"] == 2
+    assert result["topics_active"] == ["topic_alpha"]
+    assert result["agents_active"] == ["agent_a", "agent_c"]
+    assert result["events"] == [matching_first, matching_second]
+    assert result["total_events"] == 2
+
+
+def test_query_activity_filters_by_agent_id(tmp_path: Path):
+    store = make_store(tmp_path)
+    first_session = store.bind(external_session_id="activity-agent-1")
+    matching_first = store.add_event(
+        first_session["id"], "message", topic_id="topic_alpha", agent_id="agent_shared"
+    )
+
+    second_session = store.bind(external_session_id="activity-agent-2")
+    store.add_event(
+        second_session["id"], "message", topic_id="topic_beta", agent_id="agent_other"
+    )
+    matching_second = store.add_event(
+        second_session["id"],
+        "message",
+        topic_id="topic_gamma",
+        agent_id="agent_shared",
+    )
+
+    result = store.query_activity(agent_id="agent_shared")
+
+    assert result["sessions_scanned"] == 2
+    assert result["sessions_matched"] == 2
+    assert result["topics_active"] == ["topic_alpha", "topic_gamma"]
+    assert result["agents_active"] == ["agent_shared"]
+    assert result["events"] == [matching_first, matching_second]
+    assert result["total_events"] == 2
+
+
+def test_query_activity_limit_returns_capped_events_but_preserves_total(tmp_path: Path):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="activity-limit")
+
+    first = store.add_event(session["id"], "message", topic_id="topic_alpha")
+    second = store.add_event(session["id"], "message", topic_id="topic_beta")
+    store.add_event(session["id"], "message", topic_id="topic_gamma")
+
+    result = store.query_activity(limit=2)
+
+    assert result["events"] == [first, second]
+    assert result["total_events"] == 3
+
+
+def test_query_activity_returns_empty_results_with_no_sessions(tmp_path: Path):
+    store = make_store(tmp_path)
+
+    assert store.query_activity() == {
+        "sessions_scanned": 0,
+        "sessions_matched": 0,
+        "topics_active": [],
+        "agents_active": [],
+        "events": [],
+        "total_events": 0,
+    }
+
+
+def test_get_agent_attribution_returns_expected_structure(tmp_path: Path):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="agent-structure")
+    store.add_event(
+        session["id"], "message", topic_id="topic_alpha", agent_id="agent_a"
+    )
+    store.add_event(session["id"], "message", topic_id="topic_beta", agent_id="agent_b")
+
+    result = store.get_agent_attribution()
+
+    assert result == {
+        "by_agent": {
+            "agent_a": ["topic_alpha"],
+            "agent_b": ["topic_beta"],
+        },
+        "by_topic": {
+            "topic_alpha": ["agent_a"],
+            "topic_beta": ["agent_b"],
+        },
+        "sessions_scanned": 1,
+    }
+
+
+def test_get_agent_attribution_groups_multiple_topics_per_agent(tmp_path: Path):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="agent-groups")
+    store.add_event(
+        session["id"], "message", topic_id="topic_alpha", agent_id="agent_a"
+    )
+    store.add_event(session["id"], "message", topic_id="topic_beta", agent_id="agent_a")
+    store.add_event(session["id"], "message", topic_id="topic_beta", agent_id="agent_b")
+
+    result = store.get_agent_attribution()
+
+    assert result["by_agent"] == {
+        "agent_a": ["topic_alpha", "topic_beta"],
+        "agent_b": ["topic_beta"],
+    }
+    assert result["by_topic"] == {
+        "topic_alpha": ["agent_a"],
+        "topic_beta": ["agent_a", "agent_b"],
+    }
+
+
+def test_get_agent_attribution_filters_by_session_id(tmp_path: Path):
+    store = make_store(tmp_path)
+    first_session = store.bind(external_session_id="agent-session-1")
+    second_session = store.bind(external_session_id="agent-session-2")
+    store.add_event(
+        first_session["id"], "message", topic_id="topic_alpha", agent_id="agent_a"
+    )
+    store.add_event(
+        second_session["id"], "message", topic_id="topic_beta", agent_id="agent_b"
+    )
+
+    result = store.get_agent_attribution(session_id=second_session["id"])
+
+    assert result == {
+        "by_agent": {"agent_b": ["topic_beta"]},
+        "by_topic": {"topic_beta": ["agent_b"]},
+        "sessions_scanned": 1,
+    }
+
+
+def test_get_agent_attribution_filters_by_topic_id(tmp_path: Path):
+    store = make_store(tmp_path)
+    first_session = store.bind(external_session_id="agent-topic-1")
+    second_session = store.bind(external_session_id="agent-topic-2")
+    store.add_event(
+        first_session["id"], "message", topic_id="topic_alpha", agent_id="agent_a"
+    )
+    store.add_event(
+        first_session["id"], "message", topic_id="topic_beta", agent_id="agent_a"
+    )
+    store.add_event(
+        second_session["id"], "message", topic_id="topic_beta", agent_id="agent_b"
+    )
+
+    result = store.get_agent_attribution(topic_id="topic_beta")
+
+    assert result["sessions_scanned"] == 2
+    assert result["by_agent"] == {
+        "agent_a": ["topic_beta"],
+        "agent_b": ["topic_beta"],
+    }
+    assert result["by_topic"] == {"topic_beta": ["agent_a", "agent_b"]}
+
+
+def test_get_agent_attribution_skips_events_without_agent_id(tmp_path: Path):
+    store = make_store(tmp_path)
+    session = store.bind(external_session_id="agent-skip")
+    store.add_event(session["id"], "message", topic_id="topic_alpha")
+    store.add_event(session["id"], "message", topic_id="topic_beta", agent_id="")
+    store.add_event(
+        session["id"], "message", topic_id="topic_gamma", agent_id="agent_c"
+    )
+
+    result = store.get_agent_attribution()
+
+    assert result["by_agent"] == {"agent_c": ["topic_gamma"]}
+    assert result["by_topic"] == {"topic_gamma": ["agent_c"]}

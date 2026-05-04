@@ -259,6 +259,66 @@ class TopicStore:
         finally:
             self._exit_lock()
 
+    def recommend_related(self, topic_id: str, max_depth: int = 2) -> Dict[str, Any]:
+        """Walk the topic graph from topic_id up to max_depth hops.
+
+        Returns related topics ranked by proximity (closer = higher rank),
+        with relation paths and topic summaries.
+        """
+        graph = self.graph()
+        edges = graph.get("edges", [])
+
+        # BFS from topic_id
+        visited = {topic_id}
+        queue = [(topic_id, 0)]  # (id, depth)
+        results = []  # (other_id, depth, relation, via_id)
+
+        while queue:
+            current_id, depth = queue.pop(0)
+            if depth >= max_depth:
+                continue
+            for edge in edges:
+                source = edge.get("source")
+                target = edge.get("target")
+                relation = edge.get("relation", "related")
+                other_id = None
+                if source == current_id and target not in visited:
+                    other_id = target
+                elif target == current_id and source not in visited:
+                    other_id = source
+                if other_id:
+                    visited.add(other_id)
+                    results.append((other_id, depth + 1, relation, current_id))
+                    queue.append((other_id, depth + 1))
+
+        # Enrich with topic data
+        recommendations = []
+        for other_id, depth, relation, via_id in results:
+            topic = self.get(other_id)
+            if topic is None:
+                continue
+            recommendations.append(
+                {
+                    "topic_id": other_id,
+                    "title": topic.get("title", other_id),
+                    "status": topic.get("status"),
+                    "relation": relation,
+                    "depth": depth,
+                    "via": via_id if via_id != topic_id else None,
+                    "summary": topic.get("summary", ""),
+                    "tags": topic.get("tags", []),
+                }
+            )
+
+        # Sort by depth (closer first), then by title
+        recommendations.sort(key=lambda r: (r["depth"], r.get("title", "")))
+
+        return {
+            "source_topic_id": topic_id,
+            "recommendations": recommendations,
+            "total": len(recommendations),
+        }
+
     def log_decision(self, entry: Dict[str, Any]) -> Dict[str, Any]:
         self._enter_lock()
         try:

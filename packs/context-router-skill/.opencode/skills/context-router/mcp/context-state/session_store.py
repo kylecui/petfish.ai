@@ -343,6 +343,135 @@ class SessionStore:
             "timeline_digest": timeline_digest,
         }
 
+    def query_activity(
+        self, since=None, until=None, topic_id=None, agent_id=None, limit=50
+    ) -> dict:
+        sessions_scanned = 0
+        sessions_matched = 0
+        matched_events = []
+        topics_active = set()
+        agents_active = set()
+
+        for session_id, entry in self._index.get("sessions", {}).items():
+            sessions_scanned += 1
+
+            last_activity_at = entry.get("last_activity_at")
+            if since is not None and (not last_activity_at or last_activity_at < since):
+                continue
+            if until is not None and (not last_activity_at or last_activity_at > until):
+                continue
+
+            session = self._load_session(session_id)
+            if session is None:
+                continue
+
+            timeline = session.get("timeline")
+            if not isinstance(timeline, list):
+                timeline = []
+
+            session_has_match = False
+            for event in timeline:
+                event_ts = event.get("ts")
+                if since is not None and (not event_ts or event_ts < since):
+                    continue
+                if until is not None and (not event_ts or event_ts > until):
+                    continue
+                if topic_id is not None and event.get("topic_id") != topic_id:
+                    continue
+                if agent_id is not None and event.get("agent_id") != agent_id:
+                    continue
+
+                if not session_has_match:
+                    sessions_matched += 1
+                    session_has_match = True
+
+                matched_events.append(event)
+
+                event_topic_id = event.get("topic_id")
+                if event_topic_id is not None:
+                    topics_active.add(event_topic_id)
+
+                event_agent_id = event.get("agent_id")
+                if event_agent_id not in (None, ""):
+                    agents_active.add(event_agent_id)
+
+        matched_events.sort(key=lambda value: value.get("ts") or "")
+        total_events = len(matched_events)
+
+        if limit is None:
+            events = matched_events
+        elif limit <= 0:
+            events = []
+        else:
+            events = matched_events[:limit]
+
+        return {
+            "sessions_scanned": sessions_scanned,
+            "sessions_matched": sessions_matched,
+            "topics_active": sorted(topics_active),
+            "agents_active": sorted(agents_active),
+            "events": events,
+            "total_events": total_events,
+        }
+
+    def get_agent_attribution(self, session_id=None, topic_id=None) -> dict:
+        by_agent = {}
+        by_topic = {}
+        sessions_scanned = 0
+
+        if session_id is not None:
+            sessions_scanned = 1
+            sessions = [self._require_session(session_id)]
+        else:
+            sessions = []
+            for current_session_id in self._index.get("sessions", {}):
+                sessions_scanned += 1
+                session = self._load_session(current_session_id)
+                if session is not None:
+                    sessions.append(session)
+
+        for session in sessions:
+            timeline = session.get("timeline")
+            if not isinstance(timeline, list):
+                timeline = []
+
+            for event in timeline:
+                event_topic_id = event.get("topic_id")
+                event_agent_id = event.get("agent_id")
+
+                if topic_id is not None and event_topic_id != topic_id:
+                    continue
+                if event_agent_id in (None, ""):
+                    continue
+                if event_topic_id in (None, ""):
+                    continue
+
+                agent_topics = by_agent.get(event_agent_id)
+                if agent_topics is None:
+                    agent_topics = set()
+                    by_agent[event_agent_id] = agent_topics
+                agent_topics.add(event_topic_id)
+
+                topic_agents = by_topic.get(event_topic_id)
+                if topic_agents is None:
+                    topic_agents = set()
+                    by_topic[event_topic_id] = topic_agents
+                topic_agents.add(event_agent_id)
+
+        by_agent_result = {}
+        for current_agent_id, topic_ids in by_agent.items():
+            by_agent_result[current_agent_id] = sorted(topic_ids)
+
+        by_topic_result = {}
+        for current_topic_id, agent_ids in by_topic.items():
+            by_topic_result[current_topic_id] = sorted(agent_ids)
+
+        return {
+            "by_agent": by_agent_result,
+            "by_topic": by_topic_result,
+            "sessions_scanned": sessions_scanned,
+        }
+
     def _empty_index(self) -> Dict[str, Any]:
         return {
             "version": 1,

@@ -52,6 +52,9 @@ context-router自动管理会话边界：
 - 使用`session_close`显式关闭session并附带summary
 - `session_resume`返回resume context（session summary + timeline digest），支持跨会话上下文继承
 - 新增`session_timeline`查看session时间线摘要
+- 使用`session_query`按时间范围、topic、agent查询活动（回答"昨天我们做了什么？"）
+- 使用`session_agents`查看agent-topic归属关系（哪个agent处理了哪个topic）
+- 使用`topic_recommend`从topic图谱推荐关联topic
 
 ### MCP不可用时的降级行为
 

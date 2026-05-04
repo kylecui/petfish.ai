@@ -462,6 +462,72 @@ TOOLS = [
             "required": ["session_id"],
         },
     },
+    # Session analytics (2)
+    {
+        "name": "session_query",
+        "description": "Query activity across sessions. Answers 'what did we work on yesterday?' style questions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "since": {
+                    "type": "string",
+                    "description": "ISO 8601 timestamp — only events after this time",
+                },
+                "until": {
+                    "type": "string",
+                    "description": "ISO 8601 timestamp — only events before this time",
+                },
+                "topic_id": {
+                    "type": "string",
+                    "description": "Filter events by topic ID",
+                },
+                "agent_id": {
+                    "type": "string",
+                    "description": "Filter events by agent ID",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max events to return (default 50)",
+                },
+            },
+        },
+    },
+    {
+        "name": "session_agents",
+        "description": "Show which agents worked on which topics (multi-agent attribution).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Scope to a single session",
+                },
+                "topic_id": {
+                    "type": "string",
+                    "description": "Filter by topic ID",
+                },
+            },
+        },
+    },
+    # Topic recommendations (1)
+    {
+        "name": "topic_recommend",
+        "description": "Recommend related topics by walking the topic graph from a given topic.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "topic_id": {
+                    "type": "string",
+                    "description": "Source topic ID",
+                },
+                "max_depth": {
+                    "type": "integer",
+                    "description": "Max graph hops (default 2)",
+                },
+            },
+            "required": ["topic_id"],
+        },
+    },
 ]
 
 
@@ -471,7 +537,7 @@ TOOLS = [
 
 
 class ContextStateServer:
-    """MCP server that wires the 25 context-router tools to TopicStore et al."""
+    """MCP server that wires the 28 context-router tools to TopicStore et al."""
 
     def __init__(self, base_dir: str):
         self.store = TopicStore(base_dir)
@@ -517,6 +583,10 @@ class ContextStateServer:
         h["session_resume"] = self._handle_session_resume
         h["session_close"] = self._handle_session_close
         h["session_timeline"] = self._handle_session_timeline
+        h["session_query"] = self._handle_session_query
+        h["session_agents"] = self._handle_session_agents
+        # Topic recommendations
+        h["topic_recommend"] = self._handle_topic_recommend
 
     # -- JSON-RPC dispatch --------------------------------------------------
 
@@ -854,6 +924,27 @@ class ContextStateServer:
         return self.sessions.get_timeline_summary(
             session_id=args["session_id"],
             max_events=args.get("max_events", 20),
+        )
+
+    def _handle_session_query(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.sessions.query_activity(
+            since=args.get("since"),
+            until=args.get("until"),
+            topic_id=args.get("topic_id"),
+            agent_id=args.get("agent_id"),
+            limit=args.get("limit", 50),
+        )
+
+    def _handle_session_agents(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.sessions.get_agent_attribution(
+            session_id=args.get("session_id"),
+            topic_id=args.get("topic_id"),
+        )
+
+    def _handle_topic_recommend(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.store.recommend_related(
+            topic_id=args["topic_id"],
+            max_depth=args.get("max_depth", 2),
         )
 
     # -- Helpers ------------------------------------------------------------
