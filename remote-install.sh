@@ -80,21 +80,29 @@ open(sys.argv[4], 'w', encoding='utf-8').write(result)
 }
 
 merge_opencode_json() {
-    local src_file="$1" dst_file="$2" force="$3"
-
-    if [[ ! -f "$dst_file" ]]; then
-        cp "$src_file" "$dst_file"
-        echo "created"
-        return
-    fi
+    local src_file="$1" dst_file="$2" force="$3" skills_dir="${4:-.opencode/skills}"
 
     python3 -c "
-import json, sys
+import json, os, sys
 
 force = sys.argv[3] == 'true'
-with open(sys.argv[1], 'r') as f:
+skills_dir = sys.argv[4] if len(sys.argv) > 4 else '.opencode/skills'
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
     src = json.load(f)
-with open(sys.argv[2], 'r') as f:
+
+normalized_skills_dir = skills_dir.rstrip('/\\') or '.opencode/skills'
+src_str = json.dumps(src, ensure_ascii=False)
+src_str = src_str.replace('.opencode/skills/', normalized_skills_dir + '/')
+src = json.loads(src_str)
+
+if not os.path.isfile(sys.argv[2]):
+    with open(sys.argv[2], 'w', encoding='utf-8') as f:
+        json.dump(src, f, indent=2, ensure_ascii=False)
+        f.write('\n')
+    print('created')
+    sys.exit(0)
+
+with open(sys.argv[2], 'r', encoding='utf-8') as f:
     dst = json.load(f)
 
 # Keys whose level-2 entries should be replaced atomically (not deep-merged)
@@ -113,11 +121,31 @@ def deep_merge(s, d, force_flag, parent_key=''):
             d[k] = v
 
 deep_merge(src, dst, force)
-with open(sys.argv[2], 'w') as f:
+with open(sys.argv[2], 'w', encoding='utf-8') as f:
     json.dump(dst, f, indent=2, ensure_ascii=False)
     f.write('\n')
-" "$src_file" "$dst_file" "$force"
-    echo "merged"
+print('merged')
+" "$src_file" "$dst_file" "$force" "$skills_dir"
+}
+
+get_restart_hint() {
+    case "$1" in
+        opencode)
+            printf '%s\n' '⚠️  Restart needed. Exit: Ctrl+C | Resume: opencode -s <session_id>'
+            ;;
+        claude)
+            printf '%s\n' '⚠️  Restart needed. Exit: /exit or Ctrl+C | Resume: claude --continue'
+            ;;
+        codex)
+            printf '%s\n' '⚠️  Restart needed. Exit: Ctrl+C'
+            ;;
+        cursor|copilot|windsurf)
+            printf '%s\n' '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"'
+            ;;
+        antigravity)
+            printf '%s\n' '⚠️  Restart needed. Exit: Ctrl+C'
+            ;;
+    esac
 }
 
 update_installed_packs() {
@@ -781,7 +809,7 @@ install_for_platform() {
         # --- Merge opencode.json (OpenCode only) ---
         if [[ "$platform_name" == "opencode" && -n "$config_file" && -f "$pack_root/opencode.example.json" ]]; then
             local dst_config="$TARGET/$config_file"
-            result="$(merge_opencode_json "$pack_root/opencode.example.json" "$dst_config" "$FORCE")"
+            result="$(merge_opencode_json "$pack_root/opencode.example.json" "$dst_config" "$FORCE" "$skills_dir")"
             case "$result" in
                 created) echo "    + $config_file (created from example)"; ((installed++)) || true ;;
                 merged)  echo "    + $config_file (merged)";              ((installed++)) || true ;;
@@ -872,6 +900,13 @@ install_for_platform() {
 
     echo ""
     echo "  [$platform_name] Done: $installed installed, $skipped skipped."
+    if (( installed > 0 )); then
+        local restart_hint
+        restart_hint="$(get_restart_hint "$platform_name")"
+        if [[ -n "$restart_hint" ]]; then
+            echo "$restart_hint"
+        fi
+    fi
 }
 
 # --- Global install function ---
@@ -988,6 +1023,13 @@ install_global_for_platform() {
 
     echo ""
     echo "  [$platform_name] Global done: $installed installed, $skipped skipped."
+    if (( installed > 0 )); then
+        local restart_hint
+        restart_hint="$(get_restart_hint "$platform_name")"
+        if [[ -n "$restart_hint" ]]; then
+            echo "$restart_hint"
+        fi
+    fi
 }
 
 # --- Install for selected platform(s) ---

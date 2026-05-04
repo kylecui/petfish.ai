@@ -276,27 +276,46 @@ def score_query(description_keywords: set[str], query: str) -> tuple[float, list
 def build_positive_queries(
     skill_name: str, description_keywords: list[str], trigger_phrases: list[str]
 ) -> list[str]:
-    keywords = description_keywords[:10]
-    phrase = trigger_phrases[0] if trigger_phrases else skill_name.replace("-", " ")
-    core = " ".join(keywords).strip() or skill_name.replace("-", " ")
-    bundles = [
-        core,
-        " ".join(keywords[:8]).strip() or core,
-        " ".join(keywords[2:10]).strip() or core,
-        " ".join(keywords[:7]).strip() or core,
-    ]
+    """Generate realistic positive test queries from trigger phrases and skill name."""
+    queries: list[str] = []
+    readable_name = skill_name.replace("-", " ")
 
-    templates = [
-        f"Help me {phrase} for {bundles[0]}.",
-        f"Please {phrase} and report results for {bundles[1]}.",
-        f"I need {skill_name.replace('-', ' ')} support for {bundles[0]}.",
-        f"Can you handle {bundles[2]} for me with this skill?",
-        f"Run a {skill_name.replace('-', ' ')} check on {bundles[0]}.",
-        f"Use this skill to work on {bundles[1]} and {phrase}.",
-        f"I want help with {bundles[0]} using this skill.",
-        f"Please evaluate {bundles[3]} with {skill_name.replace('-', ' ')}.",
+    # Strategy 1: Use trigger phrases directly as queries (most realistic)
+    for phrase in trigger_phrases[:4]:
+        queries.append(phrase)
+
+    # Strategy 2: Wrap trigger phrases in natural request templates
+    request_templates = [
+        "Help me {phrase}",
+        "I need to {phrase}",
+        "Can you {phrase} for this project?",
+        "Please {phrase}",
     ]
-    return templates[:8]
+    for i, phrase in enumerate(trigger_phrases[:4]):
+        # Clean phrase: remove leading "when user says" type prefixes
+        clean = phrase.strip().rstrip(".")
+        template = request_templates[i % len(request_templates)]
+        queries.append(template.format(phrase=clean))
+
+    # Strategy 3: Skill-name based queries (fallback)
+    name_templates = [
+        f"Run {readable_name} on this file",
+        f"Use {readable_name} to check my work",
+        f"I want to use the {readable_name} skill",
+        f"Apply {readable_name} to this content",
+    ]
+    queries.extend(name_templates[: max(0, 8 - len(queries))])
+
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for q in queries:
+        lower = q.lower()
+        if lower not in seen:
+            seen.add(lower)
+            deduped.append(q)
+
+    return deduped[:8]
 
 
 def build_negative_queries(description_keywords: set[str]) -> list[str]:

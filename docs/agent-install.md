@@ -105,6 +105,18 @@ Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc
 
 > **Important**: Most AI coding platforms (OpenCode, Claude Code, Cursor, etc.) load skills at session start. Newly installed skills are NOT available in the current session. Tell the user to **exit and re-launch** their AI coding tool before proceeding.
 
+When the install output shows at least one item installed, use the platform-specific restart hint:
+
+| Platform | Hint |
+|---|---|
+| opencode | `⚠️  Restart needed. Exit: Ctrl+C | Resume: opencode -s <session_id>` |
+| claude | `⚠️  Restart needed. Exit: /exit or Ctrl+C | Resume: claude --continue` |
+| codex | `⚠️  Restart needed. Exit: Ctrl+C` |
+| cursor | `⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"` |
+| copilot | `⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"` |
+| windsurf | `⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"` |
+| antigravity | `⚠️  Restart needed. Exit: Ctrl+C` |
+
 After restart, run `/petfish` to verify the companion is working. It should show installed skill status.
 
 If it works, tell the user:
