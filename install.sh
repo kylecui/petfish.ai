@@ -419,7 +419,7 @@ expand_home_path() {
     elif [[ "$path_value" == "~" ]]; then
         echo "$HOME"
     elif [[ "$path_value" == "~/"* ]]; then
-        echo "$HOME/${path_value#~/}"
+        echo "$HOME/${path_value:2}"
     else
         echo "$path_value"
     fi

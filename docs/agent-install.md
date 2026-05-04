@@ -101,9 +101,11 @@ Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc
 
 ---
 
-## Step 4: Verify installation
+## Step 4: Restart and verify
 
-Run `/petfish` to verify the companion is working. It should show installed skill status.
+> **Important**: Most AI coding platforms (OpenCode, Claude Code, Cursor, etc.) load skills at session start. Newly installed skills are NOT available in the current session. Tell the user to **exit and re-launch** their AI coding tool before proceeding.
+
+After restart, run `/petfish` to verify the companion is working. It should show installed skill status.
 
 If it works, tell the user:
 
