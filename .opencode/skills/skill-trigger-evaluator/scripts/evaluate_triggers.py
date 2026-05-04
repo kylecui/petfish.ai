@@ -217,21 +217,75 @@ def extract_frontmatter(text: str) -> tuple[dict, str]:
     return data, body
 
 
+def _is_doc_snippet(phrase: str) -> bool:
+    """Return True if the phrase looks like a SKILL.md description snippet, not a user query."""
+    # Contains backtick-quoted code fragments (mode names, config keys)
+    if "`" in phrase:
+        return True
+    # Very long phrases are unlikely to be user queries
+    if len(phrase) > 120:
+        return True
+    # Contains doc-like patterns: "Best for", "Use when", "Default:", "Returns:"
+    if re.search(
+        r"\b(?:Best for|Use when|Default[s]?:|Returns?:)\b", phrase, re.IGNORECASE
+    ):
+        return True
+    # Ends with question mark — likely a rhetorical/workflow question, not a user trigger
+    if phrase.rstrip().endswith("?"):
+        return True
+    # Starts with a capital letter and reads like a sentence/instruction (not a command)
+    # e.g. "Identify the real problem" vs "用我的语言习惯表达"
+    if re.match(
+        r"^[A-Z][a-z].*\b(?:the|a|an|this|that|each|every|only|unless)\b", phrase
+    ):
+        return True
+    return False
+
+
+_TRIGGER_SECTION_PATTERNS = re.compile(
+    r"^#{1,3}\s*(?:activation|trigger|when to use|usage|use this skill)",
+    re.IGNORECASE,
+)
+_NON_TRIGGER_SECTION = re.compile(r"^#{1,3}\s", re.IGNORECASE)
+
+
 def extract_trigger_phrases(text: str) -> list[str]:
+    """Extract trigger phrases from SKILL.md body.
+
+    Only bullets from trigger-relevant sections (Activation Rules, Trigger, etc.)
+    are treated as trigger phrases. Quoted strings are extracted from all sections.
+    """
     phrases: list[str] = []
+    in_trigger_section = False
+
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped:
             continue
-        if stripped.startswith("- "):
-            phrases.append(stripped[2:].strip())
+
+        # Track which section we're in
+        if _TRIGGER_SECTION_PATTERNS.match(stripped):
+            in_trigger_section = True
+            continue
+        elif _NON_TRIGGER_SECTION.match(stripped):
+            in_trigger_section = False
+            continue
+
+        # Only extract bullet items from trigger sections
+        if in_trigger_section and re.match(r"^-\s*", stripped):
+            bullet_text = re.sub(r"^-\s*", "", stripped).strip()
+            if bullet_text:
+                phrases.append(bullet_text)
+
+        # Extract quoted strings from anywhere (likely user-facing examples)
         for match in re.findall(r'"([^"]+)"', stripped):
             phrases.append(match.strip())
+
     deduped: list[str] = []
     seen: set[str] = set()
     for phrase in phrases:
         lowered = phrase.lower()
-        if lowered and lowered not in seen:
+        if lowered and lowered not in seen and not _is_doc_snippet(phrase):
             seen.add(lowered)
             deduped.append(phrase)
     return deduped
@@ -259,17 +313,59 @@ def load_skill(skill_dir: Path) -> SkillInfo:
     )
 
 
+def _is_cjk(char: str) -> bool:
+    return "\u4e00" <= char <= "\u9fff"
+
+
+def _contains_cjk(text: str) -> bool:
+    return any(_is_cjk(char) for char in text)
+
+
+def _add_cjk_keywords(token: str, keywords: set[str]) -> None:
+    cjk_only = "".join(char for char in token if _is_cjk(char))
+    if not cjk_only:
+        return
+
+    if cjk_only not in STOPWORDS:
+        keywords.add(cjk_only)
+
+    for char in cjk_only:
+        if char not in STOPWORDS:
+            keywords.add(char)
+
+    if len(cjk_only) >= 2:
+        for index in range(len(cjk_only) - 1):
+            bigram = cjk_only[index : index + 2]
+            if bigram not in STOPWORDS:
+                keywords.add(bigram)
+
+
 def extract_keywords(text: str) -> set[str]:
-    tokens = re.findall(r"[a-z0-9]+", text.lower())
-    return {token for token in tokens if len(token) >= 3 and token not in STOPWORDS}
+    tokens = re.findall(r"[a-z0-9]+|[\u4e00-\u9fff]+", text.lower())
+    keywords: set[str] = set()
+
+    for token in tokens:
+        if _contains_cjk(token):
+            _add_cjk_keywords(token, keywords)
+            continue
+
+        if len(token) >= 3 and token not in STOPWORDS:
+            keywords.add(token)
+
+    return keywords
 
 
 def score_query(description_keywords: set[str], query: str) -> tuple[float, list[str]]:
     query_keywords = extract_keywords(query)
-    if not description_keywords:
+    if not description_keywords or not query_keywords:
         return 0.0, []
     matched = sorted(description_keywords & query_keywords)
-    score = len(matched) / len(description_keywords)
+    if not matched:
+        return 0.0, []
+
+    recall = len(matched) / len(description_keywords)
+    precision = len(matched) / len(query_keywords)
+    score = max(recall, precision)
     return score, matched
 
 

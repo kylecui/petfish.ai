@@ -270,7 +270,29 @@ class TopicDetector:
                 continue
             keywords.add(token)
 
+        for keyword in list(keywords):
+            if any(self._is_cjk(char) for char in keyword):
+                self._add_cjk_keywords(keyword, keywords)
+
         return keywords
+
+    def _add_cjk_keywords(self, token: str, keywords: Set[str]) -> None:
+        cjk_only = "".join(char for char in token if self._is_cjk(char))
+        if not cjk_only:
+            return
+
+        for char in cjk_only:
+            if char not in self.stopwords:
+                keywords.add(char)
+
+        if len(cjk_only) >= 2:
+            for index in range(len(cjk_only) - 1):
+                bigram = cjk_only[index : index + 2]
+                if bigram not in self.stopwords:
+                    keywords.add(bigram)
+
+    def _is_cjk(self, char: str) -> bool:
+        return "\u4e00" <= char <= "\u9fff"
 
     def _calculate_topic_overlap(self, keywords: Set[str], topic: dict) -> float:
         """Calculate Jaccard similarity between message and topic keywords."""
