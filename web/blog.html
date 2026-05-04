@@ -47,7 +47,9 @@
       height: 52px;
       display: flex; align-items: center; justify-content: space-between;
     }
-    .nav-brand { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 600; letter-spacing: .02em; }
+    .nav-logo-link { display: flex; align-items: center; flex-shrink: 0; }
+    .nav-logo-icon { width: 30px; height: 30px; object-fit: contain; display: block; }
+    .nav-brand { font-family: var(--font-mono); font-size: 14px; color: var(--accent); font-weight: 600; letter-spacing: .02em; margin-left: 10px; }
     .nav-brand a { color: inherit; }
     .nav-links { display: flex; gap: 20px; font-size: 13px; }
     .nav-links a { color: var(--text-muted); }
@@ -113,6 +115,9 @@
 <body>
 
 <nav>
+  <a href="/" class="nav-logo-link">
+    <img src="assets/petfish-icon-256.png" alt="胖鱼 PEtFiSh" class="nav-logo-icon">
+  </a>
   <span class="nav-brand"><a href="/">><(((^> 胖鱼 PEtFiSh</a></span>
   <div class="nav-links">
     <a href="/">首页</a>
@@ -144,7 +149,7 @@
   <hr />
 
   <h2>胖鱼是什么</h2>
-  <p><strong>胖鱼 PEtFiSh</strong>（谐音"朋友"）是一个 AI Skill 的全生命周期管理工具：</p>
+  <p><strong>胖鱼 PEtFiSh</strong> 是一个 AI Skill 的全生命周期管理工具：</p>
   <pre><code>发现 → 创建 → 检查 → 安全审计 → 发布门禁 → 优化 → 追踪
 mine → author → lint → audit → gate → optimize → track</code></pre>
 
@@ -278,7 +283,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
   <div style="max-width:800px;margin:0 auto">
     <span class="footer-fish">><(((^>&nbsp;&nbsp;><(((^>&nbsp;&nbsp;><(((^></span>
     <p><strong style="color:var(--text)">胖鱼 PEtFiSh</strong> &nbsp;—&nbsp; AI Worker's Companion</p>
-    <p style="margin-top:4px">谐音"朋友"。不是又一个提示词集合，是帮你管 Skill 的工具链。</p>
+    <p style="margin-top:4px">不是又一个提示词集合，是帮你管 Skill 的工具链。</p>
     <p style="margin-top:16px">
       <a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">GitHub</a>
       &nbsp;&middot;&nbsp;

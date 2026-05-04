@@ -412,6 +412,45 @@
       color: var(--accent2);
     }
 
+    /* ── Nav ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo-link {
+      display: flex; align-items: center; flex-shrink: 0;
+    }
+    .nav-logo-icon {
+      width: 30px; height: 30px;
+      object-fit: contain;
+      display: block;
+    }
+    .nav-links-right { display: flex; gap: 20px; font-size: 13px; }
+    .nav-links-right a { color: var(--text-muted); }
+    .nav-links-right a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Hero logo ── */
+    .hero-logo-wrap {
+      display: block;
+      margin-bottom: 20px;
+      animation: hero-bob 4s ease-in-out infinite;
+    }
+    .hero-logo {
+      width: clamp(120px, 20vw, 160px);
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    @keyframes hero-bob {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-6px); }
+    }
+
     /* ── Mobile ── */
     @media (max-width: 480px) {
       section { padding: 52px 0; }
@@ -421,10 +460,29 @@
 </head>
 <body>
 
+<nav>
+  <a href="/" class="nav-logo-link">
+    <img src="assets/petfish-icon-256.png" alt="胖鱼 PEtFiSh" class="nav-logo-icon">
+  </a>
+  <div class="nav-links-right">
+    <a href="#problem">问题</a>
+    <a href="#features">功能</a>
+    <a href="#install">安装</a>
+    <a href="pitch.html">产品介绍</a>
+    <a href="whitepaper.html">白皮书</a>
+    <a href="blog.html">Blog</a>
+    <a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</nav>
+
 <!-- ══════════════════ HERO ══════════════════ -->
 <section class="hero">
   <div class="container">
     <p class="hero-eyebrow">AI Worker's Companion</p>
+
+    <div class="hero-logo-wrap">
+      <img src="assets/petfish-logo.png" alt="胖鱼 PEtFiSh" class="hero-logo">
+    </div>
 
     <div class="fish-wrap" aria-label="胖鱼 PEtFiSh mascot">
       <span class="fish-ascii">><(((^></span>
@@ -731,7 +789,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
       <strong style="color:var(--text)">胖鱼 PEtFiSh</strong> &nbsp;—&nbsp; AI Worker's Companion
     </p>
     <p style="margin-top:4px">
-      谐音"朋友"。不是又一个提示词集合，是帮你管Skill的工具链。
+      不是又一个提示词集合，是帮你管Skill的工具链。
     </p>
     <p style="margin-top:16px">
       <a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">GitHub</a>

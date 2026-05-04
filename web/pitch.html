@@ -55,8 +55,11 @@
       color: var(--accent);
       font-weight: 600;
       letter-spacing: .02em;
+      margin-left: 10px;
     }
     .nav-brand a { color: inherit; }
+    .nav-logo-link { display: flex; align-items: center; flex-shrink: 0; }
+    .nav-logo-icon { width: 30px; height: 30px; object-fit: contain; display: block; }
     .nav-links { display: flex; gap: 20px; font-size: 13px; }
     .nav-links a { color: var(--text-muted); }
     .nav-links a:hover { color: var(--text); text-decoration: none; }
@@ -148,6 +151,9 @@
 <body>
 
 <nav>
+  <a href="/" class="nav-logo-link">
+    <img src="assets/petfish-icon-256.png" alt="胖鱼 PEtFiSh" class="nav-logo-icon">
+  </a>
   <span class="nav-brand"><a href="/">><(((^> 胖鱼 PEtFiSh</a></span>
   <div class="nav-links">
     <a href="/">首页</a>
@@ -291,7 +297,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
     <li><strong>治理需要自动化</strong>——人审 skill 不 scale，规则引擎可以</li>
     <li><strong>追踪才能改进</strong>——不知道触发率和使用率，优化无从谈起</li>
   </ul>
-  <p>胖鱼（PEtFiSh）谐音"朋友"。它不是又一个提示词集合，是帮你管 skill 的工具链。</p>
+  <p>胖鱼 PEtFiSh 不是又一个提示词集合，是帮你管 skill 的工具链。</p>
   <p><strong>GitHub</strong>：<a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">github.com/kylecui/SKILL_builder</a></p>
 </div>
 
@@ -299,7 +305,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
   <div style="max-width:800px;margin:0 auto">
     <span class="footer-fish">><(((^>&nbsp;&nbsp;><(((^>&nbsp;&nbsp;><(((^></span>
     <p><strong style="color:var(--text)">胖鱼 PEtFiSh</strong> &nbsp;—&nbsp; AI Worker's Companion</p>
-    <p style="margin-top:4px">谐音"朋友"。不是又一个提示词集合，是帮你管 Skill 的工具链。</p>
+    <p style="margin-top:4px">不是又一个提示词集合，是帮你管 Skill 的工具链。</p>
     <p style="margin-top:16px">
       <a href="https://github.com/kylecui/SKILL_builder" target="_blank" rel="noopener">GitHub</a>
       &nbsp;&middot;&nbsp;
