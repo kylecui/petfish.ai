@@ -23,7 +23,7 @@ PEtFiSh is your AI coding companion. It manages the full lifecycle of AI skills 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v0.2                        │
+│  ><(((^>  胖鱼 PEtFiSh v0.4                        │
 │                                                     │
 │  Discover  → mine skills from any repo              │
 │  Create    → author new skills from scratch          │
@@ -419,7 +419,29 @@ SKILL_builder/                          # 胖鱼 PEtFiSh repo
 
 ## Version History / 版本历史
 
-### v0.2 (dev) — Skill Lifecycle Management / Skill全生命周期管理
+### v0.4 — Context Router + Session Management / 上下文治理 + 会话管理
+
+- **v0.4.0**: Context-router pack — topic detection, contamination scoring, context isolation, 18 MCP tools
+  - 上下文治理pack — 话题检测、污染评分、上下文隔离、18个MCP工具
+- **v0.4.5–v0.4.9**: MCP schema fixes, platform-specific restart hints, CJK detection, trigger evaluation improvements
+  - MCP配置修复、平台重启提示、CJK检测、触发评测改进
+- **v0.4.10**: Topic-aware session management — 10 new MCP tools (28 total), 3-phase implementation
+  - 话题感知会话管理 — 新增10个MCP工具（共28个），3阶段实现
+  - Phase 1: SessionStore + session bind/get/list/resume / 会话存储+绑定/查询/列表/恢复
+  - Phase 2: Boundary policy + cross-session resume / 边界策略+跨会话恢复
+  - Phase 3: Activity query + multi-agent attribution + topic recommendations / 活动查询+多Agent归因+话题推荐
+- **v0.4.11–v0.4.12**: Bug fixes — agent-install platform guidance, trigger extraction scoping, deploy_dirs false positives
+  - Bug修复 — 安装文档平台指引、触发提取范围、deploy_dirs误报
+
+### v0.3 — Quality & Platform Hardening / 质量与平台加固
+
+- Anti-sycophancy calibration pack / 反迎合校准pack
+- Style v4 AI slop detection / 风格v4 AI腔检测
+- Release discipline — auto-resolve latest release tag / 发布纪律 — 自动获取最新release tag
+- UTF-8 encoding fixes for PowerShell / PowerShell UTF-8编码修复
+- Comma-separated multi-pack install / 逗号分隔多pack安装
+
+### v0.2 — Skill Lifecycle Management / Skill全生命周期管理
 
 - **Phase 1**: 8-platform adapter + companion skill with sensing/equip/govern capabilities
   - 8平台适配器 + companion skill（感知/装备/治理能力）
