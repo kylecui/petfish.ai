@@ -11,7 +11,8 @@ from pathlib import Path
 import pytest
 
 MODULE_DIR = (
-    Path(__file__).resolve().parents[1] / "packs/context-router-skill/mcp/context-state"
+    Path(__file__).resolve().parents[1]
+    / "packs/context-router-skill/.opencode/skills/context-router/mcp/context-state"
 )
 sys.path.insert(0, str(MODULE_DIR))
 

@@ -14,10 +14,8 @@
       "args": [
         "run",
         "python",
-        "${SKILL_DIR}/mcp/context-state/server.py"
-      ],
-      "env": {},
-      "cwd": "${PROJECT_DIR}"
+        ".opencode/skills/context-router/mcp/context-state/server.py"
+      ]
     }
   }
 }
