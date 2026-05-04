@@ -83,6 +83,8 @@ Run this command and verify it succeeds.
 
 > **Note**: The install script automatically downloads from the **latest stable release** (currently v0.2.0). No need to specify a version — you always get the latest verified build.
 
+> **Platform detection**: `--detect` uses marker files (e.g. `.opencode/`, `.claude/`, `.codex/`) to guess the platform. If your project has no recognizable markers, detection falls back to `universal`. In that case, use `--platform <name>` explicitly instead of `--detect` — for example `--platform codex` or `--platform opencode`.
+
 ### 3b: Install the packs based on the user's choice from Step 2
 
 For each pack the user selected, run:
@@ -111,7 +113,7 @@ When the install output shows at least one item installed, use the platform-spec
 |---|---|
 | opencode | `⚠️  Restart needed. Exit: Ctrl+C | Resume: opencode -s <session_id>` |
 | claude | `⚠️  Restart needed. Exit: /exit or Ctrl+C | Resume: claude --continue` |
-| codex | `⚠️  Restart needed. Exit: Ctrl+C` |
+| codex | `ℹ️  Restart may be needed. Skills might reload dynamically; if not, exit with Ctrl+C and re-launch.` |
 | cursor | `⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"` |
 | copilot | `⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"` |
 | windsurf | `⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"` |
@@ -153,7 +155,7 @@ This installs the external trust governance engine for behavioral analysis of sk
 - If `curl` is not found: suggest `wget -qO- <url> | bash -s -- <args>` as alternative
 - If PowerShell execution policy blocks the script: suggest `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
 - If the install says "uv not found": suggest installing uv from https://docs.astral.sh/uv/getting-started/installation/
-- If platform auto-detection fails: add `--platform <name>` explicitly
+- If platform auto-detection fails or picks the wrong platform: detection is marker-based (looks for `.opencode/`, `.claude/`, `.codex/`, etc.). Use `--platform <name>` explicitly instead of `--detect` — e.g. `--platform codex`, `--platform opencode`
 
 ---
 

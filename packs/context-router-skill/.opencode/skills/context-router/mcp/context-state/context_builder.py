@@ -106,16 +106,23 @@ class ContextBuilder:
         related_topics: List[Dict[str, Any]],
         decisions: List[Dict[str, Any]],
         reason: str = "",
+        session_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         topic_id = self._topic_id(topic)
         export_path = self.contexts_dir / f"{topic_id}.export.md"
         topic_decisions = self._decisions_for_topic(topic_id, decisions)
+
+        if session_id is not None:
+            topic_decisions = [
+                d for d in topic_decisions if d.get("session_id") == session_id
+            ]
 
         extra_sections = [
             "## Handoff Info",
             "",
             f"- **Exported At**: {self._now_iso()}",
             f"- **Export Reason**: {reason.strip() or 'Manual export'}",
+            f"- **Session**: {session_id or 'all sessions'}",
             "",
             "## Session History",
             "",
@@ -138,6 +145,78 @@ class ContextBuilder:
             extra_sections=extra_sections,
         )
         return self._write_package(export_path, content, self.EXPORT_LIMIT)
+
+    def build_resume_package(
+        self,
+        session_context: Dict[str, Any],
+        topic: Optional[Dict[str, Any]],
+        related_topics: List[Dict[str, Any]],
+        decisions: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        session_id = str(session_context.get("session_id") or "unknown-session")
+        resume_path = self.contexts_dir / f"{session_id}.resume.md"
+
+        session_summary = session_context.get("summary")
+        if session_summary is not None and str(session_summary).strip():
+            summary = str(session_summary).strip()
+        elif topic is not None:
+            topic_summary = topic.get("summary")
+            if topic_summary is not None and str(topic_summary).strip():
+                summary = str(topic_summary).strip()
+            else:
+                summary = "No summary."
+        else:
+            summary = "No summary."
+
+        timeline_lines = []
+        for event in session_context.get("timeline_digest") or []:
+            if not isinstance(event, dict):
+                continue
+            timeline_lines.append(
+                "- [{}] {} (topic: {})".format(
+                    event.get("ts") or "unknown",
+                    event.get("type") or "unknown",
+                    event.get("topic_id") or "unknown",
+                )
+            )
+
+        content = self._compose_package(
+            title=(
+                f"Resume: {self._topic_title(topic)}"
+                if topic is not None
+                else f"Resume: Session {session_id}"
+            ),
+            info_lines=[
+                f"- **Session ID**: {session_id}",
+                (
+                    f"- **Inherited From**: "
+                    f"{session_context.get('inherited_from') or 'none'}"
+                ),
+                f"- **Status**: {session_context.get('status') or 'unknown'}",
+                (
+                    f"- **Last Activity**: "
+                    f"{session_context.get('last_activity_at') or 'unknown'}"
+                ),
+                (
+                    f"- **Active Topic ID**: "
+                    f"{session_context.get('active_topic_id') or 'none'}"
+                ),
+            ],
+            summary=summary,
+            key_decisions=self._render_decisions(decisions, "No decisions recorded."),
+            active_context=(
+                self._render_active_context(topic)
+                if topic is not None
+                else "No active topic context."
+            ),
+            related_topics=self._render_related_topics(related_topics),
+            extra_sections=[
+                "## Session Timeline",
+                "",
+                "\n".join(timeline_lines) or "No session timeline.",
+            ],
+        )
+        return self._write_package(resume_path, content, self.EXPORT_LIMIT)
 
     def freeze(
         self,

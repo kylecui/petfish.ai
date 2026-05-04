@@ -90,7 +90,7 @@ skills_dir = sys.argv[4] if len(sys.argv) > 4 else '.opencode/skills'
 with open(sys.argv[1], 'r', encoding='utf-8') as f:
     src = json.load(f)
 
-normalized_skills_dir = skills_dir.rstrip('/\\') or '.opencode/skills'
+normalized_skills_dir = skills_dir.rstrip('/\\\\') or '.opencode/skills'
 src_str = json.dumps(src, ensure_ascii=False)
 src_str = src_str.replace('.opencode/skills/', normalized_skills_dir + '/')
 src = json.loads(src_str)
@@ -137,7 +137,7 @@ get_restart_hint() {
             printf '%s\n' '⚠️  Restart needed. Exit: /exit or Ctrl+C | Resume: claude --continue'
             ;;
         codex)
-            printf '%s\n' '⚠️  Restart needed. Exit: Ctrl+C'
+            printf '%s\n' 'ℹ️  Restart may be needed. Skills might reload dynamically; if not, exit with Ctrl+C and re-launch.'
             ;;
         cursor|copilot|windsurf)
             printf '%s\n' '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"'
@@ -647,7 +647,8 @@ detect_platform() {
         done
     done < <(get_detection_order)
 
-    printf '%s\n' "opencode"
+    echo "  [detect] No platform marker found. Falling back to 'universal'. Use --platform to specify explicitly." >&2
+    printf '%s\n' "universal"
 }
 
 update_translated_instructions() {

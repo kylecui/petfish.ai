@@ -76,7 +76,13 @@ def save_usage(filepath: Path, data: dict):
     )
 
 
-def record_activation(data: dict, skill_name: str) -> dict:
+def record_activation(
+    data: dict,
+    skill_name: str,
+    session_id: str | None = None,
+    topic_id: str | None = None,
+    agent_id: str | None = None,
+) -> dict:
     """Record a skill activation event."""
     now = datetime.now(timezone.utc).isoformat()
 
@@ -93,17 +99,45 @@ def record_activation(data: dict, skill_name: str) -> dict:
     entry["activations"] += 1
     entry["last_used"] = now
 
+    # Add context fields if provided
+    if session_id:
+        entry["session_id"] = session_id
+    if topic_id:
+        entry["topic_id"] = topic_id
+    if agent_id:
+        entry["agent_id"] = agent_id
+
     return data
 
 
-def record_session(data: dict, skill_name: str) -> dict:
+def record_session(
+    data: dict,
+    skill_name: str,
+    session_id: str | None = None,
+    topic_id: str | None = None,
+    agent_id: str | None = None,
+) -> dict:
     """Record a new session for a skill."""
     if skill_name in data["skills"]:
         data["skills"][skill_name]["sessions"] += 1
+        # Add context fields if provided
+        if session_id:
+            data["skills"][skill_name]["session_id"] = session_id
+        if topic_id:
+            data["skills"][skill_name]["topic_id"] = topic_id
+        if agent_id:
+            data["skills"][skill_name]["agent_id"] = agent_id
     return data
 
 
-def record_feedback(data: dict, skill_name: str, feedback_type: str) -> dict:
+def record_feedback(
+    data: dict,
+    skill_name: str,
+    feedback_type: str,
+    session_id: str | None = None,
+    topic_id: str | None = None,
+    agent_id: str | None = None,
+) -> dict:
     """Record user feedback for a skill."""
     if skill_name not in data["skills"]:
         # Can't give feedback for unused skill
@@ -111,6 +145,13 @@ def record_feedback(data: dict, skill_name: str, feedback_type: str) -> dict:
 
     if feedback_type in ("helpful", "not_helpful"):
         data["skills"][skill_name]["feedback"][feedback_type] += 1
+        # Add context fields if provided
+        if session_id:
+            data["skills"][skill_name]["session_id"] = session_id
+        if topic_id:
+            data["skills"][skill_name]["topic_id"] = topic_id
+        if agent_id:
+            data["skills"][skill_name]["agent_id"] = agent_id
 
     return data
 
@@ -282,6 +323,13 @@ def main():
     parser.add_argument(
         "--json", action="store_true", dest="as_json", help="Output as JSON"
     )
+    parser.add_argument(
+        "--session-id", type=str, default=None, help="Session identifier"
+    )
+    parser.add_argument(
+        "--topic-id", type=str, default=None, help="Active topic identifier"
+    )
+    parser.add_argument("--agent-id", type=str, default=None, help="Agent identifier")
 
     args = parser.parse_args()
 
@@ -300,7 +348,9 @@ def main():
     data = load_usage(usage_file)
 
     if args.action == "activate":
-        data = record_activation(data, args.skill)
+        data = record_activation(
+            data, args.skill, args.session_id, args.topic_id, args.agent_id
+        )
         save_usage(usage_file, data)
         if args.as_json:
             print(
@@ -313,7 +363,9 @@ def main():
             print(f"✅ Recorded activation: {args.skill}")
 
     elif args.action == "session":
-        data = record_session(data, args.skill)
+        data = record_session(
+            data, args.skill, args.session_id, args.topic_id, args.agent_id
+        )
         save_usage(usage_file, data)
         if args.as_json:
             print(
@@ -325,7 +377,14 @@ def main():
             print(f"✅ Recorded session: {args.skill}")
 
     elif args.action == "feedback":
-        data = record_feedback(data, args.skill, args.feedback)
+        data = record_feedback(
+            data,
+            args.skill,
+            args.feedback,
+            args.session_id,
+            args.topic_id,
+            args.agent_id,
+        )
         save_usage(usage_file, data)
         if args.as_json:
             print(

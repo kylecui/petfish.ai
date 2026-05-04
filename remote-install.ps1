@@ -210,7 +210,8 @@ function Get-DetectedPlatform([string]$targetPath) {
             }
         }
     }
-    return "opencode"
+    Write-Host "  [detect] No platform marker found. Falling back to 'universal'. Use -Platform to specify explicitly." -ForegroundColor Yellow
+    return "universal"
 }
 
 # --- Merge helpers ---
@@ -500,7 +501,7 @@ function Get-RestartHint([string]$platformName) {
     switch ($platformName) {
         "opencode" { return '⚠️  Restart needed. Exit: Ctrl+C | Resume: opencode -s <session_id>' }
         "claude" { return '⚠️  Restart needed. Exit: /exit or Ctrl+C | Resume: claude --continue' }
-        "codex" { return '⚠️  Restart needed. Exit: Ctrl+C' }
+        "codex" { return 'ℹ️  Restart may be needed. Skills might reload dynamically; if not, exit with Ctrl+C and re-launch.' }
         "cursor" { return '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"' }
         "copilot" { return '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"' }
         "windsurf" { return '⚠️  Restart needed. Reload window: Ctrl+Shift+P → "Reload Window"' }

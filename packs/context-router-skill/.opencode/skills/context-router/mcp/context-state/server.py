@@ -23,6 +23,7 @@ from topic_store import TopicStore  # noqa: E402
 from topic_detector import TopicDetector  # noqa: E402
 from contamination_scorer import ContaminationScorer  # noqa: E402
 from context_builder import ContextBuilder  # noqa: E402
+from session_store import SessionStore  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +214,14 @@ TOOLS = [
                     "type": "string",
                     "description": "Current topic ID (optional, uses active)",
                 },
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID for event tracking",
+                },
+                "agent_id": {
+                    "type": "string",
+                    "description": "Agent identifier",
+                },
             },
             "required": ["text"],
         },
@@ -249,6 +258,10 @@ TOOLS = [
             "properties": {
                 "topic_id": {"type": "string", "description": "Topic ID"},
                 "reason": {"type": "string", "description": "Export reason"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Filter export to this session only",
+                },
             },
             "required": ["topic_id"],
         },
@@ -303,6 +316,14 @@ TOOLS = [
                 "risk_level": {"type": "string"},
                 "action": {"type": "string"},
                 "user_confirmed": {"type": "boolean"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID to associate with this decision",
+                },
+                "agent_id": {
+                    "type": "string",
+                    "description": "Agent identifier",
+                },
             },
             "required": ["relation", "source_topic", "action"],
         },
@@ -314,8 +335,197 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "topic_id": {"type": "string", "description": "Filter by topic ID"},
+                "session_id": {
+                    "type": "string",
+                    "description": "Filter by session ID",
+                },
                 "limit": {"type": "integer", "description": "Max entries (default 50)"},
             },
+        },
+    },
+    # Session management (4)
+    {
+        "name": "session_bind",
+        "description": "Create or resume a session, optionally binding to an external session ID and topic.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "external_session_id": {
+                    "type": "string",
+                    "description": "External session ID (e.g. OpenCode session ID)",
+                },
+                "topic_id": {
+                    "type": "string",
+                    "description": "Topic to bind to this session",
+                },
+                "metadata": {
+                    "type": "object",
+                    "description": "Additional session metadata",
+                },
+            },
+        },
+    },
+    {
+        "name": "session_get",
+        "description": "Get full session record including timeline and topic refs.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {"type": "string", "description": "Session ID"},
+            },
+            "required": ["session_id"],
+        },
+    },
+    {
+        "name": "session_list",
+        "description": "List sessions, optionally filtered by topic, date, or status.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "topic_id": {
+                    "type": "string",
+                    "description": "Filter by topic ID",
+                },
+                "since": {
+                    "type": "string",
+                    "description": "ISO 8601 timestamp — only sessions with activity after this time",
+                },
+                "status": {
+                    "type": "string",
+                    "description": "Filter: active|closed",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max results (default 50)",
+                },
+            },
+        },
+    },
+    {
+        "name": "session_resume",
+        "description": "Find the best session to resume for a topic or session ID. Returns session data plus inherited context package.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "topic_id": {
+                    "type": "string",
+                    "description": "Find most recent session for this topic",
+                },
+                "session_id": {
+                    "type": "string",
+                    "description": "Resume a specific session",
+                },
+            },
+        },
+    },
+    {
+        "name": "session_close",
+        "description": "Close a session with an optional summary. Also auto-closes inactive sessions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID to close",
+                },
+                "summary": {
+                    "type": "string",
+                    "description": "Session summary for handoff",
+                },
+                "auto_close_inactive": {
+                    "type": "boolean",
+                    "description": "Also close sessions inactive >24h (default false)",
+                },
+                "threshold_hours": {
+                    "type": "number",
+                    "description": "Inactivity threshold in hours (default 24)",
+                },
+            },
+            "required": ["session_id"],
+        },
+    },
+    {
+        "name": "session_timeline",
+        "description": "Get session timeline summary with recent events.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Session ID",
+                },
+                "max_events": {
+                    "type": "integer",
+                    "description": "Max recent events to return (default 20)",
+                },
+            },
+            "required": ["session_id"],
+        },
+    },
+    # Session analytics (2)
+    {
+        "name": "session_query",
+        "description": "Query activity across sessions. Answers 'what did we work on yesterday?' style questions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "since": {
+                    "type": "string",
+                    "description": "ISO 8601 timestamp — only events after this time",
+                },
+                "until": {
+                    "type": "string",
+                    "description": "ISO 8601 timestamp — only events before this time",
+                },
+                "topic_id": {
+                    "type": "string",
+                    "description": "Filter events by topic ID",
+                },
+                "agent_id": {
+                    "type": "string",
+                    "description": "Filter events by agent ID",
+                },
+                "limit": {
+                    "type": "integer",
+                    "description": "Max events to return (default 50)",
+                },
+            },
+        },
+    },
+    {
+        "name": "session_agents",
+        "description": "Show which agents worked on which topics (multi-agent attribution).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "session_id": {
+                    "type": "string",
+                    "description": "Scope to a single session",
+                },
+                "topic_id": {
+                    "type": "string",
+                    "description": "Filter by topic ID",
+                },
+            },
+        },
+    },
+    # Topic recommendations (1)
+    {
+        "name": "topic_recommend",
+        "description": "Recommend related topics by walking the topic graph from a given topic.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "topic_id": {
+                    "type": "string",
+                    "description": "Source topic ID",
+                },
+                "max_depth": {
+                    "type": "integer",
+                    "description": "Max graph hops (default 2)",
+                },
+            },
+            "required": ["topic_id"],
         },
     },
 ]
@@ -327,13 +537,14 @@ TOOLS = [
 
 
 class ContextStateServer:
-    """MCP server that wires the 18 context-router tools to TopicStore et al."""
+    """MCP server that wires the 28 context-router tools to TopicStore et al."""
 
     def __init__(self, base_dir: str):
         self.store = TopicStore(base_dir)
         self.detector = TopicDetector()
         self.scorer = ContaminationScorer()
         self.builder = ContextBuilder(base_dir)
+        self.sessions = SessionStore(base_dir)
 
         self._handlers = {}  # type: Dict[str, Callable]
         self._register_handlers()
@@ -365,6 +576,17 @@ class ContextStateServer:
         # Decision tracking
         h["decision_log"] = self._handle_decision_log
         h["decision_history"] = self._handle_decision_history
+        # Session management
+        h["session_bind"] = self._handle_session_bind
+        h["session_get"] = self._handle_session_get
+        h["session_list"] = self._handle_session_list
+        h["session_resume"] = self._handle_session_resume
+        h["session_close"] = self._handle_session_close
+        h["session_timeline"] = self._handle_session_timeline
+        h["session_query"] = self._handle_session_query
+        h["session_agents"] = self._handle_session_agents
+        # Topic recommendations
+        h["topic_recommend"] = self._handle_topic_recommend
 
     # -- JSON-RPC dispatch --------------------------------------------------
 
@@ -380,7 +602,7 @@ class ContextStateServer:
                 {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "context-state", "version": "0.1.0"},
+                    "serverInfo": {"name": "context-state", "version": "0.2.0"},
                 },
             )
 
@@ -505,6 +727,8 @@ class ContextStateServer:
 
     def _handle_topic_detect(self, args: Dict[str, Any]) -> Dict[str, Any]:
         text = args["text"]
+        session_id = args.get("session_id")
+        agent_id = args.get("agent_id")
         # Resolve current topic
         current_topic_id = args.get("current_topic")
         current_topic = None
@@ -533,6 +757,38 @@ class ContextStateServer:
             target = self.store.get(result["target_topic"])
             if target:
                 self.store.set_active(result["target_topic"])
+
+        # Record session event if session_id provided
+        if session_id:
+            event_fields = {
+                "relation": result.get("relation"),
+                "risk": result.get("risk"),
+            }
+            if agent_id:
+                event_fields["agent_id"] = agent_id
+            try:
+                self.sessions.add_event(
+                    session_id,
+                    "topic_transition",
+                    topic_id=result.get("target_topic")
+                    or (current_topic.get("id") if current_topic else None),
+                    **event_fields,
+                )
+            except KeyError:
+                pass  # session not found — don't fail detection
+
+            # Auto-close session on archive/reset signals
+            relation = result.get("relation")
+            if relation in ("archive", "reset"):
+                try:
+                    summary = "Auto-closed: {} detected".format(relation)
+                    self.sessions.close(session_id, summary=summary)
+                except KeyError:
+                    pass
+
+        # Include session_id in result for caller convenience
+        if session_id:
+            result["session_id"] = session_id
 
         return result
 
@@ -570,7 +826,10 @@ class ContextStateServer:
         related = self._get_related_topic_dicts(topic_id)
         decisions = self.store.get_decisions(topic_id=topic_id)
         reason = args.get("reason", "")
-        return self.builder.export(topic, related, decisions, reason)
+        session_id = args.get("session_id")
+        return self.builder.export(
+            topic, related, decisions, reason, session_id=session_id
+        )
 
     def _handle_context_freeze(self, args: Dict[str, Any]) -> Dict[str, Any]:
         topic_id = args["topic_id"]
@@ -605,7 +864,87 @@ class ContextStateServer:
     def _handle_decision_history(self, args: Dict[str, Any]) -> List[Dict[str, Any]]:
         return self.store.get_decisions(
             topic_id=args.get("topic_id"),
+            session_id=args.get("session_id"),
             limit=args.get("limit", 50),
+        )
+
+    # -- Session handlers ---------------------------------------------------
+
+    def _handle_session_bind(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        # Auto-close stale sessions on bind
+        self.sessions.auto_close_inactive()
+        return self.sessions.bind(
+            external_session_id=args.get("external_session_id"),
+            topic_id=args.get("topic_id"),
+            metadata=args.get("metadata"),
+        )
+
+    def _handle_session_get(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        session_id = args["session_id"]
+        session = self.sessions.get(session_id)
+        if session is None:
+            raise KeyError("Session not found: {}".format(session_id))
+        return session
+
+    def _handle_session_list(self, args: Dict[str, Any]) -> List[Dict[str, Any]]:
+        return self.sessions.list_sessions(
+            topic_id=args.get("topic_id"),
+            since=args.get("since"),
+            status=args.get("status"),
+            limit=args.get("limit", 50),
+        )
+
+    def _handle_session_resume(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        result = self.sessions.resume(
+            topic_id=args.get("topic_id"),
+            session_id=args.get("session_id"),
+        )
+        # Enrich with resume context
+        session = result.get("session", {})
+        sid = session.get("id")
+        if sid:
+            result["resume_context"] = self.sessions.get_resume_context(sid)
+        return result
+
+    def _handle_session_close(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        session_id = args["session_id"]
+        summary = args.get("summary")
+        session = self.sessions.close(session_id, summary=summary)
+
+        response = {"session": session, "auto_closed": []}
+
+        if args.get("auto_close_inactive"):
+            threshold = args.get("threshold_hours", 24)
+            closed = self.sessions.auto_close_inactive(threshold_hours=threshold)
+            response["auto_closed"] = closed
+
+        return response
+
+    def _handle_session_timeline(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.sessions.get_timeline_summary(
+            session_id=args["session_id"],
+            max_events=args.get("max_events", 20),
+        )
+
+    def _handle_session_query(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.sessions.query_activity(
+            since=args.get("since"),
+            until=args.get("until"),
+            topic_id=args.get("topic_id"),
+            agent_id=args.get("agent_id"),
+            limit=args.get("limit", 50),
+        )
+
+    def _handle_session_agents(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.sessions.get_agent_attribution(
+            session_id=args.get("session_id"),
+            topic_id=args.get("topic_id"),
+        )
+
+    def _handle_topic_recommend(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        return self.store.recommend_related(
+            topic_id=args["topic_id"],
+            max_depth=args.get("max_depth", 2),
         )
 
     # -- Helpers ------------------------------------------------------------
