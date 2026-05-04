@@ -1,3 +1,15 @@
+---
+name: context-router
+description: 话题治理器 — topic governance, context isolation, contamination scoring, session management
+mcp:
+  context-state:
+    command: uv
+    args:
+      - run
+      - python
+      - mcp/context-state/server.py
+---
+
 # Context Router — 话题治理器
 
 ## 触发条件
@@ -10,7 +22,7 @@
 
 ## 前置条件
 
-- context-state MCP server已启动（通过opencode.json配置的stdio transport）
+- context-state MCP server已启动（通过SKILL.md frontmatter自动发现，或手动在opencode.json中配置）
 - `.ai-context/`目录已存在（首次使用时由`topic_create`自动创建）
 
 ## 核心概念
