@@ -182,8 +182,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output",
-        default=".",
-        help="Output directory for the generated report. Defaults to the current directory.",
+        default="outputs",
+        help="Output directory for the generated report. Defaults to 'outputs/'.",
     )
     parser.add_argument(
         "--format",
