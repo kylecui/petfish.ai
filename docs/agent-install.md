@@ -32,6 +32,8 @@ I'm setting up PEtFiSh for you. Let me ask a few questions first.
    - `.agents/` and `GEMINI.md` → **antigravity**
    - None of the above → **universal**
 
+> **Important**: You are an AI agent — you already know which platform you are running on. Use your own platform identity directly (e.g. `--platform codex` if you are Codex, `--platform claude` if you are Claude Code). Do NOT rely on `--detect`, which uses marker files and may guess wrong.
+
 Tell the user which OS and platform you detected.
 
 ---
@@ -71,19 +73,19 @@ Ask which packs they want.
 
 **Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack init,companion --platform <PLATFORM>
 ```
 
 **PowerShell:**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack "init,companion" -Detect
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack "init,companion" -Platform <PLATFORM>
 ```
+
+Replace `<PLATFORM>` with the platform you detected in Step 1 (e.g. `codex`, `opencode`, `claude`, etc.).
 
 Run this command and verify it succeeds.
 
 > **Note**: The install script automatically downloads from the **latest stable release** (currently v0.2.0). No need to specify a version — you always get the latest verified build.
-
-> **Platform detection**: `--detect` uses marker files (e.g. `.opencode/`, `.claude/`, `.codex/`) to guess the platform. If your project has no recognizable markers, detection falls back to `universal`. In that case, use `--platform <name>` explicitly instead of `--detect` — for example `--platform codex` or `--platform opencode`.
 
 ### 3b: Install the packs based on the user's choice from Step 2
 
@@ -91,15 +93,15 @@ For each pack the user selected, run:
 
 **Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <ALIAS> --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <ALIAS> --platform <PLATFORM>
 ```
 
 **PowerShell:**
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <ALIAS> -Detect
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <ALIAS> -Platform <PLATFORM>
 ```
 
-Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc.).
+Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc.) and `<PLATFORM>` with the platform from Step 1.
 
 ---
 
@@ -155,7 +157,7 @@ This installs the external trust governance engine for behavioral analysis of sk
 - If `curl` is not found: suggest `wget -qO- <url> | bash -s -- <args>` as alternative
 - If PowerShell execution policy blocks the script: suggest `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
 - If the install says "uv not found": suggest installing uv from https://docs.astral.sh/uv/getting-started/installation/
-- If platform auto-detection fails or picks the wrong platform: detection is marker-based (looks for `.opencode/`, `.claude/`, `.codex/`, etc.). Use `--platform <name>` explicitly instead of `--detect` — e.g. `--platform codex`, `--platform opencode`
+- If platform auto-detection fails or picks the wrong platform: detection is marker-based (looks for `.opencode/`, `.claude/`, `.codex/`, etc.). As an AI agent, you should always use `--platform <name>` explicitly instead of `--detect` — you know your own runtime platform
 
 ---
 
