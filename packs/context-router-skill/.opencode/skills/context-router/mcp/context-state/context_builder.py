@@ -106,16 +106,23 @@ class ContextBuilder:
         related_topics: List[Dict[str, Any]],
         decisions: List[Dict[str, Any]],
         reason: str = "",
+        session_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         topic_id = self._topic_id(topic)
         export_path = self.contexts_dir / f"{topic_id}.export.md"
         topic_decisions = self._decisions_for_topic(topic_id, decisions)
+
+        if session_id is not None:
+            topic_decisions = [
+                d for d in topic_decisions if d.get("session_id") == session_id
+            ]
 
         extra_sections = [
             "## Handoff Info",
             "",
             f"- **Exported At**: {self._now_iso()}",
             f"- **Export Reason**: {reason.strip() or 'Manual export'}",
+            f"- **Session**: {session_id or 'all sessions'}",
             "",
             "## Session History",
             "",

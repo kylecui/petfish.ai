@@ -45,6 +45,13 @@
 
 为topic生成的Markdown上下文文件，详见`references/context-package-spec.md`。三种变体：标准包、桥接包、导出包。
 
+### Session
+
+会话单元。session绑定外部会话ID（如OpenCode session_id）或自动推断创建。每个session记录话题切换时间线、topic引用和工作摘要。存储在`.ai-context/sessions/`。
+
+- `external` session: 由外部平台提供session_id，ID格式 `oc_<external_id>`
+- `inferred` session: 无外部ID时自动创建，ID格式 `inf_<YYYYMMDD>_<4位hex>`
+
 ## 工作流（5步）
 
 当本skill被触发时，按以下5步执行：
@@ -226,7 +233,7 @@ input: {
 
 | Tool | 参数 | 返回 |
 |------|------|------|
-| `topic_detect` | text, current_topic | relation, confidence, risk, suggestion |
+| `topic_detect` | text, current_topic?, session_id?, agent_id? | relation, confidence, risk, suggestion, session_id? |
 
 ### Context operations
 
@@ -234,7 +241,7 @@ input: {
 |------|------|------|
 | `context_build` | topic_id | Context Package路径 + 大小 |
 | `context_build_bridge` | topic_a, topic_b | Bridge Package路径 |
-| `context_export` | topic_id, reason? | Export Package路径 |
+| `context_export` | topic_id, reason?, session_id? | Export Package路径 |
 | `context_freeze` | topic_id | Frozen Package路径 |
 
 ### Contamination
@@ -248,8 +255,17 @@ input: {
 
 | Tool | 参数 | 返回 |
 |------|------|------|
-| `decision_log` | relation, source, target, risk, action... | log entry |
-| `decision_history` | topic_id?, limit? | 决策历史列表 |
+| `decision_log` | relation, source, target, risk, action, session_id?, agent_id?... | log entry |
+| `decision_history` | topic_id?, session_id?, limit? | 决策历史列表 |
+
+### Session management
+
+| Tool | 参数 | 返回 |
+|------|------|------|
+| `session_bind` | external_session_id?, topic_id?, metadata? | session记录 |
+| `session_get` | session_id | 完整session含timeline |
+| `session_list` | topic_id?, since?, status?, limit? | session列表 |
+| `session_resume` | topic_id?, session_id? | session + topic_id |
 
 ## 降级与容错
 

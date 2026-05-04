@@ -6,7 +6,7 @@
 
 ### 交互前检查
 
-每次收到用户消息时，调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。根据返回的风险等级执行对应行为：
+每次收到用户消息时，调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。若有可用的session_id（如OpenCode session ID），应在调用时传入`session_id`参数以启用会话追踪。根据返回的风险等级执行对应行为：
 
 | 风险等级 | 行为 |
 |---------|------|
@@ -17,6 +17,17 @@
 ### 交互后更新
 
 当本次交互产生实质性成果（代码变更、文档输出、决策结论等）时，调用`topic_update`更新当前topic的summary和status。
+
+### 会话管理
+
+context-router支持会话级追踪。会话（session）绑定外部平台的session ID或自动推断创建。
+
+- **会话绑定**：在会话开始时调用`session_bind`绑定外部session_id和当前topic
+- **事件追踪**：`topic_detect`传入`session_id`时，自动记录话题切换事件到session timeline
+- **会话查询**：通过`session_list`按topic、时间、状态过滤，回答"昨天我们做了什么？"
+- **会话恢复**：通过`session_resume`查找与特定topic关联的最近session，支持跨会话上下文继承
+
+会话数据存储在`.ai-context/sessions/`，与topic数据独立管理。
 
 ### 话题关系类型
 

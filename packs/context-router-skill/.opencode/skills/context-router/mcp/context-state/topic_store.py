@@ -274,6 +274,7 @@ class TopicStore:
     def get_decisions(
         self,
         topic_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         limit: int = 50,
     ) -> List[Dict[str, Any]]:
         decisions = self._load_decisions()
@@ -283,6 +284,11 @@ class TopicStore:
                 for entry in decisions
                 if entry.get("source_topic") == topic_id
                 or entry.get("target_topic") == topic_id
+            ]
+
+        if session_id is not None:
+            decisions = [
+                entry for entry in decisions if entry.get("session_id") == session_id
             ]
 
         if limit <= 0:
