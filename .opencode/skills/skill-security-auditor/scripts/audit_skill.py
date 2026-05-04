@@ -452,7 +452,15 @@ def scan_python_script(script_path: Path, text: str, findings: list[Finding]) ->
             "Replace os.system with subprocess.run using explicit argument lists.",
         ),
         (
-            r"\.env\b|\.ssh\b|id_rsa\b|known_hosts\b|credentials\b|token\b|secret\b|api[_-]?key\b",
+            r"""(?x)
+                os\.environ\s*\[\s*['"][^'"]*(?:SECRET|TOKEN|KEY|PASSWORD|CREDENTIAL)[^'"]*['"]\s*\]
+              | os\.environ\.get\s*\(\s*['"][^'"]*(?:SECRET|TOKEN|KEY|PASSWORD|CREDENTIAL)[^'"]*['"]
+              | os\.getenv\s*\(\s*['"][^'"]*(?:SECRET|TOKEN|KEY|PASSWORD|CREDENTIAL)[^'"]*['"]
+              | keyring\.get_password
+              | \.read_text\s*\([^\n]*(?:\.env|\.ssh|id_rsa|known_hosts|credentials)
+              | open\s*\([^\n]*(?:\.env|\.ssh[/\\]|id_rsa|known_hosts)
+              | Path\s*\([^\n]*(?:\.env|\.ssh[/\\]|id_rsa|known_hosts)
+            """,
             "high",
             "credentials",
             "CR101",
