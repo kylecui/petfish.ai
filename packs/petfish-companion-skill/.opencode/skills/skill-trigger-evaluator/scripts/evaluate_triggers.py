@@ -222,9 +222,6 @@ def _is_doc_snippet(phrase: str) -> bool:
     # Contains backtick-quoted code fragments (mode names, config keys)
     if "`" in phrase:
         return True
-    # Starts with a backtick-quoted word followed by colon (e.g. `strict`: ...)
-    if re.match(r"^`[^`]+`\s*:", phrase):
-        return True
     # Very long phrases are unlikely to be user queries
     if len(phrase) > 120:
         return True
@@ -233,19 +230,57 @@ def _is_doc_snippet(phrase: str) -> bool:
         r"\b(?:Best for|Use when|Default[s]?:|Returns?:)\b", phrase, re.IGNORECASE
     ):
         return True
+    # Ends with question mark — likely a rhetorical/workflow question, not a user trigger
+    if phrase.rstrip().endswith("?"):
+        return True
+    # Starts with a capital letter and reads like a sentence/instruction (not a command)
+    # e.g. "Identify the real problem" vs "用我的语言习惯表达"
+    if re.match(
+        r"^[A-Z][a-z].*\b(?:the|a|an|this|that|each|every|only|unless)\b", phrase
+    ):
+        return True
     return False
 
 
+_TRIGGER_SECTION_PATTERNS = re.compile(
+    r"^#{1,3}\s*(?:activation|trigger|when to use|usage|use this skill)",
+    re.IGNORECASE,
+)
+_NON_TRIGGER_SECTION = re.compile(r"^#{1,3}\s", re.IGNORECASE)
+
+
 def extract_trigger_phrases(text: str) -> list[str]:
+    """Extract trigger phrases from SKILL.md body.
+
+    Only bullets from trigger-relevant sections (Activation Rules, Trigger, etc.)
+    are treated as trigger phrases. Quoted strings are extracted from all sections.
+    """
     phrases: list[str] = []
+    in_trigger_section = False
+
     for line in text.splitlines():
         stripped = line.strip()
         if not stripped:
             continue
-        if stripped.startswith("- "):
-            phrases.append(stripped[2:].strip())
+
+        # Track which section we're in
+        if _TRIGGER_SECTION_PATTERNS.match(stripped):
+            in_trigger_section = True
+            continue
+        elif _NON_TRIGGER_SECTION.match(stripped):
+            in_trigger_section = False
+            continue
+
+        # Only extract bullet items from trigger sections
+        if in_trigger_section and re.match(r"^-\s*", stripped):
+            bullet_text = re.sub(r"^-\s*", "", stripped).strip()
+            if bullet_text:
+                phrases.append(bullet_text)
+
+        # Extract quoted strings from anywhere (likely user-facing examples)
         for match in re.findall(r'"([^"]+)"', stripped):
             phrases.append(match.strip())
+
     deduped: list[str] = []
     seen: set[str] = set()
     for phrase in phrases:
