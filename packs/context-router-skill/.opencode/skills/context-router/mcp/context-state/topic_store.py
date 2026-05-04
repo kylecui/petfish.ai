@@ -12,6 +12,7 @@ class TopicStore:
     """Persist topics, topic links, and routing decisions under .ai-context/."""
 
     VALID_RELATIONS = {
+        # Detection relations (from topic_detect)
         "continue",
         "fork",
         "switch",
@@ -19,6 +20,12 @@ class TopicStore:
         "archive",
         "reset",
         "bridge",
+        # Semantic relations (user-defined)
+        "related",
+        "depends_on",
+        "blocks",
+        "parent",
+        "child",
     }
 
     def __init__(self, base_dir: str):

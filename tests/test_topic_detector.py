@@ -155,7 +155,17 @@ def test_detect_continue_without_current_topic_uses_generic_suggestion(detector)
 def test_extract_keywords_handles_basic_tokenization(detector):
     keywords = detector._extract_keywords("Build API接口 with Python_3 and 数据 2024 a")
 
-    assert keywords == {"build", "api", "接口", "python_3", "数据"}
+    assert keywords == {
+        "build",
+        "api",
+        "接口",
+        "接",
+        "口",
+        "python_3",
+        "数据",
+        "数",
+        "据",
+    }
 
 
 def test_calculate_topic_overlap_returns_float_between_zero_and_one(detector):

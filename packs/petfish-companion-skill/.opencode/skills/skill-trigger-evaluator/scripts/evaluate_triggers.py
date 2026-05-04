@@ -259,17 +259,59 @@ def load_skill(skill_dir: Path) -> SkillInfo:
     )
 
 
+def _is_cjk(char: str) -> bool:
+    return "\u4e00" <= char <= "\u9fff"
+
+
+def _contains_cjk(text: str) -> bool:
+    return any(_is_cjk(char) for char in text)
+
+
+def _add_cjk_keywords(token: str, keywords: set[str]) -> None:
+    cjk_only = "".join(char for char in token if _is_cjk(char))
+    if not cjk_only:
+        return
+
+    if cjk_only not in STOPWORDS:
+        keywords.add(cjk_only)
+
+    for char in cjk_only:
+        if char not in STOPWORDS:
+            keywords.add(char)
+
+    if len(cjk_only) >= 2:
+        for index in range(len(cjk_only) - 1):
+            bigram = cjk_only[index : index + 2]
+            if bigram not in STOPWORDS:
+                keywords.add(bigram)
+
+
 def extract_keywords(text: str) -> set[str]:
-    tokens = re.findall(r"[a-z0-9]+", text.lower())
-    return {token for token in tokens if len(token) >= 3 and token not in STOPWORDS}
+    tokens = re.findall(r"[a-z0-9]+|[\u4e00-\u9fff]+", text.lower())
+    keywords: set[str] = set()
+
+    for token in tokens:
+        if _contains_cjk(token):
+            _add_cjk_keywords(token, keywords)
+            continue
+
+        if len(token) >= 3 and token not in STOPWORDS:
+            keywords.add(token)
+
+    return keywords
 
 
 def score_query(description_keywords: set[str], query: str) -> tuple[float, list[str]]:
     query_keywords = extract_keywords(query)
-    if not description_keywords:
+    if not description_keywords or not query_keywords:
         return 0.0, []
     matched = sorted(description_keywords & query_keywords)
-    score = len(matched) / len(description_keywords)
+    if not matched:
+        return 0.0, []
+
+    recall = len(matched) / len(description_keywords)
+    precision = len(matched) / len(query_keywords)
+    score = max(recall, precision)
     return score, matched
 
 
