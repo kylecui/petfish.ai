@@ -46,7 +46,7 @@ Offer these choices:
 3. **ops** — Operations/infrastructure (installs: deploy, petfish)
 4. **writing** — Writing/documentation (installs: petfish, ppt)
 5. **minimal** — Just the basics (installs: petfish only)
-6. **comprehensive** — Everything (installs: course, deploy, petfish, ppt, testdocs)
+6. **comprehensive** — Everything (installs: course, deploy, petfish, ppt, testdocs, calibrate, context)
 7. **custom** — Let me choose specific packs
 
 If user chooses **custom**, show available packs:

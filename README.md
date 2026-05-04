@@ -189,7 +189,7 @@ When you use `/initproject`, PEtFiSh installs packs based on your project type:
 | security | deploy, petfish, testdocs |
 | writing | petfish, ppt |
 | skills-package | petfish, testdocs |
-| comprehensive | course, deploy, petfish, ppt, testdocs, context |
+| comprehensive | course, deploy, petfish, ppt, testdocs, trust, context |
 
 ---
 

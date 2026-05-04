@@ -43,7 +43,19 @@ def load_usage(filepath: Path) -> dict:
     if filepath.exists():
         try:
             return json.loads(filepath.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
+        except json.JSONDecodeError:
+            # Backup corrupt file before overwriting
+            ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            backup = filepath.with_suffix(f".json.corrupt.{ts}")
+            try:
+                filepath.rename(backup)
+                print(
+                    f"Warning: corrupt {filepath.name} backed up to {backup.name}",
+                    file=sys.stderr,
+                )
+            except OSError:
+                pass
+        except OSError:
             pass
 
     return {
