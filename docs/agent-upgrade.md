@@ -40,7 +40,7 @@ Current state:
 - Installed packs: [list from registry or directory scan]
 - Version: [from registry or "unknown (pre-registry)"]
 
-I'll upgrade you to the latest release (v0.5.1).
+I'll upgrade you to the latest release.
 ```
 
 ---
@@ -226,7 +226,7 @@ Should show updated pack versions. Then confirm fish-trail MCP is working:
 Tell the user:
 
 ```
-><(((^> PEtFiSh upgraded to v0.5.1!
+><(((^> PEtFiSh upgraded!
 
 Changes applied:
 - [list upgraded packs]
@@ -281,5 +281,4 @@ Already has fish-trail naming. Run Step 3 with `--force` to pick up the latest s
 
 **GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
-**Latest release**: v0.5.1
-**What's new**: fish-trail topic routing MVP, 31 MCP tools, context firewall, state dir migration
+**What's new in v0.5.x**: fish-trail topic routing MVP, 31 MCP tools, context firewall, state dir migration, topic_graph version field fix

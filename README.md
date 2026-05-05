@@ -422,6 +422,12 @@ petfish.ai/                          # 胖鱼 PEtFiSh repo
 
 ### v0.5 — Fish Trail + Repo Rename / 话题路由 + 仓库重命名
 
+- **v0.5.4**: Fix topic_graph missing version field and topic_report stale detection
+  - 修复topic_graph缺少version字段、topic_report错误标记所有话题为过期
+- **v0.5.3**: Agent upgrade guide and web upgrade prompt
+  - 新增AI agent升级指南，网站添加一句话升级入口
+- **v0.5.2**: Agent upgrade guide for v0.4.x → v0.5.x migration
+  - 新增docs/agent-upgrade.md升级文档
 - **v0.5.1**: Pre-release documentation and test suite updates
   - 预发布文档和测试套件更新
 - **v0.5.0**: Repo renamed `SKILL_builder` → `petfish.ai`, fish-trail pack (renamed from context-router-skill) with 31 MCP tools, fish-* alias system for installers, state dir migration `.ai-context` → `.petfish/fish-trail/`, topic routing/reporting/validation scripts
