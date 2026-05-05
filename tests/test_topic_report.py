@@ -54,19 +54,19 @@ def simple_graph(tmp_path):
             "id": "topic-a",
             "title": "Topic A",
             "status": "active",
-            "freshness": {"status": "fresh", "last_updated": "2026-05-05T10:00:00"},
+            "updated_at": "2026-05-05T10:00:00+00:00",
         },
         {
             "id": "topic-b",
             "title": "Topic B",
             "status": "active",
-            "freshness": {"status": "fresh", "last_updated": "2026-05-04T10:00:00"},
+            "updated_at": "2026-05-04T10:00:00+00:00",
         },
         {
             "id": "topic-c",
             "title": "Topic C",
             "status": "paused",
-            "freshness": {"status": "stale", "last_updated": "2026-03-01T10:00:00"},
+            "updated_at": "2026-03-01T10:00:00+00:00",
         },
     ]
     edges = [
@@ -84,13 +84,13 @@ def hub_graph(tmp_path):
             "id": "topic-hub",
             "title": "Hub Topic",
             "status": "active",
-            "freshness": {"status": "fresh", "last_updated": "2026-05-05T10:00:00"},
+            "updated_at": "2026-05-05T10:00:00+00:00",
         },
-        {"id": "topic-1", "title": "Topic 1", "status": "active", "freshness": {}},
-        {"id": "topic-2", "title": "Topic 2", "status": "active", "freshness": {}},
-        {"id": "topic-3", "title": "Topic 3", "status": "active", "freshness": {}},
-        {"id": "topic-4", "title": "Topic 4", "status": "active", "freshness": {}},
-        {"id": "topic-5", "title": "Topic 5", "status": "active", "freshness": {}},
+        {"id": "topic-1", "title": "Topic 1", "status": "active"},
+        {"id": "topic-2", "title": "Topic 2", "status": "active"},
+        {"id": "topic-3", "title": "Topic 3", "status": "active"},
+        {"id": "topic-4", "title": "Topic 4", "status": "active"},
+        {"id": "topic-5", "title": "Topic 5", "status": "active"},
     ]
     edges = [
         {"source": "topic-hub", "target": "topic-1", "relation": "depends_on"},
@@ -110,13 +110,13 @@ def pollution_graph(tmp_path):
             "id": "topic-x",
             "title": "Topic X",
             "status": "active",
-            "freshness": {"status": "fresh", "last_updated": "2026-05-05T10:00:00"},
+            "updated_at": "2026-05-05T10:00:00+00:00",
         },
         {
             "id": "topic-y",
             "title": "Topic Y",
             "status": "active",
-            "freshness": {"status": "fresh", "last_updated": "2026-05-05T10:00:00"},
+            "updated_at": "2026-05-05T10:00:00+00:00",
         },
     ]
     edges = [
@@ -132,18 +132,14 @@ def stale_graph(tmp_path):
         {
             "id": "stale-1",
             "title": "Stale Topic 1",
-            "status": "archived",
-            "freshness": {
-                "status": "stale",
-                "last_updated": "2026-03-01T10:00:00",
-                "reason": "explicitly marked stale",
-            },
+            "status": "stale",
+            "updated_at": "2025-01-01T10:00:00+00:00",
         },
         {
             "id": "old-2",
             "title": "Old Topic 2",
             "status": "paused",
-            "freshness": {"status": "unknown", "last_updated": "2026-03-15T10:00:00"},
+            "updated_at": "2025-01-15T10:00:00+00:00",
         },
     ]
     return make_graph(tmp_path, nodes, [])
@@ -157,34 +153,32 @@ def complex_graph(tmp_path):
             "id": "topic-core",
             "title": "Core Topic",
             "status": "active",
-            "freshness": {"status": "fresh", "last_updated": "2026-05-05T10:00:00"},
+            "updated_at": "2026-05-05T10:00:00+00:00",
             "keywords": "api, design, architecture",
         },
         {
             "id": "topic-feature",
             "title": "Feature Topic",
             "status": "active",
-            "freshness": {"status": "fresh", "last_updated": "2026-05-04T15:00:00"},
+            "updated_at": "2026-05-04T15:00:00+00:00",
             "keywords": "api, implementation, testing",
         },
         {
             "id": "topic-old",
             "title": "Old Topic",
-            "status": "archived",
-            "freshness": {"status": "stale", "last_updated": "2026-02-01T10:00:00"},
+            "status": "stale",
+            "updated_at": "2025-02-01T10:00:00+00:00",
             "evidence_level": "ambiguous",
         },
         {
             "id": "topic-deprecated",
             "title": "Deprecated Topic",
             "status": "archived",
-            "freshness": {},
         },
         {
             "id": "topic-unused",
             "title": "Unused Topic",
             "status": "paused",
-            "freshness": {},
         },
     ]
     edges = [
@@ -601,7 +595,7 @@ class TestEdgeCases:
                 "id": "single",
                 "title": "Single Node",
                 "status": "active",
-                "freshness": {"status": "fresh", "last_updated": "2026-05-05T10:00:00"},
+                "updated_at": "2026-05-05T10:00:00+00:00",
             }
         ]
         base = make_graph(tmp_path, nodes, [])
@@ -614,9 +608,7 @@ class TestEdgeCases:
 
     def test_self_referential_edge(self, tmp_path):
         """Test handling of self-referential edges."""
-        nodes = [
-            {"id": "self-ref", "title": "Self-Ref", "status": "active", "freshness": {}}
-        ]
+        nodes = [{"id": "self-ref", "title": "Self-Ref", "status": "active"}]
         edges = [{"source": "self-ref", "target": "self-ref", "relation": "depends_on"}]
         base = make_graph(tmp_path, nodes, edges)
         reporter = TopicReporter(base)
@@ -645,7 +637,7 @@ class TestEdgeCases:
                 "id": "bad-date",
                 "title": "Bad Date",
                 "status": "active",
-                "freshness": {"status": "fresh", "last_updated": "not-a-date"},
+                "updated_at": "not-a-date",
             }
         ]
         base = make_graph(tmp_path, nodes, [])
