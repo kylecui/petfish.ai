@@ -4,7 +4,7 @@
 
 # 胖鱼 PEtFiSh
 
-**AI Worker's Companion — Skill lifecycle management for AI-assisted projects.**
+**你的AI伙伴 · Your AI Companion**
 
 Repo name: `petfish.ai`
 Product name: `胖鱼 PEtFiSh`
@@ -17,9 +17,11 @@ Product name: `胖鱼 PEtFiSh`
 
 ## What is PEtFiSh? / 胖鱼是什么？
 
-PEtFiSh is your AI coding companion. It manages the full lifecycle of AI skills — from discovery and creation to validation, publishing, and usage tracking. Supports 8 AI coding platforms with a single install command.
+**胖鱼 PEtFiSh — 你的AI伙伴。** 从项目第一行代码到最终交付，胖鱼都在。
 
-胖鱼是AI工作者的伙伴。从skill的发现、创建、验证、发布到使用追踪，管理AI skill的全生命周期。支持8个AI编程平台，一条命令完成skill安装。
+**PEtFiSh — Your AI companion.** From first commit to final delivery, PEtFiSh is there. Finding skills, building habits, keeping standards.
+
+支持8个AI编程平台，一条命令完成安装。
 
 ```
 ┌─────────────────────────────────────────────────────┐
