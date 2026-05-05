@@ -1,5 +1,5 @@
 ---
-name: context-router
+name: fish-trail
 description: 话题治理器 — topic governance, context isolation, contamination scoring, session management
 mcp:
   context-state:
@@ -10,7 +10,7 @@ mcp:
       - mcp/context-state/server.py
 ---
 
-# Context Router — 话题治理器
+# Fish Trail — 话题治理器
 
 ## 触发条件
 
@@ -18,12 +18,12 @@ mcp:
 
 - `topic_detect`返回风险等级**high**（分数61-100）
 - 用户主动要求话题管理（关键词：整理话题、切换话题、合并话题、归档、清空上下文等）
-- 用户提及context-router相关概念（topic、话题治理、上下文污染、继承策略等）
+- 用户提及fish-trail相关概念（topic、话题治理、上下文污染、继承策略等）
 
 ## 前置条件
 
 - context-state MCP server已启动（通过SKILL.md frontmatter自动发现，或手动在opencode.json中配置）
-- `.ai-context/`目录已存在（首次使用时由`topic_create`自动创建）
+- `.petfish/fish-trail/`目录已存在（首次使用时由`topic_create`自动创建）
 
 ## 核心概念
 
@@ -59,7 +59,7 @@ mcp:
 
 ### Session
 
-会话单元。session绑定外部会话ID（如OpenCode session_id）或自动推断创建。每个session记录话题切换时间线、topic引用和工作摘要。存储在`.ai-context/sessions/`。
+会话单元。session绑定外部会话ID（如OpenCode session_id）或自动推断创建。每个session记录话题切换时间线、topic引用和工作摘要。存储在`.petfish/fish-trail/sessions/`。
 
 - `external` session: 由外部平台提供session_id，ID格式 `oc_<external_id>`
 - `inferred` session: 无外部ID时自动创建，ID格式 `inf_<YYYYMMDD>_<4位hex>`
@@ -79,7 +79,7 @@ mcp:
 
 - `resume_context`包含：session summary、topic refs、最近10条timeline事件摘要
 - 可通过`ContextBuilder.build_resume_package()`生成完整的Resume Package（Markdown格式）
-- Resume Package写入`.ai-context/contexts/{session_id}.resume.md`
+- Resume Package写入`.petfish/fish-trail/contexts/{session_id}.resume.md`
 
 ## 工作流（5步）
 
@@ -204,8 +204,8 @@ input: {
   "topic_id": "topic_20260503_e5f6"
 }
 output: {
-  "path": ".ai-context/contexts/topic_20260503_e5f6.context.md",
-  "size": 1234
+   "path": ".petfish/fish-trail/contexts/topic_20260503_e5f6.context.md",
+   "size": 1234
 }
 ```
 
@@ -314,7 +314,7 @@ input: {
 
 - 不报错，不阻塞正常工作
 - 跳过所有MCP tool调用
-- 在回复中附带一行提示："⚠ context-router MCP未连接，话题治理未激活。"
+- 在回复中附带一行提示："⚠ fish-trail MCP未连接，话题治理未激活。"
 - 每次会话最多提示一次
 
 ### 检测结果异常
@@ -327,7 +327,7 @@ input: {
 
 ### 存储空间不足
 
-当`.ai-context/`目录过大：
+当`.petfish/fish-trail/`目录过大：
 
 - `context_build`在生成前检查目录大小
 - 超过阈值（默认10MB）时建议用户运行`topic_archive`清理旧topic

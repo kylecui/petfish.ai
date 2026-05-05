@@ -319,7 +319,7 @@ declare -A ALIASES=(
     [init]="project-initializer-skill"
     [trust]="trustskills-governance-pack"
     [calibrate]="anti-sycophancy-calibration-pack"
-    [context]="context-router-skill"
+    [context]="fish-trail"
     [fish-init]="project-initializer-skill"
     [fish-core]="petfish-companion-skill"
     [fish-course]="opencode-course-skills-pack"
@@ -328,7 +328,7 @@ declare -A ALIASES=(
     [fish-style]="petfish-style-skill"
     [fish-slides]="opencode-ppt-skills"
     [fish-calibrate]="anti-sycophancy-calibration-pack"
-    [fish-trail]="context-router-skill"
+    [fish-trail]="fish-trail"
 )
 
 # --- Defaults ---

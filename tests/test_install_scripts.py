@@ -120,7 +120,7 @@ def _extract_bash_aliases(path: Path) -> set[str]:
     content = path.read_text(encoding="utf-8")
     aliases = set()
     # Match associative array entries: [alias]="pack-name"
-    for m in re.finditer(r'\[(\w+)\]="[^"]*-(?:skill|pack|skills)[^"]*"', content):
+    for m in re.finditer(r'\[(\w+)\]="[\w-]+"', content):
         aliases.add(m.group(1).lower())
     # Match quoted alias strings
     for m in re.finditer(

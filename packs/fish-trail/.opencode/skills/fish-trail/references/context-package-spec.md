@@ -1,10 +1,10 @@
 # Context Package Specification
 
-本文档定义Context Router的Context Package格式。
+本文档定义Fish Trail的Context Package格式。
 
 ## 概述
 
-Context Package是为特定topic生成的上下文摘要文件，Markdown格式，供agent在处理该topic时作为上下文输入。每个topic至多有一个活跃Context Package，存储在`.ai-context/contexts/<topic-id>.context.md`。
+Context Package是为特定topic生成的上下文摘要文件，Markdown格式，供agent在处理该topic时作为上下文输入。每个topic至多有一个活跃Context Package，存储在`.petfish/fish-trail/contexts/<topic-id>.context.md`。
 
 ## 设计原则
 
@@ -84,7 +84,7 @@ Context Package是为特定topic生成的上下文摘要文件，Markdown格式�
 
 由`context_build_bridge`生成。包含两个topic之间的交叉上下文。
 
-文件名：`.ai-context/contexts/<topic-a-id>_bridge_<topic-b-id>.context.md`
+文件名：`.petfish/fish-trail/contexts/<topic-a-id>_bridge_<topic-b-id>.context.md`
 
 格式在标准包基础上增加：
 

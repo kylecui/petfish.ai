@@ -318,7 +318,7 @@ declare -A ALIASES=(
     [init]="project-initializer-skill"
     [trust]="trustskills-governance-pack"
     [calibrate]="anti-sycophancy-calibration-pack"
-    [context]="context-router-skill"
+    [context]="fish-trail"
     [fish-init]="project-initializer-skill"
     [fish-core]="petfish-companion-skill"
     [fish-course]="opencode-course-skills-pack"
@@ -327,9 +327,9 @@ declare -A ALIASES=(
     [fish-style]="petfish-style-skill"
     [fish-slides]="opencode-ppt-skills"
     [fish-calibrate]="anti-sycophancy-calibration-pack"
-    [fish-trail]="context-router-skill"
+    [fish-trail]="fish-trail"
 )
-ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "context-router-skill")
+ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail")
 
 # --- Defaults ---
 PACK=""
@@ -427,7 +427,7 @@ if $LIST; then
     echo "  project-initializer-skill                (aliases: init, fish-init)"
     echo "  trustskills-governance-pack               (alias: trust)"
     echo "  anti-sycophancy-calibration-pack         (aliases: calibrate, fish-calibrate)"
-    echo "  context-router-skill                     (aliases: context, fish-trail)"
+    echo "  fish-trail                               (aliases: context, fish-trail)"
     echo ""
     exit 0
 fi

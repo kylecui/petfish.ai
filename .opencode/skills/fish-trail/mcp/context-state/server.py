@@ -1,10 +1,10 @@
-"""Context State MCP Server — stdio JSON-RPC 2.0 server for topic governance.
+"""Fish Trail MCP Server — stdio JSON-RPC 2.0 server for topic governance.
 
 Implements the MCP (Model Context Protocol) over stdio transport using only
 Python stdlib. No external dependencies required.
 
 Usage:
-    python server.py [--base-dir .ai-context]
+    python server.py [--base-dir .petfish/fish-trail]
     # Or via opencode.json MCP config (stdio transport)
 """
 
@@ -1029,7 +1029,7 @@ class ContextStateServer:
 
 def main() -> None:
     """Run the MCP server on stdio."""
-    base_dir = ".ai-context"
+    base_dir = os.path.join(".petfish", "fish-trail")
 
     # Allow --base-dir override
     args = sys.argv[1:]
@@ -1037,6 +1037,14 @@ def main() -> None:
         if arg == "--base-dir" and i + 1 < len(args):
             base_dir = args[i + 1]
             break
+
+    # Auto-migrate from legacy .ai-context directory
+    legacy_dir = ".ai-context"
+    if os.path.isdir(legacy_dir) and not os.path.exists(base_dir):
+        os.makedirs(os.path.dirname(base_dir), exist_ok=True)
+        import shutil
+
+        shutil.move(legacy_dir, base_dir)
 
     server = ContextStateServer(base_dir)
 

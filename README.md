@@ -172,7 +172,7 @@ When searching for skills, PEtFiSh follows this priority chain:
 | `petfish` | petfish-style-skill | 说人话 — engineering writing style / 工程写作风格 | Project / 项目级 |
 | `ppt` | opencode-ppt-skills | Slide design & presentation / PPT设计与制作 | Project / 项目级 |
 | `calibrate` | anti-sycophancy-calibration-pack | 反迎合决策校准 — anti-sycophancy calibration for reviews / 评审校准 | Project / 项目级 |
-| `context` | context-router-skill | 话题治理器 — topic governance, context isolation, contamination scoring / 上下文治理 | Project / 项目级 |
+| `context` | fish-trail | 话题治理器 — topic governance, context isolation, contamination scoring / 上下文治理 | Project / 项目级 |
 
 ### Profile → Auto-Install Mapping / 项目类型→自动安装映射
 

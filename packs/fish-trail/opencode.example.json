@@ -1,16 +1,13 @@
 {
-  "permission": {
-    "skill": {
-      "petfish-style-rewriter": "allow",
-      "ppt-reader": "allow",
-      "ppt-writer": "allow",
-      "fish-trail": "allow"
-    }
-  },
   "mcp": {
     "context-state": {
       "type": "local",
       "command": ["uv", "run", "python", ".opencode/skills/fish-trail/mcp/context-state/server.py"]
+    }
+  },
+  "permission": {
+    "skill": {
+      "fish-trail": "allow"
     }
   }
 }

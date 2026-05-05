@@ -37,7 +37,7 @@ ALIAS_MAP = {
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
     "trust": "trustskills-governance-pack",
     "calibrate": "anti-sycophancy-calibration-pack",
-    "context": "context-router-skill",
+    "context": "fish-trail",
 }
 
 # Reverse map: pack name → alias

@@ -7,10 +7,10 @@ import sys
 MODULE_DIR = (
     Path(__file__).resolve().parents[1]
     / "packs"
-    / "context-router-skill"
+    / "fish-trail"
     / ".opencode"
     / "skills"
-    / "context-router"
+    / "fish-trail"
     / "mcp"
     / "context-state"
 )

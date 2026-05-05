@@ -1,8 +1,8 @@
 {
-  "eval_name": "context-router-trigger-accuracy",
+  "eval_name": "fish-trail-trigger-accuracy",
   "samples": [
     {
-      "input": "Keep working on the current context-router tests; just add one more pytest around freeze().",
+      "input": "Keep working on the current fish-trail tests; just add one more pytest around freeze().",
       "expected_relation": "continue",
       "expected_risk_level": "low",
       "is_trigger": true,
@@ -37,7 +37,7 @@
       "description": "Direct request to resume a previous topic."
     },
     {
-      "input": "切到 context-router pack，不要沿用现在 companion 的细节。",
+       "input": "切到 fish-trail pack，不要沿用现在 companion 的细节。",
       "expected_relation": "switch",
       "expected_risk_level": "high",
       "is_trigger": true,

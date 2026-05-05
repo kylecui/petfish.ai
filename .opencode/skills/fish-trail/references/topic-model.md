@@ -1,10 +1,10 @@
 # Topic Model Reference
 
-本文档定义Context Router的Topic数据模型、关系类型和存储结构。
+本文档定义Fish Trail的Topic数据模型、关系类型和存储结构。
 
 ## Topic对象
 
-每个topic是一个JSON对象，存储在`.ai-context/topics/<topic-id>.json`。
+每个topic是一个JSON对象，存储在`.petfish/fish-trail/topics/<topic-id>.json`。
 
 ### 字段定义
 
@@ -33,14 +33,14 @@
   "summary": "已完成topic_store.py和topic_detector.py，正在实现server.py",
   "created_at": "2026-05-03T10:30:00+08:00",
   "updated_at": "2026-05-03T14:22:00+08:00",
-  "tags": ["mcp", "python", "context-router"],
+  "tags": ["mcp", "python", "fish-trail"],
   "metadata": {}
 }
 ```
 
 ## Topic Registry
 
-所有topic的索引，存储在`.ai-context/topic-registry.json`。
+所有topic的索引，存储在`.petfish/fish-trail/topic-registry.json`。
 
 ```json
 {
@@ -151,7 +151,7 @@ Topic ID格式：`topic_<YYYYMMDD>_<4位hex>`
 ## 存储目录结构
 
 ```
-.ai-context/
+.petfish/fish-trail/
 ├── topic-registry.json          # 索引 + 关系图 + active_topic指针
 ├── topics/
 │   ├── topic_20260503_a1b2.json # 完整topic对象
