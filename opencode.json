@@ -4,13 +4,13 @@
       "petfish-style-rewriter": "allow",
       "ppt-reader": "allow",
       "ppt-writer": "allow",
-      "context-router": "allow"
+      "fish-trail": "allow"
     }
   },
   "mcp": {
     "context-state": {
       "type": "local",
-      "command": ["uv", "run", "python", ".opencode/skills/context-router/mcp/context-state/server.py"]
+      "command": ["uv", "run", "python", ".opencode/skills/fish-trail/mcp/context-state/server.py"]
     }
   }
 }

@@ -49,7 +49,7 @@ metadata:
 | 文档、README、使用说明、API文档 | opencode-skill-pack-testcases-usage-docs | testdocs |
 | 说人话、润色、去AI味、风格、改写 | petfish-style-skill | petfish |
 | 评审、评价、批判、review、critique、校准、迎合 | anti-sycophancy-calibration-pack | calibrate |
-| 话题、上下文、topic、context、污染、继承、隔离 | context-router-skill | context |
+| 话题、上下文、topic、context、污染、继承、隔离 | fish-trail | context |
 | 创建skill、新建技能、generate skill | skill-author (内置) | — |
 | 检查skill质量、lint、验证skill | skill-lint (内置) | — |
 | 搜索skill、找MCP、marketplace | marketplace-connector (内置) | — |
@@ -115,11 +115,11 @@ metadata:
 **远程安装（无需clone）：**
 ```powershell
 # PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <alias>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias>
 ```
 ```bash
 # Bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <alias>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias>
 ```
 
 ### 3.2 平台适配
@@ -142,7 +142,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
 
 当搜索skill时，按以下优先级：
 
-1. **胖鱼自有仓库**（SKILL_builder/packs/）— 质量最高，安全已审计
+1. **胖鱼自有仓库**（petfish.ai/packs/）— 质量最高，安全已审计
 2. **三方市场**（SkillKit、Smithery、Glama等）— 社区验证
 3. **GitHub高星仓库**（★ > 1000）— 广泛使用
 4. **GitHub低星仓库** — 需要额外审查

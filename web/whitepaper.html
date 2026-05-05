@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>技术白皮书 — 胖鱼 PEtFiSh</title>
-  <meta name="description" content="胖鱼 PEtFiSh 技术白皮书 v0.4 — 架构总览、平台适配层、质量门禁体系、TrustSkills 治理引擎、上下文治理与会话管理。" />
+  <meta name="description" content="胖鱼 PEtFiSh 技术白皮书 v0.5 — 架构总览、平台适配层、质量门禁体系、TrustSkills 治理引擎、上下文治理与会话管理。" />
   <meta property="og:title" content="技术白皮书 — 胖鱼 PEtFiSh" />
   <meta property="og:type" content="article" />
   <meta property="og:url" content="https://petfish.ai/whitepaper.html" />
@@ -118,7 +118,7 @@
 
 <div class="article-wrap">
   <a href="/" class="back-link">← 返回首页</a>
-  <div class="version-badge">v0.4 · 2026-05</div>
+  <div class="version-badge">v0.5 · 2026-05</div>
 
   <h1>胖鱼 PEtFiSh 技术白皮书</h1>
 
@@ -244,8 +244,8 @@
       <tr><td>petfish-style-skill</td><td><code>petfish</code></td><td>工程写作风格</td><td>1</td><td>0</td><td>0</td></tr>
       <tr><td>opencode-ppt-skills</td><td><code>ppt</code></td><td>PPT 设计与制作</td><td>2</td><td>0</td><td>0</td></tr>
       <tr><td>trustskills-governance-pack</td><td><code>trust</code></td><td>skill 可信度治理</td><td>1</td><td>0</td><td>0</td></tr>
-      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code></td><td>反迎合决策校准</td><td>1</td><td>0</td><td>0</td></tr>
-      <tr><td>context-router-skill</td><td><code>context</code></td><td>上下文治理 + 会话管理（28 MCP tools）</td><td>1</td><td>0</td><td>0</td></tr>
+       <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code></td><td>反迎合决策校准</td><td>1</td><td>0</td><td>0</td></tr>
+       <tr><td>fish-trail</td><td><code>context</code></td><td>上下文治理 + 会话管理（31 MCP tools）</td><td>1</td><td>0</td><td>0</td></tr>
     </tbody>
   </table>
 
@@ -358,7 +358,7 @@
   <hr />
 
   <h2>H. 上下文治理与会话管理（Context Router）</h2>
-  <p>v0.4 引入 <code>context-router</code> pack，通过本地 MCP server 提供话题感知的上下文治理。纯 Python 标准库实现，零外部依赖。</p>
+   <p>v0.5 引入 <code>fish-trail</code> pack（v0.4 作为 context-router），通过本地 MCP server 提供话题感知的上下文治理。纯 Python 标准库实现，零外部依赖。</p>
 
   <h3>核心能力</h3>
   <table>
@@ -371,8 +371,8 @@
     </tbody>
   </table>
 
-  <h3>28 个 MCP Tools</h3>
-  <p>MCP server 暴露 28 个工具，分四组：</p>
+   <h3>31 个 MCP Tools</h3>
+   <p>MCP server 暴露 31 个工具，分四组：</p>
   <table>
     <thead><tr><th>组</th><th>工具数</th><th>典型工具</th></tr></thead>
     <tbody>

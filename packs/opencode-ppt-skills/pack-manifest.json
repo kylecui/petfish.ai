@@ -1,6 +1,7 @@
 {
   "name": "opencode-ppt-skills",
   "version": "1.0.0",
+  "legacy_names": [],
   "description": "PPT设计与制作 — 读取/生成PPTX、Slide QA、视觉渲染",
   "compatibility": "opencode",
   "skill_count": 2,

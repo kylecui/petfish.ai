@@ -259,7 +259,19 @@ if not os.path.isfile(reg_file):
 with open(reg_file, 'r', encoding='utf-8') as f:
     registry = json.load(f)
 
-pack_entry = ((registry.get('packs') or {}).get(pack_name) or {})
+packs = registry.get('packs') or {}
+pack_entry = packs.get(pack_name) or {}
+
+# Legacy name lookup: if current name not in registry, check legacy names from manifest
+legacy_key = None
+if not pack_entry:
+    legacy_names = manifest.get('legacy_names') or []
+    for legacy in legacy_names:
+        if packs.get(legacy):
+            pack_entry = packs[legacy]
+            legacy_key = legacy
+            break
+
 installed_version = pack_entry.get('version')
 if not pack_entry:
     print('not-installed')
@@ -289,6 +301,9 @@ elif installed_parts < source_parts:
     print('newer')
 else:
     print('unknown')
+
+if legacy_key:
+    print('legacy:' + legacy_key)
 PY
 }
 
@@ -303,9 +318,18 @@ declare -A ALIASES=(
     [init]="project-initializer-skill"
     [trust]="trustskills-governance-pack"
     [calibrate]="anti-sycophancy-calibration-pack"
-    [context]="context-router-skill"
+    [context]="fish-trail"
+    [fish-init]="project-initializer-skill"
+    [fish-core]="petfish-companion-skill"
+    [fish-course]="opencode-course-skills-pack"
+    [fish-testdocs]="opencode-skill-pack-testcases-usage-docs"
+    [fish-deploy]="repo-deploy-ops-skill-pack"
+    [fish-style]="petfish-style-skill"
+    [fish-slides]="opencode-ppt-skills"
+    [fish-calibrate]="anti-sycophancy-calibration-pack"
+    [fish-trail]="fish-trail"
 )
-ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "context-router-skill")
+ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail")
 
 # --- Defaults ---
 PACK=""
@@ -394,16 +418,16 @@ if $LIST; then
     echo ""
     echo "Available packs:"
     echo "------------------------------------------------------------"
-    echo "  opencode-course-skills-pack              (alias: course)"
-    echo "  opencode-skill-pack-testcases-usage-docs  (alias: testdocs)"
-    echo "  repo-deploy-ops-skill-pack               (alias: deploy)"
-    echo "  petfish-style-skill                      (alias: petfish)"
-    echo "  petfish-companion-skill                  (alias: companion)"
-    echo "  opencode-ppt-skills                      (alias: ppt)"
-    echo "  project-initializer-skill                (alias: init)"
+    echo "  opencode-course-skills-pack              (aliases: course, fish-course)"
+    echo "  opencode-skill-pack-testcases-usage-docs (aliases: testdocs, fish-testdocs)"
+    echo "  repo-deploy-ops-skill-pack               (aliases: deploy, fish-deploy)"
+    echo "  petfish-style-skill                      (aliases: petfish, fish-style)"
+    echo "  petfish-companion-skill                  (aliases: companion, fish-core)"
+    echo "  opencode-ppt-skills                      (aliases: ppt, fish-slides)"
+    echo "  project-initializer-skill                (aliases: init, fish-init)"
     echo "  trustskills-governance-pack               (alias: trust)"
-    echo "  anti-sycophancy-calibration-pack         (alias: calibrate)"
-    echo "  context-router-skill                     (alias: context)"
+    echo "  anti-sycophancy-calibration-pack         (aliases: calibrate, fish-calibrate)"
+    echo "  fish-trail                               (aliases: context, fish-trail)"
     echo ""
     exit 0
 fi
@@ -755,19 +779,28 @@ install_for_platform() {
         local force_this_pack=$FORCE
 
         if ! $force_this_pack; then
-            local version_status
-            version_status="$(check_pack_version "$target_registry" "$pack_name" "$manifest_file")"
+            local version_status_raw version_status legacy_key version_lookup_name
+            version_status_raw="$(check_pack_version "$target_registry" "$pack_name" "$manifest_file")"
+            version_status="${version_status_raw%%$'\n'*}"
+            legacy_key=""
+            if [[ "$version_status_raw" == *$'\n'legacy:* ]]; then
+                legacy_key="${version_status_raw#*$'\n'legacy:}"
+            fi
+            version_lookup_name="$pack_name"
+            if [[ -n "$legacy_key" ]]; then
+                version_lookup_name="$legacy_key"
+            fi
             case "$version_status" in
                 same)
                     local installed_version
-                    installed_version="$(read_installed_pack_version "$target_registry" "$pack_name")"
+                    installed_version="$(read_installed_pack_version "$target_registry" "$version_lookup_name")"
                     echo "  ✓ $pack_name v$installed_version is current. Use -Force/-force to reinstall." >&2
                     ((skipped++)) || true
                     continue
                     ;;
                 newer)
                     local installed_version source_version
-                    installed_version="$(read_installed_pack_version "$target_registry" "$pack_name")"
+                    installed_version="$(read_installed_pack_version "$target_registry" "$version_lookup_name")"
                     source_version="$(read_manifest_pack_version "$manifest_file")"
                     echo "  ⬆ Upgrading $pack_name v$installed_version → v$source_version" >&2
                     force_this_pack=true
@@ -952,19 +985,28 @@ install_global_for_platform() {
         local force_this_pack=$FORCE
 
         if ! $force_this_pack; then
-            local version_status
-            version_status="$(check_pack_version "$global_registry_dir" "$pack_name" "$manifest_file")"
+            local version_status_raw version_status legacy_key version_lookup_name
+            version_status_raw="$(check_pack_version "$global_registry_dir" "$pack_name" "$manifest_file")"
+            version_status="${version_status_raw%%$'\n'*}"
+            legacy_key=""
+            if [[ "$version_status_raw" == *$'\n'legacy:* ]]; then
+                legacy_key="${version_status_raw#*$'\n'legacy:}"
+            fi
+            version_lookup_name="$pack_name"
+            if [[ -n "$legacy_key" ]]; then
+                version_lookup_name="$legacy_key"
+            fi
             case "$version_status" in
                 same)
                     local installed_version
-                    installed_version="$(read_installed_pack_version "$global_registry_dir" "$pack_name")"
+                    installed_version="$(read_installed_pack_version "$global_registry_dir" "$version_lookup_name")"
                     echo "  ✓ $pack_name v$installed_version is current. Use -Force/-force to reinstall." >&2
                     ((skipped++)) || true
                     continue
                     ;;
                 newer)
                     local installed_version source_version
-                    installed_version="$(read_installed_pack_version "$global_registry_dir" "$pack_name")"
+                    installed_version="$(read_installed_pack_version "$global_registry_dir" "$version_lookup_name")"
                     source_version="$(read_manifest_pack_version "$manifest_file")"
                     echo "  ⬆ Upgrading $pack_name v$installed_version → v$source_version" >&2
                     force_this_pack=true

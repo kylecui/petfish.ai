@@ -12,7 +12,7 @@ import pytest
 
 MODULE_DIR = (
     Path(__file__).resolve().parents[1]
-    / "packs/context-router-skill/.opencode/skills/context-router/mcp/context-state"
+    / "packs/fish-trail/.opencode/skills/fish-trail/mcp/context-state"
 )
 sys.path.insert(0, str(MODULE_DIR))
 
@@ -21,12 +21,12 @@ from session_store import SessionStore  # pyright: ignore[reportMissingImports]
 
 
 def make_store(tmp_path: Path) -> SessionStore:
-    return SessionStore(str(tmp_path / ".ai-context"))
+    return SessionStore(str(tmp_path / ".petfish" / "fish-trail"))
 
 
 def read_index(tmp_path: Path) -> dict:
     return json.loads(
-        (tmp_path / ".ai-context" / "sessions" / "index.json").read_text(
+        (tmp_path / ".petfish" / "fish-trail" / "sessions" / "index.json").read_text(
             encoding="utf-8"
         )
     )
@@ -34,23 +34,23 @@ def read_index(tmp_path: Path) -> dict:
 
 def read_session(tmp_path: Path, session_id: str) -> dict:
     return json.loads(
-        (tmp_path / ".ai-context" / "sessions" / f"{session_id}.json").read_text(
-            encoding="utf-8"
-        )
+        (
+            tmp_path / ".petfish" / "fish-trail" / "sessions" / f"{session_id}.json"
+        ).read_text(encoding="utf-8")
     )
 
 
 def test_init_creates_sessions_dir_and_index_json(tmp_path: Path):
     make_store(tmp_path)
 
-    sessions_dir = tmp_path / ".ai-context" / "sessions"
+    sessions_dir = tmp_path / ".petfish" / "fish-trail" / "sessions"
 
     assert sessions_dir.is_dir()
     assert read_index(tmp_path) == {"version": 1, "sessions": {}}
 
 
 def test_init_preserves_valid_existing_index_json(tmp_path: Path):
-    base_dir = tmp_path / ".ai-context"
+    base_dir = tmp_path / ".petfish" / "fish-trail"
     sessions_dir = base_dir / "sessions"
     sessions_dir.mkdir(parents=True)
     existing_index = {
@@ -77,7 +77,7 @@ def test_init_preserves_valid_existing_index_json(tmp_path: Path):
 
 
 def test_init_repairs_invalid_existing_index_json_structure(tmp_path: Path):
-    base_dir = tmp_path / ".ai-context"
+    base_dir = tmp_path / ".petfish" / "fish-trail"
     sessions_dir = base_dir / "sessions"
     sessions_dir.mkdir(parents=True)
     (sessions_dir / "index.json").write_text(
@@ -101,7 +101,9 @@ def test_bind_external_creates_external_session_with_oc_prefix(tmp_path: Path):
     assert session["timeline"] == []
     assert session["topic_refs"] == []
     assert session["metadata"] == {}
-    assert (tmp_path / ".ai-context" / "sessions" / "oc_ext-123.json").exists()
+    assert (
+        tmp_path / ".petfish" / "fish-trail" / "sessions" / "oc_ext-123.json"
+    ).exists()
 
 
 def test_bind_inferred_creates_inferred_session_with_inf_prefix(tmp_path: Path):
@@ -563,7 +565,7 @@ def test_get_resume_context_raises_key_error_for_missing_session(tmp_path: Path)
 def test_build_resume_package_uses_topic_title_and_writes_resume_file(
     tmp_path: Path,
 ):
-    base_dir = tmp_path / ".ai-context"
+    base_dir = tmp_path / ".petfish" / "fish-trail"
     builder = ContextBuilder(str(base_dir))
     session_context = {
         "session_id": "oc_resume_topic",
@@ -599,7 +601,7 @@ def test_build_resume_package_uses_topic_title_and_writes_resume_file(
 
 
 def test_build_resume_package_uses_session_id_when_topic_is_none(tmp_path: Path):
-    base_dir = tmp_path / ".ai-context"
+    base_dir = tmp_path / ".petfish" / "fish-trail"
     builder = ContextBuilder(str(base_dir))
     session_context = {
         "session_id": "oc_resume_session",

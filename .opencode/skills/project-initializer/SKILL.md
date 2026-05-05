@@ -297,7 +297,7 @@ In chat, summarize briefly and mention that no existing files were overwritten u
 
 ### 11. Auto-Install Skill Packs (Post-Initialization)
 
-After `init_project.py` completes successfully, automatically install recommended skill packs from the petfish SKILL_builder repository using the remote installer.
+After `init_project.py` completes successfully, automatically install recommended skill packs from the petfish petfish.ai repository using the remote installer.
 
 #### Profile → Pack Mapping
 
@@ -319,13 +319,13 @@ After `init_project.py` completes successfully, automatically install recommende
 3. Run the remote installer for each recommended pack. On Windows (PowerShell):
 
 ```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <pack_alias> -Target <project_dir> -Platform <detected_platform>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <pack_alias> -Target <project_dir> -Platform <detected_platform>
 ```
 
 On macOS/Linux/WSL (Bash):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <pack_alias> --target <project_dir> --platform <detected_platform>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <pack_alias> --target <project_dir> --platform <detected_platform>
 ```
 
 4. If the installer fails (e.g. no network), provide manual installation instructions instead of failing the entire initialization.

@@ -1,0 +1,26 @@
+# fish-trail configuration
+# Copy to .petfish/fish-trail/config.yaml and customize
+
+# State directory (relative to project root)
+base_dir: .petfish/fish-trail
+
+# Freshness thresholds (days)
+freshness:
+  fresh: 7
+  recent: 30
+  # Anything older than 'recent' is stale
+
+# Context firewall limits
+firewall:
+  max_must_load: 8
+  max_may_load: 10
+  max_must_not_load: 20
+
+# Stale topic threshold (days without update)
+stale_threshold_days: 30
+
+# Hub topic threshold (minimum edge count to be considered a hub)
+hub_min_edges: 3
+
+# Report output path
+report_path: TOPIC_REPORT.md

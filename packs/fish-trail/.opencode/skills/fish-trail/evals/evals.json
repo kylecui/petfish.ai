@@ -1,0 +1,145 @@
+{
+  "eval_name": "fish-trail-trigger-accuracy",
+  "samples": [
+    {
+      "input": "Keep working on the current fish-trail tests; just add one more pytest around freeze().",
+      "expected_relation": "continue",
+      "expected_risk_level": "low",
+      "is_trigger": true,
+      "description": "Explicitly continue the active topic without changing scope."
+    },
+    {
+      "input": "继续刚才的 context-builder 任务，不开新话题，顺手补上 evals.json。",
+      "expected_relation": "continue",
+      "expected_risk_level": "low",
+      "is_trigger": true,
+      "description": "Chinese continue signal with explicit no-switch instruction."
+    },
+    {
+      "input": "This is related, but spin off a child topic for release automation while keeping the current install-script context.",
+      "expected_relation": "fork",
+      "expected_risk_level": "medium",
+      "is_trigger": true,
+      "description": "Clear request to create a child topic from the current one."
+    },
+    {
+      "input": "基于当前 companion 设计，单独开一个子话题处理 telemetry 统计，不要污染主线。",
+      "expected_relation": "fork",
+      "expected_risk_level": "medium",
+      "is_trigger": true,
+      "description": "Explicit fork request with contamination concern."
+    },
+    {
+      "input": "Switch back to the remote-install topic we discussed earlier.",
+      "expected_relation": "switch",
+      "expected_risk_level": "medium",
+      "is_trigger": true,
+      "description": "Direct request to resume a previous topic."
+    },
+    {
+      "input": "切到 fish-trail pack，不要沿用现在 companion 的细节。",
+      "expected_relation": "switch",
+      "expected_risk_level": "high",
+      "is_trigger": true,
+      "description": "Explicit switch away from current context with isolation requirement."
+    },
+    {
+      "input": "Merge the companion telemetry thread into the main companion roadmap.",
+      "expected_relation": "merge",
+      "expected_risk_level": "high",
+      "is_trigger": true,
+      "description": "Direct merge request across two existing topics."
+    },
+    {
+      "input": "Archive the old v0.1 migration topic; we are done with it.",
+      "expected_relation": "archive",
+      "expected_risk_level": "high",
+      "is_trigger": true,
+      "description": "Explicit archival command for a completed topic."
+    },
+    {
+      "input": "Reset context. Start fresh for a new task with no inherited assumptions.",
+      "expected_relation": "reset",
+      "expected_risk_level": "high",
+      "is_trigger": true,
+      "description": "Direct request for a clean-slate context reset."
+    },
+    {
+      "input": "Create a bridge between the release workflow topic and the install-script topic; only keep their shared scope.",
+      "expected_relation": "bridge",
+      "expected_risk_level": "high",
+      "is_trigger": true,
+      "description": "Explicit bridge request constrained to shared overlap."
+    },
+    {
+      "input": "Thanks, that makes sense.",
+      "expected_relation": "continue",
+      "expected_risk_level": "low",
+      "is_trigger": false,
+      "description": "Plain acknowledgment should not trigger topic governance."
+    },
+    {
+      "input": "Can you explain that again in one sentence?",
+      "expected_relation": "continue",
+      "expected_risk_level": "low",
+      "is_trigger": false,
+      "description": "Normal follow-up question with no topic-management signal."
+    },
+    {
+      "input": "Looks good.",
+      "expected_relation": "continue",
+      "expected_risk_level": "low",
+      "is_trigger": false,
+      "description": "Short approval message should not trigger routing."
+    },
+    {
+      "input": "What command runs the tests?",
+      "expected_relation": "continue",
+      "expected_risk_level": "low",
+      "is_trigger": false,
+      "description": "Routine in-topic question without context change intent."
+    },
+    {
+      "input": "Maybe later we can talk about release automation too.",
+      "expected_relation": "fork",
+      "expected_risk_level": "medium",
+      "is_trigger": false,
+      "description": "Mentions a possible side topic but does not explicitly request a fork."
+    },
+    {
+      "input": "The install script also touches releases.",
+      "expected_relation": "switch",
+      "expected_risk_level": "medium",
+      "is_trigger": false,
+      "description": "Overlap mention alone should not switch topics."
+    },
+    {
+      "input": "These two ideas seem related.",
+      "expected_relation": "merge",
+      "expected_risk_level": "medium",
+      "is_trigger": false,
+      "description": "Similarity observation is not enough to trigger a merge workflow."
+    },
+    {
+      "input": "The old migration notes are probably not useful now.",
+      "expected_relation": "archive",
+      "expected_risk_level": "medium",
+      "is_trigger": false,
+      "description": "Soft opinion about staleness should not auto-archive a topic."
+    },
+    {
+      "input": "Let's take a fresh look at this function.",
+      "expected_relation": "reset",
+      "expected_risk_level": "medium",
+      "is_trigger": false,
+      "description": "Fresh-look wording is ambiguous and should not force a reset."
+    },
+    {
+      "input": "Release workflow and install script overlap a bit.",
+      "expected_relation": "bridge",
+      "expected_risk_level": "medium",
+      "is_trigger": false,
+      "description": "Shared-domain observation alone should not create a bridge."
+    }
+  ]
+}

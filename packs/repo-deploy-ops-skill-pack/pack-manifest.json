@@ -1,6 +1,7 @@
 {
   "name": "repo-deploy-ops-skill-pack",
   "version": "1.0.0",
+  "legacy_names": [],
   "description": "部署与运维 — 运行时识别、主机检查、部署执行、验证、运维、回滚、全生命周期管理",
   "compatibility": "opencode",
   "skill_count": 7,

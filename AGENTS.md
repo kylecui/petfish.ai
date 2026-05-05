@@ -735,7 +735,7 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 - `strategy-writer + anti-sycophancy-calibration`：把支持理由、反对理由、替代路线拆开表达
 <!-- END pack: anti-sycophancy-calibration-pack -->
 
-<!-- BEGIN pack: context-router-skill -->
+<!-- BEGIN pack: fish-trail -->
 # Context Router — 话题治理器
 
 本pack为项目提供上下文治理能力，降低跨话题污染风险。
@@ -750,7 +750,7 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 |---------|------|
 | low (0-30) | 静默继续，不做任何提示 |
 | medium (31-60) | 在回复开头用一行简要说明上下文继承范围，例如："当前继续topic「X」，继承上下文包含Y和Z。" |
-| high (61-100) | 主动向用户说明话题变更风险，建议处理策略（fork/switch/reset），加载context-router skill执行深度治理 |
+| high (61-100) | 主动向用户说明话题变更风险，建议处理策略（fork/switch/reset），加载fish-trail skill执行深度治理 |
 
 ### 交互后更新
 
@@ -775,15 +775,15 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 当context-state MCP server未启动、连接失败或调用超时时：
 
 - 不报错，不阻塞正常工作
-- 在回复中附带一行提示："⚠ context-router MCP未连接，话题治理未激活。"
+- 在回复中附带一行提示："⚠ fish-trail MCP未连接，话题治理未激活。"
 - 跳过所有topic_detect和topic_update调用
 - 每次会话最多提示一次，避免重复干扰
 
 ## 深度治理触发条件
 
-以下情况自动加载`.opencode/skills/context-router/SKILL.md`执行完整5步工作流：
+以下情况自动加载`.opencode/skills/fish-trail/SKILL.md`执行完整5步工作流：
 
 - topic_detect返回风险等级high
 - 用户主动要求话题管理（"整理一下话题"、"切换到X"、"把这两个话题合并"等）
-- 用户使用context-router相关关键词（topic、话题、上下文、污染、继承、隔离等）
-<!-- END pack: context-router-skill -->
+- 用户使用fish-trail相关关键词（topic、话题、上下文、污染、继承、隔离等）
+<!-- END pack: fish-trail -->

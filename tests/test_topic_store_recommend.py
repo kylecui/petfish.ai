@@ -9,7 +9,7 @@ import pytest
 
 MODULE_DIR = (
     Path(__file__).resolve().parents[1]
-    / "packs/context-router-skill/.opencode/skills/context-router/mcp/context-state"
+    / "packs/fish-trail/.opencode/skills/fish-trail/mcp/context-state"
 )
 sys.path.insert(0, str(MODULE_DIR))
 
@@ -18,7 +18,7 @@ from topic_store import TopicStore  # pyright: ignore[reportMissingImports]
 
 @pytest.fixture
 def store(tmp_path: Path) -> TopicStore:
-    return TopicStore(str(tmp_path / ".ai-context"))
+    return TopicStore(str(tmp_path / ".petfish" / "fish-trail"))
 
 
 def create_linked_topics(store: TopicStore) -> tuple[dict, dict, dict]:

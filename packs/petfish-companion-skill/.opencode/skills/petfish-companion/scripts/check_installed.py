@@ -41,7 +41,7 @@ KNOWN_PACKS = {
     "ppt": "opencode-ppt-skills",
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
     "calibrate": "anti-sycophancy-calibration-pack",
-    "context": "context-router-skill",
+    "context": "fish-trail",
     "trust": "trustskills-governance-pack",
 }
 
