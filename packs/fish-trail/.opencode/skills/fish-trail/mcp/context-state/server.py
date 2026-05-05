@@ -705,7 +705,7 @@ class ContextStateServer:
                 {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "fish-trail", "version": "0.3.0"},
+                    "serverInfo": {"name": "fish-trail", "version": "0.5.1"},
                 },
             )
 

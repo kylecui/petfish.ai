@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 
 class TopicStore:
-    """Persist topics, topic links, and routing decisions under .ai-context/."""
+    """Persist topics, topic links, and routing decisions under .petfish/fish-trail/."""
 
     VALID_RELATIONS = {
         # Detection relations (from topic_detect)

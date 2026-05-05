@@ -18,7 +18,7 @@ from topic_store import TopicStore  # pyright: ignore[reportMissingImports]
 
 @pytest.fixture
 def store(tmp_path: Path) -> TopicStore:
-    return TopicStore(str(tmp_path / ".ai-context"))
+    return TopicStore(str(tmp_path / ".petfish" / "fish-trail"))
 
 
 def create_linked_topics(store: TopicStore) -> tuple[dict, dict, dict]:

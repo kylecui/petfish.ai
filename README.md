@@ -23,7 +23,7 @@ PEtFiSh is your AI coding companion. It manages the full lifecycle of AI skills 
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v0.4                        │
+│  ><(((^>  胖鱼 PEtFiSh v0.5                        │
 │                                                     │
 │  Discover  → mine skills from any repo              │
 │  Create    → author new skills from scratch          │
@@ -173,6 +173,7 @@ When searching for skills, PEtFiSh follows this priority chain:
 | `ppt` | opencode-ppt-skills | Slide design & presentation / PPT设计与制作 | Project / 项目级 |
 | `calibrate` | anti-sycophancy-calibration-pack | 反迎合决策校准 — anti-sycophancy calibration for reviews / 评审校准 | Project / 项目级 |
 | `context` | fish-trail | 话题治理器 — topic governance, context isolation, contamination scoring / 上下文治理 | Project / 项目级 |
+| `trust` | trustskills-governance-pack | Skill trust governance / Skill信任治理 | Project / 项目级 |
 
 ### Profile → Auto-Install Mapping / 项目类型→自动安装映射
 
@@ -419,14 +420,21 @@ petfish.ai/                          # 胖鱼 PEtFiSh repo
 
 ## Version History / 版本历史
 
+### v0.5 — Fish Trail + Repo Rename / 话题路由 + 仓库重命名
+
+- **v0.5.1**: Pre-release documentation and test suite updates
+  - 预发布文档和测试套件更新
+- **v0.5.0**: Repo renamed `SKILL_builder` → `petfish.ai`, fish-trail pack (renamed from context-router-skill) with 31 MCP tools, fish-* alias system for installers, state dir migration `.ai-context` → `.petfish/fish-trail/`, topic routing/reporting/validation scripts
+  - 仓库重命名，fish-trail pack（31个MCP工具），fish-*别名系统，状态目录迁移，话题路由/报告/验证脚本
+
 ### v0.4 — Context Router + Session Management / 上下文治理 + 会话管理
 
 - **v0.4.0**: Context-router pack — topic detection, contamination scoring, context isolation, 18 MCP tools
   - 上下文治理pack — 话题检测、污染评分、上下文隔离、18个MCP工具
 - **v0.4.5–v0.4.9**: MCP schema fixes, platform-specific restart hints, CJK detection, trigger evaluation improvements
   - MCP配置修复、平台重启提示、CJK检测、触发评测改进
-- **v0.4.10**: Topic-aware session management — 10 new MCP tools (28 total), 3-phase implementation
-  - 话题感知会话管理 — 新增10个MCP工具（共28个），3阶段实现
+- **v0.4.10**: Topic-aware session management — 10 new MCP tools (31 total), 3-phase implementation
+  - 话题感知会话管理 — 新增10个MCP工具（共31个），3阶段实现
   - Phase 1: SessionStore + session bind/get/list/resume / 会话存储+绑定/查询/列表/恢复
   - Phase 2: Boundary policy + cross-session resume / 边界策略+跨会话恢复
   - Phase 3: Activity query + multi-agent attribution + topic recommendations / 活动查询+多Agent归因+话题推荐

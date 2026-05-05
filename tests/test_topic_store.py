@@ -20,7 +20,7 @@ from topic_store import TopicStore  # pyright: ignore[reportMissingImports]
 
 
 def make_store(tmp_path: Path) -> TopicStore:
-    return TopicStore(str(tmp_path / ".ai-context"))
+    return TopicStore(str(tmp_path / ".petfish" / "fish-trail"))
 
 
 def test_create_basic_create(tmp_path: Path):
@@ -37,7 +37,7 @@ def test_create_basic_create(tmp_path: Path):
     assert topic["tags"] == []
     assert topic["metadata"] == {}
     assert topic["created_at"] == topic["updated_at"]
-    assert (tmp_path / ".ai-context/topics" / f"{topic['id']}.json").exists()
+    assert (tmp_path / ".petfish/fish-trail/topics" / f"{topic['id']}.json").exists()
 
 
 def test_create_with_parent(tmp_path: Path):
@@ -331,7 +331,9 @@ def test_atomic_write_handles_simple_concurrent_access(tmp_path: Path):
     for thread in threads:
         thread.join()
 
-    registry = json.loads((tmp_path / ".ai-context/topic-registry.json").read_text())
+    registry = json.loads(
+        (tmp_path / ".petfish/fish-trail/topic-registry.json").read_text()
+    )
 
     assert errors == []
     assert len(ids) == 20
