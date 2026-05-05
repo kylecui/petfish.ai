@@ -8,8 +8,8 @@ import json
 import sys
 import os
 from pathlib import Path
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Set, Tuple
+from datetime import datetime, timedelta, timezone
+from typing import Dict, List, Any, Optional, Set, Tuple
 import re
 
 
@@ -92,19 +92,24 @@ class TopicReporter:
                 count += 1
         return count
 
-    def _parse_date(self, date_str: str) -> datetime:
-        """Parse ISO date string, return datetime. Defaults to epoch if invalid."""
+    def _parse_date(self, date_str: str) -> Optional[datetime]:
+        """Parse ISO date string, return tz-aware datetime or None if invalid/empty."""
         if not date_str:
-            return datetime.fromtimestamp(0)
+            return None
         try:
-            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+            dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
         except (ValueError, TypeError):
-            return datetime.fromtimestamp(0)
+            return None
 
     def _is_stale(self, last_updated_str: str) -> bool:
-        """Check if topic is stale (last updated > 30 days ago)."""
+        """Check if topic is stale (last updated > 30 days ago). Unknown dates are not stale."""
         last_updated = self._parse_date(last_updated_str)
-        age = datetime.now() - last_updated
+        if last_updated is None:
+            return False
+        age = datetime.now(timezone.utc) - last_updated
         return age > timedelta(days=30)
 
     def _extract_keywords(self, node: Dict[str, Any]) -> Set[str]:
@@ -149,7 +154,7 @@ class TopicReporter:
             status = node.get("status", "unknown")
             status_counts[status] = status_counts.get(status, 0) + 1
 
-            last_updated = node.get("freshness", {}).get("last_updated", "")
+            last_updated = node.get("updated_at", "")
             if self._is_stale(last_updated):
                 stale_count += 1
 
@@ -179,13 +184,12 @@ class TopicReporter:
         return hubs
 
     def _compute_recently_active(self) -> List[Dict[str, Any]]:
-        """Find recently active topics (freshness.status == 'fresh'), sorted by last_updated desc."""
+        """Find recently active topics (status == 'active'), sorted by updated_at desc."""
         active = []
 
         for node in self.nodes_by_id.values():
-            freshness = node.get("freshness", {})
-            if freshness.get("status") == "fresh":
-                last_updated = freshness.get("last_updated", "")
+            if node.get("status") == "active":
+                last_updated = node.get("updated_at", "")
                 active.append(
                     {
                         "topic_id": node.get("id"),
@@ -196,7 +200,9 @@ class TopicReporter:
                 )
 
         active.sort(
-            key=lambda x: self._parse_date(x.get("last_updated", "")), reverse=True
+            key=lambda x: self._parse_date(x.get("last_updated", ""))
+            or datetime.min.replace(tzinfo=timezone.utc),
+            reverse=True,
         )
         return active
 
@@ -262,21 +268,20 @@ class TopicReporter:
         return risks
 
     def _compute_stale_topics(self) -> List[Dict[str, Any]]:
-        """Find stale topics (freshness.status == 'stale' or last_updated > 30 days)."""
+        """Find stale topics (status == 'stale' or updated_at > 30 days)."""
         stale = []
 
         for node in self.nodes_by_id.values():
-            freshness = node.get("freshness", {})
-            status = freshness.get("status", "")
-            last_updated = freshness.get("last_updated", "")
+            node_status = node.get("status", "")
+            last_updated = node.get("updated_at", "")
 
-            is_stale_by_status = status == "stale"
+            is_stale_by_status = node_status == "stale"
             is_stale_by_age = self._is_stale(last_updated)
 
             if is_stale_by_status or is_stale_by_age:
                 reason = ""
                 if is_stale_by_status:
-                    reason = freshness.get("reason", "marked stale")
+                    reason = "marked stale"
                 elif is_stale_by_age:
                     reason = "not updated for > 30 days"
 
@@ -286,11 +291,14 @@ class TopicReporter:
                         "title": node.get("title", node.get("id")),
                         "last_updated": last_updated,
                         "reason": reason,
-                        "status": node.get("status", "unknown"),
+                        "status": node_status,
                     }
                 )
 
-        stale.sort(key=lambda x: self._parse_date(x.get("last_updated", "")))
+        stale.sort(
+            key=lambda x: self._parse_date(x.get("last_updated", ""))
+            or datetime.min.replace(tzinfo=timezone.utc)
+        )
         return stale
 
     def _compute_suggested_maintenance(self) -> List[str]:

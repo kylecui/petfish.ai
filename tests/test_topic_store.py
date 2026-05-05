@@ -229,7 +229,7 @@ def test_graph_returns_nodes_and_edges_structure(tmp_path: Path):
 
     graph = store.graph()
 
-    assert set(graph.keys()) == {"nodes", "edges"}
+    assert set(graph.keys()) == {"version", "nodes", "edges"}
     assert {node["id"] for node in graph["nodes"]} == {first["id"], second["id"]}
     assert graph["edges"] == [edge]
 

@@ -243,6 +243,7 @@ class TopicStore:
 
         nodes.sort(key=lambda item: item.get("updated_at", ""), reverse=True)
         return {
+            "version": registry.get("version", 1),
             "nodes": nodes,
             "edges": list(registry.get("links", [])),
         }
