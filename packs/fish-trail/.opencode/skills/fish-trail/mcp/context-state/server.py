@@ -19,11 +19,26 @@ _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 if _THIS_DIR not in sys.path:
     sys.path.insert(0, _THIS_DIR)
 
+# Also add the scripts directory for topic_route, topic_report, topic_validate
+_SCRIPTS_DIR = os.path.normpath(os.path.join(_THIS_DIR, "..", "..", "scripts"))
+if os.path.isdir(_SCRIPTS_DIR) and _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
+
 from topic_store import TopicStore  # noqa: E402
 from topic_detector import TopicDetector  # noqa: E402
 from contamination_scorer import ContaminationScorer  # noqa: E402
 from context_builder import ContextBuilder  # noqa: E402
 from session_store import SessionStore  # noqa: E402
+
+# Optional: scripts may not be installed in all environments
+try:
+    from topic_route import TopicRouter  # noqa: E402
+    from topic_report import TopicReporter  # noqa: E402
+    from topic_validate import TopicValidator  # noqa: E402
+
+    _HAS_SCRIPTS = True
+except ImportError:
+    _HAS_SCRIPTS = False
 
 
 # ---------------------------------------------------------------------------
@@ -575,6 +590,42 @@ TOOLS = [
             "required": ["topic_id"],
         },
     },
+    # Topic routing & governance (3)
+    {
+        "name": "topic_route",
+        "description": "Route a query to the most relevant topic and generate active_context.md with context firewall (must_load/may_load/must_not_load).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "User query to route"},
+                "current_topic_id": {
+                    "type": "string",
+                    "description": "Current topic ID to boost (optional)",
+                },
+                "write_active_context": {
+                    "type": "boolean",
+                    "description": "Write active_context.md (default true)",
+                },
+            },
+            "required": ["query"],
+        },
+    },
+    {
+        "name": "topic_report",
+        "description": "Generate TOPIC_REPORT.md with hub topics, stale topics, pollution risks, and maintenance suggestions.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
+    {
+        "name": "topic_validate",
+        "description": "Validate topic_graph.json structure: check node IDs, edge references, evidence levels, and topic card consistency.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {},
+        },
+    },
 ]
 
 
@@ -584,7 +635,7 @@ TOOLS = [
 
 
 class ContextStateServer:
-    """MCP server that wires the 28 context-router tools to TopicStore et al."""
+    """MCP server that wires the 31 fish-trail tools to TopicStore et al."""
 
     def __init__(self, base_dir: str):
         self.store = TopicStore(base_dir)
@@ -634,6 +685,11 @@ class ContextStateServer:
         h["session_agents"] = self._handle_session_agents
         # Topic recommendations
         h["topic_recommend"] = self._handle_topic_recommend
+        # Topic routing & governance
+        if _HAS_SCRIPTS:
+            h["topic_route"] = self._handle_topic_route
+            h["topic_report"] = self._handle_topic_report
+            h["topic_validate"] = self._handle_topic_validate
 
     # -- JSON-RPC dispatch --------------------------------------------------
 
@@ -649,7 +705,7 @@ class ContextStateServer:
                 {
                     "protocolVersion": "2024-11-05",
                     "capabilities": {"tools": {}},
-                    "serverInfo": {"name": "context-state", "version": "0.2.0"},
+                    "serverInfo": {"name": "fish-trail", "version": "0.3.0"},
                 },
             )
 
@@ -993,6 +1049,29 @@ class ContextStateServer:
             topic_id=args["topic_id"],
             max_depth=args.get("max_depth", 2),
         )
+
+    # -- Topic routing & governance -----------------------------------------
+
+    def _handle_topic_route(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        router = TopicRouter(self.store.base_dir)
+        result = router.route(
+            query=args["query"],
+            current_topic_id=args.get("current_topic_id"),
+        )
+        if args.get("write_active_context", True):
+            path = router.write_active_context(result, args["query"])
+            result["active_context_path"] = path
+        return result
+
+    def _handle_topic_report(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        reporter = TopicReporter(self.store.base_dir)
+        report = reporter.generate()
+        path = reporter.write_report(report)
+        return {"path": path, "report": report}
+
+    def _handle_topic_validate(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        validator = TopicValidator(self.store.base_dir)
+        return validator.validate()
 
     # -- Helpers ------------------------------------------------------------
 

@@ -204,8 +204,8 @@ input: {
   "topic_id": "topic_20260503_e5f6"
 }
 output: {
-   "path": ".petfish/fish-trail/contexts/topic_20260503_e5f6.context.md",
-   "size": 1234
+  "path": ".petfish/fish-trail/contexts/topic_20260503_e5f6.context.md",
+  "size": 1234
 }
 ```
 
@@ -333,8 +333,17 @@ input: {
 - 超过阈值（默认10MB）时建议用户运行`topic_archive`清理旧topic
 - 不自动删除任何文件
 
+### Topic graph operations
+
+| Tool | 参数 | 返回 |
+|------|------|------|
+| `topic_route` | query, current_topic_id? | route result with must_load/may_load/must_not_load firewall, writes active_context.md |
+| `topic_report` | — | TOPIC_REPORT.md with overview, hub topics, pollution risks, stale topics, maintenance suggestions |
+| `topic_validate` | — | validation result: status (pass/fail), errors[], warnings[] for topic_graph.json integrity |
+
 ## 参考文档
 
 - `references/topic-model.md` — Topic数据模型与关系类型
 - `references/contamination-scoring.md` — 污染风险评分算法
 - `references/context-package-spec.md` — Context Package格式规范
+- `references/topic-schema.md` — Topic Graph JSON Schema规范

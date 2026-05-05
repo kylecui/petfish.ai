@@ -28,5 +28,13 @@
     ".opencode/skills/fish-trail/mcp/context-state/contamination_scorer.py",
     ".opencode/skills/fish-trail/mcp/context-state/context_builder.py",
     ".opencode/skills/fish-trail/mcp/context-state/session_store.py",
-    ".opencode/skills/fish-trail/mcp/context-state/__init__.py"  ]
+    ".opencode/skills/fish-trail/mcp/context-state/__init__.py",
+    ".opencode/skills/fish-trail/references/topic-schema.md",
+    ".opencode/skills/fish-trail/assets/topic-card-template.md",
+    ".opencode/skills/fish-trail/assets/active-context-template.md",
+    ".opencode/skills/fish-trail/assets/config-template.yaml",
+    ".opencode/skills/fish-trail/scripts/topic_route.py",
+    ".opencode/skills/fish-trail/scripts/topic_report.py",
+    ".opencode/skills/fish-trail/scripts/topic_validate.py"
+  ]
 }
