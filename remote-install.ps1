@@ -86,6 +86,15 @@ $Aliases = @{
     "trust"     = "trustskills-governance-pack"
     "calibrate" = "anti-sycophancy-calibration-pack"
     "context"   = "context-router-skill"
+    "fish-init"      = "project-initializer-skill"
+    "fish-core"      = "petfish-companion-skill"
+    "fish-course"    = "opencode-course-skills-pack"
+    "fish-testdocs"  = "opencode-skill-pack-testcases-usage-docs"
+    "fish-deploy"    = "repo-deploy-ops-skill-pack"
+    "fish-style"     = "petfish-style-skill"
+    "fish-slides"    = "opencode-ppt-skills"
+    "fish-calibrate" = "anti-sycophancy-calibration-pack"
+    "fish-trail"     = "context-router-skill"
 }
 
 $AllPacks = @(
@@ -102,16 +111,16 @@ $AllPacks = @(
 )
 
 $PackDisplayOrder = @(
-    @{ Name = "opencode-course-skills-pack"; Alias = "course" },
-    @{ Name = "opencode-skill-pack-testcases-usage-docs"; Alias = "testdocs" },
-    @{ Name = "repo-deploy-ops-skill-pack"; Alias = "deploy" },
-    @{ Name = "project-initializer-skill"; Alias = "init" },
-    @{ Name = "petfish-style-skill"; Alias = "petfish" },
-    @{ Name = "petfish-companion-skill"; Alias = "companion" },
-    @{ Name = "opencode-ppt-skills"; Alias = "ppt" },
+    @{ Name = "opencode-course-skills-pack"; Alias = "course, fish-course" },
+    @{ Name = "opencode-skill-pack-testcases-usage-docs"; Alias = "testdocs, fish-testdocs" },
+    @{ Name = "repo-deploy-ops-skill-pack"; Alias = "deploy, fish-deploy" },
+    @{ Name = "project-initializer-skill"; Alias = "init, fish-init" },
+    @{ Name = "petfish-style-skill"; Alias = "petfish, fish-style" },
+    @{ Name = "petfish-companion-skill"; Alias = "companion, fish-core" },
+    @{ Name = "opencode-ppt-skills"; Alias = "ppt, fish-slides" },
     @{ Name = "trustskills-governance-pack"; Alias = "trust" },
-    @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate" },
-    @{ Name = "context-router-skill"; Alias = "context" }
+    @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate, fish-calibrate" },
+    @{ Name = "context-router-skill"; Alias = "context, fish-trail" }
 )
 
 # --- Platform path configuration ---
@@ -335,6 +344,7 @@ function Update-InstalledPacks([string]$registryDir, [string]$packName, [string]
 function Compare-PackVersion([string]$registryDir, [string]$packName, [string]$manifestFile) {
     $script:ComparePackVersionInstalledVersion = $null
     $script:ComparePackVersionSourceVersion = $null
+    $script:ComparePackVersionLegacyKey = $null
 
     if ([string]::IsNullOrWhiteSpace($registryDir) -or -not (Test-Path $manifestFile)) {
         return "unknown"
@@ -370,6 +380,21 @@ function Compare-PackVersion([string]$registryDir, [string]$packName, [string]$m
     }
 
     $packEntryProp = $registry.packs.PSObject.Properties[$packName]
+
+    # Legacy name lookup: check manifest's legacy_names if current name not found
+    if (-not $packEntryProp) {
+        if ($manifest.PSObject.Properties['legacy_names'] -and $manifest.legacy_names) {
+            foreach ($legacyName in $manifest.legacy_names) {
+                $legacyProp = $registry.packs.PSObject.Properties[$legacyName]
+                if ($legacyProp) {
+                    $packEntryProp = $legacyProp
+                    $script:ComparePackVersionLegacyKey = $legacyName
+                    break
+                }
+            }
+        }
+    }
+
     if (-not $packEntryProp) {
         return "not-installed"
     }

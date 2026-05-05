@@ -1,6 +1,7 @@
 {
   "name": "opencode-course-skills-pack",
   "version": "1.3.1",
+  "legacy_names": [],
   "description": "课程开发全生命周期 — 规划、提纲、正文、实验、资料、QA/QC、发布",
   "compatibility": "opencode",
   "skill_count": 15,
