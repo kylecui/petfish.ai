@@ -67,8 +67,8 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --search "<ke
 ./install.sh --pack <alias> --target .   # Bash
 
 # 远程安装
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <alias>
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <alias>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias>
 ```
 
 注意：companion自身不直接执行安装，而是生成并展示正确的安装命令让用户执行。
