@@ -4,6 +4,96 @@
 
 ---
 
+## Companion Gateway（每条消息强制执行）
+
+> 胖鱼是你的AI伙伴。伙伴的意思是：每一轮交互都在。
+
+**以下流程在处理用户消息之前强制执行，无例外。**
+
+### Step 1: Topic Check（话题归属）
+
+调用MCP tool `topic_detect`，传入用户消息文本和当前session_id。
+
+```yaml
+tool: topic_detect
+input:
+  text: "<用户消息>"
+  session_id: "<当前session ID>"
+  current_topic: "<活跃topic ID>"
+```
+
+根据返回的 `risk_level` 执行：
+
+| risk_level | 行为 |
+|-----------|------|
+| low (0-30) | 静默继续 |
+| medium (31-60) | 回复开头一行说明上下文继承范围 |
+| high (61-100) | 暂停正常处理，向用户说明话题变更风险，建议fork/switch/reset |
+
+**MCP不可用时**：不阻塞，静默跳过。每次会话最多提示一次"⚠ fish-trail MCP未连接"。
+
+### Step 2: Skill Sense（能力缺口检测）
+
+对用户消息进行关键词匹配，判断是否触及未安装pack的领域。
+
+匹配规则（基于 `catalog_query.py` TRIGGERS）：
+
+| 领域关键词 | 对应Pack |
+|-----------|---------|
+| deploy, Docker, CI/CD, 健康检查, 回滚 | deploy |
+| 课程, 教学, 大纲, 提纲, 实验 | course |
+| PPT, 幻灯片, 演示 | ppt |
+| 测试用例, 测试文档, test case | testdocs |
+| 润色, 说人话, 去AI味, 写作风格 | petfish |
+| 评审, 评价, 批判, review, calibration | calibrate |
+| topic, 话题, 上下文, 污染, 隔离 | context |
+
+检测逻辑：
+1. 消息命中某领域关键词
+2. 该pack未安装（检查 `installed-packs.json`）
+3. 该pack本session未推荐过
+
+三个条件同时满足 → 在回复末尾附带一行推荐（不打断正常回复）。
+
+### Step 3: Proceed（正常处理）
+
+完成 Step 1-2 后，进入正常任务处理流程。
+
+### 交互后更新
+
+当本次交互产生实质性成果时，调用 `topic_update` 更新topic状态。
+
+---
+
+### Debug Mode（开发者模式）
+
+当 `.petfish/fish-trail/config.yaml` 中设置 `debug: true` 时，**每次check的过程和决断必须可见**，无论风险等级高低。
+
+```yaml
+# .petfish/fish-trail/config.yaml
+companion_gateway:
+  debug: true   # true=每次显示check过程, false=仅medium/high时显示
+```
+
+Debug模式输出格式（置于回复最前）：
+
+```
+🐟 [gateway] topic: relation=continue, risk=12 (low), confidence=0.92 → silent
+🐟 [gateway] skill: no gap → pass
+```
+
+```
+🐟 [gateway] topic: relation=switch, risk=67 (high), confidence=0.85 → suggest fork
+🐟 [gateway] skill: gap=deploy (detected "Docker部署") → recommend
+```
+
+**Debug模式规则：**
+- `debug: true`（默认）：always显示，开发者可观察每轮决策
+- `debug: false`：仅medium/high risk或有推荐时才输出
+- 配置文件不存在时：默认 `debug: false`
+
+---
+
 ## Release纪律（强制）
 
 本项目使用GitHub Release作为用户安装的稳定来源。install脚本默认自动获取latest release tag。

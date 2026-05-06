@@ -4,6 +4,10 @@
 # State directory (relative to project root)
 base_dir: .petfish/fish-trail
 
+# Companion Gateway settings
+companion_gateway:
+  debug: true   # true=show every check decision, false=only medium/high
+
 # Freshness thresholds (days)
 freshness:
   fresh: 7
