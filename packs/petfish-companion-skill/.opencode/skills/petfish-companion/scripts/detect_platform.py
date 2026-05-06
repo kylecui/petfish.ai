@@ -15,8 +15,11 @@ Usage:
 
 import argparse
 import json
+import os
+import shutil
 import sys
 from pathlib import Path
+import platform as platform_mod
 
 # Fallback markers if platforms.json is not available
 FALLBACK_MARKERS = {
@@ -87,6 +90,39 @@ def detect_platforms(target: Path) -> list[dict]:
     return detected
 
 
+def _build_universal_fallback(target: Path) -> dict:
+    """Build environment info when no platform is detected."""
+    # OS info
+    os_name = platform_mod.system()  # Windows, Linux, Darwin
+    arch = platform_mod.machine()  # x86_64, arm64, etc.
+
+    # Shell detection
+    shell = os.environ.get("SHELL", "")
+    if not shell:
+        # Windows: check COMSPEC or PSModulePath
+        if os.environ.get("PSModulePath"):
+            shell = "powershell"
+        else:
+            shell = os.environ.get("COMSPEC", "unknown")
+    else:
+        shell = Path(shell).name  # e.g. "bash", "zsh", "fish"
+
+    # Runtime detection
+    runtimes = []
+    runtime_checks = ["python3", "python", "node", "go", "rustc", "java", "ruby", "uv"]
+    for cmd in runtime_checks:
+        if shutil.which(cmd):
+            runtimes.append(cmd)
+
+    return {
+        "os": os_name,
+        "arch": arch,
+        "shell": shell,
+        "runtimes": runtimes,
+        "suggestion": "universal",
+    }
+
+
 def main():
     parser = argparse.ArgumentParser(description="PEtFiSh — Platform Detection")
     parser.add_argument(
@@ -111,7 +147,7 @@ def main():
         if detected:
             print(detected[0]["platform"])
         else:
-            print("unknown")
+            print("universal")
         sys.exit(0)
 
     if args.json:
@@ -125,8 +161,36 @@ def main():
         sys.exit(0)
 
     if not detected:
+        # Universal fallback: report environment info for manual configuration
+        env_info = _build_universal_fallback(target)
+
+        if args.json:
+            print(
+                json.dumps(
+                    {
+                        "target": str(target),
+                        "detected": [],
+                        "universal_fallback": env_info,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            sys.exit(0)
+
         print(f"No AI coding platform detected in {target}")
         print("Checked markers for: " + ", ".join(PRIORITY))
+        print("\n── Universal Fallback ──")
+        print(f"  OS:      {env_info['os']} ({env_info['arch']})")
+        print(f"  Shell:   {env_info['shell']}")
+        if env_info["runtimes"]:
+            print(f"  Runtimes: {', '.join(env_info['runtimes'])}")
+        else:
+            print("  Runtimes: (none detected)")
+        print(f"\n  Suggestion: Use --platform universal or create a platform marker:")
+        print(f"    mkdir .opencode   # for OpenCode")
+        print(f"    mkdir .claude     # for Claude Code")
+        print(f"    mkdir .cursor     # for Cursor")
         sys.exit(0)
 
     print(f"Detected platform(s) in {target}:\n")

@@ -188,9 +188,61 @@ def _load_manifest(pack_dir: Path) -> dict | None:
         return None
 
 
+# Platform → registry file path (relative to project root)
+_REGISTRY_PATHS = [
+    ".opencode/installed-packs.json",
+    ".claude/installed-packs.json",
+    ".agents/installed-packs.json",
+    ".cursor/installed-packs.json",
+    ".github/installed-packs.json",
+    ".windsurf/installed-packs.json",
+]
+
+
+def _load_installed_registry() -> dict:
+    """Load installed-packs.json from the current project or global paths.
+
+    Returns a dict of pack_name -> {version, installed_at, ...} or empty dict.
+    """
+    # Search from CWD upward for installed-packs.json
+    cwd = Path.cwd()
+    for rel in _REGISTRY_PATHS:
+        path = cwd / rel
+        if path.exists():
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                return data.get("packs", {})
+            except (json.JSONDecodeError, OSError):
+                continue
+
+    # Fallback: global registry paths
+    home = Path.home()
+    global_candidates = [
+        home / ".config/opencode/installed-packs.json",
+        home / ".claude/installed-packs.json",
+        home / ".codex/installed-packs.json",
+        home / ".cursor/installed-packs.json",
+        home / ".github/installed-packs.json",
+        home / ".codeium/windsurf/installed-packs.json",
+        home / ".agents/installed-packs.json",
+    ]
+    for path in global_candidates:
+        if path.exists():
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                return data.get("packs", {})
+            except (json.JSONDecodeError, OSError):
+                continue
+
+    return {}
+
+
 def build_catalog() -> list[dict]:
-    """Build catalog from manifest files, with embedded fallback."""
+    """Build catalog from manifest files, with installed-packs.json fallback."""
     packs_root = _find_packs_root()
+    installed_registry = None  # Lazy-loaded only if needed
     catalog = []
 
     for alias, pack_name in ALIAS_MAP.items():
@@ -220,12 +272,16 @@ def build_catalog() -> list[dict]:
                 "agent_count", len(manifest.get("agents", []))
             )
         else:
-            # Fallback: minimal info
-            entry["description"] = ""
-            entry["version"] = "unknown"
-            entry["skill_count"] = 0
-            entry["command_count"] = 0
-            entry["agent_count"] = 0
+            # Fallback: try installed-packs.json registry
+            if installed_registry is None:
+                installed_registry = _load_installed_registry()
+
+            reg_info = installed_registry.get(pack_name, {})
+            entry["description"] = reg_info.get("description", "")
+            entry["version"] = reg_info.get("version", "unknown")
+            entry["skill_count"] = reg_info.get("skill_count", 0)
+            entry["command_count"] = reg_info.get("command_count", 0)
+            entry["agent_count"] = reg_info.get("agent_count", 0)
 
         catalog.append(entry)
 

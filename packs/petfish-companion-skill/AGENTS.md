@@ -1,4 +1,3 @@
-<!-- BEGIN pack: petfish-companion-skill -->
 # PEtFiSh Companion Rules
 
 本项目已安装胖鱼PEtFiSh伙伴skill。
@@ -43,4 +42,3 @@
 - 不自动安装skill，只推荐并提供命令
 - 不修改用户项目文件
 - 用户拒绝后本次会话不再重复推荐
-<!-- END pack: petfish-companion-skill -->

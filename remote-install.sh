@@ -44,6 +44,8 @@ merge_agents_md() {
     local end_marker="<!-- END pack: $pack_name -->"
     local src_content
     src_content="$(cat "$src_file")"
+    # Strip existing markers from source if present (safety net)
+    src_content="$(echo "$src_content" | sed "s|^${begin_marker}$||" | sed "s|^${end_marker}$||" | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;ba}' )"
     local wrapped="${begin_marker}
 ${src_content}
 ${end_marker}"
@@ -61,6 +63,7 @@ ${end_marker}"
             echo "exists"
             return
         fi
+        # Replace ALL occurrences (handles previously duplicated sections)
         python3 -c "
 import re, sys
 begin = sys.argv[1]
@@ -68,7 +71,11 @@ end = sys.argv[2]
 replacement = sys.argv[3]
 text = open(sys.argv[4], 'r', encoding='utf-8').read()
 pattern = re.escape(begin) + r'.*?' + re.escape(end)
-result = re.sub(pattern, replacement, text, flags=re.DOTALL)
+# Replace first occurrence, then remove any remaining duplicates
+result = re.sub(pattern, replacement, text, count=1, flags=re.DOTALL)
+result = re.sub(pattern, '', result, flags=re.DOTALL)
+# Clean up multiple blank lines left by removal
+result = re.sub(r'\n{3,}', '\n\n', result).strip() + '\n'
 open(sys.argv[4], 'w', encoding='utf-8').write(result)
 " "$begin_marker" "$end_marker" "$wrapped" "$dst_file"
         echo "updated"
