@@ -71,12 +71,25 @@ end = sys.argv[2]
 replacement = sys.argv[3]
 text = open(sys.argv[4], 'r', encoding='utf-8').read()
 pattern = re.escape(begin) + r'.*?' + re.escape(end)
-# Replace first occurrence, then remove any remaining duplicates
-result = re.sub(pattern, replacement, text, count=1, flags=re.DOTALL)
-result = re.sub(pattern, '', result, flags=re.DOTALL)
-# Clean up multiple blank lines left by removal
-result = re.sub(r'\n{3,}', '\n\n', result).strip() + '\n'
-open(sys.argv[4], 'w', encoding='utf-8').write(result)
+# Find all matches, replace first with new content, remove rest
+matches = list(re.finditer(pattern, text, flags=re.DOTALL))
+if matches:
+    # Build result: text before first match + replacement + text after first match with remaining matches removed
+    result = text[:matches[0].start()] + replacement + text[matches[0].end():]
+    # Remove any remaining occurrences (from duplicates)
+    if len(matches) > 1:
+        result_pattern = re.escape(begin) + r'.*?' + re.escape(end)
+        # Only remove OLD occurrences - the new one is already correct
+        # Find the replacement in result and protect it
+        new_start = matches[0].start()
+        new_end = new_start + len(replacement)
+        before = result[:new_end]
+        after = result[new_end:]
+        after = re.sub(result_pattern, '', after, flags=re.DOTALL)
+        result = before + after
+    # Clean up multiple blank lines
+    result = re.sub(r'\n{3,}', '\n\n', result).strip() + '\n'
+    open(sys.argv[4], 'w', encoding='utf-8').write(result)
 " "$begin_marker" "$end_marker" "$wrapped" "$dst_file"
         echo "updated"
         return
