@@ -1,34 +1,41 @@
-# 胖鱼 PEtFiSh — 安装提示词
+# 胖鱼 PEtFiSh — 安装指南 / Install Guide
 
 ---
 
-## 一句话安装（推荐）
+## 一句话安装（推荐） / One-Line Install (Recommended)
 
-将以下一句话粘贴到任意AI编程助手的对话框中，AI会自动完成安装：
+把下面这句话粘贴到你的AI编程助手里，它会自己完成安装：
+
+Paste this into any AI coding assistant — it handles the rest:
 
 ```
 Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
 
-中文版：
+中文版 / Chinese version：
 
 ```
 请按照这个文档安装胖鱼PEtFiSh：https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
 
-**工作原理**：AI助手读取该URL中的安装指令文档，自动检测操作系统和AI平台，询问项目类型，然后执行对应的安装命令。整个过程是对话式的，你只需要回答几个问题。
+**工作原理 / How it works**：AI助手读取那个URL里的安装指令，自动检测你的操作系统和AI平台，问你几个问题，然后跑对应的安装命令。全程对话式，你只管回答。
 
-**适用范围**：所有能执行终端命令的AI编程助手——OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity等。
+The AI assistant reads the install doc from that URL, auto-detects your OS and AI platform, asks a few questions, then runs the right install commands. Conversational — just answer the prompts.
+
+**适用范围 / Works with**：所有能跑终端命令的AI编程助手 / Any AI coding assistant that can run terminal commands — OpenCode, Claude Code, Cursor, Copilot, Windsurf, Codex, Antigravity.
 
 ---
 
-## 传统命令行安装
+## 命令行安装 / Command-Line Install
 
-如果你更习惯直接跑命令：
+更习惯直接跑命令？没问题。
 
-**Bash (macOS/Linux/WSL):**
+Prefer running commands directly? Here you go.
+
+**Bash (macOS / Linux / WSL):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack init,companion --detect
 ```
 
 **PowerShell (Windows):**
@@ -36,26 +43,48 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
 ```
 
-装完后输入`/initproject`，胖鱼会引导你选择项目类型并自动安装匹配的skill pack。
+装完输入 `/initproject`，胖鱼会问你项目类型，然后自动装上匹配的能力包。
+
+After install, type `/initproject` — PEtFiSh asks your project type and auto-installs matching packs.
 
 ---
 
-## 安装全部pack
+## 装全套 / Install Everything
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --detect
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack all --detect
 ```
 
 ---
 
-## 说明
+## 升级 / Upgrade
 
-- 安装脚本会**自动获取最新稳定release版本**（当前v0.2.0），无需手动指定版本号
-- `--detect` 自动检测当前AI平台，将skill安装到正确路径
-- `--pack init,companion` 一次安装初始化器和`/petfish`伙伴命令，后续通过`/initproject`按需装其他pack
-- 如需指定平台：`--platform cursor` / `--platform claude` / `--platform copilot` 等
-- 如需指定版本：`--branch v0.2.0`（bash）或 `-Branch v0.2.0`（PowerShell）
+已经装了？重跑一遍加 `--force` 就行。
+
+Already installed? Re-run with `--force` to upgrade.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack all --force
+```
+
+或者让AI帮你升级 / Or let your AI handle it：
+
+```
+Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
+```
 
 ---
 
-*><(((^> 胖鱼 PEtFiSh — AI Worker's Companion*
+## 几点说明 / Notes
+
+- 安装脚本**自动获取最新稳定release**，不用手动指定版本号。The installer auto-resolves the latest stable release — no version pinning needed.
+- `--detect` 自动检测AI平台，把skill装到正确的目录。Auto-detects your AI platform and installs to the right path.
+- `--pack init,companion` 先装初始化器和伙伴命令，其他pack后续按需装。Installs the initializer and companion first — add more packs later as needed.
+- 要指定平台？`--platform cursor` / `--platform claude` / `--platform copilot`。Need a specific platform? Use `--platform`.
+- 要指定版本？`--branch v0.6.3`（Bash）或 `-Branch v0.6.3`（PowerShell）。Need a specific version? Use `--branch`.
+
+---
+
+*><(((^> 胖鱼 PEtFiSh — Your AI Companion*
