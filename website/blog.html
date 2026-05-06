@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>为什么我给AI找了个伙伴 — 胖鱼 PEtFiSh</title>
+  <meta name="description" content="胖鱼不是工具集。它是你AI工作流里的伙伴——从init到交付，始终相伴。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0d1117; --bg-card: #161b22; --border: #30363d;
+      --text: #e6edf3; --text-muted: #8b949e;
+      --accent: #39d353; --accent2: #58a6ff; --accent3: #f0883e;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'Noto Serif SC', serif;
+      --radius: 8px; --max-w: 700px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.85; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,17,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .nav .container { display: flex; align-items: center; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); font-size: 14px; }
+    .nav-logo img { width: 24px; height: 24px; }
+    .nav-links { margin-left: auto; display: flex; gap: 16px; font-size: 13px; }
+    .nav-links a { color: var(--text-muted); }
+
+    .content { padding: 64px 0 96px; }
+    .back-link { display: inline-block; color: var(--text-muted); font-size: 13px; margin-bottom: 32px; }
+    .date { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+    h2 { font-size: 20px; margin-top: 48px; margin-bottom: 16px; }
+    h3 { font-size: 17px; margin-top: 32px; margin-bottom: 10px; }
+    p { margin-bottom: 16px; }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; }
+    code { font-family: var(--font-mono); font-size: 13px; background: var(--bg-card); padding: 2px 6px; border-radius: 4px; }
+    pre { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; overflow-x: auto; margin: 16px 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; }
+    .pullquote { border-left: 3px solid var(--accent); padding: 12px 0 12px 20px; margin: 32px 0; font-size: 16px; color: var(--text); font-style: italic; }
+    .divider { text-align: center; color: var(--accent); font-family: var(--font-mono); margin: 40px 0; opacity: 0.5; }
+
+    footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+    footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 12px; opacity: 0.5; }
+    footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
+    footer .links a { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-logo"><img src="assets/petfish-icon-256.png" alt="" /><span>><(((^> 胖鱼 PEtFiSh</span></a>
+    <div class="nav-links">
+      <a href="/">首页</a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<main class="content">
+  <div class="container">
+    <a href="/" class="back-link">← 返回首页</a>
+
+    <h1>为什么我给AI找了个伙伴</h1>
+    <p class="date">2026年5月 · v0.6.2</p>
+
+    <p>我每天花大量时间和AI一起写代码。AI很能干，但有个问题——它是个工具。</p>
+
+    <p>工具的特点是：你调用它，它干活，干完走人。下次再调用，它不记得上次发生了什么。它不会主动告诉你"你现在方向偏了"，不会在你缺某个能力的时候说一句"要不装个这个"，也不会在你写出一个有问题的方案时拦住你。</p>
+
+    <p>你得自己记住上下文，自己发现能力缺口，自己守住质量底线。AI越能干，这些负担反而越重——因为它干得快，你追得累。</p>
+
+    <p>我想要的不是更多工具，是一个伙伴。</p>
+
+    <div class="pullquote">
+      伙伴和工具的区别很简单：工具被调用，伙伴始终在场。
+    </div>
+
+    <h2>胖鱼是什么</h2>
+
+    <p>胖鱼是我给AI工作流找的伙伴。从你输入<code>/initproject</code>的那一刻起，它就在了。不是在后台沉睡等你想起来调用——而是每一轮对话都参与，沉默地做两件事：</p>
+
+    <ol>
+      <li><strong>看看你在聊什么</strong>——话题漂了吗？上下文被污染了吗？需要提醒你吗？</li>
+      <li><strong>看看你缺什么</strong>——你在聊部署但没装部署能力包？你需要发邮件但环境里没有邮件集成？</li>
+    </ol>
+
+    <p>这两件事做完，才进入正常的工作处理。你感觉不到它在——直到它该出现的时候出现。</p>
+
+    <h2>四个字</h2>
+
+    <p>我给胖鱼定了四个字：<strong>常伴、守护、可信、秉正</strong>。</p>
+
+    <p><strong>常伴</strong>——每一轮交互都在。不是"你可以调用/petfish命令"，而是"不管你调不调用，胖鱼都在看着"。Companion Gateway在每条消息前自动执行，你不需要做任何额外操作。</p>
+
+    <p><strong>守护</strong>——在你掉坑之前拦住。上下文污染到60分了？拦住，告诉你话题漂了。你需要某个能力但没装？提醒一次，不多不少。质量不过关？挡在发布前面。</p>
+
+    <p><strong>可信</strong>——胖鱼推荐给你的每一个能力包，都经过了lint打分（100分制）、安全审计（风险评分0.0-1.0）、红线检测（命中即拒绝，不商量）。信任不是嘴上说说的，是验证出来的。</p>
+
+    <p><strong>秉正</strong>——胖鱼不顺着你说。你问"这方案行不行"，它先中性化问题再给结论，至少给你一个反方向的思考。质量门禁80分以下不过就是不过，不会因为"这次赶工"就放水。</p>
+
+    <div class="divider">><(((^></div>
+
+    <h2>它具体做了什么</h2>
+
+    <p>说点实在的。</p>
+
+    <p><strong>Companion Gateway</strong>——注入到你的AI指令文件里（AGENTS.md / CLAUDE.md / 等等），在AI处理你每条消息之前强制执行话题检测和能力感知。不需要你记得去调用它。</p>
+
+    <p><strong>三层能力感知</strong>——第一层，关键词匹配已知领域（你说"部署"它知道推荐deploy pack）。第二层，意图级分析（你说"帮我发个邮件通知团队"，它检测到这需要邮件集成，你没有）。第三层，什么都没检测到，闭嘴。每个领域每次会话最多提醒一次。</p>
+
+    <p><strong>Fish-trail话题治理</strong>——追踪你的话题关系（继续？分叉？切换？合并？），给上下文污染打分（0-100），在风险高的时候主动建议你处理。31个MCP工具支撑底层状态管理。</p>
+
+    <p><strong>质量门禁</strong>——Lint 40+条规则打分，安全审计检测shell注入/硬编码凭证/危险网络调用，四条红线（subprocess+network组合、敏感路径读写、无审批sudo、subprocess+os组合）命中即deny。像代码CI一样管理AI能力。</p>
+
+    <p><strong>反迎合校准</strong>——可以叠加到任何评审类任务上。code review + calibrate，方案评估 + calibrate。先中性化再给结论，结论和置信度分开表达。</p>
+
+    <h2>不只是我自己的能力包</h2>
+
+    <p>胖鱼自带四个核心包（companion、context、trust、calibrate）和六个领域包（init、course、deploy、petfish、testdocs、ppt）。但它不是一个封闭的10个包的集合。</p>
+
+    <p><code>/petfish search</code> 可以跨6个来源搜索第三方skill。<code>/petfish mine</code> 可以从任意GitHub仓库挖掘可skill化的模块。<code>/petfish create</code> 可以帮你从零构造新的能力包。<code>/petfish gate</code> 确保你构造出来的东西质量过关。</p>
+
+    <p>胖鱼管的不只是"我做的这些包"，而是你整个AI能力体系的质量和扩展。</p>
+
+    <h2>8个平台，一只胖鱼</h2>
+
+    <p>OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——不管你用哪个，胖鱼都能装上去。一套skill写一次，自动翻译成各平台的格式。</p>
+
+    <p>你不用操心"Cursor的规则放哪个目录""Claude Code的指令文件叫什么名字"。胖鱼知道。</p>
+
+    <h2>30秒装上</h2>
+
+    <pre>
+# macOS / Linux / WSL
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack init,companion --detect
+
+# Windows PowerShell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect</pre>
+
+    <p>装完输入<code>/initproject</code>。胖鱼问你项目类型，帮你装好匹配的能力包。从这一刻起，它就在了。</p>
+
+    <div class="divider">><(((^></div>
+
+    <h2>为什么叫"伙伴"</h2>
+
+    <p>因为它确实像一个。</p>
+
+    <ul>
+      <li>伙伴不需要你记得"去调用"它——它就在那儿</li>
+      <li>伙伴在你要犯错的时候拉一把——不是事后说"早知道"</li>
+      <li>伙伴推荐给你的东西是经过验证的——不是随手丢个链接</li>
+      <li>伙伴不顺着你说——该说不行的时候说不行</li>
+    </ul>
+
+    <p>工具用完就走。伙伴从头到尾都在。</p>
+
+    <p>如果你也觉得AI写代码越来越快、但管理AI行为越来越累——试试给它找个伙伴。</p>
+
+    <p><strong>GitHub</strong>：<a href="https://github.com/kylecui/petfish.ai">github.com/kylecui/petfish.ai</a></p>
+
+    <p>开源，免费，欢迎PR。</p>
+
+    <p style="font-family: var(--font-mono); color: var(--accent); margin-top: 40px;">><(((^></p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
+    <strong>胖鱼 PEtFiSh</strong> — 你的AI伙伴<br/>
+    常伴 · 守护 · 可信 · 秉正
+    <div class="links">
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="/">首页</a>
+      <a href="/pitch.html">产品介绍</a>
+      <a href="/whitepaper.html">技术白皮书</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
