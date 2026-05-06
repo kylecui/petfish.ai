@@ -244,10 +244,17 @@ function Merge-AgentsMd([string]$srcFile, [string]$dstFile, [string]$packName, [
     if ($existing -match [regex]::Escape($beginMarker)) {
         if (-not $ForceOverwrite) { return "exists" }
         $pattern = "(?s)" + [regex]::Escape($beginMarker) + ".*?" + [regex]::Escape($endMarker)
-        # Replace first occurrence with new content
-        $replaced = [regex]::Replace($existing, $pattern, $wrappedContent, [System.Text.RegularExpressions.RegexOptions]::None, [timespan]::FromSeconds(5))
-        # Remove any remaining duplicate occurrences
-        $replaced = [regex]::Replace($replaced, $pattern, "")
+        # Find first match position, replace it, then remove any duplicates AFTER it
+        $m = [regex]::Match($existing, $pattern)
+        if ($m.Success) {
+            $before = $existing.Substring(0, $m.Index)
+            $after = $existing.Substring($m.Index + $m.Length)
+            # Remove any remaining duplicates in the 'after' portion
+            $after = [regex]::Replace($after, $pattern, "")
+            $replaced = $before + $wrappedContent + $after
+        } else {
+            $replaced = $existing
+        }
         # Clean up multiple blank lines
         $replaced = [regex]::Replace($replaced, "(\r?\n){3,}", "`n`n").Trim() + "`n"
         Set-Content -Path $dstFile -Value $replaced -NoNewline -Encoding UTF8
