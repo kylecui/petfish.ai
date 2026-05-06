@@ -240,9 +240,19 @@
       .hero .tagline { font-size: 16px; letter-spacing: 4px; }
       .packs-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── Language toggle ── */
+    body.lang-zh .copy-en,
+    body.lang-en .copy-zh {
+      display: none;
+    }
+    .lang-toggle { display: flex; gap: 4px; margin-left: 12px; }
+    .lang-option { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 3px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .lang-option:hover, .lang-option:focus-visible { color: var(--text); border-color: var(--text-muted); }
+    .lang-option.is-active { color: var(--accent); border-color: var(--accent); }
   </style>
 </head>
-<body>
+<body class="lang-zh">
 
 <!-- Nav -->
 <nav class="nav">
@@ -252,15 +262,19 @@
       <span>><(((^> 胖鱼 PEtFiSh</span>
     </a>
     <div class="nav-links">
-      <a href="#pillars">理念</a>
-      <a href="#how">运作</a>
-      <a href="#packs">能力</a>
-      <a href="#install">安装</a>
-      <a href="pitch.html">产品介绍</a>
-      <a href="whitepaper.html">白皮书</a>
+      <a href="#pillars"><span class="copy-zh">理念</span><span class="copy-en">Philosophy</span></a>
+      <a href="#how"><span class="copy-zh">运作</span><span class="copy-en">How</span></a>
+      <a href="#packs"><span class="copy-zh">能力</span><span class="copy-en">Capabilities</span></a>
+      <a href="#install"><span class="copy-zh">安装</span><span class="copy-en">Install</span></a>
+      <a href="pitch.html"><span class="copy-zh">产品介绍</span><span class="copy-en">Product</span></a>
+      <a href="whitepaper.html"><span class="copy-zh">白皮书</span><span class="copy-en">Whitepaper</span></a>
       <a href="blog.html">Blog</a>
       <a href="#remote">Remote</a>
       <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-option is-active" type="button" data-lang="zh">中文</button>
+      <button class="lang-option" type="button" data-lang="en">EN</button>
     </div>
   </div>
 </nav>
@@ -270,13 +284,16 @@
   <div class="container">
     <div class="hero-fish">><(((^></div>
     <h1>胖鱼 PEtFiSh</h1>
-    <p class="tagline">常伴 · 守护 · 可信 · 秉正</p>
+    <p class="tagline">
+      <span class="copy-zh">常伴 · 守护 · 可信 · 秉正</span>
+      <span class="copy-en">Always Present · Always Guarding · Verified Trust · No Compromise</span>
+    </p>
     <p class="subtitle">
-      从项目第一行代码到最终交付，胖鱼始终相伴。<br/>
-      不是你想起来才调用的工具集，是每一轮交互都参与的AI伙伴。
+      <span class="copy-zh">从项目第一行代码到最终交付，胖鱼始终相伴。<br/>不是你想起来才调用的工具集，是每一轮交互都参与的AI伙伴。</span>
+      <span class="copy-en">From first commit to final delivery, PEtFiSh is there.<br/>Not a toolbox you remember to call — a companion in every interaction.</span>
     </p>
     <div class="hero-cta">
-      <a href="#install" class="btn btn-primary">⚡ 开始使用</a>
+      <a href="#install" class="btn btn-primary">⚡ <span class="copy-zh">开始使用</span><span class="copy-en">Get Started</span></a>
       <a href="https://github.com/kylecui/petfish.ai" class="btn btn-secondary">GitHub</a>
     </div>
   </div>
@@ -286,40 +303,44 @@
 <section class="pillars" id="pillars">
   <div class="container">
     <div class="pillars-header">
-      <h2>胖鱼的四个承诺</h2>
-      <p>胖鱼不是工具。工具被调用，胖鱼始终相伴。</p>
+      <h2><span class="copy-zh">胖鱼的四个承诺</span><span class="copy-en">Four Promises</span></h2>
+      <p><span class="copy-zh">胖鱼不是工具。工具被调用，胖鱼始终相伴。</span><span class="copy-en">PEtFiSh is not a tool. Tools get called. PEtFiSh is always there.</span></p>
     </div>
     <div class="pillar-grid">
 
       <div class="pillar-card">
-        <div class="pillar-label">常伴</div>
-        <div class="pillar-title">每一轮交互都在</div>
+        <div class="pillar-label"><span class="copy-zh">常伴</span><span class="copy-en">Always Present</span></div>
+        <div class="pillar-title"><span class="copy-zh">每一轮交互都在</span><span class="copy-en">In every interaction</span></div>
         <p class="pillar-desc">
-          Companion Gateway在每条消息前自动执行话题检测和能力感知。不需要你主动调用，不需要特殊命令。从<code>/initproject</code>那一刻起，胖鱼就是你工作流的一部分——沉默地同行，在该出现的时刻出现。
+          <span class="copy-zh">Companion Gateway在每条消息前自动执行话题检测和能力感知。不需要你主动调用，不需要特殊命令。从<code>/initproject</code>那一刻起，胖鱼就是你工作流的一部分——沉默地同行，在该出现的时刻出现。</span>
+          <span class="copy-en">Companion Gateway runs automatically before every message — topic detection and capability sensing. No commands needed. From the moment you run <code>/initproject</code>, PEtFiSh becomes part of your workflow — walking alongside silently, showing up when it matters.</span>
         </p>
       </div>
 
       <div class="pillar-card">
-        <div class="pillar-label">守护</div>
-        <div class="pillar-title">在你掉坑之前拦住</div>
+        <div class="pillar-label"><span class="copy-zh">守护</span><span class="copy-en">Guarding</span></div>
+        <div class="pillar-title"><span class="copy-zh">在你掉坑之前拦住</span><span class="copy-en">Catches you before you fall</span></div>
         <p class="pillar-desc">
-          检测到你需要部署能力但没装deploy pack？提醒一次。检测到上下文被跨话题污染、风险评分超过60？主动拦截。质量不过关？挡在发布前面。不是事后复盘，是实时守护。
+          <span class="copy-zh">检测到你需要部署能力但没装deploy pack？提醒一次。检测到上下文被跨话题污染、风险评分超过60？主动拦截。质量不过关？挡在发布前面。不是事后复盘，是实时守护。</span>
+          <span class="copy-en">Need deployment skills but don't have the deploy pack? Reminded once. Context contamination score above 60? Intercepted. Quality below threshold? Blocked before publish. Not a post-mortem — real-time protection.</span>
         </p>
       </div>
 
       <div class="pillar-card">
-        <div class="pillar-label">可信</div>
-        <div class="pillar-title">信任是验证出来的</div>
+        <div class="pillar-label"><span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></div>
+        <div class="pillar-title"><span class="copy-zh">信任是验证出来的</span><span class="copy-en">Trust is earned through verification</span></div>
         <p class="pillar-desc">
-          胖鱼推荐的每个Skill都经过质量门禁：Lint 100分制打分、安全审计0.0–1.0风险评分、四条红线硬拒绝。TrustSkills治理引擎六维风险评估、五级动作裁决。信任不是宣称的，是审计出来的。
+          <span class="copy-zh">胖鱼推荐的每个Skill都经过质量门禁：Lint 100分制打分、安全审计0.0–1.0风险评分、四条红线硬拒绝。TrustSkills治理引擎六维风险评估、五级动作裁决。信任不是宣称的，是审计出来的。</span>
+          <span class="copy-en">Every skill PEtFiSh recommends passes quality gates: Lint scoring (100-point scale), security audit (0.0-1.0 risk score), four red lines that trigger instant denial. TrustSkills engine: 6 risk dimensions, 5 action levels. Trust isn't claimed — it's audited.</span>
         </p>
       </div>
 
       <div class="pillar-card">
-        <div class="pillar-label">秉正</div>
-        <div class="pillar-title">标准不因便利而降格</div>
+        <div class="pillar-label"><span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></div>
+        <div class="pillar-title"><span class="copy-zh">标准不因便利而降格</span><span class="copy-en">Standards don't bend for convenience</span></div>
         <p class="pillar-desc">
-          反迎合校准：你问"这个方案行不行"，胖鱼先中性化问题再给结论，至少补一个反方。质量门禁不放水，红线命中即deny不走阈值。推你往更高标准走，而不是让你舒服。
+          <span class="copy-zh">反迎合校准：你问"这个方案行不行"，胖鱼先中性化问题再给结论，至少补一个反方。质量门禁不放水，红线命中即deny不走阈值。推你往更高标准走，而不是让你舒服。</span>
+          <span class="copy-en">Anti-sycophancy calibration: when you ask 'is this plan good?', PEtFiSh neutralizes the question first, then gives a conclusion — always with at least one counter-argument. Quality gates don't budge. Red lines mean denial, no score threshold negotiation. Pushes you toward higher standards, not comfort.</span>
         </p>
       </div>
 
@@ -330,37 +351,52 @@
 <!-- How it works -->
 <section class="how-section" id="how">
   <div class="container">
-    <h2>胖鱼如何工作</h2>
+    <h2><span class="copy-zh">胖鱼如何工作</span><span class="copy-en">How PEtFiSh Works</span></h2>
     <div class="timeline">
 
       <div class="timeline-item">
         <div class="timeline-dot"></div>
-        <h3>一条命令，胖鱼入驻</h3>
-        <p>安装 init + companion pack。输入<code>/initproject</code>，胖鱼询问项目类型，自动安装匹配的能力包，完成配置。从此刻起，伙伴已就位。</p>
+        <h3><span class="copy-zh">一条命令，胖鱼入驻</span><span class="copy-en">One command, PEtFiSh moves in</span></h3>
+        <p>
+          <span class="copy-zh">安装 init + companion pack。输入<code>/initproject</code>，胖鱼询问项目类型，自动安装匹配的能力包，完成配置。从此刻起，伙伴已就位。</span>
+          <span class="copy-en">Install init + companion pack. Run <code>/initproject</code> — PEtFiSh asks your project type, auto-installs matching capability packs. From this moment, your companion is in place.</span>
+        </p>
       </div>
 
       <div class="timeline-item">
         <div class="timeline-dot"></div>
-        <h3>每一轮对话，自动感知</h3>
-        <p>Companion Gateway在每条消息前执行：话题检测（是否漂移？风险几何？）→ 能力缺口感知（你需要什么？装了没？）→ 正常处理。你感觉不到它在，但它一直在。</p>
+        <h3><span class="copy-zh">每一轮对话，自动感知</span><span class="copy-en">Every conversation, automatic sensing</span></h3>
+        <p>
+          <span class="copy-zh">Companion Gateway在每条消息前执行：话题检测（是否漂移？风险几何？）→ 能力缺口感知（你需要什么？装了没？）→ 正常处理。你感觉不到它在，但它一直在。</span>
+          <span class="copy-en">Companion Gateway runs before every message: topic detection (drifting? how risky?) → capability gap sensing (what do you need? installed?) → normal processing. You don't feel it — but it's always there.</span>
+        </p>
       </div>
 
       <div class="timeline-item">
         <div class="timeline-dot"></div>
-        <h3>遇到缺口，主动补位</h3>
-        <p>三层感知模型：Tier 1 关键词白名单匹配已知领域 → Tier 2 意图级缺口检测（需要邮件服务？图表工具？监控集成？）→ Tier 3 无缺口，静默通过。每个领域每次会话最多提醒一次，不打扰。</p>
+        <h3><span class="copy-zh">遇到缺口，主动补位</span><span class="copy-en">Gaps detected, proactive assistance</span></h3>
+        <p>
+          <span class="copy-zh">三层感知模型：Tier 1 关键词白名单匹配已知领域 → Tier 2 意图级缺口检测（需要邮件服务？图表工具？监控集成？）→ Tier 3 无缺口，静默通过。每个领域每次会话最多提醒一次，不打扰。</span>
+          <span class="copy-en">Three-tier sensing: Tier 1 keyword whitelist for known domains → Tier 2 intent-level gap detection (need email service? chart tools? monitoring?) → Tier 3 no gap, stay silent. Each domain reminded at most once per session.</span>
+        </p>
       </div>
 
       <div class="timeline-item">
         <div class="timeline-dot"></div>
-        <h3>上下文守护，防止污染</h3>
-        <p>Fish-trail话题治理器：7种话题关系类型、污染评分0-100、自动上下文隔离。当话题漂移风险超过阈值，主动提示你fork/switch/reset，而不是让混乱的上下文悄悄拖垮输出质量。</p>
+        <h3><span class="copy-zh">上下文守护，防止污染</span><span class="copy-en">Context guarded against pollution</span></h3>
+        <p>
+          <span class="copy-zh">Fish-trail话题治理器：7种话题关系类型、污染评分0-100、自动上下文隔离。当话题漂移风险超过阈值，主动提示你fork/switch/reset，而不是让混乱的上下文悄悄拖垮输出质量。</span>
+          <span class="copy-en">Fish-trail topic governance: 7 relationship types, contamination score 0-100, automatic context isolation. When drift risk exceeds threshold, proactively suggests fork/switch/reset instead of letting messy context silently degrade output quality.</span>
+        </p>
       </div>
 
       <div class="timeline-item">
         <div class="timeline-dot"></div>
-        <h3>质量门禁，守住底线</h3>
-        <p>Skill发布前必须通过：Lint ≥ 80分 → 安全审计 Risk ≤ 0.5 → 无CRITICAL → Quality Gate裁决PASS/CONDITIONAL/FAIL。四条红线命中即deny，不走分数阈值。像代码CI一样管理AI能力。</p>
+        <h3><span class="copy-zh">质量门禁，守住底线</span><span class="copy-en">Quality gates hold the line</span></h3>
+        <p>
+          <span class="copy-zh">Skill发布前必须通过：Lint ≥ 80分 → 安全审计 Risk ≤ 0.5 → 无CRITICAL → Quality Gate裁决PASS/CONDITIONAL/FAIL。四条红线命中即deny，不走分数阈值。像代码CI一样管理AI能力。</span>
+          <span class="copy-en">Before any skill publishes: Lint ≥ 80 → Security audit Risk ≤ 0.5 → No CRITICAL → Quality Gate verdict PASS/CONDITIONAL/FAIL. Four red lines trigger instant deny. Managing AI capabilities like code CI.</span>
+        </p>
       </div>
 
     </div>
@@ -370,67 +406,70 @@
 <!-- Packs -->
 <section class="packs-section" id="packs">
   <div class="container">
-    <h2>核心能力 + 无限扩展</h2>
-    <p>胖鱼有四个核心能力包，支撑它作为可靠伙伴的四个承诺：常伴、守护、可信、秉正。此外提供多个领域的能力包供你按需安装。<br/>不够用？胖鱼可以搜索第三方市场、从任意仓库挖掘、甚至帮你直接构造新的能力包。</p>
+    <h2><span class="copy-zh">核心能力 + 无限扩展</span><span class="copy-en">Core Capabilities + Unlimited Extension</span></h2>
+    <p>
+      <span class="copy-zh">胖鱼有四个核心能力包，支撑它作为可靠伙伴的四个承诺：常伴、守护、可信、秉正。此外提供多个领域的能力包供你按需安装。<br/>不够用？胖鱼可以搜索第三方市场、从任意仓库挖掘、甚至帮你直接构造新的能力包。</span>
+      <span class="copy-en">PEtFiSh has four core packs supporting its four promises. Plus multiple domain packs for on-demand install. Not enough? PEtFiSh can search third-party markets, mine any repo, or help you build new capability packs from scratch.</span>
+    </p>
     <div class="packs-grid">
 
       <div class="pack-card" style="border-color: var(--accent);">
-        <div class="pack-name">companion <span style="font-size:11px;color:var(--accent);">核心</span></div>
-        <div class="pack-desc">胖鱼本体——Companion Gateway + 10个生命周期管理Skill + 14个子命令</div>
-        <div class="pack-meta">10 skills · global · 常伴</div>
+        <div class="pack-name">companion <span style="font-size:11px;color:var(--accent);"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
+        <div class="pack-desc"><span class="copy-zh">胖鱼本体——Companion Gateway + 10个生命周期管理Skill + 14个子命令</span><span class="copy-en">PEtFiSh core — Companion Gateway + 10 lifecycle skills + 14 subcommands</span></div>
+        <div class="pack-meta">10 skills · global · <span class="copy-zh">常伴</span><span class="copy-en">Always Present</span></div>
       </div>
 
       <div class="pack-card" style="border-color: var(--accent2);">
-        <div class="pack-name">context <span style="font-size:11px;color:var(--accent2);">核心</span></div>
-        <div class="pack-desc">话题治理器——上下文隔离、污染评分、7种关系、31个MCP tools、会话管理</div>
-        <div class="pack-meta">1 skill · 31 MCP tools · 守护</div>
+        <div class="pack-name">context <span style="font-size:11px;color:var(--accent2);"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
+        <div class="pack-desc"><span class="copy-zh">话题治理器——上下文隔离、污染评分、7种关系、31个MCP tools、会话管理</span><span class="copy-en">Topic governance — context isolation, contamination scoring, 7 relationships, 31 MCP tools</span></div>
+        <div class="pack-meta">1 skill · 31 MCP tools · <span class="copy-zh">守护</span><span class="copy-en">Guarding</span></div>
       </div>
 
       <div class="pack-card" style="border-color: var(--accent3);">
-        <div class="pack-name">trust <span style="font-size:11px;color:var(--accent3);">核心</span></div>
-        <div class="pack-desc">Skill可信度治理——6维风险、5级动作、4条红线，信任是审计出来的</div>
-        <div class="pack-meta">1 skill · 可信</div>
+        <div class="pack-name">trust <span style="font-size:11px;color:var(--accent3);"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
+        <div class="pack-desc"><span class="copy-zh">Skill可信度治理——6维风险、5级动作、4条红线，信任是审计出来的</span><span class="copy-en">Skill trust governance — 6 risk dimensions, 5 action levels, 4 red lines</span></div>
+        <div class="pack-meta">1 skill · <span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></div>
       </div>
 
       <div class="pack-card" style="border-color: #a371f7;">
-        <div class="pack-name">calibrate <span style="font-size:11px;color:#a371f7;">核心</span></div>
-        <div class="pack-desc">反迎合决策校准——评审不顺着说，先中性化再给结论，至少补一个反方</div>
-        <div class="pack-meta">1 skill · 秉正</div>
+        <div class="pack-name">calibrate <span style="font-size:11px;color:#a371f7;"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
+        <div class="pack-desc"><span class="copy-zh">反迎合决策校准——评审不顺着说，先中性化再给结论，至少补一个反方</span><span class="copy-en">Anti-sycophancy calibration — neutralize first, then conclude, always with counter-arguments</span></div>
+        <div class="pack-meta">1 skill · <span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></div>
       </div>
 
       <div class="pack-card">
         <div class="pack-name">init</div>
-        <div class="pack-desc">项目初始化向导，<code>/initproject</code>一键启动，自动匹配安装</div>
+        <div class="pack-desc"><span class="copy-zh">项目初始化向导，<code>/initproject</code>一键启动，自动匹配安装</span><span class="copy-en">Project initializer wizard, <code>/initproject</code> one-command setup</span></div>
         <div class="pack-meta">1 skill · global</div>
       </div>
 
       <div class="pack-card">
         <div class="pack-name">course</div>
-        <div class="pack-desc">课程开发全套：提纲、正文、实验、QA/QC、15个skill、10个命令、8个agent</div>
+        <div class="pack-desc"><span class="copy-zh">课程开发全套：提纲、正文、实验、QA/QC、15个skill、10个命令、8个agent</span><span class="copy-en">Full course development: outline, content, labs, QA/QC, 15 skills, 10 commands, 8 agents</span></div>
         <div class="pack-meta">15 skills · 10 cmds · 8 agents</div>
       </div>
 
       <div class="pack-card">
         <div class="pack-name">deploy</div>
-        <div class="pack-desc">部署与运维：CI/CD、Docker、健康检查、回滚、服务生命周期管理</div>
+        <div class="pack-desc"><span class="copy-zh">部署与运维：CI/CD、Docker、健康检查、回滚、服务生命周期管理</span><span class="copy-en">Deployment &amp; ops: CI/CD, Docker, health checks, rollback, service lifecycle</span></div>
         <div class="pack-meta">7 skills</div>
       </div>
 
       <div class="pack-card">
         <div class="pack-name">petfish</div>
-        <div class="pack-desc">工程写作风格——让AI说人话，去AI味，结构化表达</div>
+        <div class="pack-desc"><span class="copy-zh">工程写作风格——让AI说人话，去AI味，结构化表达</span><span class="copy-en">Engineering writing style — make AI write like a human, remove AI slop</span></div>
         <div class="pack-meta">1 skill</div>
       </div>
 
       <div class="pack-card">
         <div class="pack-name">testdocs</div>
-        <div class="pack-desc">测试用例生成与使用文档自动化</div>
+        <div class="pack-desc"><span class="copy-zh">测试用例生成与使用文档自动化</span><span class="copy-en">Test case generation &amp; usage documentation</span></div>
         <div class="pack-meta">2 skills</div>
       </div>
 
       <div class="pack-card">
         <div class="pack-name">ppt</div>
-        <div class="pack-desc">PPT设计与演示文稿制作辅助</div>
+        <div class="pack-desc"><span class="copy-zh">PPT设计与演示文稿制作辅助</span><span class="copy-en">Slide design &amp; presentation creation</span></div>
         <div class="pack-meta">2 skills</div>
       </div>
 
@@ -441,7 +480,7 @@
 <!-- Platforms -->
 <section class="platforms" id="platforms">
   <div class="container">
-    <h2>不管用什么平台，你只需要一只胖鱼</h2>
+    <h2><span class="copy-zh">不管用什么平台，你只需要一只胖鱼</span><span class="copy-en">One PEtFiSh, any platform</span></h2>
     <div class="platform-badges">
       <span class="platform-badge">OpenCode</span>
       <span class="platform-badge">Claude Code</span>
@@ -458,10 +497,10 @@
 <!-- Install -->
 <section class="install-section" id="install">
   <div class="container">
-    <h2>开始使用</h2>
+    <h2><span class="copy-zh">开始使用</span><span class="copy-en">Get Started</span></h2>
 
     <div class="install-block">
-      <h3>▸ 一句话安装（推荐）— 粘贴到任意AI编程助手</h3>
+      <h3><span class="copy-zh">▸ 一句话安装（推荐）— 粘贴到任意AI编程助手</span><span class="copy-en">▸ One-line install (recommended) — paste into any AI coding assistant</span></h3>
       <div class="code-block">
         <button class="copy-btn" onclick="copyCode(this)">copy</button>
         Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
@@ -485,11 +524,12 @@
     </div>
 
     <p class="install-note">
-      安装脚本自动获取最新稳定release版本。装完后输入 <code>/initproject</code> —— 胖鱼询问项目类型，自动安装匹配的Skill Pack，完成配置向导。从此刻起，伙伴已就位。
+      <span class="copy-zh">安装脚本自动获取最新稳定release版本。装完后输入 <code>/initproject</code> —— 胖鱼询问项目类型，自动安装匹配的Skill Pack，完成配置向导。从此刻起，伙伴已就位。</span>
+      <span class="copy-en">Install script auto-resolves the latest stable release. After install, type <code>/initproject</code> — PEtFiSh asks your project type, auto-installs matching skill packs, completes setup wizard. From this moment, your companion is in place.</span>
     </p>
 
     <div class="install-block" style="margin-top: 32px;">
-      <h3>▸ 已安装？一句话升级</h3>
+      <h3><span class="copy-zh">▸ 已安装？一句话升级</span><span class="copy-en">▸ Already installed? One-line upgrade</span></h3>
       <div class="code-block">
         <button class="copy-btn" onclick="copyCode(this)">copy</button>
         Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
@@ -501,8 +541,8 @@
 <!-- Remote -->
 <section class="remote-section" id="remote">
   <div class="container">
-    <h2>胖鱼遥控器</h2>
-    <p>PetFish Remote — 用 Telegram 遥控你的 AI 编程助手。随时随地查看进度、发送指令、接收通知。</p>
+    <h2><span class="copy-zh">胖鱼遥控器</span><span class="copy-en">PetFish Remote</span></h2>
+    <p><span class="copy-zh">PetFish Remote — 用 Telegram 遥控你的 AI 编程助手。随时随地查看进度、发送指令、接收通知。</span><span class="copy-en">PetFish Remote — control your AI coding assistant from Telegram. Check progress, send commands, receive notifications anytime, anywhere.</span></p>
     <a href="https://remote.petfish.ai" class="remote-card">
       <strong>PetFish Remote</strong><span class="badge">Beta</span>
       <br/><span style="color:var(--text-muted); font-size:13px;">remote.petfish.ai →</span>
@@ -514,12 +554,12 @@
 <footer>
   <div class="container">
     <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
-    <strong>胖鱼 PEtFiSh</strong> — 你的AI伙伴<br/>
-    从项目第一行代码到最终交付，胖鱼都在。
+    <strong>胖鱼 PEtFiSh</strong> — <span class="copy-zh">你的AI伙伴</span><span class="copy-en">Your AI Companion</span><br/>
+    <span class="copy-zh">从项目第一行代码到最终交付，胖鱼都在。</span><span class="copy-en">From first commit to final delivery, PEtFiSh is there.</span>
     <div class="links">
       <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
-      <a href="/pitch.html">产品介绍</a>
-      <a href="/whitepaper.html">技术白皮书</a>
+      <a href="/pitch.html"><span class="copy-zh">产品介绍</span><span class="copy-en">Product</span></a>
+      <a href="/whitepaper.html"><span class="copy-zh">技术白皮书</span><span class="copy-en">Whitepaper</span></a>
       <a href="/blog.html">Blog</a>
       <a href="https://remote.petfish.ai">Remote</a>
     </div>
@@ -534,6 +574,28 @@ function copyCode(btn) {
   btn.textContent = '✓';
   setTimeout(() => btn.textContent = 'copy', 1500);
 }
+</script>
+
+<script>
+(function() {
+  const body = document.body;
+  const buttons = document.querySelectorAll('[data-lang]');
+  const setLanguage = (lang) => {
+    const normalized = lang === 'en' ? 'en' : 'zh';
+    body.classList.remove('lang-zh', 'lang-en');
+    body.classList.add('lang-' + normalized);
+    document.documentElement.lang = normalized === 'en' ? 'en' : 'zh-CN';
+    buttons.forEach((btn) => {
+      const active = btn.dataset.lang === normalized;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    localStorage.setItem('petfish-lang', normalized);
+  };
+  buttons.forEach((btn) => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
+  const saved = localStorage.getItem('petfish-lang');
+  if (saved) setLanguage(saved);
+})();
 </script>
 
 </body>
