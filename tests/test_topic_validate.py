@@ -103,10 +103,9 @@ def test_validate_missing_required_node_fields(tmp_path):
     result = validator.validate()
 
     assert result["status"] == "fail"
-    # Should detect missing 'title' and 'summary'
+    # Should detect missing 'title' (required field)
     error_messages = [e["message"] for e in result["errors"]]
     assert any("title" in msg for msg in error_messages)
-    assert any("summary" in msg for msg in error_messages)
 
 
 # ============================================================================
@@ -254,7 +253,7 @@ def test_validate_warnings_vs_errors(tmp_path):
 # Test 10: Invalid relation in edges detected
 # ============================================================================
 def test_validate_invalid_edge_relation(tmp_path):
-    """Test that invalid edge relations are detected."""
+    """Test that invalid edge relations are detected as warnings."""
     nodes = [
         make_valid_node("topic-1"),
         make_valid_node("topic-2"),
@@ -267,9 +266,10 @@ def test_validate_invalid_edge_relation(tmp_path):
     validator = TopicValidator(base_dir)
     result = validator.validate()
 
-    assert result["status"] == "fail"
-    error_codes = [e.get("code", "") for e in result["errors"]]
-    assert "INVALID_RELATION" in error_codes
+    # Unknown relations are warnings, not errors (graph still structurally valid)
+    assert result["status"] == "pass"
+    warning_codes = [w.get("code", "") for w in result["warnings"]]
+    assert "UNKNOWN_RELATION" in warning_codes
 
 
 # ============================================================================

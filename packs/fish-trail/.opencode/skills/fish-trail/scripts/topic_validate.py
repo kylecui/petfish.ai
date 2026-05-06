@@ -22,8 +22,22 @@ class TopicValidator:
         "deprecated",
     }
     VALID_RELATIONS = {
-        "refines",
+        # Detection relations (from topic_detect)
+        "continue",
+        "fork",
+        "switch",
+        "merge",
+        "archive",
+        "reset",
+        "bridge",
+        # Semantic relations (user-defined)
+        "related",
         "depends_on",
+        "blocks",
+        "parent",
+        "child",
+        # Legacy/extended relations
+        "refines",
         "inspired_by",
         "supersedes",
         "conflicts_with",
@@ -36,22 +50,33 @@ class TopicValidator:
     }
     REQUIRED_NODE_FIELDS = {
         "id",
-        "type",
         "title",
-        "summary",
         "status",
+    }
+    OPTIONAL_NODE_FIELDS = {
+        "type",
+        "summary",
         "keywords",
         "evidence_level",
         "confidence",
         "freshness",
+        "created_at",
+        "updated_at",
+        "scope",
+        "parent",
+        "tags",
+        "metadata",
     }
     REQUIRED_EDGE_FIELDS = {
-        "id",
         "source",
         "target",
         "relation",
+    }
+    OPTIONAL_EDGE_FIELDS = {
+        "id",
         "evidence_level",
         "confidence",
+        "created_at",
     }
 
     def __init__(self, base_dir: str):
@@ -204,9 +229,12 @@ class TopicValidator:
                     }
                 )
 
-            # Validate evidence_level
+            # Validate evidence_level (only if present — it's optional)
             evidence_level = node.get("evidence_level")
-            if evidence_level not in self.VALID_EVIDENCE_LEVELS:
+            if (
+                evidence_level is not None
+                and evidence_level not in self.VALID_EVIDENCE_LEVELS
+            ):
                 self.errors.append(
                     {
                         "code": "INVALID_EVIDENCE_LEVEL",
@@ -223,7 +251,7 @@ class TopicValidator:
                     }
                 )
 
-            # Validate confidence
+            # Validate confidence (only if present)
             confidence = node.get("confidence")
             if confidence is not None:
                 if not isinstance(confidence, (int, float)) or not (
@@ -236,17 +264,18 @@ class TopicValidator:
                         }
                     )
 
-            # Warn on stale active topic
+            # Warn on stale active topic (only if freshness present)
             status = node.get("status")
-            freshness = node.get("freshness", {})
-            freshness_status = freshness.get("status")
-            if status == "active" and freshness_status == "stale":
-                self.warnings.append(
-                    {
-                        "code": "STALE_ACTIVE_TOPIC",
-                        "message": f"Node '{node_id}' is active but marked stale",
-                    }
-                )
+            freshness = node.get("freshness")
+            if isinstance(freshness, dict):
+                freshness_status = freshness.get("status")
+                if status == "active" and freshness_status == "stale":
+                    self.warnings.append(
+                        {
+                            "code": "STALE_ACTIVE_TOPIC",
+                            "message": f"Node '{node_id}' is active but marked stale",
+                        }
+                    )
 
     def _validate_edges(self) -> None:
         """Validate all edges."""
@@ -264,7 +293,7 @@ class TopicValidator:
                 )
                 continue
 
-            edge_id = edge.get("id", "unknown")
+            edge_id = edge.get("id", f"{edge.get('source')}->{edge.get('target')}")
             source = edge.get("source")
             target = edge.get("target")
             relation = edge.get("relation")
@@ -297,8 +326,11 @@ class TopicValidator:
                     }
                 )
 
-            # Validate evidence_level
-            if evidence_level not in self.VALID_EVIDENCE_LEVELS:
+            # Validate evidence_level (only if present — it's optional)
+            if (
+                evidence_level is not None
+                and evidence_level not in self.VALID_EVIDENCE_LEVELS
+            ):
                 self.errors.append(
                     {
                         "code": "INVALID_EVIDENCE_LEVEL",
@@ -315,7 +347,7 @@ class TopicValidator:
                     }
                 )
 
-            # Validate confidence
+            # Validate confidence (only if present)
             confidence = edge.get("confidence")
             if confidence is not None:
                 if not isinstance(confidence, (int, float)) or not (
@@ -329,11 +361,11 @@ class TopicValidator:
                     )
 
             # Validate relation
-            if relation not in self.VALID_RELATIONS:
-                self.errors.append(
+            if relation and relation not in self.VALID_RELATIONS:
+                self.warnings.append(
                     {
-                        "code": "INVALID_RELATION",
-                        "message": f"Edge '{edge_id}' has invalid relation: {relation}",
+                        "code": "UNKNOWN_RELATION",
+                        "message": f"Edge '{edge_id}' has unrecognized relation: {relation}",
                     }
                 )
 

@@ -826,7 +826,11 @@ class ContextStateServer:
         return self.store.unlink(args["source"], args["target"])
 
     def _handle_topic_graph(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        return self.store.graph()
+        graph = self.store.graph()
+        # Persist to topic_graph.json so topic_validate can read it (#55)
+        graph_path = self.store.base_dir / "topic_graph.json"
+        self.store._atomic_write(graph_path, graph)
+        return graph
 
     def _handle_topic_detect(self, args: Dict[str, Any]) -> Dict[str, Any]:
         text = args["text"]
