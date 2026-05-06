@@ -17,3 +17,9 @@ __pycache__/
 
 # OpenCode local state (don't track from the builder repo itself)
 .opencode/config.local.json
+
+# PetFish local state (runtime topic/session data)
+.petfish/
+
+# PetFish Remote connector (per-machine config)
+connector.yaml
