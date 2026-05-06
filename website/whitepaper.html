@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>技术白皮书 — 胖鱼 PEtFiSh</title>
+  <meta name="description" content="胖鱼 PEtFiSh 技术白皮书 — 架构设计、Companion Gateway、质量门禁、TrustSkills治理引擎、上下文治理。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0d1117; --bg-card: #161b22; --border: #30363d;
+      --text: #e6edf3; --text-muted: #8b949e;
+      --accent: #39d353; --accent2: #58a6ff; --accent3: #f0883e;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'Noto Serif SC', serif;
+      --radius: 8px; --max-w: 760px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.75; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,17,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .nav .container { display: flex; align-items: center; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); font-size: 14px; }
+    .nav-logo img { width: 24px; height: 24px; }
+    .nav-links { margin-left: auto; display: flex; gap: 16px; font-size: 13px; }
+    .nav-links a { color: var(--text-muted); }
+
+    .content { padding: 64px 0 96px; }
+    .back-link { display: inline-block; color: var(--text-muted); font-size: 13px; margin-bottom: 32px; }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .version { font-size: 13px; color: var(--text-muted); margin-bottom: 40px; }
+    h2 { font-size: 22px; margin-top: 56px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 17px; margin-top: 32px; margin-bottom: 10px; }
+    h4 { font-size: 15px; margin-top: 24px; margin-bottom: 8px; color: var(--text-muted); }
+    p, li { margin-bottom: 12px; }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; }
+    code { font-family: var(--font-mono); font-size: 13px; background: var(--bg-card); padding: 2px 6px; border-radius: 4px; }
+    pre { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; overflow-x: auto; margin: 16px 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-muted); font-weight: 500; font-size: 13px; }
+    .toc { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; margin: 24px 0; }
+    .toc h4 { margin-top: 0; color: var(--text); }
+    .toc ol { margin-bottom: 0; }
+    .toc li { margin-bottom: 4px; font-size: 14px; }
+
+    footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+    footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 12px; opacity: 0.5; }
+    footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
+    footer .links a { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-logo"><img src="assets/petfish-icon-256.png" alt="" /><span>><(((^> 胖鱼 PEtFiSh</span></a>
+    <div class="nav-links">
+      <a href="/">首页</a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<main class="content">
+  <div class="container">
+    <a href="/" class="back-link">← 返回首页</a>
+
+    <h1>胖鱼 PEtFiSh 技术白皮书</h1>
+    <p class="version">v0.6.2 · 2026-05</p>
+
+    <div class="toc">
+      <h4>目录</h4>
+      <ol>
+        <li><a href="#positioning">定位与设计哲学</a></li>
+        <li><a href="#architecture">架构总览</a></li>
+        <li><a href="#gateway">Companion Gateway（常伴层）</a></li>
+        <li><a href="#context">上下文治理（守护层）</a></li>
+        <li><a href="#quality">质量门禁（可信层）</a></li>
+        <li><a href="#trust">TrustSkills治理引擎</a></li>
+        <li><a href="#calibration">反迎合校准（秉正层）</a></li>
+        <li><a href="#platform">平台适配层</a></li>
+        <li><a href="#pack">Pack体系</a></li>
+        <li><a href="#companion-skills">Companion内核</a></li>
+        <li><a href="#decisions">关键技术决策</a></li>
+      </ol>
+    </div>
+
+    <h2 id="positioning">A. 定位与设计哲学</h2>
+
+    <p>胖鱼的定位是<strong>AI伙伴</strong>，不是工具集。</p>
+
+    <p>工具的特征是被动等待调用。伙伴的特征是始终在场、主动参与。这个区别决定了整个架构的设计方向：</p>
+
+    <ul>
+      <li><strong>常伴</strong>：Companion Gateway在每条消息前自动执行，不需要用户主动触发</li>
+      <li><strong>守护</strong>：持续监测上下文状态和能力缺口，在问题累积之前介入</li>
+      <li><strong>可信</strong>：推荐的每个能力单元都经过验证，信任链可追溯</li>
+      <li><strong>秉正</strong>：在评审和裁决中不迎合，标准不因便利降格</li>
+    </ul>
+
+    <p>Skill管理（跨平台安装、生命周期治理）是实现这些承诺的技术手段，不是产品目的本身。</p>
+
+    <h2 id="architecture">B. 架构总览</h2>
+
+    <pre>
+┌──────────────────────────────────────────────────────────────┐
+│                     用户 / AI Agent                            │
+│                                                              │
+│  ┌─────────────────────────────────────────────────────┐     │
+│  │  Companion Gateway (每条消息自动执行)                  │     │
+│  │  ┌──────────────┐  ┌──────────────┐                 │     │
+│  │  │ Topic Detect │  │ Skill Sense  │                 │     │
+│  │  │ (话题检测)    │  │ (能力感知)    │                 │     │
+│  │  └──────┬───────┘  └──────┬───────┘                 │     │
+│  │         └────────┬────────┘                          │     │
+│  └──────────────────┼──────────────────────────────────┘     │
+│                     ↓                                         │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  /petfish (14 subcommands)   install.ps1 / .sh       │    │
+│  └──────────────────┬──────────────────────────────────┘     │
+│                     ↓                                         │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  Companion Core (10 skills) + Context Router (31 MCP)│    │
+│  └──────────────────┬──────────────────────────────────┘     │
+│                     ↓                                         │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  Pack Layer (10 packs · pack-manifest.json schema)    │    │
+│  └──────────────────┬──────────────────────────────────┘     │
+│                     ↓                                         │
+│  ┌──────────────────────────────────────────────────────┐    │
+│  │  Platform Adapter (platforms.json · 8 platforms)       │    │
+│  └──────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────┘</pre>
+
+    <table>
+      <tr><th>层</th><th>职责</th><th>关键文件</th></tr>
+      <tr><td>Gateway层</td><td>每条消息自动话题检测+能力感知</td><td><code>AGENTS.md</code> Companion Gateway section</td></tr>
+      <tr><td>用户接口层</td><td><code>/petfish</code> 14个子命令 + 4个install脚本</td><td><code>install.ps1/sh</code>, <code>remote-install.ps1/sh</code></td></tr>
+      <tr><td>Companion层</td><td>10个内置skill + 31个MCP tools</td><td><code>packs/petfish-companion-skill/</code>, <code>packs/fish-trail/</code></td></tr>
+      <tr><td>Pack层</td><td>10个skill pack，按领域组织</td><td><code>packs/*/pack-manifest.json</code></td></tr>
+      <tr><td>平台适配层</td><td>8平台路径映射、指令翻译、配置合并</td><td><code>platforms.json</code></td></tr>
+    </table>
+
+    <h2 id="gateway">C. Companion Gateway（常伴层）</h2>
+
+    <p>Gateway是胖鱼"伙伴"特性的技术实现。它被注入到项目的instructions文件（<code>AGENTS.md</code> / <code>CLAUDE.md</code>等），在AI Agent处理每条用户消息<strong>之前</strong>强制执行。</p>
+
+    <h3>执行流程</h3>
+    <pre>
+用户消息 → Step 1: Topic Check → Step 2: Skill Sense → Step 3: 正常处理
+                  ↓                        ↓
+          risk_level判定             三层缺口检测
+          low: 静默                  Tier 1: 白名单
+          medium: 一行说明           Tier 2: 意图感知
+          high: 暂停+建议            Tier 3: 静默通过</pre>
+
+    <h3>Step 1: Topic Check</h3>
+    <p>调用MCP tool <code>topic_detect</code>，传入用户消息和当前session。根据返回的<code>risk_level</code>执行对应行为：</p>
+    <table>
+      <tr><th>risk_level</th><th>行为</th></tr>
+      <tr><td>low (0-30)</td><td>静默继续</td></tr>
+      <tr><td>medium (31-60)</td><td>回复开头一行说明上下文继承范围</td></tr>
+      <tr><td>high (61-100)</td><td>暂停正常处理，说明话题变更风险，建议fork/switch/reset</td></tr>
+    </table>
+
+    <h3>Step 2: Skill Sense（三层检测模型）</h3>
+
+    <h4>Tier 1: 白名单匹配</h4>
+    <p>基于 <code>catalog_query.py</code> 中的TRIGGERS关键词表进行匹配。命中 + 未安装 + 本session未推荐 → 回复末尾附带一行推荐。</p>
+
+    <h4>Tier 2: 意图感知</h4>
+    <p>当Tier 1未命中时，判断用户消息是否暗示了当前环境无法满足的能力需求。必须同时满足三个条件才触发：</p>
+    <ol>
+      <li>需要外部集成或专项工具（API调用、邮件、消息推送、图表生成等）</li>
+      <li>Agent原生能力不覆盖（超出代码编写、文件操作、git、搜索等内置能力）</li>
+      <li>当前已安装skill不覆盖</li>
+    </ol>
+    <p>置信度低于70%时不触发。宁静默不打扰。</p>
+
+    <h4>Tier 3: 无缺口</h4>
+    <p>Tier 1和Tier 2均未命中 → 不输出任何推荐。</p>
+
+    <h3>节制规则</h3>
+    <ul>
+      <li>每个领域/关键词每session最多推荐1次</li>
+      <li>不确定是否为缺口时，倾向于不触发</li>
+      <li>MCP不可用时静默降级，不阻塞正常工作</li>
+    </ul>
+
+    <h3>Debug Mode</h3>
+    <p>配置 <code>.petfish/fish-trail/config.yaml</code> 中 <code>debug: true</code> 时，每次Gateway决策可见：</p>
+    <pre>
+🐟 [gateway] topic: relation=continue, risk=12 (low), confidence=0.92 → silent
+🐟 [gateway] skill: no gap → pass
+
+🐟 [gateway] topic: relation=switch, risk=67 (high), confidence=0.85 → suggest fork
+🐟 [gateway] skill: gap=deploy (detected "Docker部署") → recommend
+
+🐟 [gateway] topic: relation=continue, risk=5 (low), confidence=0.95 → silent
+🐟 [gateway] skill: tier2 gap detected (intent="发邮件通知", need="邮件服务集成") → suggest search</pre>
+
+    <h2 id="context">D. 上下文治理（守护层）</h2>
+
+    <p><code>fish-trail</code> pack通过本地MCP server提供话题感知的上下文治理。纯Python标准库实现，零外部依赖。</p>
+
+    <h3>核心能力</h3>
+    <table>
+      <tr><th>能力</th><th>说明</th></tr>
+      <tr><td>话题检测</td><td>自动识别用户消息所属话题，支持CJK文本，输出关系类型和风险等级</td></tr>
+      <tr><td>污染评分</td><td>量化跨话题上下文污染风险（0-100），高于60时主动提示</td></tr>
+      <tr><td>上下文隔离</td><td>按话题构建Context Package，隔离不同话题的文件引用、决策和成果</td></tr>
+      <tr><td>会话管理</td><td>话题感知的会话绑定、跨会话恢复、多Agent归因、活动查询</td></tr>
+    </table>
+
+    <h3>7种话题关系类型</h3>
+    <table>
+      <tr><th>类型</th><th>策略</th></tr>
+      <tr><td>continue</td><td>完全继承当前上下文</td></tr>
+      <tr><td>fork</td><td>从当前topic分叉，继承部分上下文</td></tr>
+      <tr><td>switch</td><td>切换到已有topic，加载该topic的Context Package</td></tr>
+      <tr><td>merge</td><td>合并两个topic（需用户确认）</td></tr>
+      <tr><td>archive</td><td>归档当前topic，冻结上下文</td></tr>
+      <tr><td>reset</td><td>清空上下文，建立干净包</td></tr>
+      <tr><td>bridge</td><td>两个topic间建立桥接，只继承交叉部分</td></tr>
+    </table>
+
+    <h3>31个MCP Tools</h3>
+    <table>
+      <tr><th>组</th><th>工具数</th><th>典型工具</th></tr>
+      <tr><td>话题管理</td><td>8</td><td><code>topic_detect</code>, <code>topic_create</code>, <code>topic_update</code>, <code>topic_merge</code></td></tr>
+      <tr><td>上下文构建</td><td>5</td><td><code>context_build</code>, <code>context_get_active</code>, <code>contamination_score</code></td></tr>
+      <tr><td>使用追踪</td><td>5</td><td><code>track_file_reference</code>, <code>track_decision</code>, <code>track_artifact</code></td></tr>
+      <tr><td>会话管理</td><td>10</td><td><code>session_bind</code>, <code>session_resume</code>, <code>session_query_activity</code></td></tr>
+    </table>
+
+    <h2 id="quality">E. 质量门禁（可信层）</h2>
+
+    <pre>
+skill目录
+  │
+  ├─① Lint (skill-lint)
+  │   └─ Score ≥ 80/100? → Continue or FAIL
+  │
+  ├─② Security Audit (skill-security-auditor)
+  │   └─ Risk ≤ 0.5? No CRITICAL? → Continue or FAIL
+  │
+  ├─③ Metadata Validation
+  │   └─ name, version, description valid? → Continue or FAIL
+  │
+  └─④ Decision
+      ├─ ✅ PASS       → 允许发布
+      ├─ ⚠️ CONDITIONAL → 需人工确认
+      └─ ❌ FAIL       → 必须先修复</pre>
+
+    <h3>Lint评分规则（100分制）</h3>
+    <p>起始100分，按finding扣分：error(-10)、warn(-5)、info(-1)。规则前缀：ST0xx结构完整性、FM0xx前置元数据、CT0xx内容质量、SC0xx安全模式、PY0xx Python脚本质量。40+条规则。</p>
+
+    <h3>Security Audit评分</h3>
+    <p>风险分 = Σ(finding权重)，归一化到0.0-1.0。权重：info=0.0 / low=0.1 / medium=0.3 / high=0.6 / critical=1.0。检测类别：代码执行（subprocess/eval/exec）、硬编码凭证、网络调用、文件系统、markdown注入。</p>
+
+    <h2 id="trust">F. TrustSkills治理引擎</h2>
+
+    <p>质量门禁做静态模式匹配，快但浅。TrustSkills是另一层——按可执行行为分析。</p>
+
+    <h3>六个风险维度</h3>
+    <table>
+      <tr><th>维度</th><th>权重</th><th>含义</th></tr>
+      <tr><td>shell</td><td>0.25</td><td>shell执行、子进程调用、高权限工具声明</td></tr>
+      <tr><td>network</td><td>0.25</td><td>网络访问、外部域名、远程通信</td></tr>
+      <tr><td>file_write</td><td>0.15</td><td>文件写入能力、批量写、宽范围写入</td></tr>
+      <tr><td>sensitive_data</td><td>0.15</td><td>接触密钥、凭证、敏感系统路径</td></tr>
+      <tr><td>script_risk</td><td>0.10</td><td>脚本内的file IO、subprocess、network行为证据</td></tr>
+      <tr><td>persistence</td><td>0.10</td><td>持久化副作用：服务安装、状态写入、配置驻留</td></tr>
+    </table>
+
+    <h3>五级治理动作</h3>
+    <table>
+      <tr><th>级别</th><th>阈值</th><th>含义</th></tr>
+      <tr><td>allow</td><td>≥ 0.00</td><td>直接放行</td></tr>
+      <tr><td>allow_with_ask</td><td>≥ 0.15</td><td>允许执行，先征得用户确认</td></tr>
+      <tr><td>sandbox_required</td><td>≥ 0.35</td><td>需要沙箱隔离执行</td></tr>
+      <tr><td>manual_review_required</td><td>≥ 0.55</td><td>必须进入人工复核</td></tr>
+      <tr><td>deny</td><td>红线命中</td><td>硬拒绝，不走阈值计算</td></tr>
+    </table>
+
+    <h3>四条红线规则</h3>
+    <table>
+      <tr><th>红线</th><th>含义</th></tr>
+      <tr><td>subprocess-network-combo</td><td>subprocess + network，可能形成download-and-exec路径</td></tr>
+      <tr><td>dangerous-system-paths</td><td>读写<code>/etc/passwd</code>、<code>~/.ssh/id_*</code>等敏感路径</td></tr>
+      <tr><td>sudo-without-approval</td><td>声明sudo/su但没有显式approval_required</td></tr>
+      <tr><td>subprocess-os-combo</td><td>subprocess + os级操作，任意命令/高破坏面行为</td></tr>
+    </table>
+    <p>命中任何一条红线 → <strong>deny</strong>，不走分数阈值。</p>
+
+    <h2 id="calibration">G. 反迎合校准（秉正层）</h2>
+
+    <p><code>calibrate</code> pack解决AI在评审、方案评估等判断型任务中倾向于顺着用户说的问题。</p>
+
+    <ul>
+      <li>先中性化问题，再给结论——不直接顺着用户预设表态</li>
+      <li>先给评分维度，再做判断——至少补一个反方或替代方案</li>
+      <li>结论与置信度分开表达——证据不足时明确降级</li>
+      <li>可与其他skill组合使用：<code>course-outline-design + calibrate</code>、<code>code-review + calibrate</code></li>
+    </ul>
+
+    <p>触发条件：用户要求评审、评价、critique、feedback，或提出确认性问题（"对吗？""是不是？""你同意吗？"）。简单事实查询、翻译、排版默认不启用。</p>
+
+    <h2 id="platform">H. 平台适配层</h2>
+
+    <h3>核心数据源：platforms.json</h3>
+    <p><code>platforms.json</code>是平台适配的唯一数据源。每个平台定义：skills目录、commands目录、agents目录、配置文件、指令文件、检测标记、合并策略。</p>
+
+    <h3>8平台路径映射</h3>
+    <table>
+      <tr><th>平台</th><th>Skills目录</th><th>指令文件</th><th>检测标记</th></tr>
+      <tr><td>OpenCode</td><td><code>.opencode/skills/</code></td><td><code>AGENTS.md</code></td><td><code>.opencode/</code></td></tr>
+      <tr><td>Claude Code</td><td><code>.claude/skills/</code></td><td><code>CLAUDE.md</code></td><td><code>.claude/</code></td></tr>
+      <tr><td>Codex</td><td><code>.agents/skills/</code></td><td><code>AGENTS.md</code></td><td><code>.codex/</code></td></tr>
+      <tr><td>Cursor</td><td><code>.cursor/skills/</code></td><td><code>.cursor/rules/*.mdc</code></td><td><code>.cursor/</code></td></tr>
+      <tr><td>GitHub Copilot</td><td><code>.github/skills/</code></td><td><code>copilot-instructions.md</code></td><td><code>.github/copilot-*</code></td></tr>
+      <tr><td>Windsurf</td><td><code>.windsurf/skills/</code></td><td><code>.windsurfrules</code></td><td><code>.windsurf/</code></td></tr>
+      <tr><td>Antigravity</td><td><code>.agents/skills/</code></td><td><code>AGENTS.md</code> + <code>GEMINI.md</code></td><td><code>GEMINI.md</code></td></tr>
+      <tr><td>Universal</td><td><code>.agents/skills/</code></td><td><code>AGENTS.md</code></td><td>(fallback)</td></tr>
+    </table>
+
+    <h3>指令翻译机制</h3>
+    <table>
+      <tr><th>方法</th><th>适用</th><th>行为</th></tr>
+      <tr><td>marker_based</td><td>OpenCode, Codex, Copilot, Windsurf, Antigravity, Universal</td><td>用<code>&lt;!-- BEGIN/END pack --&gt;</code>标记合并，不覆盖已有内容</td></tr>
+      <tr><td>rename_with_header</td><td>Claude Code, Copilot, Windsurf</td><td>复制内容，加平台特定头部</td></tr>
+      <tr><td>wrap_as_mdc</td><td>Cursor</td><td>包装为<code>.mdc</code>前置元数据格式</td></tr>
+    </table>
+
+    <h2 id="pack">I. Pack体系</h2>
+
+    <h3>pack-manifest.json统一schema</h3>
+    <pre>
+{
+  "name": "petfish-companion-skill",
+  "version": "0.6.2",
+  "description": "AI Worker's Companion...",
+  "compatibility": "opencode, claude, codex, cursor, copilot, windsurf, antigravity, universal",
+  "skill_count": 10,
+  "command_count": 1,
+  "agent_count": 0,
+  "skills": ["petfish-companion", "marketplace-connector", ...],
+  "commands": ["petfish"],
+  "agents": []
+}</pre>
+
+    <h3>10个Pack定位</h3>
+    <table>
+      <tr><th>Pack</th><th>Alias</th><th>承诺映射</th><th>规模</th></tr>
+      <tr><td>petfish-companion-skill</td><td><code>companion</code></td><td>常伴</td><td>10 skills, 1 cmd</td></tr>
+      <tr><td>fish-trail</td><td><code>context</code></td><td>守护</td><td>1 skill, 31 MCP</td></tr>
+      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code></td><td>秉正</td><td>1 skill</td></tr>
+      <tr><td>trustskills-governance-pack</td><td><code>trust</code></td><td>可信</td><td>1 skill</td></tr>
+      <tr><td>project-initializer-skill</td><td><code>init</code></td><td>—</td><td>1 skill, 1 cmd</td></tr>
+      <tr><td>opencode-course-skills-pack</td><td><code>course</code></td><td>—</td><td>15 skills, 10 cmds, 8 agents</td></tr>
+      <tr><td>repo-deploy-ops-skill-pack</td><td><code>deploy</code></td><td>—</td><td>7 skills</td></tr>
+      <tr><td>petfish-style-skill</td><td><code>petfish</code></td><td>—</td><td>1 skill</td></tr>
+      <tr><td>opencode-skill-pack-testcases-usage-docs</td><td><code>testdocs</code></td><td>—</td><td>2 skills</td></tr>
+      <tr><td>opencode-ppt-skills</td><td><code>ppt</code></td><td>—</td><td>2 skills</td></tr>
+    </table>
+
+    <h2 id="companion-skills">J. Companion内核：10个内置Skill</h2>
+
+    <pre>
+mine → author → lint → audit → gate → optimize → eval
+  ↓       ↓       ↓      ↓       ↓        ↓       ↓
+发现    创建    格式   安全    门禁     优化    评测
+
++ marketplace-connector (跨市场搜索)
++ skill-usage-tracker   (使用追踪)
++ petfish-companion     (总控调度)</pre>
+
+    <table>
+      <tr><th>Skill</th><th>职责</th></tr>
+      <tr><td>petfish-companion</td><td>总控调度，动态读取pack-manifest.json，路由/petfish 14个子命令</td></tr>
+      <tr><td>marketplace-connector</td><td>跨6来源搜索（胖鱼仓库、SkillKit、Smithery、Glama、anthropics/skills、GitHub）</td></tr>
+      <tr><td>skill-author</td><td>生成符合规范的skill脚手架</td></tr>
+      <tr><td>skill-lint</td><td>100分制格式检查，40+规则</td></tr>
+      <tr><td>repo-skill-miner</td><td>分析GitHub仓库，提取可skill化模块</td></tr>
+      <tr><td>skill-security-auditor</td><td>静态安全分析，0.0-1.0风险评分</td></tr>
+      <tr><td>quality-gate</td><td>编排lint+audit，给出PASS/CONDITIONAL/FAIL</td></tr>
+      <tr><td>skill-description-optimizer</td><td>分析触发准确率和歧义度</td></tr>
+      <tr><td>skill-trigger-evaluator</td><td>用测试集跑precision/recall</td></tr>
+      <tr><td>skill-usage-tracker</td><td>记录使用频率和反馈评分</td></tr>
+    </table>
+
+    <h3>Catalog动态加载</h3>
+    <p><code>catalog_query.py</code>通过<code>_find_packs_root()</code>从脚本位置向上查找<code>packs/</code>目录遍历manifest。在用户机器上（无<code>packs/</code>目录），自动回退到<code>installed-packs.json</code>获取版本和skill_count信息。新pack只需放入<code>packs/&lt;name&gt;/pack-manifest.json</code>，不需修改代码。</p>
+
+    <h2 id="decisions">K. 关键技术决策记录</h2>
+
+    <table>
+      <tr><th>决策</th><th>选择</th><th>理由</th></tr>
+      <tr><td>伙伴实现</td><td>Instructions注入 + MCP</td><td>Gateway注入instructions文件，确保每条消息都执行；MCP提供状态持久化</td></tr>
+      <tr><td>能力感知</td><td>三层模型</td><td>Tier 1快速匹配，Tier 2深度意图分析，Tier 3静默——平衡准确率和打扰度</td></tr>
+      <tr><td>平台配置</td><td>platforms.json单一数据源</td><td>新平台只改一个文件</td></tr>
+      <tr><td>Pack发现</td><td>运行时遍历manifest + registry fallback</td><td>开发环境读packs/，用户机器读installed-packs.json</td></tr>
+      <tr><td>安装脚本</td><td>PowerShell + Bash双版本</td><td>覆盖Windows + macOS/Linux</td></tr>
+      <tr><td>指令合并</td><td>marker-based merge</td><td>不覆盖用户已有内容，升级时替换first+去重</td></tr>
+      <tr><td>Context Router MCP</td><td>纯Python标准库</td><td>零依赖，任何环境可运行</td></tr>
+      <tr><td>会话管理</td><td>话题绑定而非全局session</td><td>支持多话题并行、跨会话恢复</td></tr>
+      <tr><td>反迎合校准</td><td>组合式skill</td><td>可叠加到任何评审类skill，不改变原skill逻辑</td></tr>
+      <tr><td>平台检测fallback</td><td>universal + 环境报告</td><td>未检测到平台时报告OS/shell/runtimes，给出操作建议</td></tr>
+    </table>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
+    <strong>胖鱼 PEtFiSh</strong> — 你的AI伙伴<br/>
+    常伴 · 守护 · 可信 · 秉正
+    <div class="links">
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="/">首页</a>
+      <a href="/pitch.html">产品介绍</a>
+      <a href="/blog.html">Blog</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

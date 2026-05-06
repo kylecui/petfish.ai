@@ -19,24 +19,26 @@ Product name: `胖鱼 PEtFiSh`
 
 **胖鱼 PEtFiSh — 你的AI伙伴。** 从项目第一行代码到最终交付，胖鱼都在。
 
-**PEtFiSh — Your AI companion.** From first commit to final delivery, PEtFiSh is there. Finding skills, building habits, keeping standards.
+**PEtFiSh — Your AI companion.** From first commit to final delivery, PEtFiSh is there. Sensing, guarding, keeping standards.
 
-支持8个AI编程平台，一条命令完成安装。
+> **常伴 · 守护 · 可信 · 秉正**
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v0.5                        │
+│  ><(((^>  胖鱼 PEtFiSh v0.6                        │
 │                                                     │
-│  Discover  → mine skills from any repo              │
-│  Create    → author new skills from scratch          │
-│  Validate  → lint, security audit, quality gate      │
-│  Optimize  → improve descriptions & triggers         │
-│  Install   → one command, 8 platforms                │
-│  Track     → usage analytics & recommendations       │
+│  常伴  Every interaction, always present            │
+│  守护  Sense gaps, guard context, block pollution   │
+│  可信  Lint + audit + red lines = verified trust    │
+│  秉正  No sycophancy, standards don't bend          │
 │                                                     │
 │  /petfish — your always-on companion                │
 └─────────────────────────────────────────────────────┘
 ```
+
+不是工具集，是伙伴。工具被调用，伙伴始终在场。
+
+支持8个AI编程平台，一条命令完成安装。
 
 ---
 
@@ -69,9 +71,19 @@ Then type `/initproject` — PEtFiSh will:
 
 ## Companion: /petfish / 伙伴命令
 
-The `companion` pack installs the `/petfish` command — your always-on AI skill assistant with 14 subcommands.
+The `companion` pack is the heart of PEtFiSh — not just a command router, but your always-on AI companion that participates in every interaction.
 
-`companion` pack安装`/petfish`命令 — 你的常驻AI skill助手，包含14个子命令。
+`companion` pack是胖鱼的核心——不只是命令路由器，是每一轮交互都参与的AI伙伴。
+
+**Companion Gateway** runs before every message:
+1. **Topic Check** — detect topic drift, assess contamination risk (0-100)
+2. **Skill Sense** — 3-tier capability gap detection (whitelist → intent-aware → silent)
+3. **Proceed** — normal processing with context preserved
+
+**Companion Gateway** 在每条消息前自动执行：
+1. **话题检测** — 检测话题漂移，评估污染风险（0-100）
+2. **能力感知** — 三层缺口检测（白名单 → 意图感知 → 静默通过）
+3. **正常处理** — 上下文完整保护下进入正常工作
 
 ### Core Commands / 核心命令
 
@@ -421,6 +433,15 @@ petfish.ai/                          # 胖鱼 PEtFiSh repo
 ---
 
 ## Version History / 版本历史
+
+### v0.6 — Companion Gateway / 伙伴常驻
+
+- **v0.6.2**: Fix companion pack skill sensing, installer dedup, catalog fallback, universal platform detection
+  - 修复companion pack技能感知、安装器去重、catalog回退、universal平台检测
+- **v0.6.1**: Fix topic_graph persistence, validate schema alignment, intent-aware skill sensing
+  - 修复topic_graph持久化、validate schema对齐、意图感知技能推荐
+- **v0.6.0**: Companion Gateway — always-on topic check + 3-tier skill sense + debug mode
+  - Companion Gateway——每条消息自动话题检测 + 三层能力感知 + 开发者调试模式
 
 ### v0.5 — Fish Trail + Repo Rename / 话题路由 + 仓库重命名
 

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>产品介绍 — 胖鱼 PEtFiSh</title>
+  <meta name="description" content="胖鱼 PEtFiSh 产品介绍 — 常伴·守护·可信·秉正，从init到交付全程陪伴的AI伙伴。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0d1117; --bg-card: #161b22; --border: #30363d;
+      --text: #e6edf3; --text-muted: #8b949e;
+      --accent: #39d353; --accent2: #58a6ff; --accent3: #f0883e;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'Noto Serif SC', serif;
+      --radius: 8px; --max-w: 760px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.75; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,17,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .nav .container { display: flex; align-items: center; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); font-size: 14px; }
+    .nav-logo img { width: 24px; height: 24px; }
+    .nav-links { margin-left: auto; display: flex; gap: 16px; font-size: 13px; }
+    .nav-links a { color: var(--text-muted); }
+
+    /* Content */
+    .content { padding: 64px 0 96px; }
+    .back-link { display: inline-block; color: var(--text-muted); font-size: 13px; margin-bottom: 32px; }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .version { font-size: 13px; color: var(--text-muted); margin-bottom: 40px; }
+    h2 { font-size: 22px; margin-top: 56px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    h3 { font-size: 17px; margin-top: 32px; margin-bottom: 10px; }
+    p, li { color: var(--text); margin-bottom: 12px; }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; }
+    strong { color: var(--text); }
+    code { font-family: var(--font-mono); font-size: 13px; background: var(--bg-card); padding: 2px 6px; border-radius: 4px; }
+    pre { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; overflow-x: auto; margin: 16px 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; }
+    .highlight { color: var(--accent); font-weight: 600; }
+    .pillar-inline { font-family: var(--font-serif); font-weight: 700; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-muted); font-weight: 500; font-size: 13px; }
+    .quote { border-left: 3px solid var(--accent); padding-left: 16px; color: var(--text-muted); font-style: italic; margin: 24px 0; }
+
+    /* Footer */
+    footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+    footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 12px; opacity: 0.5; }
+    footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
+    footer .links a { color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-logo"><img src="assets/petfish-icon-256.png" alt="" /><span>><(((^> 胖鱼 PEtFiSh</span></a>
+    <div class="nav-links">
+      <a href="/">首页</a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<main class="content">
+  <div class="container">
+    <a href="/" class="back-link">← 返回首页</a>
+
+    <h1>胖鱼 PEtFiSh — 产品介绍</h1>
+    <p class="version">v0.6.2 · 2026-05</p>
+
+    <div class="quote">
+      伙伴不是工具。工具被调用，伙伴始终在场。<br/>
+      从<code>/initproject</code>那一刻起，胖鱼参与你的每一轮交互——感知、守护、维持标准。
+    </div>
+
+    <h2>问题不在Skill，在协作方式</h2>
+
+    <p>你用AI写代码。AI很能干。但你注意到几个问题：</p>
+    <ul>
+      <li><strong>它没有边界感</strong>——话题漂移了它不知道，上下文污染了它不管，你得自己记住"现在在做什么"。</li>
+      <li><strong>它不会主动补位</strong>——你开始搞部署，它不会说"你还没装部署能力包"。你缺什么得你自己发现。</li>
+      <li><strong>它容易顺着你说</strong>——你提出一个有问题的方案，它说"好的，这是个很好的方向"。没人拦你。</li>
+      <li><strong>它没有质量底线</strong>——推荐的Skill有没有安全问题？触发准确率多少？不知道，也不检查。</li>
+    </ul>
+
+    <p>这些不是"Skill管理"问题。这是<strong>协作质量</strong>问题。你需要的不是更多工具，是一个靠谱的伙伴。</p>
+
+    <h2>四个承诺</h2>
+
+    <h3><span class="pillar-inline" style="color:var(--accent)">常伴</span> — 每一轮交互都在</h3>
+    <p>Companion Gateway在每条消息前自动执行两步检查：</p>
+    <ol>
+      <li><strong>话题检测</strong>：当前消息和活跃话题什么关系？漂移了吗？风险多高？需要提示吗？</li>
+      <li><strong>能力感知</strong>：你正在做的事，需要什么能力？你有吗？没有的话要不要装？</li>
+    </ol>
+    <p>然后才进入正常处理。你感觉不到它在，但它每一轮都在。</p>
+
+    <h3><span class="pillar-inline" style="color:var(--accent2)">守护</span> — 在你掉坑之前拦住</h3>
+    <p>三层感知模型：</p>
+    <ul>
+      <li><strong>Tier 1</strong>：关键词白名单匹配已知领域（部署→deploy、课程→course、PPT→ppt...）</li>
+      <li><strong>Tier 2</strong>：意图级缺口检测——需要外部集成（邮件服务、图表工具、监控）且agent原生能力不覆盖时触发</li>
+      <li><strong>Tier 3</strong>：无缺口，静默通过。不打扰。</li>
+    </ul>
+    <p>每个领域每次会话最多提醒一次。上下文守护同理：Fish-trail话题治理器持续监测话题关系和污染风险，高于阈值才出声。</p>
+
+    <h3><span class="pillar-inline" style="color:var(--accent3)">可信</span> — 信任是验证出来的</h3>
+    <p>胖鱼推荐的每个Skill都经过完整门禁：</p>
+    <div class="card">
+      <pre>Lint (100分制, 40+规则)
+  → Score ≥ 80? Continue
+Security Audit (0.0-1.0风险分)
+  → Risk ≤ 0.5? No CRITICAL? Continue
+四条红线检测
+  → subprocess+network combo? deny.
+  → 敏感路径读写? deny.
+  → sudo without approval? deny.
+  → subprocess+os combo? deny.
+Quality Gate → PASS / CONDITIONAL / FAIL</pre>
+    </div>
+    <p>TrustSkills治理引擎：6维风险（shell/network/file_write/sensitive_data/script_risk/persistence）、5级动作（allow → deny）、4条红线硬拒绝。命中红线不走分数阈值，直接deny。</p>
+
+    <h3><span class="pillar-inline" style="color:#a371f7">秉正</span> — 标准不因便利而降格</h3>
+    <p>反迎合校准机制：</p>
+    <ul>
+      <li>先中性化问题，再给结论——不顺着用户预设表态</li>
+      <li>先给评分维度，再做判断——至少补一个反方或替代方案</li>
+      <li>结论与置信度分开表达——证据不足时明确降级</li>
+      <li>可叠加到任何评审类Skill：<code>outline-design + calibrate</code>、<code>code-review + calibrate</code></li>
+    </ul>
+    <p>质量门禁同理：不会因为"这个Skill看起来有用"就放水。80分以下不过，0.5以上不过，红线不商量。</p>
+
+    <h2>它具体做什么</h2>
+
+    <p>四个承诺落地为具体能力：</p>
+
+    <table>
+      <tr><th>能力</th><th>承诺</th><th>实现</th></tr>
+      <tr><td>Companion Gateway</td><td>常伴</td><td>每条消息前自动话题检测+能力感知</td></tr>
+      <tr><td>三层Skill Sense</td><td>守护</td><td>白名单→意图缺口→静默，按需推荐</td></tr>
+      <tr><td>Fish-trail话题治理</td><td>守护</td><td>7种关系、污染评分、上下文隔离、31 MCP tools</td></tr>
+      <tr><td>Quality Gate流水线</td><td>可信</td><td>Lint+Audit+红线→PASS/FAIL</td></tr>
+      <tr><td>TrustSkills引擎</td><td>可信</td><td>6维风险、5级动作、4条红线</td></tr>
+      <tr><td>Anti-sycophancy校准</td><td>秉正</td><td>中性化→评分→反方→置信度分离</td></tr>
+      <tr><td>跨平台Skill适配</td><td>—</td><td>一套Skill，8个平台自动翻译安装</td></tr>
+      <tr><td>Skill全生命周期</td><td>—</td><td>mine→author→lint→audit→gate→optimize→eval→track</td></tr>
+    </table>
+
+    <h2>10个能力包</h2>
+
+    <table>
+      <tr><th>Alias</th><th>定位</th><th>规模</th></tr>
+      <tr><td><code>companion</code></td><td>胖鱼本体——常伴核心 + 生命周期管理</td><td>10 skills, 1 cmd</td></tr>
+      <tr><td><code>context</code></td><td>话题治理器——守护核心</td><td>1 skill, 31 MCP tools</td></tr>
+      <tr><td><code>calibrate</code></td><td>反迎合校准——秉正核心</td><td>1 skill</td></tr>
+      <tr><td><code>trust</code></td><td>Skill可信度治理——可信核心</td><td>1 skill</td></tr>
+      <tr><td><code>init</code></td><td>项目初始化向导</td><td>1 skill, 1 cmd</td></tr>
+      <tr><td><code>course</code></td><td>课程开发全套</td><td>15 skills, 10 cmds, 8 agents</td></tr>
+      <tr><td><code>deploy</code></td><td>部署与运维</td><td>7 skills</td></tr>
+      <tr><td><code>petfish</code></td><td>工程写作风格</td><td>1 skill</td></tr>
+      <tr><td><code>testdocs</code></td><td>测试用例与文档</td><td>2 skills</td></tr>
+      <tr><td><code>ppt</code></td><td>PPT设计</td><td>2 skills</td></tr>
+    </table>
+
+    <h2>为什么是伙伴，不是工具</h2>
+
+    <p>工具是你想起来才用的。伙伴是一直在的。</p>
+
+    <ul>
+      <li>工具等你调用——胖鱼每一轮都自动执行Gateway检查</li>
+      <li>工具不管上下文——胖鱼追踪话题关系，防止污染累积</li>
+      <li>工具不会说"不"——胖鱼在红线面前硬拒绝，在评审中不迎合</li>
+      <li>工具用完就走——胖鱼从init到交付全程在场，跨会话保持记忆</li>
+    </ul>
+
+    <p>Skill管理是手段。<strong>让你的AI始终处于正确的工作状态</strong>，才是目的。</p>
+
+    <h2>安装</h2>
+
+    <pre>
+# macOS / Linux / WSL
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack init,companion --detect
+
+# Windows PowerShell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect</pre>
+
+    <p>装完输入 <code>/initproject</code>。胖鱼询问项目类型，自动装上匹配的能力包。从此刻起，伙伴已就位。</p>
+
+    <p><strong>GitHub</strong>：<a href="https://github.com/kylecui/petfish.ai">github.com/kylecui/petfish.ai</a></p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
+    <strong>胖鱼 PEtFiSh</strong> — 你的AI伙伴<br/>
+    从项目第一行代码到最终交付，胖鱼都在。
+    <div class="links">
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="/">首页</a>
+      <a href="/whitepaper.html">技术白皮书</a>
+      <a href="/blog.html">Blog</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

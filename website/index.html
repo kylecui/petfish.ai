@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>胖鱼 PEtFiSh — 你的AI伙伴</title>
+  <meta name="description" content="胖鱼 PEtFiSh — 常伴·守护·可信·秉正。从项目第一行代码到最终交付，胖鱼都在。不是工具集，是你的AI伙伴。" />
+  <meta name="keywords" content="PEtFiSh, 胖鱼, AI companion, AI伙伴, OpenCode, Claude Code, Cursor, Copilot, skill lifecycle" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="胖鱼 PEtFiSh — 常伴·守护·可信·秉正" />
+  <meta property="og:description" content="从项目第一行代码到最终交付，胖鱼都在。不是工具集，是你的AI伙伴。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://petfish.ai/" />
+  <meta property="og:image" content="https://petfish.ai/assets/petfish-icon-256.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="胖鱼 PEtFiSh — 常伴·守护·可信·秉正" />
+  <meta name="twitter:description" content="从项目第一行代码到最终交付，胖鱼都在。不是工具集，是你的AI伙伴。" />
+  <meta name="twitter:image" content="https://petfish.ai/assets/petfish-icon-256.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --bg-card:   #161b22;
+      --bg-code:   #0d1117;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --text-muted:#8b949e;
+      --accent:    #39d353;
+      --accent2:   #58a6ff;
+      --accent3:   #f0883e;
+      --danger:    #f85149;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif:'Noto Serif SC', serif;
+      --radius:    8px;
+      --max-w:     900px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+    section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: none; }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+    .nav .container { display: flex; align-items: center; gap: 24px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); }
+    .nav-logo img { width: 28px; height: 28px; }
+    .nav-links { display: flex; gap: 16px; margin-left: auto; font-size: 13px; }
+    .nav-links a { color: var(--text-muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 120px 0 96px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(57,211,83,0.06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-fish { font-size: 48px; color: var(--accent); font-family: var(--font-mono); margin-bottom: 24px; opacity: 0.7; }
+    .hero h1 { font-size: 42px; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.5px; }
+    .hero .tagline {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      letter-spacing: 8px;
+    }
+    .hero .subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 560px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; border-radius: var(--radius);
+      font-size: 14px; font-weight: 500; transition: all 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-primary:hover { background: #2ea043; text-decoration: none; }
+    .btn-secondary { border: 1px solid var(--border); color: var(--text); }
+    .btn-secondary:hover { border-color: var(--text-muted); text-decoration: none; }
+
+    /* ── Pillars ── */
+    .pillars { padding: 80px 0; }
+    .pillars-header { text-align: center; margin-bottom: 56px; }
+    .pillars-header h2 { font-size: 28px; margin-bottom: 12px; }
+    .pillars-header p { color: var(--text-muted); font-size: 15px; }
+    .pillar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .pillar-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pillar-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .pillar-card:nth-child(1)::before { background: var(--accent); }
+    .pillar-card:nth-child(2)::before { background: var(--accent2); }
+    .pillar-card:nth-child(3)::before { background: var(--accent3); }
+    .pillar-card:nth-child(4)::before { background: #a371f7; }
+    .pillar-label {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .pillar-card:nth-child(1) .pillar-label { color: var(--accent); }
+    .pillar-card:nth-child(2) .pillar-label { color: var(--accent2); }
+    .pillar-card:nth-child(3) .pillar-label { color: var(--accent3); }
+    .pillar-card:nth-child(4) .pillar-label { color: #a371f7; }
+    .pillar-title { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+    .pillar-desc { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+
+    /* ── How it works ── */
+    .how-section h2 { font-size: 24px; margin-bottom: 32px; text-align: center; }
+    .timeline { position: relative; padding-left: 32px; }
+    .timeline::before {
+      content: ''; position: absolute; left: 11px; top: 8px; bottom: 8px;
+      width: 2px; background: var(--border);
+    }
+    .timeline-item { position: relative; margin-bottom: 32px; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    .timeline-dot {
+      position: absolute; left: -32px; top: 4px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--bg); border: 2px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .timeline-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+    .timeline-item h3 { font-size: 15px; margin-bottom: 6px; }
+    .timeline-item p { color: var(--text-muted); font-size: 14px; }
+
+    /* ── Packs grid ── */
+    .packs-section h2 { font-size: 24px; margin-bottom: 12px; text-align: center; }
+    .packs-section > .container > p { text-align: center; color: var(--text-muted); margin-bottom: 32px; font-size: 14px; }
+    .packs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .pack-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+    }
+    .pack-card .pack-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+    .pack-card .pack-desc { color: var(--text-muted); font-size: 13px; margin-bottom: 8px; }
+    .pack-card .pack-meta { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+
+    /* ── Install ── */
+    .install-section h2 { font-size: 24px; margin-bottom: 24px; text-align: center; }
+    .install-block { margin-bottom: 24px; }
+    .install-block h3 { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
+    .code-block {
+      background: var(--bg-code); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      font-family: var(--font-mono); font-size: 13px;
+      overflow-x: auto; position: relative;
+    }
+    .code-block .copy-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 4px 8px; border-radius: 4px;
+      font-size: 11px; cursor: pointer;
+    }
+    .code-block .copy-btn:hover { color: var(--text); }
+    .install-note { color: var(--text-muted); font-size: 13px; margin-top: 16px; line-height: 1.7; }
+
+    /* ── Platform badges ── */
+    .platforms { text-align: center; padding: 48px 0; }
+    .platforms h2 { font-size: 24px; margin-bottom: 24px; }
+    .platform-badges { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .platform-badge {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 13px; color: var(--text-muted);
+    }
+
+    /* ── Remote ── */
+    .remote-section { text-align: center; }
+    .remote-section h2 { font-size: 24px; margin-bottom: 12px; }
+    .remote-section p { color: var(--text-muted); margin-bottom: 20px; }
+    .remote-card {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px 40px; text-align: center;
+    }
+    .remote-card .badge { display: inline-block; background: var(--accent2); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
+
+    /* ── Footer ── */
+    footer {
+      padding: 48px 0; text-align: center;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted); font-size: 13px;
+    }
+    footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 16px; opacity: 0.5; }
+    footer a { color: var(--text-muted); }
+    footer a:hover { color: var(--text); }
+    footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .pillar-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 32px; }
+      .hero .tagline { font-size: 16px; letter-spacing: 4px; }
+      .packs-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-logo">
+      <img src="assets/petfish-icon-256.png" alt="胖鱼" />
+      <span>><(((^> 胖鱼 PEtFiSh</span>
+    </a>
+    <div class="nav-links">
+      <a href="#pillars">理念</a>
+      <a href="#how">运作</a>
+      <a href="#packs">能力</a>
+      <a href="#install">安装</a>
+      <a href="pitch.html">产品介绍</a>
+      <a href="whitepaper.html">白皮书</a>
+      <a href="blog.html">Blog</a>
+      <a href="#remote">Remote</a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="container">
+    <div class="hero-fish">><(((^></div>
+    <h1>胖鱼 PEtFiSh</h1>
+    <p class="tagline">常伴 · 守护 · 可信 · 秉正</p>
+    <p class="subtitle">
+      从项目第一行代码到最终交付，胖鱼都在。<br/>
+      不是你想起来才调用的工具集，是每一轮交互都参与的AI伙伴。
+    </p>
+    <div class="hero-cta">
+      <a href="#install" class="btn btn-primary">⚡ 开始使用</a>
+      <a href="https://github.com/kylecui/petfish.ai" class="btn btn-secondary">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<!-- Four Pillars -->
+<section class="pillars" id="pillars">
+  <div class="container">
+    <div class="pillars-header">
+      <h2>伙伴的四个承诺</h2>
+      <p>伙伴不是工具。工具被调用，伙伴始终在场。</p>
+    </div>
+    <div class="pillar-grid">
+
+      <div class="pillar-card">
+        <div class="pillar-label">常伴</div>
+        <div class="pillar-title">每一轮交互都在</div>
+        <p class="pillar-desc">
+          Companion Gateway在每条消息前自动执行话题检测和能力感知。不需要你主动调用，不需要特殊命令。从<code>/initproject</code>那一刻起，胖鱼就是你工作流的一部分——沉默地同行，在该出现的时刻出现。
+        </p>
+      </div>
+
+      <div class="pillar-card">
+        <div class="pillar-label">守护</div>
+        <div class="pillar-title">在你掉坑之前拦住</div>
+        <p class="pillar-desc">
+          检测到你需要部署能力但没装deploy pack？提醒一次。检测到上下文被跨话题污染、风险评分超过60？主动拦截。质量不过关？挡在发布前面。不是事后复盘，是实时守护。
+        </p>
+      </div>
+
+      <div class="pillar-card">
+        <div class="pillar-label">可信</div>
+        <div class="pillar-title">信任是验证出来的</div>
+        <p class="pillar-desc">
+          胖鱼推荐的每个Skill都经过质量门禁：Lint 100分制打分、安全审计0.0–1.0风险评分、四条红线硬拒绝。TrustSkills治理引擎六维风险评估、五级动作裁决。信任不是宣称的，是审计出来的。
+        </p>
+      </div>
+
+      <div class="pillar-card">
+        <div class="pillar-label">秉正</div>
+        <div class="pillar-title">标准不因便利而降格</div>
+        <p class="pillar-desc">
+          反迎合校准：你问"这个方案行不行"，胖鱼先中性化问题再给结论，至少补一个反方。质量门禁不放水，红线命中即deny不走阈值。推你往更高标准走，而不是让你舒服。
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="how-section" id="how">
+  <div class="container">
+    <h2>胖鱼如何工作</h2>
+    <div class="timeline">
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <h3>一条命令，胖鱼入驻</h3>
+        <p>安装 init + companion pack。输入<code>/initproject</code>，胖鱼询问项目类型，自动安装匹配的能力包，完成配置。从此刻起，伙伴已就位。</p>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <h3>每一轮对话，自动感知</h3>
+        <p>Companion Gateway在每条消息前执行：话题检测（是否漂移？风险几何？）→ 能力缺口感知（你需要什么？装了没？）→ 正常处理。你感觉不到它在，但它一直在。</p>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <h3>遇到缺口，主动补位</h3>
+        <p>三层感知模型：Tier 1 关键词白名单匹配已知领域 → Tier 2 意图级缺口检测（需要邮件服务？图表工具？监控集成？）→ Tier 3 无缺口，静默通过。每个领域每次会话最多提醒一次，不打扰。</p>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <h3>上下文守护，防止污染</h3>
+        <p>Fish-trail话题治理器：7种话题关系类型、污染评分0-100、自动上下文隔离。当话题漂移风险超过阈值，主动提示你fork/switch/reset，而不是让混乱的上下文悄悄拖垮输出质量。</p>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <h3>质量门禁，守住底线</h3>
+        <p>Skill发布前必须通过：Lint ≥ 80分 → 安全审计 Risk ≤ 0.5 → 无CRITICAL → Quality Gate裁决PASS/CONDITIONAL/FAIL。四条红线命中即deny，不走分数阈值。像代码CI一样管理AI能力。</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Packs -->
+<section class="packs-section" id="packs">
+  <div class="container">
+    <h2>10个能力包，按需装备</h2>
+    <p>胖鱼通过Skill Pack赋予AI具体能力。一套Skill写一次，8个平台自动适配安装。</p>
+    <div class="packs-grid">
+
+      <div class="pack-card">
+        <div class="pack-name">companion</div>
+        <div class="pack-desc">胖鱼本体——10个生命周期管理Skill + Companion Gateway + 14个子命令</div>
+        <div class="pack-meta">10 skills · global · 常伴核心</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">context</div>
+        <div class="pack-desc">话题治理器——上下文隔离、污染评分、7种关系、31个MCP tools、会话管理</div>
+        <div class="pack-meta">1 skill · 31 MCP tools · 守护核心</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">calibrate</div>
+        <div class="pack-desc">反迎合决策校准——评审不顺着说，先中性化再给结论，至少补一个反方</div>
+        <div class="pack-meta">1 skill · 秉正核心</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">trust</div>
+        <div class="pack-desc">Skill可信度治理——6维风险、5级动作、4条红线，信任是审计出来的</div>
+        <div class="pack-meta">1 skill · 可信核心</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">init</div>
+        <div class="pack-desc">项目初始化向导，<code>/initproject</code>一键启动，自动匹配安装</div>
+        <div class="pack-meta">1 skill · global</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">course</div>
+        <div class="pack-desc">课程开发全套：提纲、正文、实验、QA/QC、15个skill、10个命令、8个agent</div>
+        <div class="pack-meta">15 skills · 10 cmds · 8 agents</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">deploy</div>
+        <div class="pack-desc">部署与运维：CI/CD、Docker、健康检查、回滚、服务生命周期管理</div>
+        <div class="pack-meta">7 skills</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">petfish</div>
+        <div class="pack-desc">工程写作风格——让AI说人话，去AI味，结构化表达</div>
+        <div class="pack-meta">1 skill</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">testdocs</div>
+        <div class="pack-desc">测试用例生成与使用文档自动化</div>
+        <div class="pack-meta">2 skills</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">ppt</div>
+        <div class="pack-desc">PPT设计与演示文稿制作辅助</div>
+        <div class="pack-meta">2 skills</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Platforms -->
+<section class="platforms" id="platforms">
+  <div class="container">
+    <h2>8个AI平台，一套Skill</h2>
+    <div class="platform-badges">
+      <span class="platform-badge">OpenCode</span>
+      <span class="platform-badge">Claude Code</span>
+      <span class="platform-badge">Codex</span>
+      <span class="platform-badge">Cursor</span>
+      <span class="platform-badge">GitHub Copilot</span>
+      <span class="platform-badge">Windsurf</span>
+      <span class="platform-badge">Antigravity</span>
+      <span class="platform-badge">Universal</span>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<section class="install-section" id="install">
+  <div class="container">
+    <h2>开始使用</h2>
+
+    <div class="install-block">
+      <h3>▸ 一句话安装（推荐）— 粘贴到任意AI编程助手</h3>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
+      </div>
+    </div>
+
+    <div class="install-block">
+      <h3>▸ macOS / Linux / WSL</h3>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \<br/>  | bash -s -- --pack init,companion --detect
+      </div>
+    </div>
+
+    <div class="install-block">
+      <h3>▸ Windows PowerShell</h3>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
+      </div>
+    </div>
+
+    <p class="install-note">
+      安装脚本自动获取最新稳定release版本。装完后输入 <code>/initproject</code> —— 胖鱼询问项目类型，自动安装匹配的Skill Pack，完成配置向导。从此刻起，伙伴已就位。
+    </p>
+
+    <div class="install-block" style="margin-top: 32px;">
+      <h3>▸ 已安装？一句话升级</h3>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Remote -->
+<section class="remote-section" id="remote">
+  <div class="container">
+    <h2>胖鱼遥控器</h2>
+    <p>PetFish Remote — 用 Telegram 遥控你的 AI 编程助手。随时随地查看进度、发送指令、接收通知。</p>
+    <a href="https://remote.petfish.ai" class="remote-card">
+      <strong>PetFish Remote</strong><span class="badge">Beta</span>
+      <br/><span style="color:var(--text-muted); font-size:13px;">remote.petfish.ai →</span>
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
+    <strong>胖鱼 PEtFiSh</strong> — 你的AI伙伴<br/>
+    从项目第一行代码到最终交付，胖鱼都在。
+    <div class="links">
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="/pitch.html">产品介绍</a>
+      <a href="/whitepaper.html">技术白皮书</a>
+      <a href="/blog.html">Blog</a>
+      <a href="https://remote.petfish.ai">Remote</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function copyCode(btn) {
+  const block = btn.parentElement;
+  const text = block.textContent.replace('copy', '').trim();
+  navigator.clipboard.writeText(text);
+  btn.textContent = '✓';
+  setTimeout(() => btn.textContent = 'copy', 1500);
+}
+</script>
+
+</body>
+</html>
