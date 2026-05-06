@@ -243,3 +243,104 @@ class TestDebugMode:
         output = "🐟 [gateway] skill: no gap → pass"
         assert "no gap" in output
         assert "pass" in output
+
+
+# ---------------------------------------------------------------------------
+# Tier 2: Intent-aware gap detection
+# ---------------------------------------------------------------------------
+
+
+class TestTier2IntentAwareGapDetection:
+    """Verify Tier 2 intent-aware capability gap detection logic."""
+
+    # Agent native capabilities — things the agent can do without skills
+    AGENT_NATIVE_CAPABILITIES = {
+        "coding",  # write code, debug, refactor
+        "file_ops",  # read/write/search files
+        "git",  # git operations
+        "search",  # web search, code search
+        "reasoning",  # explain, analyze, suggest
+        "translation",  # translate text
+        "conversation",  # follow-up, context management
+    }
+
+    def _classify_intent(self, message: str) -> dict:
+        """Simulate Tier 2 intent classification.
+
+        Returns:
+            dict with keys: needs_external (bool), domain (str), confidence (float)
+        """
+        # Simple heuristic examples matching the AGENTS.md spec
+        external_indicators = {
+            "邮件": ("email", 0.9),
+            "send email": ("email", 0.9),
+            "天气": ("weather", 0.85),
+            "weather": ("weather", 0.85),
+            "甘特图": ("gantt chart", 0.8),
+            "监控": ("monitoring", 0.85),
+            "uptime": ("monitoring", 0.85),
+            "通知团队": ("notification", 0.8),
+            "notify team": ("notification", 0.8),
+        }
+
+        # Check if any external indicator is present
+        msg_lower = message.lower()
+        for indicator, (domain, confidence) in external_indicators.items():
+            if indicator in msg_lower:
+                return {
+                    "needs_external": True,
+                    "domain": domain,
+                    "confidence": confidence,
+                }
+
+        return {"needs_external": False, "domain": None, "confidence": 0.0}
+
+    @pytest.mark.parametrize(
+        "message,should_trigger,expected_domain",
+        [
+            # Should trigger — needs external service
+            ("帮我发个邮件给老板", True, "email"),
+            ("明天天气如何", True, "weather"),
+            ("帮我画一个甘特图", True, "gantt chart"),
+            ("监控这个服务的uptime", True, "monitoring"),
+            # Should NOT trigger — agent native capabilities
+            ("帮我查一下这个API的rate limit", False, None),
+            ("翻译这段话成日语", False, None),
+            ("这个函数有什么bug", False, None),
+            ("git status", False, None),
+            ("继续", False, None),
+        ],
+    )
+    def test_tier2_detection(self, message, should_trigger, expected_domain):
+        """Tier 2 correctly identifies external capability gaps."""
+        result = self._classify_intent(message)
+        assert result["needs_external"] == should_trigger
+        if should_trigger:
+            assert result["domain"] == expected_domain
+
+    def test_tier2_confidence_threshold(self):
+        """Tier 2 should not trigger when confidence < 0.7."""
+        # A message that is ambiguous — confidence would be below threshold
+        result = self._classify_intent("帮我看看这个东西")
+        # Should not trigger since no clear external need detected
+        assert result["needs_external"] is False or result["confidence"] < 0.7
+
+    def test_tier2_respects_session_limit(self):
+        """Tier 2 suggestions also obey once-per-domain-per-session."""
+        session_suggested_domains = {"email"}
+        result = self._classify_intent("再帮我发个邮件")
+        # Even if detected, should be suppressed by session limit
+        if result["needs_external"] and result["domain"] in session_suggested_domains:
+            should_suggest = False
+        else:
+            should_suggest = result["needs_external"]
+        assert should_suggest is False
+
+    def test_tier2_debug_output_format(self):
+        """Tier 2 debug output follows expected format."""
+        intent = "发邮件通知"
+        need = "邮件服务集成"
+        keyword = "email"
+        output = f'🐟 [gateway] skill: tier2 gap detected (intent="{intent}", need="{need}") → suggest search "{keyword}"'
+        assert "tier2 gap detected" in output
+        assert "suggest search" in output

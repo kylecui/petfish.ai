@@ -34,9 +34,11 @@ input:
 
 ### Step 2: Skill Sense（能力缺口检测）
 
-对用户消息进行关键词匹配，判断是否触及未安装pack的领域。
+对用户消息进行能力缺口判断。采用三层检测模型：
 
-匹配规则（基于 `catalog_query.py` TRIGGERS）：
+#### Tier 1: 白名单匹配（已知pack领域）
+
+基于 `catalog_query.py` TRIGGERS 关键词匹配：
 
 | 领域关键词 | 对应Pack |
 |-----------|---------|
@@ -48,12 +50,46 @@ input:
 | 评审, 评价, 批判, review, calibration | calibrate |
 | topic, 话题, 上下文, 污染, 隔离 | context |
 
-检测逻辑：
-1. 消息命中某领域关键词
-2. 该pack未安装（检查 `installed-packs.json`）
-3. 该pack本session未推荐过
+命中 + 未安装 + 本session未推荐 → 在回复末尾附带一行推荐。
 
-三个条件同时满足 → 在回复末尾附带一行推荐（不打断正常回复）。
+#### Tier 2: 意图感知（未知领域缺口检测）
+
+当Tier 1未命中时，判断用户消息是否暗示了一个**当前环境无法满足的能力需求**。
+
+**判断标准 — 同时满足以下全部条件才触发：**
+
+1. **需要外部集成或专项工具**：用户的请求需要调用外部服务（API、邮件、消息推送、天气、翻译服务等）或专用工具（图表生成、数据库管理、特定格式转换等）
+2. **Agent原生能力不覆盖**：请求超出了代码编写、文件操作、git、搜索、通用推理等agent内置能力
+3. **当前已安装skill不覆盖**：检查 `installed-packs.json`，已安装的skill无法满足该需求
+
+**触发时行为：**
+- 推断最相关的关键词
+- 建议：`💡 检测到能力缺口 — 可以运行 /petfish search <关键词> 看看是否有匹配的skill或MCP server。`
+
+**排除条件（以下情况不触发Tier 2）：**
+- 普通编码任务（写函数、调bug、重构、加注释）
+- 项目管理任务（git操作、文件整理、目录操作）
+- 通用问答（解释概念、分析代码、给建议）
+- 已安装skill覆盖的领域
+- 用户在进行对话管理（"继续"、"停"、"换个方向"）
+
+**示例：**
+- "帮我查一下这个API的rate limit" → 不触发（agent原生能力可以搜索文档）
+- "帮我发个邮件通知团队" → 触发（需要邮件服务集成）
+- "翻译这段话成日语" → 不触发（agent原生能力覆盖翻译）
+- "帮我画一个甘特图" → 触发（需要图表生成工具）
+- "监控这个服务的uptime" → 触发（需要监控集成）
+- "明天天气如何" → 触发（需要天气API）
+
+#### Tier 3: 无缺口（静默通过）
+
+Tier 1和Tier 2均未命中 → 不输出任何推荐。
+
+#### 节制规则
+
+- 每个领域/关键词每session最多推荐1次
+- 不确定是否为缺口时，倾向于不触发（宁静默不打扰）
+- Tier 2判断置信度低于70%时不触发
 
 ### Step 3: Proceed（正常处理）
 
@@ -85,6 +121,11 @@ Debug模式输出格式（置于回复最前）：
 ```
 🐟 [gateway] topic: relation=switch, risk=67 (high), confidence=0.85 → suggest fork
 🐟 [gateway] skill: gap=deploy (detected "Docker部署") → recommend
+```
+
+```
+🐟 [gateway] topic: relation=continue, risk=5 (low), confidence=0.95 → silent
+🐟 [gateway] skill: tier2 gap detected (intent="发邮件通知", need="邮件服务集成") → suggest search "email"
 ```
 
 **Debug模式规则：**
