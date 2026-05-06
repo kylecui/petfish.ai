@@ -59,60 +59,70 @@
     footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 12px; opacity: 0.5; }
     footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
     footer .links a { color: var(--text-muted); }
+
+    body.lang-zh .copy-en, body.lang-en .copy-zh { display: none; }
+    .lang-toggle { display: flex; gap: 4px; margin-left: 12px; }
+    .lang-option { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 3px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .lang-option:hover, .lang-option:focus-visible { color: var(--text); border-color: var(--text-muted); }
+    .lang-option.is-active { color: var(--accent); border-color: var(--accent); }
   </style>
 </head>
-<body>
+<body class="lang-zh">
 
 <nav class="nav">
   <div class="container">
     <a href="/" class="nav-logo"><img src="assets/petfish-icon-256.png" alt="" /><span>><(((^> 胖鱼 PEtFiSh</span></a>
     <div class="nav-links">
-      <a href="/">首页</a>
+      <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
       <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-option is-active" data-lang="zh">中</button>
+      <button class="lang-option" data-lang="en">EN</button>
     </div>
   </div>
 </nav>
 
 <main class="content">
   <div class="container">
-    <a href="/" class="back-link">← 返回首页</a>
+    <a href="/" class="back-link"><span class="copy-zh">← 返回首页</span><span class="copy-en">← Back to home</span></a>
 
-    <h1>胖鱼 PEtFiSh 技术白皮书</h1>
+    <h1><span class="copy-zh">胖鱼 PEtFiSh 技术白皮书</span><span class="copy-en">PEtFiSh Technical Whitepaper</span></h1>
     <p class="version">v0.6.2 · 2026-05</p>
 
     <div class="toc">
-      <h4>目录</h4>
+      <h4>目录 / Contents</h4>
       <ol>
-        <li><a href="#positioning">定位与设计哲学</a></li>
-        <li><a href="#architecture">架构总览</a></li>
-        <li><a href="#gateway">Companion Gateway（常伴层）</a></li>
-        <li><a href="#context">上下文治理（守护层）</a></li>
-        <li><a href="#quality">质量门禁（可信层）</a></li>
-        <li><a href="#trust">TrustSkills治理引擎</a></li>
-        <li><a href="#calibration">反迎合校准（秉正层）</a></li>
-        <li><a href="#platform">平台适配层</a></li>
-        <li><a href="#pack">Pack体系</a></li>
-        <li><a href="#companion-skills">Companion内核</a></li>
-        <li><a href="#decisions">关键技术决策</a></li>
+        <li><a href="#positioning"><span class="copy-zh">定位与设计哲学</span><span class="copy-en">Positioning &amp; Design Philosophy</span></a></li>
+        <li><a href="#architecture"><span class="copy-zh">架构总览</span><span class="copy-en">Architecture Overview</span></a></li>
+        <li><a href="#gateway"><span class="copy-zh">Companion Gateway（常伴层）</span><span class="copy-en">Companion Gateway (Always-Present Layer)</span></a></li>
+        <li><a href="#context"><span class="copy-zh">上下文治理（守护层）</span><span class="copy-en">Context Governance (Guarding Layer)</span></a></li>
+        <li><a href="#quality"><span class="copy-zh">质量门禁（可信层）</span><span class="copy-en">Quality Gates (Trust Layer)</span></a></li>
+        <li><a href="#trust"><span class="copy-zh">TrustSkills治理引擎</span><span class="copy-en">TrustSkills Governance Engine</span></a></li>
+        <li><a href="#calibration"><span class="copy-zh">反迎合校准（秉正层）</span><span class="copy-en">Anti-Sycophancy Calibration (No-Compromise Layer)</span></a></li>
+        <li><a href="#platform"><span class="copy-zh">平台适配层</span><span class="copy-en">Platform Adaptation Layer</span></a></li>
+        <li><a href="#pack"><span class="copy-zh">Pack体系</span><span class="copy-en">Pack System</span></a></li>
+        <li><a href="#companion-skills"><span class="copy-zh">Companion内核</span><span class="copy-en">Companion Core</span></a></li>
+        <li><a href="#decisions"><span class="copy-zh">关键技术决策</span><span class="copy-en">Key Technical Decisions</span></a></li>
       </ol>
     </div>
 
-    <h2 id="positioning">A. 定位与设计哲学</h2>
+    <h2 id="positioning"><span class="copy-zh">A. 定位与设计哲学</span><span class="copy-en">A. Positioning &amp; Design Philosophy</span></h2>
 
-    <p>胖鱼的定位是<strong>AI伙伴</strong>，不是工具集。</p>
+    <p><span class="copy-zh">胖鱼的定位是<strong>AI伙伴</strong>，不是工具集。</span><span class="copy-en">PEtFiSh is positioned as an <strong>AI companion</strong>, not a toolbox.</span></p>
 
-    <p>工具的特征是被动等待调用。伙伴的特征是始终在场、主动参与。这个区别决定了整个架构的设计方向：</p>
+    <p><span class="copy-zh">工具的特征是被动等待调用。伙伴的特征是始终在场、主动参与。这个区别决定了整个架构的设计方向：</span><span class="copy-en">Tools wait passively for invocation. Companions are always present, actively participating. This distinction drives the entire architecture:</span></p>
 
     <ul>
-      <li><strong>常伴</strong>：Companion Gateway在每条消息前自动执行，不需要用户主动触发</li>
-      <li><strong>守护</strong>：持续监测上下文状态和能力缺口，在问题累积之前介入</li>
-      <li><strong>可信</strong>：推荐的每个能力单元都经过验证，信任链可追溯</li>
-      <li><strong>秉正</strong>：在评审和裁决中不迎合，标准不因便利降格</li>
+      <li><span class="copy-zh"><strong>常伴</strong>：Companion Gateway在每条消息前自动执行，不需要用户主动触发</span><span class="copy-en"><strong>Always-Present</strong>: Companion Gateway executes automatically before every message, no user trigger needed</span></li>
+      <li><span class="copy-zh"><strong>守护</strong>：持续监测上下文状态和能力缺口，在问题累积之前介入</span><span class="copy-en"><strong>Guarding</strong>: Continuously monitors context state and capability gaps, intervenes before problems accumulate</span></li>
+      <li><span class="copy-zh"><strong>可信</strong>：推荐的每个能力单元都经过验证，信任链可追溯</span><span class="copy-en"><strong>Verified Trust</strong>: Every recommended capability unit is validated, trust chain is traceable</span></li>
+      <li><span class="copy-zh"><strong>秉正</strong>：在评审和裁决中不迎合，标准不因便利降格</span><span class="copy-en"><strong>No Compromise</strong>: No sycophancy in reviews and judgments, standards don't bend for convenience</span></li>
     </ul>
 
-    <p>Skill管理（跨平台安装、生命周期治理）是实现这些承诺的技术手段，不是产品目的本身。</p>
+    <p><span class="copy-zh">Skill管理（跨平台安装、生命周期治理）是实现这些承诺的技术手段，不是产品目的本身。</span><span class="copy-en">Skill management (cross-platform install, lifecycle governance) is the technical means to deliver these promises, not the product goal itself.</span></p>
 
-    <h2 id="architecture">B. 架构总览</h2>
+    <h2 id="architecture"><span class="copy-zh">B. 架构总览</span><span class="copy-en">B. Architecture Overview</span></h2>
 
     <pre>
 ┌──────────────────────────────────────────────────────────────┐
@@ -145,19 +155,43 @@
 └──────────────────────────────────────────────────────────────┘</pre>
 
     <table>
-      <tr><th>层</th><th>职责</th><th>关键文件</th></tr>
-      <tr><td>Gateway层</td><td>每条消息自动话题检测+能力感知</td><td><code>AGENTS.md</code> Companion Gateway section</td></tr>
-      <tr><td>用户接口层</td><td><code>/petfish</code> 14个子命令 + 4个install脚本</td><td><code>install.ps1/sh</code>, <code>remote-install.ps1/sh</code></td></tr>
-      <tr><td>Companion层</td><td>10个内置skill + 31个MCP tools</td><td><code>packs/petfish-companion-skill/</code>, <code>packs/fish-trail/</code></td></tr>
-      <tr><td>Pack层</td><td>10个skill pack，按领域组织</td><td><code>packs/*/pack-manifest.json</code></td></tr>
-      <tr><td>平台适配层</td><td>8平台路径映射、指令翻译、配置合并</td><td><code>platforms.json</code></td></tr>
+      <tr>
+        <th><span class="copy-zh">层</span><span class="copy-en">Layer</span></th>
+        <th><span class="copy-zh">职责</span><span class="copy-en">Responsibility</span></th>
+        <th><span class="copy-zh">关键文件</span><span class="copy-en">Key Files</span></th>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">Gateway层</span><span class="copy-en">Gateway Layer</span></td>
+        <td><span class="copy-zh">每条消息自动话题检测+能力感知</span><span class="copy-en">Automatic topic detection + capability sensing per message</span></td>
+        <td><code>AGENTS.md</code> <span class="copy-zh">Companion Gateway section</span><span class="copy-en">Companion Gateway section</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">用户接口层</span><span class="copy-en">User Interface Layer</span></td>
+        <td><code>/petfish</code> <span class="copy-zh">14个子命令 + 4个install脚本</span><span class="copy-en">14 subcommands + 4 install scripts</span></td>
+        <td><code>install.ps1/sh</code>, <code>remote-install.ps1/sh</code></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">Companion层</span><span class="copy-en">Companion Layer</span></td>
+        <td><span class="copy-zh">10个内置skill + 31个MCP tools</span><span class="copy-en">10 built-in skills + 31 MCP tools</span></td>
+        <td><code>packs/petfish-companion-skill/</code>, <code>packs/fish-trail/</code></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">Pack层</span><span class="copy-en">Pack Layer</span></td>
+        <td><span class="copy-zh">10个skill pack，按领域组织</span><span class="copy-en">10 skill packs, organized by domain</span></td>
+        <td><code>packs/*/pack-manifest.json</code></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">平台适配层</span><span class="copy-en">Platform Adaptation Layer</span></td>
+        <td><span class="copy-zh">8平台路径映射、指令翻译、配置合并</span><span class="copy-en">8-platform path mapping, instructions translation, config merge</span></td>
+        <td><code>platforms.json</code></td>
+      </tr>
     </table>
 
-    <h2 id="gateway">C. Companion Gateway（常伴层）</h2>
+    <h2 id="gateway"><span class="copy-zh">C. Companion Gateway（常伴层）</span><span class="copy-en">C. Companion Gateway (Always-Present Layer)</span></h2>
 
-    <p>Gateway是胖鱼"伙伴"特性的技术实现。它被注入到项目的instructions文件（<code>AGENTS.md</code> / <code>CLAUDE.md</code>等），在AI Agent处理每条用户消息<strong>之前</strong>强制执行。</p>
+    <p><span class="copy-zh">Gateway是胖鱼"伙伴"特性的技术实现。它被注入到项目的instructions文件（<code>AGENTS.md</code> / <code>CLAUDE.md</code>等），在AI Agent处理每条用户消息<strong>之前</strong>强制执行。</span><span class="copy-en">The Gateway is the technical implementation of PEtFiSh's companion nature. It's injected into the project's instructions file (<code>AGENTS.md</code> / <code>CLAUDE.md</code> etc.), forced to execute <strong>before</strong> the AI Agent processes each user message.</span></p>
 
-    <h3>执行流程</h3>
+    <h3><span class="copy-zh">执行流程</span><span class="copy-en">Execution Flow</span></h3>
     <pre>
 用户消息 → Step 1: Topic Check → Step 2: Skill Sense → Step 3: 正常处理
                   ↓                        ↓
@@ -167,40 +201,52 @@
           high: 暂停+建议            Tier 3: 静默通过</pre>
 
     <h3>Step 1: Topic Check</h3>
-    <p>调用MCP tool <code>topic_detect</code>，传入用户消息和当前session。根据返回的<code>risk_level</code>执行对应行为：</p>
+    <p><span class="copy-zh">调用MCP tool <code>topic_detect</code>，传入用户消息和当前session。根据返回的<code>risk_level</code>执行对应行为：</span><span class="copy-en">Calls MCP tool <code>topic_detect</code> with user message and current session. Executes behavior based on returned <code>risk_level</code>:</span></p>
     <table>
-      <tr><th>risk_level</th><th>行为</th></tr>
-      <tr><td>low (0-30)</td><td>静默继续</td></tr>
-      <tr><td>medium (31-60)</td><td>回复开头一行说明上下文继承范围</td></tr>
-      <tr><td>high (61-100)</td><td>暂停正常处理，说明话题变更风险，建议fork/switch/reset</td></tr>
+      <tr>
+        <th>risk_level</th>
+        <th><span class="copy-zh">行为</span><span class="copy-en">Behavior</span></th>
+      </tr>
+      <tr>
+        <td>low (0-30)</td>
+        <td><span class="copy-zh">静默继续</span><span class="copy-en">Silent continue</span></td>
+      </tr>
+      <tr>
+        <td>medium (31-60)</td>
+        <td><span class="copy-zh">回复开头一行说明上下文继承范围</span><span class="copy-en">One-line note at reply start indicating context inheritance scope</span></td>
+      </tr>
+      <tr>
+        <td>high (61-100)</td>
+        <td><span class="copy-zh">暂停正常处理，说明话题变更风险，建议fork/switch/reset</span><span class="copy-en">Pause normal processing, explain topic-change risk, suggest fork/switch/reset</span></td>
+      </tr>
     </table>
 
-    <h3>Step 2: Skill Sense（三层检测模型）</h3>
+    <h3><span class="copy-zh">Step 2: Skill Sense（三层检测模型）</span><span class="copy-en">Step 2: Skill Sense (Three-Tier Detection)</span></h3>
 
-    <h4>Tier 1: 白名单匹配</h4>
-    <p>基于 <code>catalog_query.py</code> 中的TRIGGERS关键词表进行匹配。命中 + 未安装 + 本session未推荐 → 回复末尾附带一行推荐。</p>
+    <h4><span class="copy-zh">Tier 1: 白名单匹配</span><span class="copy-en">Tier 1: Keyword Whitelist</span></h4>
+    <p><span class="copy-zh">基于 <code>catalog_query.py</code> 中的TRIGGERS关键词表进行匹配。命中 + 未安装 + 本session未推荐 → 回复末尾附带一行推荐。</span><span class="copy-en">Keyword whitelist matching based on TRIGGERS in <code>catalog_query.py</code>. Match + not installed + not recommended this session → one-line recommendation at reply end.</span></p>
 
-    <h4>Tier 2: 意图感知</h4>
-    <p>当Tier 1未命中时，判断用户消息是否暗示了当前环境无法满足的能力需求。必须同时满足三个条件才触发：</p>
+    <h4><span class="copy-zh">Tier 2: 意图感知</span><span class="copy-en">Tier 2: Intent-Aware Detection</span></h4>
+    <p><span class="copy-zh">当Tier 1未命中时，判断用户消息是否暗示了当前环境无法满足的能力需求。必须同时满足三个条件才触发：</span><span class="copy-en">When Tier 1 doesn't match, assess whether user message implies a capability need the environment can't satisfy. Must satisfy all three conditions to trigger:</span></p>
     <ol>
-      <li>需要外部集成或专项工具（API调用、邮件、消息推送、图表生成等）</li>
-      <li>Agent原生能力不覆盖（超出代码编写、文件操作、git、搜索等内置能力）</li>
-      <li>当前已安装skill不覆盖</li>
+      <li><span class="copy-zh">需要外部集成或专项工具（API调用、邮件、消息推送、图表生成等）</span><span class="copy-en">Needs external integration or specialized tools (API calls, email, messaging, chart generation, etc.)</span></li>
+      <li><span class="copy-zh">Agent原生能力不覆盖（超出代码编写、文件操作、git、搜索等内置能力）</span><span class="copy-en">Agent native capabilities don't cover it (beyond coding, file ops, git, search, etc.)</span></li>
+      <li><span class="copy-zh">当前已安装skill不覆盖</span><span class="copy-en">Currently installed skills don't cover it</span></li>
     </ol>
-    <p>置信度低于70%时不触发。宁静默不打扰。</p>
+    <p><span class="copy-zh">置信度低于70%时不触发。宁静默不打扰。</span><span class="copy-en">Confidence below 70% → don't trigger. When in doubt, stay silent.</span></p>
 
-    <h4>Tier 3: 无缺口</h4>
-    <p>Tier 1和Tier 2均未命中 → 不输出任何推荐。</p>
+    <h4><span class="copy-zh">Tier 3: 无缺口</span><span class="copy-en">Tier 3: No Gap</span></h4>
+    <p><span class="copy-zh">Tier 1和Tier 2均未命中 → 不输出任何推荐。</span><span class="copy-en">Neither Tier 1 nor Tier 2 triggered → no output.</span></p>
 
-    <h3>节制规则</h3>
+    <h3><span class="copy-zh">节制规则</span><span class="copy-en">Restraint Rules</span></h3>
     <ul>
-      <li>每个领域/关键词每session最多推荐1次</li>
-      <li>不确定是否为缺口时，倾向于不触发</li>
-      <li>MCP不可用时静默降级，不阻塞正常工作</li>
+      <li><span class="copy-zh">每个领域/关键词每session最多推荐1次</span><span class="copy-en">Each domain/keyword recommended at most once per session</span></li>
+      <li><span class="copy-zh">不确定是否为缺口时，倾向于不触发</span><span class="copy-en">When uncertain whether it's a gap, default to not triggering</span></li>
+      <li><span class="copy-zh">MCP不可用时静默降级，不阻塞正常工作</span><span class="copy-en">MCP unavailable → silent degradation, normal work not blocked</span></li>
     </ul>
 
     <h3>Debug Mode</h3>
-    <p>配置 <code>.petfish/fish-trail/config.yaml</code> 中 <code>debug: true</code> 时，每次Gateway决策可见：</p>
+    <p><span class="copy-zh">配置 <code>.petfish/fish-trail/config.yaml</code> 中 <code>debug: true</code> 时，每次Gateway决策可见：</span><span class="copy-en">When <code>.petfish/fish-trail/config.yaml</code> has <code>debug: true</code>, every Gateway decision is visible:</span></p>
     <pre>
 🐟 [gateway] topic: relation=continue, risk=12 (low), confidence=0.92 → silent
 🐟 [gateway] skill: no gap → pass
@@ -211,41 +257,100 @@
 🐟 [gateway] topic: relation=continue, risk=5 (low), confidence=0.95 → silent
 🐟 [gateway] skill: tier2 gap detected (intent="发邮件通知", need="邮件服务集成") → suggest search</pre>
 
-    <h2 id="context">D. 上下文治理（守护层）</h2>
+    <h2 id="context"><span class="copy-zh">D. 上下文治理（守护层）</span><span class="copy-en">D. Context Governance (Guarding Layer)</span></h2>
 
-    <p><code>fish-trail</code> pack通过本地MCP server提供话题感知的上下文治理。纯Python标准库实现，零外部依赖。</p>
+    <p><span class="copy-zh"><code>fish-trail</code> pack通过本地MCP server提供话题感知的上下文治理。纯Python标准库实现，零外部依赖。</span><span class="copy-en"><code>fish-trail</code> pack provides topic-aware context governance via local MCP server. Pure Python stdlib, zero external dependencies.</span></p>
 
-    <h3>核心能力</h3>
+    <h3><span class="copy-zh">核心能力</span><span class="copy-en">Core Capabilities</span></h3>
     <table>
-      <tr><th>能力</th><th>说明</th></tr>
-      <tr><td>话题检测</td><td>自动识别用户消息所属话题，支持CJK文本，输出关系类型和风险等级</td></tr>
-      <tr><td>污染评分</td><td>量化跨话题上下文污染风险（0-100），高于60时主动提示</td></tr>
-      <tr><td>上下文隔离</td><td>按话题构建Context Package，隔离不同话题的文件引用、决策和成果</td></tr>
-      <tr><td>会话管理</td><td>话题感知的会话绑定、跨会话恢复、多Agent归因、活动查询</td></tr>
+      <tr>
+        <th><span class="copy-zh">能力</span><span class="copy-en">Capability</span></th>
+        <th><span class="copy-zh">说明</span><span class="copy-en">Description</span></th>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">话题检测</span><span class="copy-en">Topic Detection</span></td>
+        <td><span class="copy-zh">自动识别用户消息所属话题，支持CJK文本，输出关系类型和风险等级</span><span class="copy-en">Automatically identifies topic of user message, supports CJK text, outputs relation type and risk level</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">污染评分</span><span class="copy-en">Contamination Scoring</span></td>
+        <td><span class="copy-zh">量化跨话题上下文污染风险（0-100），高于60时主动提示</span><span class="copy-en">Quantifies cross-topic context contamination risk (0-100), proactively alerts when above 60</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">上下文隔离</span><span class="copy-en">Context Isolation</span></td>
+        <td><span class="copy-zh">按话题构建Context Package，隔离不同话题的文件引用、决策和成果</span><span class="copy-en">Builds Context Package per topic, isolates file references, decisions, and artifacts across topics</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">会话管理</span><span class="copy-en">Session Management</span></td>
+        <td><span class="copy-zh">话题感知的会话绑定、跨会话恢复、多Agent归因、活动查询</span><span class="copy-en">Topic-aware session binding, cross-session resume, multi-agent attribution, activity query</span></td>
+      </tr>
     </table>
 
-    <h3>7种话题关系类型</h3>
+    <h3><span class="copy-zh">7种话题关系类型</span><span class="copy-en">7 Topic Relation Types</span></h3>
     <table>
-      <tr><th>类型</th><th>策略</th></tr>
-      <tr><td>continue</td><td>完全继承当前上下文</td></tr>
-      <tr><td>fork</td><td>从当前topic分叉，继承部分上下文</td></tr>
-      <tr><td>switch</td><td>切换到已有topic，加载该topic的Context Package</td></tr>
-      <tr><td>merge</td><td>合并两个topic（需用户确认）</td></tr>
-      <tr><td>archive</td><td>归档当前topic，冻结上下文</td></tr>
-      <tr><td>reset</td><td>清空上下文，建立干净包</td></tr>
-      <tr><td>bridge</td><td>两个topic间建立桥接，只继承交叉部分</td></tr>
+      <tr>
+        <th><span class="copy-zh">类型</span><span class="copy-en">Type</span></th>
+        <th><span class="copy-zh">策略</span><span class="copy-en">Strategy</span></th>
+      </tr>
+      <tr>
+        <td>continue</td>
+        <td><span class="copy-zh">完全继承当前上下文</span><span class="copy-en">Fully inherit current context</span></td>
+      </tr>
+      <tr>
+        <td>fork</td>
+        <td><span class="copy-zh">从当前topic分叉，继承部分上下文</span><span class="copy-en">Fork from current topic, inherit partial context</span></td>
+      </tr>
+      <tr>
+        <td>switch</td>
+        <td><span class="copy-zh">切换到已有topic，加载该topic的Context Package</span><span class="copy-en">Switch to existing topic, load its Context Package</span></td>
+      </tr>
+      <tr>
+        <td>merge</td>
+        <td><span class="copy-zh">合并两个topic（需用户确认）</span><span class="copy-en">Merge two topics (requires user confirmation)</span></td>
+      </tr>
+      <tr>
+        <td>archive</td>
+        <td><span class="copy-zh">归档当前topic，冻结上下文</span><span class="copy-en">Archive current topic, freeze context</span></td>
+      </tr>
+      <tr>
+        <td>reset</td>
+        <td><span class="copy-zh">清空上下文，建立干净包</span><span class="copy-en">Clear context, establish clean package</span></td>
+      </tr>
+      <tr>
+        <td>bridge</td>
+        <td><span class="copy-zh">两个topic间建立桥接，只继承交叉部分</span><span class="copy-en">Bridge between two topics, inherit only the intersection</span></td>
+      </tr>
     </table>
 
-    <h3>31个MCP Tools</h3>
+    <h3>31<span class="copy-zh">个</span> MCP Tools</h3>
     <table>
-      <tr><th>组</th><th>工具数</th><th>典型工具</th></tr>
-      <tr><td>话题管理</td><td>8</td><td><code>topic_detect</code>, <code>topic_create</code>, <code>topic_update</code>, <code>topic_merge</code></td></tr>
-      <tr><td>上下文构建</td><td>5</td><td><code>context_build</code>, <code>context_get_active</code>, <code>contamination_score</code></td></tr>
-      <tr><td>使用追踪</td><td>5</td><td><code>track_file_reference</code>, <code>track_decision</code>, <code>track_artifact</code></td></tr>
-      <tr><td>会话管理</td><td>10</td><td><code>session_bind</code>, <code>session_resume</code>, <code>session_query_activity</code></td></tr>
+      <tr>
+        <th><span class="copy-zh">组</span><span class="copy-en">Group</span></th>
+        <th><span class="copy-zh">工具数</span><span class="copy-en">Count</span></th>
+        <th><span class="copy-zh">典型工具</span><span class="copy-en">Key Tools</span></th>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">话题管理</span><span class="copy-en">Topic Management</span></td>
+        <td>8</td>
+        <td><code>topic_detect</code>, <code>topic_create</code>, <code>topic_update</code>, <code>topic_merge</code></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">上下文构建</span><span class="copy-en">Context Building</span></td>
+        <td>5</td>
+        <td><code>context_build</code>, <code>context_get_active</code>, <code>contamination_score</code></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">使用追踪</span><span class="copy-en">Usage Tracking</span></td>
+        <td>5</td>
+        <td><code>track_file_reference</code>, <code>track_decision</code>, <code>track_artifact</code></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">会话管理</span><span class="copy-en">Session Management</span></td>
+        <td>10</td>
+        <td><code>session_bind</code>, <code>session_resume</code>, <code>session_query_activity</code></td>
+      </tr>
     </table>
 
-    <h2 id="quality">E. 质量门禁（可信层）</h2>
+    <h2 id="quality"><span class="copy-zh">E. 质量门禁（可信层）</span><span class="copy-en">E. Quality Gates (Trust Layer)</span></h2>
 
     <pre>
 skill目录
@@ -264,68 +369,140 @@ skill目录
       ├─ ⚠️ CONDITIONAL → 需人工确认
       └─ ❌ FAIL       → 必须先修复</pre>
 
-    <h3>Lint评分规则（100分制）</h3>
-    <p>起始100分，按finding扣分：error(-10)、warn(-5)、info(-1)。规则前缀：ST0xx结构完整性、FM0xx前置元数据、CT0xx内容质量、SC0xx安全模式、PY0xx Python脚本质量。40+条规则。</p>
+    <h3><span class="copy-zh">Lint评分规则（100分制）</span><span class="copy-en">Lint Scoring (100-point scale)</span></h3>
+    <p><span class="copy-zh">起始100分，按finding扣分：error(-10)、warn(-5)、info(-1)。规则前缀：ST0xx结构完整性、FM0xx前置元数据、CT0xx内容质量、SC0xx安全模式、PY0xx Python脚本质量。40+条规则。</span><span class="copy-en">Starts at 100, deducted per finding: error(-10), warn(-5), info(-1). Rule prefixes: ST0xx structural integrity, FM0xx front matter, CT0xx content quality, SC0xx security patterns, PY0xx Python script quality. 40+ rules.</span></p>
 
-    <h3>Security Audit评分</h3>
-    <p>风险分 = Σ(finding权重)，归一化到0.0-1.0。权重：info=0.0 / low=0.1 / medium=0.3 / high=0.6 / critical=1.0。检测类别：代码执行（subprocess/eval/exec）、硬编码凭证、网络调用、文件系统、markdown注入。</p>
+    <h3><span class="copy-zh">Security Audit评分</span><span class="copy-en">Security Audit Scoring</span></h3>
+    <p><span class="copy-zh">风险分 = Σ(finding权重)，归一化到0.0-1.0。权重：info=0.0 / low=0.1 / medium=0.3 / high=0.6 / critical=1.0。检测类别：代码执行（subprocess/eval/exec）、硬编码凭证、网络调用、文件系统、markdown注入。</span><span class="copy-en">Risk score = Σ(finding weights), normalized to 0.0-1.0. Weights: info=0.0 / low=0.1 / medium=0.3 / high=0.6 / critical=1.0. Detection categories: code execution (subprocess/eval/exec), hardcoded credentials, network calls, filesystem access, markdown injection.</span></p>
 
-    <h2 id="trust">F. TrustSkills治理引擎</h2>
+    <h2 id="trust"><span class="copy-zh">F. TrustSkills治理引擎</span><span class="copy-en">F. TrustSkills Governance Engine</span></h2>
 
-    <p>质量门禁做静态模式匹配，快但浅。TrustSkills是另一层——按可执行行为分析。</p>
+    <p><span class="copy-zh">质量门禁做静态模式匹配，快但浅。TrustSkills是另一层——按可执行行为分析。</span><span class="copy-en">Quality gates do static pattern matching — fast but shallow. TrustSkills is another layer — behavioral analysis.</span></p>
 
-    <h3>六个风险维度</h3>
+    <h3><span class="copy-zh">六个风险维度</span><span class="copy-en">Six Risk Dimensions</span></h3>
     <table>
-      <tr><th>维度</th><th>权重</th><th>含义</th></tr>
-      <tr><td>shell</td><td>0.25</td><td>shell执行、子进程调用、高权限工具声明</td></tr>
-      <tr><td>network</td><td>0.25</td><td>网络访问、外部域名、远程通信</td></tr>
-      <tr><td>file_write</td><td>0.15</td><td>文件写入能力、批量写、宽范围写入</td></tr>
-      <tr><td>sensitive_data</td><td>0.15</td><td>接触密钥、凭证、敏感系统路径</td></tr>
-      <tr><td>script_risk</td><td>0.10</td><td>脚本内的file IO、subprocess、network行为证据</td></tr>
-      <tr><td>persistence</td><td>0.10</td><td>持久化副作用：服务安装、状态写入、配置驻留</td></tr>
+      <tr>
+        <th><span class="copy-zh">维度</span><span class="copy-en">Dimension</span></th>
+        <th><span class="copy-zh">权重</span><span class="copy-en">Weight</span></th>
+        <th><span class="copy-zh">含义</span><span class="copy-en">Meaning</span></th>
+      </tr>
+      <tr>
+        <td>shell</td>
+        <td>0.25</td>
+        <td><span class="copy-zh">shell执行、子进程调用、高权限工具声明</span><span class="copy-en">Shell execution, subprocess calls, high-privilege tool declarations</span></td>
+      </tr>
+      <tr>
+        <td>network</td>
+        <td>0.25</td>
+        <td><span class="copy-zh">网络访问、外部域名、远程通信</span><span class="copy-en">Network access, external domains, remote communication</span></td>
+      </tr>
+      <tr>
+        <td>file_write</td>
+        <td>0.15</td>
+        <td><span class="copy-zh">文件写入能力、批量写、宽范围写入</span><span class="copy-en">File write capability, bulk writes, broad-scope writes</span></td>
+      </tr>
+      <tr>
+        <td>sensitive_data</td>
+        <td>0.15</td>
+        <td><span class="copy-zh">接触密钥、凭证、敏感系统路径</span><span class="copy-en">Access to keys, credentials, sensitive system paths</span></td>
+      </tr>
+      <tr>
+        <td>script_risk</td>
+        <td>0.10</td>
+        <td><span class="copy-zh">脚本内的file IO、subprocess、network行为证据</span><span class="copy-en">Evidence of file IO, subprocess, network behavior inside scripts</span></td>
+      </tr>
+      <tr>
+        <td>persistence</td>
+        <td>0.10</td>
+        <td><span class="copy-zh">持久化副作用：服务安装、状态写入、配置驻留</span><span class="copy-en">Persistent side effects: service install, state writes, config residency</span></td>
+      </tr>
     </table>
 
-    <h3>五级治理动作</h3>
+    <h3><span class="copy-zh">五级治理动作</span><span class="copy-en">Five Governance Actions</span></h3>
     <table>
-      <tr><th>级别</th><th>阈值</th><th>含义</th></tr>
-      <tr><td>allow</td><td>≥ 0.00</td><td>直接放行</td></tr>
-      <tr><td>allow_with_ask</td><td>≥ 0.15</td><td>允许执行，先征得用户确认</td></tr>
-      <tr><td>sandbox_required</td><td>≥ 0.35</td><td>需要沙箱隔离执行</td></tr>
-      <tr><td>manual_review_required</td><td>≥ 0.55</td><td>必须进入人工复核</td></tr>
-      <tr><td>deny</td><td>红线命中</td><td>硬拒绝，不走阈值计算</td></tr>
+      <tr>
+        <th><span class="copy-zh">级别</span><span class="copy-en">Level</span></th>
+        <th><span class="copy-zh">阈值</span><span class="copy-en">Threshold</span></th>
+        <th><span class="copy-zh">含义</span><span class="copy-en">Meaning</span></th>
+      </tr>
+      <tr>
+        <td>allow</td>
+        <td>≥ 0.00</td>
+        <td><span class="copy-zh">直接放行</span><span class="copy-en">Allow directly</span></td>
+      </tr>
+      <tr>
+        <td>allow_with_ask</td>
+        <td>≥ 0.15</td>
+        <td><span class="copy-zh">允许执行，先征得用户确认</span><span class="copy-en">Allow with prior user confirmation</span></td>
+      </tr>
+      <tr>
+        <td>sandbox_required</td>
+        <td>≥ 0.35</td>
+        <td><span class="copy-zh">需要沙箱隔离执行</span><span class="copy-en">Requires sandbox isolation</span></td>
+      </tr>
+      <tr>
+        <td>manual_review_required</td>
+        <td>≥ 0.55</td>
+        <td><span class="copy-zh">必须进入人工复核</span><span class="copy-en">Must enter manual review</span></td>
+      </tr>
+      <tr>
+        <td>deny</td>
+        <td><span class="copy-zh">红线命中</span><span class="copy-en">Red line hit</span></td>
+        <td><span class="copy-zh">硬拒绝，不走阈值计算</span><span class="copy-en">Hard deny, bypasses threshold scoring</span></td>
+      </tr>
     </table>
 
-    <h3>四条红线规则</h3>
+    <h3><span class="copy-zh">四条红线规则</span><span class="copy-en">Four Red Lines</span></h3>
     <table>
-      <tr><th>红线</th><th>含义</th></tr>
-      <tr><td>subprocess-network-combo</td><td>subprocess + network，可能形成download-and-exec路径</td></tr>
-      <tr><td>dangerous-system-paths</td><td>读写<code>/etc/passwd</code>、<code>~/.ssh/id_*</code>等敏感路径</td></tr>
-      <tr><td>sudo-without-approval</td><td>声明sudo/su但没有显式approval_required</td></tr>
-      <tr><td>subprocess-os-combo</td><td>subprocess + os级操作，任意命令/高破坏面行为</td></tr>
+      <tr>
+        <th><span class="copy-zh">红线</span><span class="copy-en">Red Line</span></th>
+        <th><span class="copy-zh">含义</span><span class="copy-en">Meaning</span></th>
+      </tr>
+      <tr>
+        <td>subprocess-network-combo</td>
+        <td><span class="copy-zh">subprocess + network，可能形成download-and-exec路径</span><span class="copy-en">subprocess + network, potential download-and-exec path</span></td>
+      </tr>
+      <tr>
+        <td>dangerous-system-paths</td>
+        <td><span class="copy-zh">读写<code>/etc/passwd</code>、<code>~/.ssh/id_*</code>等敏感路径</span><span class="copy-en">Read/write to <code>/etc/passwd</code>, <code>~/.ssh/id_*</code> and other sensitive paths</span></td>
+      </tr>
+      <tr>
+        <td>sudo-without-approval</td>
+        <td><span class="copy-zh">声明sudo/su但没有显式approval_required</span><span class="copy-en">Declares sudo/su without explicit approval_required</span></td>
+      </tr>
+      <tr>
+        <td>subprocess-os-combo</td>
+        <td><span class="copy-zh">subprocess + os级操作，任意命令/高破坏面行为</span><span class="copy-en">subprocess + OS-level ops, arbitrary commands / high-blast-radius behavior</span></td>
+      </tr>
     </table>
-    <p>命中任何一条红线 → <strong>deny</strong>，不走分数阈值。</p>
+    <p><span class="copy-zh">命中任何一条红线 → <strong>deny</strong>，不走分数阈值。</span><span class="copy-en">Hitting any red line → <strong>deny</strong>. No score threshold.</span></p>
 
-    <h2 id="calibration">G. 反迎合校准（秉正层）</h2>
+    <h2 id="calibration"><span class="copy-zh">G. 反迎合校准（秉正层）</span><span class="copy-en">G. Anti-Sycophancy Calibration (No-Compromise Layer)</span></h2>
 
-    <p><code>calibrate</code> pack解决AI在评审、方案评估等判断型任务中倾向于顺着用户说的问题。</p>
+    <p><span class="copy-zh"><code>calibrate</code> pack解决AI在评审、方案评估等判断型任务中倾向于顺着用户说的问题。</span><span class="copy-en">The <code>calibrate</code> pack addresses AI tendency to agree with users in review, evaluation, and judgment tasks.</span></p>
 
     <ul>
-      <li>先中性化问题，再给结论——不直接顺着用户预设表态</li>
-      <li>先给评分维度，再做判断——至少补一个反方或替代方案</li>
-      <li>结论与置信度分开表达——证据不足时明确降级</li>
-      <li>可与其他skill组合使用：<code>course-outline-design + calibrate</code>、<code>code-review + calibrate</code></li>
+      <li><span class="copy-zh">先中性化问题，再给结论——不直接顺着用户预设表态</span><span class="copy-en">Neutralize the question first, then give conclusion — don't follow user's preset framing</span></li>
+      <li><span class="copy-zh">先给评分维度，再做判断——至少补一个反方或替代方案</span><span class="copy-en">Give evaluation dimensions first, then judge — include at least one counterpoint or alternative</span></li>
+      <li><span class="copy-zh">结论与置信度分开表达——证据不足时明确降级</span><span class="copy-en">Express conclusion and confidence separately — explicitly downgrade when evidence is insufficient</span></li>
+      <li><span class="copy-zh">可与其他skill组合使用：<code>course-outline-design + calibrate</code>、<code>code-review + calibrate</code></span><span class="copy-en">Can be combined with other skills: <code>course-outline-design + calibrate</code>, <code>code-review + calibrate</code></span></li>
     </ul>
 
-    <p>触发条件：用户要求评审、评价、critique、feedback，或提出确认性问题（"对吗？""是不是？""你同意吗？"）。简单事实查询、翻译、排版默认不启用。</p>
+    <p><span class="copy-zh">触发条件：用户要求评审、评价、critique、feedback，或提出确认性问题（"对吗？""是不是？""你同意吗？"）。简单事实查询、翻译、排版默认不启用。</span><span class="copy-en">Triggers: user requests review, evaluation, critique, feedback, or asks confirmation questions ("Is this right?", "Do you agree?"). Simple fact queries, translation, and formatting do not trigger by default.</span></p>
 
-    <h2 id="platform">H. 平台适配层</h2>
+    <h2 id="platform"><span class="copy-zh">H. 平台适配层</span><span class="copy-en">H. Platform Adaptation Layer</span></h2>
 
-    <h3>核心数据源：platforms.json</h3>
-    <p><code>platforms.json</code>是平台适配的唯一数据源。每个平台定义：skills目录、commands目录、agents目录、配置文件、指令文件、检测标记、合并策略。</p>
+    <h3><span class="copy-zh">核心数据源：platforms.json</span><span class="copy-en">Core Data Source: platforms.json</span></h3>
+    <p><span class="copy-zh"><code>platforms.json</code>是平台适配的唯一数据源。每个平台定义：skills目录、commands目录、agents目录、配置文件、指令文件、检测标记、合并策略。</span><span class="copy-en"><code>platforms.json</code> is the single source of truth for platform adaptation. Each platform defines: skills dir, commands dir, agents dir, config file, instructions file, detection marker, merge strategy.</span></p>
 
-    <h3>8平台路径映射</h3>
+    <h3><span class="copy-zh">8平台路径映射</span><span class="copy-en">8-Platform Path Mapping</span></h3>
     <table>
-      <tr><th>平台</th><th>Skills目录</th><th>指令文件</th><th>检测标记</th></tr>
+      <tr>
+        <th><span class="copy-zh">平台</span><span class="copy-en">Platform</span></th>
+        <th><span class="copy-zh">Skills目录</span><span class="copy-en">Skills Dir</span></th>
+        <th><span class="copy-zh">指令文件</span><span class="copy-en">Instructions File</span></th>
+        <th><span class="copy-zh">检测标记</span><span class="copy-en">Detection Marker</span></th>
+      </tr>
       <tr><td>OpenCode</td><td><code>.opencode/skills/</code></td><td><code>AGENTS.md</code></td><td><code>.opencode/</code></td></tr>
       <tr><td>Claude Code</td><td><code>.claude/skills/</code></td><td><code>CLAUDE.md</code></td><td><code>.claude/</code></td></tr>
       <tr><td>Codex</td><td><code>.agents/skills/</code></td><td><code>AGENTS.md</code></td><td><code>.codex/</code></td></tr>
@@ -333,20 +510,36 @@ skill目录
       <tr><td>GitHub Copilot</td><td><code>.github/skills/</code></td><td><code>copilot-instructions.md</code></td><td><code>.github/copilot-*</code></td></tr>
       <tr><td>Windsurf</td><td><code>.windsurf/skills/</code></td><td><code>.windsurfrules</code></td><td><code>.windsurf/</code></td></tr>
       <tr><td>Antigravity</td><td><code>.agents/skills/</code></td><td><code>AGENTS.md</code> + <code>GEMINI.md</code></td><td><code>GEMINI.md</code></td></tr>
-      <tr><td>Universal</td><td><code>.agents/skills/</code></td><td><code>AGENTS.md</code></td><td>(fallback)</td></tr>
+      <tr><td>Universal</td><td><code>.agents/skills/</code></td><td><code>AGENTS.md</code></td><td><span class="copy-zh">(fallback)</span><span class="copy-en">(fallback)</span></td></tr>
     </table>
 
-    <h3>指令翻译机制</h3>
+    <h3><span class="copy-zh">指令翻译机制</span><span class="copy-en">Instructions Translation</span></h3>
     <table>
-      <tr><th>方法</th><th>适用</th><th>行为</th></tr>
-      <tr><td>marker_based</td><td>OpenCode, Codex, Copilot, Windsurf, Antigravity, Universal</td><td>用<code>&lt;!-- BEGIN/END pack --&gt;</code>标记合并，不覆盖已有内容</td></tr>
-      <tr><td>rename_with_header</td><td>Claude Code, Copilot, Windsurf</td><td>复制内容，加平台特定头部</td></tr>
-      <tr><td>wrap_as_mdc</td><td>Cursor</td><td>包装为<code>.mdc</code>前置元数据格式</td></tr>
+      <tr>
+        <th><span class="copy-zh">方法</span><span class="copy-en">Method</span></th>
+        <th><span class="copy-zh">适用</span><span class="copy-en">Applies To</span></th>
+        <th><span class="copy-zh">行为</span><span class="copy-en">Behavior</span></th>
+      </tr>
+      <tr>
+        <td>marker_based</td>
+        <td>OpenCode, Codex, Copilot, Windsurf, Antigravity, Universal</td>
+        <td><span class="copy-zh">用<code>&lt;!-- BEGIN/END pack --&gt;</code>标记合并，不覆盖已有内容</span><span class="copy-en">Merge with <code>&lt;!-- BEGIN/END pack --&gt;</code> markers, preserves existing content</span></td>
+      </tr>
+      <tr>
+        <td>rename_with_header</td>
+        <td>Claude Code, Copilot, Windsurf</td>
+        <td><span class="copy-zh">复制内容，加平台特定头部</span><span class="copy-en">Copy content with platform-specific header</span></td>
+      </tr>
+      <tr>
+        <td>wrap_as_mdc</td>
+        <td>Cursor</td>
+        <td><span class="copy-zh">包装为<code>.mdc</code>前置元数据格式</span><span class="copy-en">Wrap as <code>.mdc</code> front matter format</span></td>
+      </tr>
     </table>
 
-    <h2 id="pack">I. Pack体系</h2>
+    <h2 id="pack"><span class="copy-zh">I. Pack体系</span><span class="copy-en">I. Pack System</span></h2>
 
-    <h3>pack-manifest.json统一schema</h3>
+    <h3>pack-manifest.json <span class="copy-zh">统一schema</span><span class="copy-en">Unified Schema</span></h3>
     <pre>
 {
   "name": "petfish-companion-skill",
@@ -361,13 +554,18 @@ skill目录
   "agents": []
 }</pre>
 
-    <h3>10个Pack定位</h3>
+    <h3>10 <span class="copy-zh">个Pack定位</span><span class="copy-en">Packs</span></h3>
     <table>
-      <tr><th>Pack</th><th>Alias</th><th>承诺映射</th><th>规模</th></tr>
-      <tr><td>petfish-companion-skill</td><td><code>companion</code></td><td>常伴</td><td>10 skills, 1 cmd</td></tr>
-      <tr><td>fish-trail</td><td><code>context</code></td><td>守护</td><td>1 skill, 31 MCP</td></tr>
-      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code></td><td>秉正</td><td>1 skill</td></tr>
-      <tr><td>trustskills-governance-pack</td><td><code>trust</code></td><td>可信</td><td>1 skill</td></tr>
+      <tr>
+        <th>Pack</th>
+        <th>Alias</th>
+        <th><span class="copy-zh">承诺映射</span><span class="copy-en">Promise Mapping</span></th>
+        <th><span class="copy-zh">规模</span><span class="copy-en">Scale</span></th>
+      </tr>
+      <tr><td>petfish-companion-skill</td><td><code>companion</code></td><td><span class="copy-zh">常伴</span><span class="copy-en">Always-Present</span></td><td>10 skills, 1 cmd</td></tr>
+      <tr><td>fish-trail</td><td><code>context</code></td><td><span class="copy-zh">守护</span><span class="copy-en">Guarding</span></td><td>1 skill, 31 MCP</td></tr>
+      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code></td><td><span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></td><td>1 skill</td></tr>
+      <tr><td>trustskills-governance-pack</td><td><code>trust</code></td><td><span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></td><td>1 skill</td></tr>
       <tr><td>project-initializer-skill</td><td><code>init</code></td><td>—</td><td>1 skill, 1 cmd</td></tr>
       <tr><td>opencode-course-skills-pack</td><td><code>course</code></td><td>—</td><td>15 skills, 10 cmds, 8 agents</td></tr>
       <tr><td>repo-deploy-ops-skill-pack</td><td><code>deploy</code></td><td>—</td><td>7 skills</td></tr>
@@ -376,7 +574,7 @@ skill目录
       <tr><td>opencode-ppt-skills</td><td><code>ppt</code></td><td>—</td><td>2 skills</td></tr>
     </table>
 
-    <h2 id="companion-skills">J. Companion内核：10个内置Skill</h2>
+    <h2 id="companion-skills"><span class="copy-zh">J. Companion内核：10个内置Skill</span><span class="copy-en">J. Companion Core: 10 Built-in Skills</span></h2>
 
     <pre>
 mine → author → lint → audit → gate → optimize → eval
@@ -388,36 +586,113 @@ mine → author → lint → audit → gate → optimize → eval
 + petfish-companion     (总控调度)</pre>
 
     <table>
-      <tr><th>Skill</th><th>职责</th></tr>
-      <tr><td>petfish-companion</td><td>总控调度，动态读取pack-manifest.json，路由/petfish 14个子命令</td></tr>
-      <tr><td>marketplace-connector</td><td>跨6来源搜索（胖鱼仓库、SkillKit、Smithery、Glama、anthropics/skills、GitHub）</td></tr>
-      <tr><td>skill-author</td><td>生成符合规范的skill脚手架</td></tr>
-      <tr><td>skill-lint</td><td>100分制格式检查，40+规则</td></tr>
-      <tr><td>repo-skill-miner</td><td>分析GitHub仓库，提取可skill化模块</td></tr>
-      <tr><td>skill-security-auditor</td><td>静态安全分析，0.0-1.0风险评分</td></tr>
-      <tr><td>quality-gate</td><td>编排lint+audit，给出PASS/CONDITIONAL/FAIL</td></tr>
-      <tr><td>skill-description-optimizer</td><td>分析触发准确率和歧义度</td></tr>
-      <tr><td>skill-trigger-evaluator</td><td>用测试集跑precision/recall</td></tr>
-      <tr><td>skill-usage-tracker</td><td>记录使用频率和反馈评分</td></tr>
+      <tr>
+        <th>Skill</th>
+        <th><span class="copy-zh">职责</span><span class="copy-en">Responsibility</span></th>
+      </tr>
+      <tr>
+        <td>petfish-companion</td>
+        <td><span class="copy-zh">总控调度，动态读取pack-manifest.json，路由/petfish 14个子命令</span><span class="copy-en">Orchestration, dynamically reads pack-manifest.json, routes /petfish 14 subcommands</span></td>
+      </tr>
+      <tr>
+        <td>marketplace-connector</td>
+        <td><span class="copy-zh">跨6来源搜索（胖鱼仓库、SkillKit、Smithery、Glama、anthropics/skills、GitHub）</span><span class="copy-en">Search across 6 sources (PEtFiSh repo, SkillKit, Smithery, Glama, anthropics/skills, GitHub)</span></td>
+      </tr>
+      <tr>
+        <td>skill-author</td>
+        <td><span class="copy-zh">生成符合规范的skill脚手架</span><span class="copy-en">Generate standards-compliant skill scaffold</span></td>
+      </tr>
+      <tr>
+        <td>skill-lint</td>
+        <td><span class="copy-zh">100分制格式检查，40+规则</span><span class="copy-en">100-point format check, 40+ rules</span></td>
+      </tr>
+      <tr>
+        <td>repo-skill-miner</td>
+        <td><span class="copy-zh">分析GitHub仓库，提取可skill化模块</span><span class="copy-en">Analyze GitHub repos, extract skill-able modules</span></td>
+      </tr>
+      <tr>
+        <td>skill-security-auditor</td>
+        <td><span class="copy-zh">静态安全分析，0.0-1.0风险评分</span><span class="copy-en">Static security analysis, 0.0-1.0 risk score</span></td>
+      </tr>
+      <tr>
+        <td>quality-gate</td>
+        <td><span class="copy-zh">编排lint+audit，给出PASS/CONDITIONAL/FAIL</span><span class="copy-en">Orchestrates lint + audit, outputs PASS/CONDITIONAL/FAIL</span></td>
+      </tr>
+      <tr>
+        <td>skill-description-optimizer</td>
+        <td><span class="copy-zh">分析触发准确率和歧义度</span><span class="copy-en">Analyze trigger accuracy and ambiguity</span></td>
+      </tr>
+      <tr>
+        <td>skill-trigger-evaluator</td>
+        <td><span class="copy-zh">用测试集跑precision/recall</span><span class="copy-en">Run precision/recall against test sets</span></td>
+      </tr>
+      <tr>
+        <td>skill-usage-tracker</td>
+        <td><span class="copy-zh">记录使用频率和反馈评分</span><span class="copy-en">Record usage frequency and feedback scores</span></td>
+      </tr>
     </table>
 
-    <h3>Catalog动态加载</h3>
-    <p><code>catalog_query.py</code>通过<code>_find_packs_root()</code>从脚本位置向上查找<code>packs/</code>目录遍历manifest。在用户机器上（无<code>packs/</code>目录），自动回退到<code>installed-packs.json</code>获取版本和skill_count信息。新pack只需放入<code>packs/&lt;name&gt;/pack-manifest.json</code>，不需修改代码。</p>
+    <h3><span class="copy-zh">Catalog动态加载</span><span class="copy-en">Catalog Dynamic Loading</span></h3>
+    <p><span class="copy-zh"><code>catalog_query.py</code>通过<code>_find_packs_root()</code>从脚本位置向上查找<code>packs/</code>目录遍历manifest。在用户机器上（无<code>packs/</code>目录），自动回退到<code>installed-packs.json</code>获取版本和skill_count信息。新pack只需放入<code>packs/&lt;name&gt;/pack-manifest.json</code>，不需修改代码。</span><span class="copy-en"><code>catalog_query.py</code> uses <code>_find_packs_root()</code> to walk up from script location and traverse manifests in <code>packs/</code>. On user machines (no <code>packs/</code> dir), automatically falls back to <code>installed-packs.json</code> for version and skill_count. New packs only need <code>packs/&lt;name&gt;/pack-manifest.json</code> — no code changes required.</span></p>
 
-    <h2 id="decisions">K. 关键技术决策记录</h2>
+    <h2 id="decisions"><span class="copy-zh">K. 关键技术决策记录</span><span class="copy-en">K. Key Technical Decisions</span></h2>
 
     <table>
-      <tr><th>决策</th><th>选择</th><th>理由</th></tr>
-      <tr><td>伙伴实现</td><td>Instructions注入 + MCP</td><td>Gateway注入instructions文件，确保每条消息都执行；MCP提供状态持久化</td></tr>
-      <tr><td>能力感知</td><td>三层模型</td><td>Tier 1快速匹配，Tier 2深度意图分析，Tier 3静默——平衡准确率和打扰度</td></tr>
-      <tr><td>平台配置</td><td>platforms.json单一数据源</td><td>新平台只改一个文件</td></tr>
-      <tr><td>Pack发现</td><td>运行时遍历manifest + registry fallback</td><td>开发环境读packs/，用户机器读installed-packs.json</td></tr>
-      <tr><td>安装脚本</td><td>PowerShell + Bash双版本</td><td>覆盖Windows + macOS/Linux</td></tr>
-      <tr><td>指令合并</td><td>marker-based merge</td><td>不覆盖用户已有内容，升级时替换first+去重</td></tr>
-      <tr><td>Context Router MCP</td><td>纯Python标准库</td><td>零依赖，任何环境可运行</td></tr>
-      <tr><td>会话管理</td><td>话题绑定而非全局session</td><td>支持多话题并行、跨会话恢复</td></tr>
-      <tr><td>反迎合校准</td><td>组合式skill</td><td>可叠加到任何评审类skill，不改变原skill逻辑</td></tr>
-      <tr><td>平台检测fallback</td><td>universal + 环境报告</td><td>未检测到平台时报告OS/shell/runtimes，给出操作建议</td></tr>
+      <tr>
+        <th><span class="copy-zh">决策</span><span class="copy-en">Decision</span></th>
+        <th><span class="copy-zh">选择</span><span class="copy-en">Choice</span></th>
+        <th><span class="copy-zh">理由</span><span class="copy-en">Rationale</span></th>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">伙伴实现</span><span class="copy-en">Companion implementation</span></td>
+        <td><span class="copy-zh">Instructions注入 + MCP</span><span class="copy-en">Instructions injection + MCP</span></td>
+        <td><span class="copy-zh">Gateway注入instructions文件，确保每条消息都执行；MCP提供状态持久化</span><span class="copy-en">Gateway injected into instructions file ensures execution per message; MCP provides state persistence</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">能力感知</span><span class="copy-en">Capability sensing</span></td>
+        <td><span class="copy-zh">三层模型</span><span class="copy-en">Three-tier model</span></td>
+        <td><span class="copy-zh">Tier 1快速匹配，Tier 2深度意图分析，Tier 3静默——平衡准确率和打扰度</span><span class="copy-en">Tier 1 fast match, Tier 2 deep intent analysis, Tier 3 silent — balances accuracy and interruption</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">平台配置</span><span class="copy-en">Platform config</span></td>
+        <td><span class="copy-zh">platforms.json单一数据源</span><span class="copy-en">platforms.json single source of truth</span></td>
+        <td><span class="copy-zh">新平台只改一个文件</span><span class="copy-en">Adding a new platform requires changing one file</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">Pack发现</span><span class="copy-en">Pack discovery</span></td>
+        <td><span class="copy-zh">运行时遍历manifest + registry fallback</span><span class="copy-en">Runtime manifest traversal + registry fallback</span></td>
+        <td><span class="copy-zh">开发环境读packs/，用户机器读installed-packs.json</span><span class="copy-en">Dev env reads packs/, user machines read installed-packs.json</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">安装脚本</span><span class="copy-en">Install scripts</span></td>
+        <td><span class="copy-zh">PowerShell + Bash双版本</span><span class="copy-en">PowerShell + Bash dual versions</span></td>
+        <td><span class="copy-zh">覆盖Windows + macOS/Linux</span><span class="copy-en">Covers Windows + macOS/Linux</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">指令合并</span><span class="copy-en">Instructions merge</span></td>
+        <td>marker-based merge</td>
+        <td><span class="copy-zh">不覆盖用户已有内容，升级时替换first+去重</span><span class="copy-en">Preserves existing user content, upgrades replace-first + dedup</span></td>
+      </tr>
+      <tr>
+        <td>Context Router MCP</td>
+        <td><span class="copy-zh">纯Python标准库</span><span class="copy-en">Pure Python stdlib</span></td>
+        <td><span class="copy-zh">零依赖，任何环境可运行</span><span class="copy-en">Zero dependencies, runs in any environment</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">会话管理</span><span class="copy-en">Session management</span></td>
+        <td><span class="copy-zh">话题绑定而非全局session</span><span class="copy-en">Topic-bound rather than global session</span></td>
+        <td><span class="copy-zh">支持多话题并行、跨会话恢复</span><span class="copy-en">Supports parallel topics and cross-session resume</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">反迎合校准</span><span class="copy-en">Anti-sycophancy calibration</span></td>
+        <td><span class="copy-zh">组合式skill</span><span class="copy-en">Composable skill</span></td>
+        <td><span class="copy-zh">可叠加到任何评审类skill，不改变原skill逻辑</span><span class="copy-en">Stackable onto any review skill without changing original skill logic</span></td>
+      </tr>
+      <tr>
+        <td><span class="copy-zh">平台检测fallback</span><span class="copy-en">Platform detection fallback</span></td>
+        <td>universal + <span class="copy-zh">环境报告</span><span class="copy-en">environment report</span></td>
+        <td><span class="copy-zh">未检测到平台时报告OS/shell/runtimes，给出操作建议</span><span class="copy-en">When no platform detected, reports OS/shell/runtimes and provides actionable suggestions</span></td>
+      </tr>
     </table>
 
   </div>
@@ -426,16 +701,41 @@ mine → author → lint → audit → gate → optimize → eval
 <footer>
   <div class="container">
     <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
-    <strong>胖鱼 PEtFiSh</strong> — 你的AI伙伴<br/>
-    常伴 · 守护 · 可信 · 秉正
+    <strong>胖鱼 PEtFiSh</strong> — <span class="copy-zh">你的AI伙伴</span><span class="copy-en">Your AI Companion</span><br/>
+    <span class="copy-zh">常伴 · 守护 · 可信 · 秉正</span><span class="copy-en">Always Present · Guarding · Verified Trust · No Compromise</span>
     <div class="links">
       <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
-      <a href="/">首页</a>
-      <a href="/pitch.html">产品介绍</a>
+      <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
+      <a href="/pitch.html"><span class="copy-zh">产品介绍</span><span class="copy-en">Product</span></a>
       <a href="/blog.html">Blog</a>
     </div>
   </div>
 </footer>
 
+<script>
+  (function() {
+    var saved = localStorage.getItem('petfish-lang');
+    if (saved === 'en') {
+      document.body.classList.replace('lang-zh', 'lang-en');
+    }
+    var btns = document.querySelectorAll('.lang-option');
+    btns.forEach(function(btn) {
+      if (btn.dataset.lang === (saved || 'zh')) {
+        btn.classList.add('is-active');
+      } else {
+        btn.classList.remove('is-active');
+      }
+    });
+    btns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var lang = btn.dataset.lang;
+        document.body.classList.remove('lang-zh', 'lang-en');
+        document.body.classList.add('lang-' + lang);
+        localStorage.setItem('petfish-lang', lang);
+        btns.forEach(function(b) { b.classList.toggle('is-active', b.dataset.lang === lang); });
+      });
+    });
+  })();
+</script>
 </body>
 </html>
