@@ -225,7 +225,7 @@ function Get-DetectedPlatform([string]$targetPath) {
 
 # --- Merge helpers ---
 
-function Merge-AgentsMd([string]$srcFile, [string]$dstFile, [string]$packName, [switch]$ForceOverwrite) {
+function Merge-AgentsMd([string]$srcFile, [string]$dstFile, [string]$packName, [switch]$ForceOverwrite, [string]$ManifestFile = "") {
     $beginMarker = "<!-- BEGIN pack: $packName -->"
     $endMarker = "<!-- END pack: $packName -->"
     $srcContent = (Get-Content $srcFile -Raw -Encoding UTF8).TrimEnd()
@@ -235,26 +235,72 @@ function Merge-AgentsMd([string]$srcFile, [string]$dstFile, [string]$packName, [
     $srcContent = $srcContent.Trim()
     $wrappedContent = "$beginMarker`n$srcContent`n$endMarker"
 
+    # Resolve legacy names from manifest
+    $legacyNames = @()
+    if ($ManifestFile -and (Test-Path $ManifestFile)) {
+        try {
+            $manifest = Get-Content $ManifestFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($manifest.legacy_names) {
+                $legacyNames = @($manifest.legacy_names)
+            }
+        } catch {}
+    }
+
     if (-not (Test-Path $dstFile)) {
         Set-Content -Path $dstFile -Value $wrappedContent -NoNewline -Encoding UTF8
         return "created"
     }
 
     $existing = Get-Content $dstFile -Raw -Encoding UTF8
+
+    # Check if current name OR any legacy name exists
+    $foundMarker = $false
     if ($existing -match [regex]::Escape($beginMarker)) {
-        if (-not $ForceOverwrite) { return "exists" }
-        $pattern = "(?s)" + [regex]::Escape($beginMarker) + ".*?" + [regex]::Escape($endMarker)
-        # Find first match position, replace it, then remove any duplicates AFTER it
-        $m = [regex]::Match($existing, $pattern)
-        if ($m.Success) {
-            $before = $existing.Substring(0, $m.Index)
-            $after = $existing.Substring($m.Index + $m.Length)
-            # Remove any remaining duplicates in the 'after' portion
-            $after = [regex]::Replace($after, $pattern, "")
-            $replaced = $before + $wrappedContent + $after
-        } else {
-            $replaced = $existing
+        $foundMarker = $true
+    } else {
+        foreach ($legacy in $legacyNames) {
+            $legacyBegin = "<!-- BEGIN pack: $legacy -->"
+            if ($existing -match [regex]::Escape($legacyBegin)) {
+                $foundMarker = $true
+                break
+            }
         }
+    }
+
+    if ($foundMarker) {
+        if (-not $ForceOverwrite) { return "exists" }
+
+        # Build list of all names to remove (current + legacy)
+        $allNames = @($packName) + $legacyNames
+        $earliestPos = $existing.Length
+
+        # Remove all sections matching any name, track earliest position
+        foreach ($name in $allNames) {
+            $nameBegin = [regex]::Escape("<!-- BEGIN pack: $name -->")
+            $nameEnd = [regex]::Escape("<!-- END pack: $name -->")
+            $namePattern = "(?s)$nameBegin.*?$nameEnd"
+            $m = [regex]::Match($existing, $namePattern)
+            if ($m.Success -and $m.Index -lt $earliestPos) {
+                $earliestPos = $m.Index
+            }
+            # Remove ALL occurrences of this name
+            $existing = [regex]::Replace($existing, $namePattern, "")
+        }
+
+        # Insert replacement at earliest position
+        $existing = $existing.TrimEnd()
+        $earliestPos = [Math]::Min($earliestPos, $existing.Length)
+        $beforePart = $existing.Substring(0, $earliestPos).TrimEnd()
+        $afterPart = $existing.Substring($earliestPos).TrimStart()
+        if ($beforePart) {
+            $replaced = $beforePart + "`n`n" + $wrappedContent
+        } else {
+            $replaced = $wrappedContent
+        }
+        if ($afterPart) {
+            $replaced = $replaced + "`n`n" + $afterPart
+        }
+
         # Clean up multiple blank lines
         $replaced = [regex]::Replace($replaced, "(\r?\n){3,}", "`n`n").Trim() + "`n"
         Set-Content -Path $dstFile -Value $replaced -NoNewline -Encoding UTF8
@@ -596,7 +642,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         $agentsMd = Join-Path $packRoot "AGENTS.md"
         if (Test-Path $agentsMd) {
             $dstAgents = Join-Path $targetPath "AGENTS.md"
-            $result = Merge-AgentsMd $agentsMd $dstAgents $packName -ForceOverwrite:$forceThisPack
+            $result = Merge-AgentsMd $agentsMd $dstAgents $packName -ForceOverwrite:$forceThisPack -ManifestFile $manifestFile
             switch ($result) {
                 "created" { Write-Host "    + AGENTS.md (created)" -ForegroundColor DarkGreen; $script:installed++ }
                 "merged"  { Write-Host "    + AGENTS.md (merged)" -ForegroundColor DarkGreen; $script:installed++ }
@@ -620,7 +666,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
 
             if ($cfg.GeminiMd) {
                 $dstGemini = Join-Path $targetPath "GEMINI.md"
-                $geminiResult = Merge-AgentsMd $agentsMd $dstGemini $packName -ForceOverwrite:$forceThisPack
+                $geminiResult = Merge-AgentsMd $agentsMd $dstGemini $packName -ForceOverwrite:$forceThisPack -ManifestFile $manifestFile
                 switch ($geminiResult) {
                     "created" { Write-Host "    + GEMINI.md (created)" -ForegroundColor DarkGreen; $script:installed++ }
                     "merged"  { Write-Host "    + GEMINI.md (merged)" -ForegroundColor DarkGreen; $script:installed++ }

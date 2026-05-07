@@ -85,7 +85,7 @@
         "skill-trigger-evaluator",
         "skill-usage-tracker"
       ],
-      "version": "0.2.0"
+      "version": "1.0.0"
     },
     "trustskills-governance-pack": {
       "description": "Skill安全治理引擎 — 基于行为分析的skill可信度评估、风险评分与治理决策",
@@ -103,13 +103,13 @@
         "anti-sycophancy-calibration"
       ]
     },
-    "context-router-skill": {
-      "version": "0.1.0",
+    "fish-trail": {
+      "version": "1.0.0",
       "skills": [
-        "context-router"
+        "fish-trail"
       ],
       "description": "话题治理器 — 在项目内维护topic边界、继承策略和切换记录，降低跨话题上下文污染。三层架构：AGENTS.md always-on感知 + MCP server状态管理 + SKILL.md深度治理方法论",
-      "installed_at": "2026-05-03T17:32:55Z"
+      "installed_at": "2026-05-07T10:30:00Z"
     }
   }
 }
