@@ -7,7 +7,8 @@ from typing import List, Optional, Set
 class TopicDetector:
     """Detect topic changes and relation types from user messages."""
 
-    def __init__(self):
+    def __init__(self, embedding_manager=None):
+        self._embedding = embedding_manager
         self.bilingual_map = {
             "测试": "test",
             "验证": "verification",
@@ -301,7 +302,9 @@ class TopicDetector:
         # If the message has meaningful content but zero/near-zero overlap
         # with the current topic's title+scope+tags, flag as potential drift.
         if current_topic and keywords:
-            drift_result = self._check_semantic_drift(keywords, current_topic)
+            drift_result = self._check_semantic_drift(
+                normalized_text, keywords, current_topic
+            )
             if drift_result:
                 return drift_result
 
@@ -499,12 +502,15 @@ class TopicDetector:
         return expanded
 
     def _check_semantic_drift(
-        self, keywords: Set[str], current_topic: dict
+        self, text: str, keywords: Set[str], current_topic: dict
     ) -> Optional[dict]:
         """Detect semantic drift by comparing message keywords to current topic.
 
         Uses bilingual keyword expansion and meaningful-token filtering to
         handle cross-language scenarios (Chinese message vs English topic).
+
+        Tier 1: Keyword Jaccard (fast, <1ms)
+        Tier 2: Embedding cosine similarity (optional, ~30ms) — only in ambiguous zone
 
         Returns a fork result if drift is detected, or None to fall through
         to the default continue path.
@@ -541,6 +547,37 @@ class TopicDetector:
         # High relevance — clearly on-topic
         if relevance >= 0.10:
             return None
+
+        # Ambiguous zone: consult embedding Tier 2 if available
+        if relevance > 0.0 and self._embedding and self._embedding.available:
+            sim = self._embedding.similarity(text, topic_text)
+            if sim is not None:
+                if sim > 0.5:
+                    return None  # on-topic per embedding
+                elif sim < 0.3:
+                    return {
+                        "relation": "fork",
+                        "confidence": 0.65,
+                        "risk": 45,
+                        "risk_level": "medium",
+                        "target_topic": None,
+                        "suggestion": (
+                            'This message appears unrelated to "{}". '
+                            "Consider forking a new topic or confirming you want to continue."
+                        ).format(self._topic_title(current_topic) or "current topic"),
+                    }
+                else:
+                    return {
+                        "relation": "fork",
+                        "confidence": 0.55,
+                        "risk": 35,
+                        "risk_level": "medium",
+                        "target_topic": None,
+                        "suggestion": (
+                            'This message may be drifting from "{}". '
+                            "Consider forking a new topic if changing direction."
+                        ).format(self._topic_title(current_topic) or "current topic"),
+                    }
 
         # Zero or near-zero relevance with meaningful keywords — likely drift
         risk = 45 if relevance == 0.0 else 35

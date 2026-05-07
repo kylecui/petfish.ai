@@ -25,6 +25,34 @@ mcp:
 - context-state MCP server已启动（通过SKILL.md frontmatter自动发现，或手动在opencode.json中配置）
 - `.petfish/fish-trail/`目录已存在（首次使用时由`topic_create`自动创建）
 
+## Optional: Semantic Embedding (v0.7.0+)
+
+Fish-trail supports ONNX-based sentence embedding as a Tier 2 fallback for semantic drift detection. This is **fully optional** — without it, keyword-based detection works identically to v0.6.x.
+
+**Install (optional):**
+```bash
+pip install onnxruntime>=1.23 tokenizers>=0.13 huggingface_hub numpy
+```
+
+**Platform support:** Linux x86_64/ARM64, macOS ARM64, Windows x64/ARM64. macOS Intel (x86_64) is not supported by onnxruntime >=1.24 and will fall back to keyword-only.
+
+**Python requirement:** >=3.11 (onnxruntime 1.25.x requirement).
+
+**Model:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (ONNX int8, ~118MB, downloads on first use).
+
+**Configuration:** Add to `.petfish/fish-trail/config.json`:
+```json
+{
+  "embedding": {
+    "enabled": true,
+    "preload": false,
+    "timeout_ms": 2000
+  }
+}
+```
+
+See `docs/embedding-setup.md` for offline/air-gapped setup and troubleshooting.
+
 ## 核心概念
 
 ### Topic
