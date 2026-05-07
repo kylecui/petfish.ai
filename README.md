@@ -9,7 +9,7 @@
   <img src="assets/petfish-icon-256.png" alt="胖鱼 PEtFiSh icon" width="128" />
 </p>
 **Your AI Companion**
-From first commit to final delivery, PEtFiSh is there.
+From first commit to final delivery, PEtFiSh is always there.
 ```text
 ><(((^>  PEtFiSh v0.6
 
