@@ -249,6 +249,14 @@ class TopicDetector:
                 suggestion="These topics seem related. Confirm whether to create a bridge instead of merging them.",
             )
 
+        # Semantic drift detection: check keyword overlap with current topic.
+        # If the message has meaningful content but zero/near-zero overlap
+        # with the current topic's title+scope+tags, flag as potential drift.
+        if current_topic and keywords:
+            drift_result = self._check_semantic_drift(keywords, current_topic)
+            if drift_result:
+                return drift_result
+
         return self._build_result(
             relation="continue",
             confidence=0.90,
@@ -417,6 +425,59 @@ class TopicDetector:
                 return True
 
         return False
+
+    def _check_semantic_drift(
+        self, keywords: Set[str], current_topic: dict
+    ) -> Optional[dict]:
+        """Detect semantic drift by comparing message keywords to current topic.
+
+        Returns a fork/continue result if drift is detected, or None to fall
+        through to the default continue path.
+        """
+        # Build topic keyword set from title + scope + tags
+        topic_text = "{} {} {}".format(
+            current_topic.get("title", "") or "",
+            current_topic.get("scope", "") or "",
+            " ".join(current_topic.get("tags", []) or []),
+        )
+        topic_keywords = self._extract_keywords(topic_text)
+
+        # If current topic has no keywords (no title/scope/tags), skip drift check
+        if not topic_keywords:
+            return None
+
+        # Need enough input keywords to make a meaningful comparison
+        # Very short messages (1-2 keywords) are likely follow-ups
+        if len(keywords) < 3:
+            return None
+
+        # Calculate overlap using Jaccard on intersection vs input keywords
+        # We use intersection/input (not full Jaccard) because we care whether
+        # the message is ABOUT the topic, not whether it covers ALL of the topic
+        intersection = keywords & topic_keywords
+        relevance = len(intersection) / len(keywords)
+
+        # High relevance — clearly on-topic
+        if relevance >= 0.15:
+            return None
+
+        # Zero or near-zero relevance with 3+ keywords — likely drift
+        # Use lower confidence to allow agent to decide
+        risk = 45 if relevance == 0.0 else 35
+        confidence = 0.65 if relevance == 0.0 else 0.55
+
+        title = self._topic_title(current_topic) or "current topic"
+        return {
+            "relation": "fork",
+            "confidence": confidence,
+            "risk": risk,
+            "risk_level": "medium",
+            "target_topic": None,
+            "suggestion": (
+                'This message appears unrelated to "{}". '
+                "Consider forking a new topic or confirming you want to continue."
+            ).format(title),
+        }
 
     def _continue_suggestion(self, current_topic: Optional[dict]) -> str:
         title = self._topic_title(current_topic)
