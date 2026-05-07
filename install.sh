@@ -55,8 +55,11 @@ ${end_marker}"
         return
     fi
 
-    local existing
-    existing="$(cat "$dst_file")"
+    if [[ ! -f "$dst_file" ]]; then
+        printf '%s\n' "$wrapped" > "$dst_file"
+        echo "created"
+        return
+    fi
 
     # Also check for legacy pack names that should be replaced
     local legacy_names_json="[]"
@@ -71,7 +74,7 @@ print(json.dumps(m.get('legacy_names', [])))
 
     # Check if current name OR any legacy name exists in the file
     local found_marker=false
-    if echo "$existing" | grep -qF "$begin_marker"; then
+    if grep -qF "$begin_marker" "$dst_file"; then
         found_marker=true
     else
         # Check legacy names
