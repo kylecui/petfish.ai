@@ -12,6 +12,7 @@ class TopicDetector:
         self.bilingual_map = {
             "测试": "test",
             "验证": "verification",
+            "验收": "acceptance",
             "升级": "upgrade",
             "部署": "deploy",
             "安装": "install",
@@ -45,17 +46,37 @@ class TopicDetector:
             "命令": "command",
             "服务": "service",
             "重启": "restart",
+            "改动": "change",
+            "生效": "effective",
+            "回归": "regression",
+            "覆盖": "coverage",
+            "断言": "assertion",
+            "用例": "test case",
+            "冒烟": "smoke test",
         }
         # Synonyms/aliases that should be considered equivalent in drift checks
         self.synonym_groups = [
-            {"test", "testing", "qa", "verification", "check", "validate"},
+            {
+                "test",
+                "testing",
+                "qa",
+                "verification",
+                "check",
+                "validate",
+                "acceptance",
+                "regression",
+                "smoke test",
+                "assertion",
+                "test case",
+                "coverage",
+            },
             {"companion", "petfish", "gateway"},
             {"topic", "context", "fish-trail", "drift", "detection"},
             {"deploy", "deployment", "ci", "cd"},
             {"skill", "pack", "capability"},
             {"mcp", "server", "service", "tool"},
             {"install", "setup", "init"},
-            {"upgrade", "update", "migration"},
+            {"upgrade", "update", "migration", "change", "effective"},
         ]
         self.reset_signals = [
             "重新开始",
