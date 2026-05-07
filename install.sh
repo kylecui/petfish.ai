@@ -38,11 +38,13 @@ PLATFORMS_JSON="$SCRIPT_DIR/platforms.json"
 # --- Merge helpers ---
 
 merge_agents_md() {
-    local src_file="$1" dst_file="$2" pack_name="$3" force="$4"
+    local src_file="$1" dst_file="$2" pack_name="$3" force="$4" manifest_file="${5:-}"
     local begin_marker="<!-- BEGIN pack: $pack_name -->"
     local end_marker="<!-- END pack: $pack_name -->"
     local src_content
     src_content="$(cat "$src_file")"
+    # Strip existing markers from source if present (safety net)
+    src_content="$(echo "$src_content" | sed "s|^${begin_marker}$||" | sed "s|^${end_marker}$||" | sed '/./,$!d' | sed -e :a -e '/^\n*$/{$d;N;ba}' )"
     local wrapped="${begin_marker}
 ${src_content}
 ${end_marker}"
@@ -55,22 +57,84 @@ ${end_marker}"
 
     local existing
     existing="$(cat "$dst_file")"
+
+    # Also check for legacy pack names that should be replaced
+    local legacy_names_json="[]"
+    if [[ -n "$manifest_file" && -f "$manifest_file" ]]; then
+        legacy_names_json="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+print(json.dumps(m.get('legacy_names', [])))
+" "$manifest_file" 2>/dev/null || echo '[]')"
+    fi
+
+    # Check if current name OR any legacy name exists in the file
+    local found_marker=false
     if echo "$existing" | grep -qF "$begin_marker"; then
+        found_marker=true
+    else
+        # Check legacy names
+        local has_legacy
+        has_legacy="$(python3 -c "
+import json, sys
+names = json.loads(sys.argv[1])
+text = open(sys.argv[2], 'r', encoding='utf-8').read()
+for name in names:
+    if '<!-- BEGIN pack: ' + name + ' -->' in text:
+        print('yes')
+        sys.exit(0)
+print('no')
+" "$legacy_names_json" "$dst_file" 2>/dev/null || echo 'no')"
+        if [[ "$has_legacy" == "yes" ]]; then
+            found_marker=true
+        fi
+    fi
+
+    if $found_marker; then
         if ! $force; then
             echo "exists"
             return
         fi
-        # Replace existing section using python for reliable multiline regex
+        # Replace current name and all legacy name sections
         python3 -c "
-import re, sys
-begin = sys.argv[1]
-end = sys.argv[2]
-replacement = sys.argv[3]
-text = open(sys.argv[4], 'r', encoding='utf-8').read()
-pattern = re.escape(begin) + r'.*?' + re.escape(end)
-result = re.sub(pattern, replacement, text, flags=re.DOTALL)
-open(sys.argv[4], 'w', encoding='utf-8').write(result)
-" "$begin_marker" "$end_marker" "$wrapped" "$dst_file"
+import re, json, sys
+
+pack_name = sys.argv[1]
+replacement = sys.argv[2]
+dst_file = sys.argv[3]
+legacy_names = json.loads(sys.argv[4])
+
+text = open(dst_file, 'r', encoding='utf-8').read()
+
+# Collect all names to search for (current + legacy)
+all_names = [pack_name] + legacy_names
+
+# Remove ALL sections matching any name
+first_pos = len(text)  # track where to insert replacement
+found_any = False
+
+for name in all_names:
+    begin = '<!-- BEGIN pack: ' + name + ' -->'
+    end = '<!-- END pack: ' + name + ' -->'
+    pattern = re.escape(begin) + r'.*?' + re.escape(end)
+    matches = list(re.finditer(pattern, text, flags=re.DOTALL))
+    if matches:
+        if matches[0].start() < first_pos:
+            first_pos = matches[0].start()
+        found_any = True
+        # Remove all occurrences of this name
+        text = re.sub(pattern, '', text, flags=re.DOTALL)
+
+if found_any:
+    text = text.strip()
+    first_pos = min(first_pos, len(text))
+    text = text[:first_pos].rstrip() + '\n\n' + replacement + '\n\n' + text[first_pos:].lstrip()
+
+# Clean up multiple blank lines
+text = re.sub(r'\n{3,}', '\n\n', text).strip() + '\n'
+open(dst_file, 'w', encoding='utf-8').write(text)
+" "$pack_name" "$wrapped" "$dst_file" "$legacy_names_json"
         echo "updated"
         return
     fi
@@ -817,7 +881,7 @@ install_for_platform() {
         if [[ -f "$pack_root/AGENTS.md" ]]; then
             local dst_agents="$TARGET/AGENTS.md"
             local result
-            result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_agents" "$pack_name" "$force_this_pack")"
+            result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_agents" "$pack_name" "$force_this_pack" "$manifest_file")"
             case "$result" in
                 created) echo "    + AGENTS.md (created)"; ((installed++)) || true ;;
                 merged)  echo "    + AGENTS.md (merged)";  ((installed++)) || true ;;
@@ -828,7 +892,7 @@ install_for_platform() {
             # Antigravity: also create/merge GEMINI.md
             if should_create_gemini "$platform_name"; then
                 local dst_gemini="$TARGET/GEMINI.md"
-                result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_gemini" "$pack_name" "$force_this_pack")"
+                result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_gemini" "$pack_name" "$force_this_pack" "$manifest_file")"
                 case "$result" in
                     created) echo "    + GEMINI.md (created)"; ((installed++)) || true ;;
                     merged)  echo "    + GEMINI.md (merged)";  ((installed++)) || true ;;

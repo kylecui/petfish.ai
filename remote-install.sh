@@ -39,7 +39,7 @@ BRANCH_OVERRIDE=false
 # --- Merge helpers ---
 
 merge_agents_md() {
-    local src_file="$1" dst_file="$2" pack_name="$3" force="$4"
+    local src_file="$1" dst_file="$2" pack_name="$3" force="$4" manifest_file="${5:-}"
     local begin_marker="<!-- BEGIN pack: $pack_name -->"
     local end_marker="<!-- END pack: $pack_name -->"
     local src_content
@@ -58,39 +58,89 @@ ${end_marker}"
 
     local existing
     existing="$(cat "$dst_file")"
+
+    # Also check for legacy pack names that should be replaced
+    local legacy_names_json="[]"
+    if [[ -n "$manifest_file" && -f "$manifest_file" ]]; then
+        legacy_names_json="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+print(json.dumps(m.get('legacy_names', [])))
+" "$manifest_file" 2>/dev/null || echo '[]')"
+    fi
+
+    # Check if current name OR any legacy name exists in the file
+    local found_marker=false
     if echo "$existing" | grep -qF "$begin_marker"; then
+        found_marker=true
+    else
+        # Check legacy names
+        local has_legacy
+        has_legacy="$(python3 -c "
+import json, sys
+names = json.loads(sys.argv[1])
+text = open(sys.argv[2], 'r', encoding='utf-8').read()
+for name in names:
+    if '<!-- BEGIN pack: ' + name + ' -->' in text:
+        print('yes')
+        sys.exit(0)
+print('no')
+" "$legacy_names_json" "$dst_file" 2>/dev/null || echo 'no')"
+        if [[ "$has_legacy" == "yes" ]]; then
+            found_marker=true
+        fi
+    fi
+
+    if $found_marker; then
         if ! $force; then
             echo "exists"
             return
         fi
-        # Replace ALL occurrences (handles previously duplicated sections)
+        # Replace current name and all legacy name sections
         python3 -c "
-import re, sys
-begin = sys.argv[1]
-end = sys.argv[2]
-replacement = sys.argv[3]
-text = open(sys.argv[4], 'r', encoding='utf-8').read()
-pattern = re.escape(begin) + r'.*?' + re.escape(end)
-# Find all matches, replace first with new content, remove rest
-matches = list(re.finditer(pattern, text, flags=re.DOTALL))
-if matches:
-    # Build result: text before first match + replacement + text after first match with remaining matches removed
-    result = text[:matches[0].start()] + replacement + text[matches[0].end():]
-    # Remove any remaining occurrences (from duplicates)
-    if len(matches) > 1:
-        result_pattern = re.escape(begin) + r'.*?' + re.escape(end)
-        # Only remove OLD occurrences - the new one is already correct
-        # Find the replacement in result and protect it
-        new_start = matches[0].start()
-        new_end = new_start + len(replacement)
-        before = result[:new_end]
-        after = result[new_end:]
-        after = re.sub(result_pattern, '', after, flags=re.DOTALL)
-        result = before + after
-    # Clean up multiple blank lines
-    result = re.sub(r'\n{3,}', '\n\n', result).strip() + '\n'
-    open(sys.argv[4], 'w', encoding='utf-8').write(result)
-" "$begin_marker" "$end_marker" "$wrapped" "$dst_file"
+import re, json, sys
+
+pack_name = sys.argv[1]
+replacement = sys.argv[2]
+dst_file = sys.argv[3]
+legacy_names = json.loads(sys.argv[4])
+
+text = open(dst_file, 'r', encoding='utf-8').read()
+
+# Collect all names to search for (current + legacy)
+all_names = [pack_name] + legacy_names
+
+# Remove ALL sections matching any name
+first_pos = len(text)  # track where to insert replacement
+found_any = False
+
+for name in all_names:
+    begin = '<!-- BEGIN pack: ' + name + ' -->'
+    end = '<!-- END pack: ' + name + ' -->'
+    pattern = re.escape(begin) + r'.*?' + re.escape(end)
+    matches = list(re.finditer(pattern, text, flags=re.DOTALL))
+    if matches:
+        if matches[0].start() < first_pos:
+            first_pos = matches[0].start()
+        found_any = True
+        # Remove all occurrences of this name
+        text = re.sub(pattern, '', text, flags=re.DOTALL)
+
+if found_any:
+    # Insert replacement at the position of the earliest removed section
+    # Adjust first_pos since removals may have shifted text
+    # Simpler: just insert at the cleaned position
+    text = text.strip()
+    # Find insertion point: look for the position in cleaned text
+    # Strategy: remove all, then insert at first_pos (clamped)
+    first_pos = min(first_pos, len(text))
+    text = text[:first_pos].rstrip() + '\n\n' + replacement + '\n\n' + text[first_pos:].lstrip()
+
+# Clean up multiple blank lines
+text = re.sub(r'\n{3,}', '\n\n', text).strip() + '\n'
+open(dst_file, 'w', encoding='utf-8').write(text)
+" "$pack_name" "$wrapped" "$dst_file" "$legacy_names_json"
         echo "updated"
         return
     fi
@@ -832,7 +882,7 @@ install_for_platform() {
         if [[ -n "$instructions_file" && -f "$pack_root/AGENTS.md" ]]; then
             local dst_instructions="$TARGET/$instructions_file"
             local result
-            result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_instructions" "$pack_name" "$force_this_pack")"
+            result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_instructions" "$pack_name" "$force_this_pack" "$manifest_file")"
             case "$result" in
                 created) echo "    + $instructions_file (created)"; ((installed++)) || true ;;
                 merged)  echo "    + $instructions_file (merged)";  ((installed++)) || true ;;
@@ -843,7 +893,7 @@ install_for_platform() {
             # Antigravity: also create/merge GEMINI.md
             if [[ "$platform_name" == "antigravity" ]]; then
                 local dst_gemini="$TARGET/GEMINI.md"
-                result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_gemini" "$pack_name" "$force_this_pack")"
+                result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_gemini" "$pack_name" "$force_this_pack" "$manifest_file")"
                 case "$result" in
                     created) echo "    + GEMINI.md (created)"; ((installed++)) || true ;;
                     merged)  echo "    + GEMINI.md (merged)";  ((installed++)) || true ;;
