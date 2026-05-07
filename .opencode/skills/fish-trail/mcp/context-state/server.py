@@ -30,6 +30,14 @@ from contamination_scorer import ContaminationScorer  # noqa: E402
 from context_builder import ContextBuilder  # noqa: E402
 from session_store import SessionStore  # noqa: E402
 
+# Optional: embedding support (all deps are optional)
+try:
+    from embeddings import EmbeddingManager  # noqa: E402
+
+    _HAS_EMBEDDINGS = True
+except ImportError:
+    _HAS_EMBEDDINGS = False
+
 # Optional: scripts may not be installed in all environments
 try:
     from topic_route import TopicRouter  # noqa: E402
@@ -639,13 +647,40 @@ class ContextStateServer:
 
     def __init__(self, base_dir: str):
         self.store = TopicStore(base_dir)
-        self.detector = TopicDetector()
+
+        # Load config (stdlib json, no external deps)
+        config = self._load_config(base_dir)
+
+        # Optional embedding manager
+        embedding_mgr = None
+        embedding_cfg = config.get("embedding", {})
+        if _HAS_EMBEDDINGS and embedding_cfg.get("enabled", True):
+            embedding_mgr = EmbeddingManager(
+                base_dir=base_dir,
+                timeout_ms=embedding_cfg.get("timeout_ms", 2000),
+            )
+
+        self.detector = TopicDetector(embedding_manager=embedding_mgr)
         self.scorer = ContaminationScorer()
         self.builder = ContextBuilder(base_dir)
         self.sessions = SessionStore(base_dir)
 
         self._handlers = {}  # type: Dict[str, Callable]
         self._register_handlers()
+
+    @staticmethod
+    def _load_config(base_dir: str) -> dict:
+        """Load config.json from base_dir. Returns empty dict if missing."""
+        import json as _json
+
+        config_path = os.path.join(base_dir, "config.json")
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, "r", encoding="utf-8") as f:
+                    return _json.load(f)
+            except (OSError, ValueError):
+                pass
+        return {}
 
     # -- Handler registration -----------------------------------------------
 
@@ -826,7 +861,11 @@ class ContextStateServer:
         return self.store.unlink(args["source"], args["target"])
 
     def _handle_topic_graph(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        return self.store.graph()
+        graph = self.store.graph()
+        # Persist to topic_graph.json so topic_validate can read it (#55)
+        graph_path = self.store.base_dir / "topic_graph.json"
+        self.store._atomic_write(graph_path, graph)
+        return graph
 
     def _handle_topic_detect(self, args: Dict[str, Any]) -> Dict[str, Any]:
         text = args["text"]
