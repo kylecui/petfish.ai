@@ -324,4 +324,12 @@ petfish.ai/
 
 ---
 
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).
+
+The names **胖鱼**, **PEtFiSh**, **petfish**, **petfish.ai**, and the PEtFiSh logo are trademarks not covered by the license. See [TRADEMARKS.md](TRADEMARKS.md).
+
+---
+
 PEtFiSh — your AI companion in every interaction.
