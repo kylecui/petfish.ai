@@ -8,6 +8,54 @@ class TopicDetector:
     """Detect topic changes and relation types from user messages."""
 
     def __init__(self):
+        self.bilingual_map = {
+            "测试": "test",
+            "验证": "verification",
+            "升级": "upgrade",
+            "部署": "deploy",
+            "安装": "install",
+            "开发": "development",
+            "发布": "release",
+            "修复": "fix",
+            "问题": "issue",
+            "功能": "feature",
+            "配置": "config",
+            "脚本": "script",
+            "文档": "documentation",
+            "检查": "check",
+            "审计": "audit",
+            "质量": "quality",
+            "门禁": "gate",
+            "评分": "score",
+            "风险": "risk",
+            "话题": "topic",
+            "上下文": "context",
+            "污染": "contamination",
+            "隔离": "isolation",
+            "感知": "detection",
+            "能力": "capability",
+            "技能": "skill",
+            "伙伴": "companion",
+            "课程": "course",
+            "实验": "lab",
+            "提纲": "outline",
+            "正文": "content",
+            "平台": "platform",
+            "命令": "command",
+            "服务": "service",
+            "重启": "restart",
+        }
+        # Synonyms/aliases that should be considered equivalent in drift checks
+        self.synonym_groups = [
+            {"test", "testing", "qa", "verification", "check", "validate"},
+            {"companion", "petfish", "gateway"},
+            {"topic", "context", "fish-trail", "drift", "detection"},
+            {"deploy", "deployment", "ci", "cd"},
+            {"skill", "pack", "capability"},
+            {"mcp", "server", "service", "tool"},
+            {"install", "setup", "init"},
+            {"upgrade", "update", "migration"},
+        ]
         self.reset_signals = [
             "重新开始",
             "忘掉前面",
@@ -426,13 +474,40 @@ class TopicDetector:
 
         return False
 
+    def _expand_bilingual(self, keywords: Set[str]) -> Set[str]:
+        """Expand keyword set with bilingual equivalents, synonyms, and stemming."""
+        expanded = set(keywords)
+        for kw in list(keywords):
+            # Chinese → English mapping
+            if kw in self.bilingual_map:
+                expanded.add(self.bilingual_map[kw])
+            # Reverse lookup: English → add Chinese equivalent
+            for zh, en in self.bilingual_map.items():
+                if kw == en or kw == en + "s" or kw + "s" == en:
+                    expanded.add(zh)
+                    expanded.add(en)
+            # Simple English plural stemming
+            if kw.endswith("s") and len(kw) > 3:
+                expanded.add(kw[:-1])
+            if not kw.endswith("s") and len(kw) > 2:
+                expanded.add(kw + "s")
+            # Synonym group expansion
+            for group in self.synonym_groups:
+                if kw in group:
+                    expanded.update(group)
+                    break
+        return expanded
+
     def _check_semantic_drift(
         self, keywords: Set[str], current_topic: dict
     ) -> Optional[dict]:
         """Detect semantic drift by comparing message keywords to current topic.
 
-        Returns a fork/continue result if drift is detected, or None to fall
-        through to the default continue path.
+        Uses bilingual keyword expansion and meaningful-token filtering to
+        handle cross-language scenarios (Chinese message vs English topic).
+
+        Returns a fork result if drift is detected, or None to fall through
+        to the default continue path.
         """
         # Build topic keyword set from title + scope + tags
         topic_text = "{} {} {}".format(
@@ -446,23 +521,28 @@ class TopicDetector:
         if not topic_keywords:
             return None
 
-        # Need enough input keywords to make a meaningful comparison
-        # Very short messages (1-2 keywords) are likely follow-ups
-        if len(keywords) < 3:
+        # Expand both sets with bilingual equivalents
+        expanded_keywords = self._expand_bilingual(keywords)
+        expanded_topic = self._expand_bilingual(topic_keywords)
+
+        # Meaningful-token filter: only count tokens with len >= 2
+        # This prevents CJK single-character inflation of the denominator
+        meaningful_input = {k for k in expanded_keywords if len(k) >= 2}
+        meaningful_topic = {k for k in expanded_topic if len(k) >= 2}
+
+        # Need enough meaningful input tokens for comparison
+        if len(meaningful_input) < 3:
             return None
 
-        # Calculate overlap using Jaccard on intersection vs input keywords
-        # We use intersection/input (not full Jaccard) because we care whether
-        # the message is ABOUT the topic, not whether it covers ALL of the topic
-        intersection = keywords & topic_keywords
-        relevance = len(intersection) / len(keywords)
+        # Calculate relevance: intersection of meaningful tokens / input count
+        intersection = meaningful_input & meaningful_topic
+        relevance = len(intersection) / len(meaningful_input)
 
         # High relevance — clearly on-topic
-        if relevance >= 0.15:
+        if relevance >= 0.10:
             return None
 
-        # Zero or near-zero relevance with 3+ keywords — likely drift
-        # Use lower confidence to allow agent to decide
+        # Zero or near-zero relevance with meaningful keywords — likely drift
         risk = 45 if relevance == 0.0 else 35
         confidence = 0.65 if relevance == 0.0 else 0.55
 
