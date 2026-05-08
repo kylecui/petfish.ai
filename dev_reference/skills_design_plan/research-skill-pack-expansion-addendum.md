@@ -1587,11 +1587,8 @@ A和B哪个好
 交付物：
 
 ```text
-docs/research-mode-expansion.md
-docs/learning-research-design.md
-docs/decision-research-design.md
-docs/risk-procurement-research-design.md
-docs/experience-event-research-design.md
+本补充文档（research-skill-pack-expansion-addendum.md）经过Momus审查通过即视为Phase A交付。
+不另外生成独立设计文档——本文档本身即为设计文档。
 ```
 
 退出标准：
@@ -1599,6 +1596,14 @@ docs/experience-event-research-design.md
 - 四类新增范式边界清楚。
 - 与科研/产品/规划不冲突。
 - Adapter不喧宾夺主。
+
+QA验证场景：
+
+```text
+工具：人工审查 + Momus review
+步骤：将本文档提交 Momus review，确认无 blocking issues
+预期结果：Momus verdict = PASS 或 CONDITIONAL（无 REJECT）
+```
 
 ### Phase B：Learning + Decision MVP
 
@@ -1616,11 +1621,41 @@ option-comparison-matrix
 decision-recommendation
 ```
 
+交付物路径：
+
+```text
+packs/research-skill-pack/.opencode/skills/learning-goal-framer/SKILL.md
+packs/research-skill-pack/.opencode/skills/learning-resource-discovery/SKILL.md
+packs/research-skill-pack/.opencode/skills/learning-path-designer/SKILL.md
+packs/research-skill-pack/.opencode/skills/decision-brief-framer/SKILL.md
+packs/research-skill-pack/.opencode/skills/decision-criteria-builder/SKILL.md
+packs/research-skill-pack/.opencode/skills/option-comparison-matrix/SKILL.md
+packs/research-skill-pack/.opencode/skills/decision-recommendation/SKILL.md
+packs/research-skill-pack/evals/trigger/learning-trigger-evals.json
+packs/research-skill-pack/evals/trigger/decision-trigger-evals.json
+```
+
 退出标准：
 
 - 能生成学习路径。
 - 能生成选型分析。
 - 能与核心notes/evidence/review联动。
+
+QA验证场景：
+
+```text
+工具：pytest, uv run
+步骤：
+  1. 确认7个SKILL.md已创建：glob packs/research-skill-pack/.opencode/skills/{learning-*,decision-*,option-*}/SKILL.md
+  2. 确认pack-manifest.json skills数组包含7个新条目，skill_count已更新
+  3. 确认test_smoke_research_pack.py::TestFixtureIntegrity::test_all_skills_have_skill_md通过
+  4. 确认evals/trigger/learning-trigger-evals.json和decision-trigger-evals.json存在
+  5. 运行：uv run pytest tests/test_smoke_research_pack.py -v
+  6. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+预期结果：
+  - pytest全部通过
+  - trigger eval harness输出total_checks > 0，包含learning和decision相关检查
+```
 
 ### Phase C：Risk / Procurement MVP
 
@@ -1637,11 +1672,38 @@ tco-operational-risk
 adoption-recommendation
 ```
 
+交付物路径：
+
+```text
+packs/research-skill-pack/.opencode/skills/risk-research-brief/SKILL.md
+packs/research-skill-pack/.opencode/skills/vendor-source-diligence/SKILL.md
+packs/research-skill-pack/.opencode/skills/security-risk-review/SKILL.md
+packs/research-skill-pack/.opencode/skills/compliance-check/SKILL.md
+packs/research-skill-pack/.opencode/skills/tco-operational-risk/SKILL.md
+packs/research-skill-pack/.opencode/skills/adoption-recommendation/SKILL.md
+packs/research-skill-pack/evals/trigger/risk-procurement-trigger-evals.json
+```
+
 退出标准：
 
 - 能形成采用建议。
 - 能列出安全/合规/TCO/退出风险。
 - 能给出Adopt / Pilot / Defer / Reject等分级结论。
+
+QA验证场景：
+
+```text
+工具：pytest, uv run
+步骤：
+  1. 确认6个SKILL.md已创建：glob packs/research-skill-pack/.opencode/skills/{risk-*,vendor-*,security-risk-*,compliance-*,tco-*,adoption-*}/SKILL.md
+  2. 确认pack-manifest.json skills数组包含6个新条目，skill_count已更新
+  3. 确认evals/trigger/risk-procurement-trigger-evals.json存在
+  4. 运行：uv run pytest tests/test_smoke_research_pack.py -v
+  5. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+预期结果：
+  - pytest全部通过
+  - trigger eval harness包含risk/procurement相关检查
+```
 
 ### Phase D：Experience / Event MVP
 
@@ -1657,11 +1719,37 @@ logistics-risk-planner
 event-runbook-writer
 ```
 
+交付物路径：
+
+```text
+packs/research-skill-pack/.opencode/skills/experience-brief-framer/SKILL.md
+packs/research-skill-pack/.opencode/skills/venue-destination-research/SKILL.md
+packs/research-skill-pack/.opencode/skills/schedule-itinerary-planner/SKILL.md
+packs/research-skill-pack/.opencode/skills/logistics-risk-planner/SKILL.md
+packs/research-skill-pack/.opencode/skills/event-runbook-writer/SKILL.md
+packs/research-skill-pack/evals/trigger/experience-event-trigger-evals.json
+```
+
 退出标准：
 
 - 能生成可执行活动方案。
 - 能生成后勤与风险预案。
 - 能区分旅行、会议、培训adapter。
+
+QA验证场景：
+
+```text
+工具：pytest, uv run
+步骤：
+  1. 确认5个SKILL.md已创建
+  2. 确认pack-manifest.json已更新
+  3. 确认evals/trigger/experience-event-trigger-evals.json存在
+  4. 运行：uv run pytest tests/test_smoke_research_pack.py -v
+  5. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+预期结果：
+  - pytest全部通过
+  - trigger eval harness包含experience/event相关检查
+```
 
 ### Phase E：Adapter与评测
 
@@ -1676,6 +1764,16 @@ training-event-adapter
 content-selection-adapter
 ```
 
+交付物路径：
+
+```text
+packs/research-skill-pack/.opencode/skills/travel-adapter/SKILL.md
+packs/research-skill-pack/.opencode/skills/conference-adapter/SKILL.md
+packs/research-skill-pack/.opencode/skills/training-event-adapter/SKILL.md
+packs/research-skill-pack/.opencode/skills/content-selection-adapter/SKILL.md
+packs/research-skill-pack/evals/trigger/adapter-trigger-evals.json
+```
+
 退出标准：
 
 - Adapter不复制主流程。
@@ -1683,9 +1781,31 @@ content-selection-adapter
 - 每类新增范式至少有3个trigger正例和2个反例。
 - 每类新增范式至少有1个端到端output eval。
 
+QA验证场景：
+
+```text
+工具：pytest, uv run
+步骤：
+  1. 确认4个adapter SKILL.md已创建
+  2. 确认pack-manifest.json已更新，skill_count反映全部新增
+  3. 确认evals/trigger/adapter-trigger-evals.json存在
+  4. 运行：uv run pytest tests/test_smoke_research_pack.py -v
+  5. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+  6. 验证每个新增范式（learning/decision/risk/experience）的trigger eval至少有3个正例和2个反例
+  7. 验证trigger eval harness total_checks覆盖所有新增范式
+预期结果：
+  - pytest全部通过
+  - trigger eval harness total_checks > 前一个Phase的值
+  - 每个范式的trigger precision >= 0.8
+```
+
 ---
 
 ## 16. 与当前V2计划的合并建议
+
+> **合并目标文件**：`dev_reference/skills_design_plan/research-skill-pack-plan-v2.md`
+>
+> 注意：`.sisyphus/plans/research-skill-pack-implementation.md`是MVP的可执行实施计划，已完成，不再修改。本addendum的内容应作为V2设计文档的扩展章节追加到`dev_reference/skills_design_plan/research-skill-pack-plan-v2.md`末尾。
 
 当前V2计划已经包含：
 
