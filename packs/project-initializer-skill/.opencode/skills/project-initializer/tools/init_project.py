@@ -5,6 +5,7 @@ This script is intentionally non-interactive. Agents should perform user-facing
 confirmation before invoking it with destructive options. By default it does not
 overwrite existing files.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,48 +19,283 @@ from typing import Dict, Iterable, List, Tuple
 
 PROFILES: Dict[str, Dict[str, object]] = {
     "minimal": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "docs/decisions", "tasks", "references", "outputs", "qa"],
-        "files": ["AGENTS.md", "README.md", "docs/overview.md", "tasks/backlog.md", "tasks/roadmap.md", "qa/checklist.md", "qa/review-report-template.md", ".opencode/skills/manifest.md"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "docs/decisions",
+            "tasks",
+            "references",
+            "outputs",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "docs/overview.md",
+            "tasks/backlog.md",
+            "tasks/roadmap.md",
+            "qa/checklist.md",
+            "qa/review-report-template.md",
+            ".opencode/skills/manifest.md",
+        ],
         "skills": ["project-initializer", "markdown-writer", "qa-reviewer"],
     },
     "course": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "course/lesson-design", "course/slides", "course/labs", "course/student-materials", "course/teacher-guide", "course/assessments", "references", "figures", "outputs", "qa"],
-        "files": ["AGENTS.md", "README.md", "course/syllabus.md", "course/teaching-plan.md", "qa/course-quality-checklist.md", "qa/course-review-report.md", ".opencode/skills/manifest.md"],
-        "skills": ["markdown-writer", "course-designer", "lab-designer", "teacher-guide-writer", "qa-reviewer", "drawio-writer"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "course/lesson-design",
+            "course/slides",
+            "course/labs",
+            "course/student-materials",
+            "course/teacher-guide",
+            "course/assessments",
+            "references",
+            "figures",
+            "outputs",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "course/syllabus.md",
+            "course/teaching-plan.md",
+            "qa/course-quality-checklist.md",
+            "qa/course-review-report.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "markdown-writer",
+            "course-designer",
+            "lab-designer",
+            "teacher-guide-writer",
+            "qa-reviewer",
+            "drawio-writer",
+        ],
     },
     "code": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "src", "tests", "scripts", "docs", "examples", "configs", "outputs", "qa"],
-        "files": ["AGENTS.md", "README.md", "pyproject.toml", "docs/architecture.md", "docs/api.md", "docs/development.md", "qa/code-review-checklist.md", "qa/test-plan.md", ".opencode/skills/manifest.md"],
-        "skills": ["repo-reader", "code-reviewer", "test-case-generator", "dev-env-manager", "documentation-writer", "qa-reviewer"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "src",
+            "tests",
+            "scripts",
+            "docs",
+            "examples",
+            "configs",
+            "outputs",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "pyproject.toml",
+            "docs/architecture.md",
+            "docs/api.md",
+            "docs/development.md",
+            "qa/code-review-checklist.md",
+            "qa/test-plan.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "repo-reader",
+            "code-reviewer",
+            "test-case-generator",
+            "dev-env-manager",
+            "documentation-writer",
+            "qa-reviewer",
+        ],
     },
     "ops": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "deploy", "configs", "scripts", "runbooks", "monitoring", "logs", "evidence", "qa"],
-        "files": ["AGENTS.md", "README.md", "runbooks/startup.md", "runbooks/shutdown.md", "runbooks/rollback.md", "runbooks/incident-response.md", "qa/deployment-checklist.md", "qa/operation-review.md", ".opencode/skills/manifest.md"],
-        "skills": ["deployment-operator", "runbook-writer", "config-reviewer", "incident-response-writer", "qa-reviewer"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "deploy",
+            "configs",
+            "scripts",
+            "issues",
+            "runbooks",
+            "monitoring",
+            "logs",
+            "evidence",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "deploy/deployment-map.md",
+            "runbooks/startup.md",
+            "runbooks/shutdown.md",
+            "runbooks/rollback.md",
+            "runbooks/incident-response.md",
+            "qa/deployment-checklist.md",
+            "qa/operation-review.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "deployment-operator",
+            "runbook-writer",
+            "config-reviewer",
+            "incident-response-writer",
+            "qa-reviewer",
+        ],
     },
     "security-research": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "threat-model", "experiments", "datasets", "evidence", "scripts", "reports", "references", "qa"],
-        "files": ["AGENTS.md", "README.md", "threat-model/overview.md", "experiments/experiment-plan.md", "qa/research-checklist.md", "qa/evidence-review.md", ".opencode/skills/manifest.md"],
-        "skills": ["threat-modeler", "evidence-organizer", "experiment-designer", "report-writer", "qa-reviewer"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "threat-model",
+            "experiments",
+            "datasets",
+            "evidence",
+            "scripts",
+            "reports",
+            "references",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "threat-model/overview.md",
+            "experiments/experiment-plan.md",
+            "qa/research-checklist.md",
+            "qa/evidence-review.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "threat-modeler",
+            "evidence-organizer",
+            "experiment-designer",
+            "report-writer",
+            "qa-reviewer",
+        ],
     },
     "writing": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "drafts", "outlines", "references", "figures", "reviews", "exports", "qa"],
-        "files": ["AGENTS.md", "README.md", "outlines/outline.md", "drafts/main.md", "qa/writing-quality-checklist.md", "qa/review-report.md", ".opencode/skills/manifest.md"],
-        "skills": ["markdown-writer", "strategic-writer", "citation-manager", "drawio-writer", "qa-reviewer"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "drafts",
+            "outlines",
+            "references",
+            "figures",
+            "reviews",
+            "exports",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "outlines/outline.md",
+            "drafts/main.md",
+            "qa/writing-quality-checklist.md",
+            "qa/review-report.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "markdown-writer",
+            "strategic-writer",
+            "citation-manager",
+            "drawio-writer",
+            "qa-reviewer",
+        ],
     },
     "skills-package": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "skills/project-initializer", "skills/markdown-writer", "skills/repo-reader", "skills/qa-reviewer", "skills/deployment-operator", "mcp", "docs", "tests", "qa"],
-        "files": ["AGENTS.md", "README.md", "mcp/README.md", "mcp/mcp-config.example.json", "mcp/connection-checklist.md", "docs/skill-design-guide.md", "docs/threat-model.md", "qa/skill-review-checklist.md", "qa/skill-security-checklist.md", ".opencode/skills/manifest.md"],
-        "skills": ["skill-writer", "skill-reviewer", "skill-threat-modeler", "mcp-config-writer", "qa-reviewer"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "skills/project-initializer",
+            "skills/markdown-writer",
+            "skills/repo-reader",
+            "skills/qa-reviewer",
+            "skills/deployment-operator",
+            "mcp",
+            "docs",
+            "tests",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "mcp/README.md",
+            "mcp/mcp-config.example.json",
+            "mcp/connection-checklist.md",
+            "docs/skill-design-guide.md",
+            "docs/threat-model.md",
+            "qa/skill-review-checklist.md",
+            "qa/skill-security-checklist.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "skill-writer",
+            "skill-reviewer",
+            "skill-threat-modeler",
+            "mcp-config-writer",
+            "qa-reviewer",
+        ],
     },
     "comprehensive": {
-        "dirs": [".opencode/skills", ".opencode/agents", ".opencode/templates", "product", "course", "src", "tests", "deploy", "ops", "docs", "references", "experiments", "outputs", "qa"],
-        "files": ["AGENTS.md", "README.md", "docs/overview.md", "tasks/backlog.md", "tasks/roadmap.md", "qa/checklist.md", "qa/review-report-template.md", ".opencode/skills/manifest.md"],
-        "skills": ["project-initializer", "markdown-writer", "repo-reader", "course-designer", "code-reviewer", "deployment-operator", "qa-reviewer", "drawio-writer"],
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "product",
+            "course",
+            "src",
+            "tests",
+            "deploy",
+            "ops",
+            "docs",
+            "references",
+            "experiments",
+            "outputs",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "docs/overview.md",
+            "tasks/backlog.md",
+            "tasks/roadmap.md",
+            "qa/checklist.md",
+            "qa/review-report-template.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "project-initializer",
+            "markdown-writer",
+            "repo-reader",
+            "course-designer",
+            "code-reviewer",
+            "deployment-operator",
+            "qa-reviewer",
+            "drawio-writer",
+        ],
     },
 }
 
-DANGEROUS_NAMES = {"/", "", "C:\\", "C:/", "Windows", "System32", "Program Files", "Program Files (x86)", "etc", "usr", "bin", "sbin", "var", "opt"}
+DANGEROUS_NAMES = {
+    "/",
+    "",
+    "C:\\",
+    "C:/",
+    "Windows",
+    "System32",
+    "Program Files",
+    "Program Files (x86)",
+    "etc",
+    "usr",
+    "bin",
+    "sbin",
+    "var",
+    "opt",
+}
 
 
 def now() -> str:
@@ -81,25 +317,209 @@ def is_dangerous(path: Path) -> bool:
     if p.name in DANGEROUS_NAMES:
         return True
     parts = {part.lower() for part in p.parts}
-    return ("windows" in parts and "system32" in parts)
+    return "windows" in parts and "system32" in parts
 
 
-def render_file(rel: str, profile: str, project_name: str, target: Path, skills: List[str], with_mcp: bool, with_uv: bool) -> str:
+def _render_ops_agents_md(title: str, directory_map: str, skills: List[str]) -> str:
+    """Render a complete ops/deployment-specific AGENTS.md."""
+    skills_list = chr(10).join(f"- {s}" for s in skills)
+    return f"""# {title} — 运维项目规范
+
+## 1. 项目概况
+
+### 服务器清单
+
+| 主机名/用途 | IP | OS | 规格 | SSH用户 |
+|------------|----|----|------|---------|
+| <!-- 填写 --> | | | | |
+
+### 部署的服务
+
+| 域名 | 项目/仓库 | 部署路径 | 技术栈 | 端口 |
+|------|----------|---------|--------|------|
+| <!-- 填写 --> | | | | |
+
+### 端口分配概览
+
+<!-- 记录已分配端口，避免冲突 -->
+
+### SSL证书状态
+
+| 域名 | 证书路径 | 到期时间 | 备注 |
+|------|---------|---------|------|
+| <!-- 填写 --> | | | |
+
+## 2. 工作原则
+
+### 2.1 优先级
+
+1. 服务可用性优先——任何操作不可导致在线服务不可用
+2. 先读文档后操作——先查阅runbooks和现有记录
+3. 先分析后执行——先识别repo与主机状态，再制定方案
+4. 最小变更——一次只改一件事，验证通过后再做下一步
+5. 回滚先于部署——部署前必须确认回滚路径可用
+6. 验证闭环——每次变更必须有验证步骤
+7. 经验沉淀——每轮部署/运维后回顾，评估是否补充本文件
+
+### 2.2 安全约束
+
+- 密钥、token、密码不写入仓库文件
+- 破坏性命令（rm -rf、drop、down -v）执行前必须确认范围和回滚路径
+- 配置变更前先备份当前配置
+
+### 2.3 Private Repo访问
+
+Token注入和清除必须在同一命令链完成，不可分两次执行。详见 deployment-executor 的 `references/private-repo-access.md`。
+
+### 2.4 通用约束
+
+- 不操作其它仓库的内容（即使有权限），只能通过issues反馈
+- 网络出现问题或可能是网络问题导致的中断（SSH无法连接、apt install失败、docker pull超时），至少重试两次再行调整
+
+## 3. 目录结构
+
+```text
+{directory_map}```
+
+| 目录 | 用途 |
+|------|------|
+| deploy/ | 部署映射表、docker-compose文件、部署脚本 |
+| configs/ | 按仓库分子目录的配置文件 |
+| scripts/ | 运维脚本 |
+| issues/ | 向上游仓库提交的issue记录和补丁跟踪 |
+| runbooks/ | 操作手册（启动、停止、回滚、故障响应） |
+| monitoring/ | 监控配置和告警规则 |
+| logs/ | 日志样本和分析记录 |
+| evidence/ | 部署验证截图、输出记录 |
+| qa/ | 部署检查清单和运维审查 |
+
+## 4. 技能路由
+
+默认使用以下技能链路：
+
+```
+repo-runtime-discovery → target-host-readiness → deployment-executor
+→ deployment-verifier → service-operations → incident-rollback
+```
+
+宽泛任务（"帮我把这个仓库部署起来"）优先启用 `repo-service-lifecycle` 作为总控。
+
+推荐技能：
+
+{skills_list}
+
+## 5. 变更管理
+
+### 5.1 可直接执行
+- 查看日志、检查服务状态
+- restart已有服务
+- git pull + rebuild（无本地补丁冲突时）
+
+### 5.2 需先说明影响
+- 修改端口映射
+- 修改.env或环境变量
+- 修改Nginx配置
+- 数据库migration
+
+### 5.3 高风险操作（必须确认回滚路径）
+- docker compose down -v（会丢数据卷）
+- 数据库重初始化
+- SSL证书变更
+- 端口重分配
+- 删除部署目录
+
+## 6. 部署特殊注意事项
+
+### 6.1 镜像源问题
+- 海外服务器不使用中国镜像源
+- 国内服务器按需配置镜像加速
+
+### 6.2 端口冲突检查
+- 部署前检查目标端口是否被占用：`ss -tlnp | grep <port>`
+- 多服务共存时，维护端口分配表（见项目概况）
+
+### 6.3 本地补丁管理
+- 本地补丁必须记录在README中，分"Upstreamed Fixes"和"Deployment-Specific Patches"
+- 使用python3修改YAML，不用sed
+- 详见 deployment-executor 的 `references/local-patch-management.md`
+
+## 7. 质量门禁
+
+### 部署前检查
+- [ ] 部署计划已形成
+- [ ] 回滚路径已确认
+- [ ] 目标端口无冲突
+- [ ] 配置文件/密钥已就位
+- [ ] 依赖/镜像可获取
+
+### 部署后验证
+- [ ] 服务进程/容器运行正常
+- [ ] 健康检查端点返回正确
+- [ ] 关键功能smoke test通过
+- [ ] 日志无异常错误
+- [ ] 反向代理/SSL正常
+
+### 部署后清理
+- [ ] 临时token已清除
+- [ ] 构建缓存已清理（如需要）
+- [ ] 旧版本保留用于回滚（不立即删除）
+- [ ] 部署记录已更新
+
+## 8. 禁止事项
+
+- 禁止未经确认直接执行 `docker compose down -v`、`rm -rf` 等破坏性命令
+- 禁止在未备份配置的情况下覆盖 `.env`、nginx配置、systemd unit
+- 禁止将token、密钥、密码写入仓库文件或日志
+- 禁止跳过验证步骤直接宣称部署完成
+- 禁止操作其它仓库的代码（即使有权限），只能通过issues反馈
+- 禁止在多服务共存环境中不检查端口冲突就部署
+
+## 9. 远端仓库保护与Issue提交
+
+- 发现上游仓库的bug或需要的改进，通过issue提交，不直接修改上游代码
+- 本地补丁必须有对应的upstream issue记录
+- Issue记录保存在 `issues/` 目录，格式：`<repo>-<issue-number>.md`
+
+## 10. 关键参考文件
+
+优先级从高到低：
+
+1. 本 `AGENTS.md`
+2. `deploy/` 下的部署映射和docker-compose文件
+3. `runbooks/` 下的操作手册
+4. `configs/` 下的配置文件
+5. deployment-executor skill 的 `references/` 文档
+
+## 11. 经验沉淀
+
+每轮部署或运维完成后，回顾过程中遇到的问题、踩坑、方法，评估是否需要补充到本文件。
+"""
+
+
+def render_file(
+    rel: str,
+    profile: str,
+    project_name: str,
+    target: Path,
+    skills: List[str],
+    with_mcp: bool,
+    with_uv: bool,
+) -> str:
     title = project_name
     directory_map = f"Profile: {profile}\nTarget: {target}\n"
     if rel == "AGENTS.md":
+        if profile == "ops":
+            return _render_ops_agents_md(title, directory_map, skills)
         extra = ""
         if profile == "course":
             extra = "\n- 课程内容遵循：厘清概念 → 举例实践 → 推理分析 → 自己动手 → 反馈提升。\n- 避免解决方案堆砌、AIGC式空泛表达、缺少教学递进、只讲工具不讲原理、只讲概念不落实验。\n"
-        elif profile == "ops":
-            extra = "\n- 运维工作必须强调可重复部署、可回滚、可观测、可审计、最小权限、配置与密钥分离。\n"
         elif profile == "security-research":
             extra = "\n- 安全研究必须具备合法授权、实验隔离、证据留存、可复现性和清晰风险边界。\n- 不生成、执行或协助未授权攻击操作。\n"
         elif profile == "writing":
             extra = "\n- 写作任务强调结构清晰、总分总叙事、术语一致、引用可追溯、输出可审阅版本。\n"
         elif profile == "skills-package":
             extra = "\n- Skill必须边界清晰、输入输出明确、不越权、不隐藏执行、不私自联网、不读取无关文件、不泄露敏感信息。\n"
-        return f"""# Project Agent Guide
+        result = f"""# Project Agent Guide
 
 ## Project Goal
 
@@ -118,7 +538,9 @@ def render_file(rel: str, profile: str, project_name: str, target: Path, skills:
 - Leave notes for important changes.
 - When code is involved, prefer adding or updating tests.
 - When operations are involved, preserve rollback and auditability.
-- Never write secrets, API keys, tokens, passwords, private keys, or production credentials into repository files.{extra}
+- Never write secrets, API keys, tokens, passwords, private keys, or production credentials into repository files.
+- Do not operate on other repositories (even with access); raise issues instead.
+- When network operations fail (SSH, package install, git clone, API calls), retry at least twice before changing approach — transient failures are common.{extra}
 
 ## Directory Map
 
@@ -139,7 +561,7 @@ def render_file(rel: str, profile: str, project_name: str, target: Path, skills:
 
 Recommended skills:
 
-{chr(10).join(f'- {s}' for s in skills)}
+{chr(10).join(f"- {s}" for s in skills)}
 
 ## MCP
 
@@ -161,6 +583,42 @@ MCP configuration examples may be placed under `mcp/`. Use placeholders only. Do
 - Do not mix temporary outputs into formal materials.
 - Do not perform offensive security actions without explicit lawful authorization and isolated scope.
 """
+        # Profile-specific trailing sections
+        if profile == "code":
+            return (
+                result
+                + """
+## Development Gotchas
+
+<!--
+记录代码库中非代码自解释的约定、已知陷阱、关键设计约束。
+规则：
+- 每条必须是"违反会导致 bug，且代码本身无法自解释"的约束
+- 上限 10 条；超过时审视哪些已通过代码改进不再需要
+- 一次性排查过程不记录
+-->
+
+- 发现 `void this.xxx`、空方法体、`@ts-ignore` 等绕过模式时，视为架构缺陷而非有意设计，主动向用户报告
+- 修改状态枚举时，同步更新转换守卫表；新增状态前确认调用方会设置它
+- 新增平台适配器时，检查所有 IO 边界（消息发送、输出格式化、长度截断）是否有平台分发逻辑
+
+## Architecture Decisions
+
+<!--
+重大技术选型和设计决策的简要记录。
+格式：一句话结论 + 指向 docs/ 下完整 ADR 的链接（如有）。
+-->
+
+## Crystallization Triggers
+
+经验沉淀不在每次 commit 后触发。以下时机评估是否有新 gotcha 需记录：
+
+- 完成架构审查并修复问题后
+- 修复了"看起来不是 bug 但其实是"的问题后
+- 新增平台/适配器/集成点后
+"""
+            )
+        return result
     if rel == "README.md":
         return f"""# {title}
 
@@ -187,7 +645,7 @@ See `AGENTS.md` and the generated initialization report.
 
 ## Development Environment
 
-{('Python development should use uv. See docs/development.md or setup instructions.' if with_uv else 'No development environment was created by default.')}
+{("Python development should use uv. See docs/development.md or setup instructions." if with_uv else "No development environment was created by default.")}
 
 ## Skills and Agents
 
@@ -195,7 +653,7 @@ Recommended skills are recorded in `.opencode/skills/manifest.md`.
 
 ## MCP Integration
 
-{('MCP templates are available under mcp/.' if with_mcp else 'MCP templates were not requested during initialization.')}
+{("MCP templates are available under mcp/." if with_mcp else "MCP templates were not requested during initialization.")}
 
 ## Quality Control
 
@@ -208,20 +666,73 @@ Use the QA checklist under `qa/` before merging, publishing, or delivering outpu
 - Add the first three actionable tasks.
 """
     if rel.endswith("manifest.md"):
-        rows = "\n".join(f"| {s} | recommended | n/a | {now()} | profile:{profile} | not installed unless copied separately |" for s in skills)
-        return "# Skills Manifest\n\n| Skill | Source | Branch | Installed At | Purpose | Notes |\n|---|---|---|---|---|---|\n" + rows + "\n"
+        rows = "\n".join(
+            f"| {s} | recommended | n/a | {now()} | profile:{profile} | not installed unless copied separately |"
+            for s in skills
+        )
+        return (
+            "# Skills Manifest\n\n| Skill | Source | Branch | Installed At | Purpose | Notes |\n|---|---|---|---|---|---|\n"
+            + rows
+            + "\n"
+        )
     if rel == "pyproject.toml":
         pkg = slugify(project_name).replace("_", "-")
         mod = slugify(project_name)
         return f'''[project]\nname = "{pkg}"\nversion = "0.1.0"\ndescription = "{title}"\nrequires-python = ">=3.10"\ndependencies = []\n\n[tool.pytest.ini_options]\ntestpaths = ["tests"]\n\n[tool.ruff]\nline-length = 100\ntarget-version = "py310"\n\n[tool.ruff.lint]\nselect = ["E", "F", "I", "B"]\n\n[tool.mypy]\npython_version = "3.10"\nwarn_unused_configs = true\n'''
     if rel.endswith("mcp-config.example.json"):
-        return json.dumps({
-            "mcpServers": {
-                "filesystem": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "<PROJECT_DIR>"]},
-                "custom-threat-intel": {"command": "python", "args": ["<PATH_TO_SERVER>/run_server.py"], "env": {"THREATBOOK_API_KEY": "<YOUR_API_KEY>"}},
-                "custom-node-mcp": {"command": "node", "args": ["<PATH_TO_SERVER>/index.js"]}
-            }
-        }, ensure_ascii=False, indent=2) + "\n"
+        return (
+            json.dumps(
+                {
+                    "mcpServers": {
+                        "filesystem": {
+                            "command": "npx",
+                            "args": [
+                                "-y",
+                                "@modelcontextprotocol/server-filesystem",
+                                "<PROJECT_DIR>",
+                            ],
+                        },
+                        "custom-threat-intel": {
+                            "command": "python",
+                            "args": ["<PATH_TO_SERVER>/run_server.py"],
+                            "env": {"THREATBOOK_API_KEY": "<YOUR_API_KEY>"},
+                        },
+                        "custom-node-mcp": {
+                            "command": "node",
+                            "args": ["<PATH_TO_SERVER>/index.js"],
+                        },
+                    }
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n"
+        )
+    if rel == "deploy/deployment-map.md":
+        return f"""# Deployment Map
+
+Generated for `{title}` using the `{profile}` profile.
+
+## 仓库 → 部署路径映射
+
+| 仓库 | 分支/Tag | 部署路径 | 部署方式 | 端口 | 备注 |
+|------|---------|---------|---------|------|------|
+| <!-- 填写 --> | | | | | |
+
+## 本地补丁状态
+
+### Upstreamed Fixes
+
+| 修复内容 | Issue链接 | Upstream Commit | 日期 |
+|---------|----------|-----------------|------|
+| (暂无) | | | |
+
+### Deployment-Specific Patches
+
+| 修改内容 | 原因 | 影响文件 | 每次git pull后需重新apply |
+|---------|------|---------|---------------------------|
+| (暂无) | | | |
+"""
     heading = Path(rel).stem.replace("-", " ").replace("_", " ").title()
     return f"# {heading}\n\nGenerated for `{title}` using the `{profile}` profile.\n\n## Purpose\n\nTODO: Fill in concrete content.\n"
 
@@ -253,15 +764,33 @@ def write_file(path: Path, content: str, overwrite: bool, dry_run: bool) -> Tupl
 
 
 def main(argv: List[str]) -> int:
-    parser = argparse.ArgumentParser(description="Safely initialize an AI-agent-friendly project workspace.")
+    parser = argparse.ArgumentParser(
+        description="Safely initialize an AI-agent-friendly project workspace."
+    )
     parser.add_argument("--profile", choices=sorted(PROFILES), default="minimal")
     parser.add_argument("--target", default=".")
     parser.add_argument("--project-name", default=None)
-    parser.add_argument("--with-opencode", action="store_true", help="Include .opencode directories and manifest (included by most profiles).")
+    parser.add_argument(
+        "--with-opencode",
+        action="store_true",
+        help="Include .opencode directories and manifest (included by most profiles).",
+    )
     parser.add_argument("--with-mcp-template", action="store_true")
-    parser.add_argument("--with-uv", action="store_true", help="Generate uv development setup notes. Does not run uv.")
-    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing files. Use only after user confirmation.")
-    parser.add_argument("--no-overwrite", action="store_true", help="Do not overwrite existing files; conflicts create .new files.")
+    parser.add_argument(
+        "--with-uv",
+        action="store_true",
+        help="Generate uv development setup notes. Does not run uv.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite existing files. Use only after user confirmation.",
+    )
+    parser.add_argument(
+        "--no-overwrite",
+        action="store_true",
+        help="Do not overwrite existing files; conflicts create .new files.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
 
@@ -294,8 +823,12 @@ def main(argv: List[str]) -> int:
     skills = list(profile.get("skills", []))  # type: ignore[arg-type]
     for f in profile["files"]:  # type: ignore[index]
         rel = str(f)
-        content = render_file(rel, args.profile, project_name, target, skills, args.with_mcp_template, args.with_uv)
-        status, written = write_file(target / rel, content, overwrite=overwrite, dry_run=args.dry_run)
+        content = render_file(
+            rel, args.profile, project_name, target, skills, args.with_mcp_template, args.with_uv
+        )
+        status, written = write_file(
+            target / rel, content, overwrite=overwrite, dry_run=args.dry_run
+        )
         if status == "conflict_new":
             conflict_files.append(str(written.relative_to(target)))
         else:
@@ -319,11 +852,11 @@ Project `{project_name}` initialized with profile `{args.profile}`.
 
 ## Created Directories
 
-{chr(10).join(f'- {x}' for x in created_dirs) if created_dirs else '- None'}
+{chr(10).join(f"- {x}" for x in created_dirs) if created_dirs else "- None"}
 
 ## Created Files
 
-{chr(10).join(f'- {x}' for x in created_files) if created_files else '- None'}
+{chr(10).join(f"- {x}" for x in created_files) if created_files else "- None"}
 
 ## Skipped Files
 
@@ -331,7 +864,7 @@ Project `{project_name}` initialized with profile `{args.profile}`.
 
 ## Conflicts
 
-{chr(10).join(f'- {x}' for x in conflict_files) if conflict_files else '- None'}
+{chr(10).join(f"- {x}" for x in conflict_files) if conflict_files else "- None"}
 
 ## Skills Installed
 
