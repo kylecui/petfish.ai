@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "free_first": true,
+  "providers": [
+    {
+      "provider_id": "example-library",
+      "provider_type": "institutional-library",
+      "access_method": "browser-login-or-proxy",
+      "secret_ref": "manual-login",
+      "allowed_use": "download legally accessible academic literature",
+      "store_raw_secret": false
+    }
+  ]
+}

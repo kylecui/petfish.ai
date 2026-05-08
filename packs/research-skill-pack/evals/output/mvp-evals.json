@@ -1,0 +1,42 @@
+{
+  "evals": [
+    {
+      "id": "mvp-output-router-01",
+      "skill": "research-router",
+      "type": "output",
+      "input": "帮我研究一下XDP在网络安全中的应用",
+      "expected_output_contains": [
+        "Research Type",
+        "Recommended Skill Chain",
+        "research-brief-framer"
+      ],
+      "expected_output_not_contains": [
+        "Here is the final report"
+      ]
+    },
+    {
+      "id": "mvp-output-brief-01",
+      "skill": "research-brief-framer",
+      "type": "output",
+      "input": "I want to understand how companies use AI for security operations",
+      "expected_output_contains": [
+        "Core Question",
+        "Sub-questions",
+        "In Scope",
+        "Out of Scope",
+        "Evidence Requirements"
+      ]
+    },
+    {
+      "id": "mvp-output-quality-01",
+      "skill": "research-quality-reviewer",
+      "type": "output",
+      "input": "Review this report for quality",
+      "expected_output_contains": [
+        "evidence-completeness",
+        "citation-coverage",
+        "logic-chain"
+      ]
+    }
+  ]
+}

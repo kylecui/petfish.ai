@@ -1,0 +1,25 @@
+{
+  "skill": "research-router",
+  "should_trigger": [
+    "帮我研究一下AI安全的现状",
+    "I need to do a literature review on XDP",
+    "做个竞品分析",
+    "帮我调研一下这个方向",
+    "research the market for AI coding tools",
+    "我想做个综述",
+    "investigate the state of zero trust networking",
+    "帮我规划一下研究路线",
+    "survey the current approaches to network security",
+    "帮我做个市场分析"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new skill",
+    "帮我润色这段话",
+    "run the tests",
+    "commit these changes",
+    "review this PR"
+  ]
+}

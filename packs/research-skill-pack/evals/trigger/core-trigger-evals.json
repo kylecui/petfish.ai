@@ -1,0 +1,91 @@
+{
+  "evals": [
+    {
+      "id": "research-router-trigger-01",
+      "skill": "research-router",
+      "type": "trigger",
+      "should_trigger": [
+        "帮我研究一下AI安全的现状",
+        "I need to do a literature review on XDP",
+        "做个竞品分析",
+        "帮我调研一下这个方向",
+        "research the market for AI coding tools",
+        "我想做个综述",
+        "investigate the state of zero trust networking",
+        "帮我规划一下研究路线"
+      ],
+      "should_not_trigger": [
+        "帮我写个函数",
+        "fix the bug in auth.py",
+        "deploy this to production",
+        "create a new skill",
+        "帮我润色这段话",
+        "run the tests"
+      ]
+    },
+    {
+      "id": "research-brief-framer-trigger-01",
+      "skill": "research-brief-framer",
+      "type": "trigger",
+      "should_trigger": [
+        "帮我定义研究问题",
+        "I have a vague research idea, help me structure it",
+        "frame this research brief",
+        "把这个模糊的目标变成研究计划"
+      ],
+      "should_not_trigger": [
+        "find papers about XDP",
+        "write the final report",
+        "review this report"
+      ]
+    },
+    {
+      "id": "research-note-capture-trigger-01",
+      "skill": "research-note-capture",
+      "type": "trigger",
+      "should_trigger": [
+        "帮我读这篇论文并摘录重点",
+        "extract key passages from this document",
+        "不要总结太快，先摘录材料",
+        "take reading notes on this paper"
+      ],
+      "should_not_trigger": [
+        "summarize this into a report",
+        "find more papers",
+        "record my idea about X"
+      ]
+    },
+    {
+      "id": "research-insight-log-trigger-01",
+      "skill": "research-insight-log",
+      "type": "trigger",
+      "should_trigger": [
+        "我突然想到一个类比",
+        "record this hypothesis",
+        "记一下这个想法",
+        "I just realized X might connect to Y"
+      ],
+      "should_not_trigger": [
+        "extract quotes from this paper",
+        "write the final report",
+        "find sources about X"
+      ]
+    },
+    {
+      "id": "research-quality-reviewer-trigger-01",
+      "skill": "research-quality-reviewer",
+      "type": "trigger",
+      "should_trigger": [
+        "review this research report",
+        "check if the citations are complete",
+        "审查一下这篇报告的质量",
+        "detect AI slop in this report"
+      ],
+      "should_not_trigger": [
+        "write the research report",
+        "find more evidence",
+        "帮我研究一下"
+      ]
+    }
+  ]
+}

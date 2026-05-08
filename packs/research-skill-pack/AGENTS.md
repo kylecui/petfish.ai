@@ -1,0 +1,71 @@
+<!-- BEGIN pack: research-skill-pack -->
+# Research Skill Pack Rules
+
+本项目已安装研究工作台技能包（research-skill-pack）。
+
+## 工作原则
+
+- 先定义问题，再搜集资料
+- 先合法获取全文，再摘录原文与出处
+- 先记录阅读笔记和灵光闪现，再提升为正式证据
+- 先建立证据账本，再形成判断
+- 先区分事实、推断、灵感、假设与建议，再写报告
+- 生成与审查分离
+- skill本体短小精确，复杂知识放入references与scripts
+
+## 默认研究流程
+
+```
+research-router → research-brief-framer → research-source-discovery → research-literature-access → research-note-capture → research-insight-log → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
+```
+
+## 证据类型系统
+
+| Type | Meaning | Can enter report? |
+|---|---|---|
+| EXTRACTED | Directly from source | Yes, with citation |
+| INFERRED | Derived from multiple facts | Yes, with reasoning |
+| AMBIGUOUS | Conflicting sources | Yes, as uncertainty |
+| PROPOSED | Our suggestion/hypothesis | Yes, labeled as recommendation |
+
+## 必须遵守
+
+- 每条重要claim必须有source_id和evidence_id
+- 不得把模型常识当作研究事实
+- 不得把摘要伪装成原文
+- 不得存储明文凭据
+- 不得使用非法来源获取文献
+- 质量审查必须独立于报告生成
+- 灵感不能直接当作事实进入报告
+
+## 研究工作区结构
+
+```
+research/
+  CONTEXT.md
+  00_brief/
+  01_sources/
+  02_notes/
+  03_evidence/
+  04_methods/
+  05_analysis/
+  06_outputs/
+  07_reviews/
+  adr/
+```
+
+## Skill路由
+
+| 用户意图 | 推荐skill |
+|---|---|
+| 模糊研究请求 | research-router |
+| 需要定义研究问题 | research-brief-framer |
+| 需要找资料 | research-source-discovery |
+| 需要获取文献全文 | research-literature-access |
+| 需要摘录和阅读笔记 | research-note-capture |
+| 有想法要记录 | research-insight-log |
+| 需要建立证据 | research-evidence-ledger |
+| 需要综合分析 | research-synthesis |
+| 需要写报告 | research-report-writer |
+| 需要审查报告质量 | research-quality-reviewer |
+<!-- END pack: research-skill-pack -->
