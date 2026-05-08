@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.7.0] - 2026-05-09
+
+### Added
+- risk-research-brief: Define evaluation target, adoption scenario, and risk boundary
+- vendor-source-diligence: Vendor and open source project due diligence with identity, stability, and lock-in checks
+- security-risk-review: Security risk review covering data exposure, access control, supply chain, and prompt injection
+- compliance-check: Compliance risk research for privacy, data residency, license, and regulation (not legal advice)
+- tco-operational-risk: Total cost of ownership and operational risk assessment with exit planning
+- adoption-recommendation: Final adoption recommendation with verdict, conditions, and decision log
+- experience-brief-framer: Define experience or event goals, participants, constraints, and success criteria
+- venue-destination-research: Research venues, destinations, and locations with evaluation criteria
+- schedule-itinerary-planner: Design schedules and itineraries with transitions and contingencies
+- logistics-risk-planner: Plan logistics and identify controllable and uncontrollable risks
+- event-runbook-writer: Generate executable event runbook with before/during/after phases
+- Trigger evals for all 11 risk-procurement and experience-event skills
+- Smoke test coverage for risk-procurement and experience-event skill directories
+
 ## [0.6.0] - 2026-05-09
 
 ### Added

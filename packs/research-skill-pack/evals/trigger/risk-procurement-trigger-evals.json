@@ -1,0 +1,127 @@
+{
+  "evals": [
+    {
+      "id": "risk-research-brief-trigger-01",
+      "skill": "risk-research-brief",
+      "type": "trigger",
+      "should_trigger": [
+        "风险评估",
+        "risk assessment",
+        "工具评估",
+        "tool evaluation",
+        "供应商评估",
+        "vendor evaluation",
+        "是否值得引入",
+        "该不该用",
+        "帮我评估一下这个工具的风险"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "写论文",
+        "学习计划",
+        "活动策划"
+      ]
+    },
+    {
+      "id": "vendor-source-diligence-trigger-01",
+      "skill": "vendor-source-diligence",
+      "type": "trigger",
+      "should_trigger": [
+        "供应商尽调",
+        "vendor due diligence",
+        "供应商调查",
+        "开源项目评估",
+        "source diligence",
+        "供应商背景调查",
+        "帮我调查一下这个供应商"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "用户访谈",
+        "学习资源",
+        "决策矩阵"
+      ]
+    },
+    {
+      "id": "security-risk-review-trigger-01",
+      "skill": "security-risk-review",
+      "type": "trigger",
+      "should_trigger": [
+        "安全风险审查",
+        "security risk review",
+        "安全评估",
+        "security assessment",
+        "数据安全",
+        "data security",
+        "帮我做一个安全风险审查"
+      ],
+      "should_not_trigger": [
+        "合规检查",
+        "写论文",
+        "学习路径",
+        "旅行规划"
+      ]
+    },
+    {
+      "id": "compliance-check-trigger-01",
+      "skill": "compliance-check",
+      "type": "trigger",
+      "should_trigger": [
+        "合规检查",
+        "compliance check",
+        "合规风险",
+        "compliance risk",
+        "隐私合规",
+        "许可证审查",
+        "license review",
+        "帮我检查一下合规风险"
+      ],
+      "should_not_trigger": [
+        "安全审计",
+        "用户研究",
+        "学习目标",
+        "活动组织"
+      ]
+    },
+    {
+      "id": "tco-operational-risk-trigger-01",
+      "skill": "tco-operational-risk",
+      "type": "trigger",
+      "should_trigger": [
+        "总拥有成本",
+        "TCO",
+        "total cost of ownership",
+        "运营风险",
+        "operational risk",
+        "成本评估",
+        "帮我算一下总拥有成本"
+      ],
+      "should_not_trigger": [
+        "竞品价格",
+        "写报告",
+        "学习资源",
+        "旅行预算"
+      ]
+    },
+    {
+      "id": "adoption-recommendation-trigger-01",
+      "skill": "adoption-recommendation",
+      "type": "trigger",
+      "should_trigger": [
+        "采用建议",
+        "adoption recommendation",
+        "是否采用",
+        "adopt or reject",
+        "引入建议",
+        "采购建议",
+        "帮我给出最终采用建议"
+      ],
+      "should_not_trigger": [
+        "决策建议",
+        "产品决策简报",
+        "学习路线",
+        "活动runbook"
+      ]
+    }
+  ]
+}

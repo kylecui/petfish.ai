@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (35)
+## Skills (46)
 
 | Skill | Purpose |
 |---|---|
@@ -41,6 +41,17 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `decision-criteria-builder` | Build weighted criteria with must-have and deal-breaker tags |
 | `option-comparison-matrix` | Compare options against criteria with scoring |
 | `decision-recommendation` | Generate final recommendation with conditions and risks |
+| `risk-research-brief` | Define evaluation target, adoption scenario, and risk boundary |
+| `vendor-source-diligence` | Vendor and open source project due diligence |
+| `security-risk-review` | Security risk review covering data, access, supply chain |
+| `compliance-check` | Compliance risk research for privacy, license, regulation |
+| `tco-operational-risk` | Total cost of ownership and operational risk assessment |
+| `adoption-recommendation` | Final adoption recommendation with verdict and conditions |
+| `experience-brief-framer` | Define experience or event goals, constraints, and criteria |
+| `venue-destination-research` | Research venues, destinations, and locations |
+| `schedule-itinerary-planner` | Design schedules and itineraries with contingencies |
+| `logistics-risk-planner` | Plan logistics and identify risks with contingency plans |
+| `event-runbook-writer` | Generate executable event runbook with checklists |
 
 ## Research Types
 
@@ -49,6 +60,8 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 - **Planning**: Environment scanning, stakeholder analysis, scenario planning, roadmap
 - **Learning**: Goal framing, resource discovery, learning path design
 - **Decision**: Decision brief, criteria building, option comparison, recommendation
+- **Risk-Procurement**: Risk brief, vendor diligence, security review, compliance, TCO, adoption recommendation
+- **Experience-Event**: Experience brief, venue research, schedule planning, logistics, event runbook
 
 ## Install
 

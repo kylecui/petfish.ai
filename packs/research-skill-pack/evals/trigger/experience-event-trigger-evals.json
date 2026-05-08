@@ -1,0 +1,104 @@
+{
+  "evals": [
+    {
+      "id": "experience-brief-framer-trigger-01",
+      "skill": "experience-brief-framer",
+      "type": "trigger",
+      "should_trigger": [
+        "活动策划",
+        "event planning",
+        "旅行规划",
+        "trip planning",
+        "体验设计",
+        "experience design",
+        "帮我安排",
+        "帮我组织一次活动"
+      ],
+      "should_not_trigger": [
+        "学习计划",
+        "产品规划",
+        "风险评估",
+        "写论文"
+      ]
+    },
+    {
+      "id": "venue-destination-research-trigger-01",
+      "skill": "venue-destination-research",
+      "type": "trigger",
+      "should_trigger": [
+        "场地研究",
+        "venue research",
+        "目的地研究",
+        "destination research",
+        "场地选择",
+        "去哪里",
+        "帮我找一个合适的场地"
+      ],
+      "should_not_trigger": [
+        "供应商评估",
+        "竞品分析",
+        "学习资源",
+        "合规检查"
+      ]
+    },
+    {
+      "id": "schedule-itinerary-planner-trigger-01",
+      "skill": "schedule-itinerary-planner",
+      "type": "trigger",
+      "should_trigger": [
+        "日程安排",
+        "schedule planning",
+        "行程规划",
+        "itinerary",
+        "议程设计",
+        "agenda",
+        "帮我排一个日程表"
+      ],
+      "should_not_trigger": [
+        "学习路径",
+        "战略路线图",
+        "实验设计",
+        "决策标准"
+      ]
+    },
+    {
+      "id": "logistics-risk-planner-trigger-01",
+      "skill": "logistics-risk-planner",
+      "type": "trigger",
+      "should_trigger": [
+        "后勤规划",
+        "logistics planning",
+        "风险预案",
+        "contingency plan",
+        "交通住宿",
+        "物资准备",
+        "帮我做一个后勤和风险预案"
+      ],
+      "should_not_trigger": [
+        "安全风险审查",
+        "供应商尽调",
+        "TCO评估",
+        "文献综述"
+      ]
+    },
+    {
+      "id": "event-runbook-writer-trigger-01",
+      "skill": "event-runbook-writer",
+      "type": "trigger",
+      "should_trigger": [
+        "活动执行手册",
+        "event runbook",
+        "执行清单",
+        "execution checklist",
+        "活动SOP",
+        "帮我写一个活动执行手册"
+      ],
+      "should_not_trigger": [
+        "部署runbook",
+        "论文写作",
+        "采用建议",
+        "学习计划"
+      ]
+    }
+  ]
+}

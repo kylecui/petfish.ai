@@ -1,10 +1,10 @@
 {
   "name": "research-skill-pack",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "legacy_names": [],
-  "description": "Research workbench skill pack covering scientific, product, planning, learning, and decision research workflows with traceable evidence chains.",
+  "description": "Research workbench skill pack covering scientific, product, planning, learning, decision, risk-procurement, and experience-event research workflows with traceable evidence chains.",
   "compatibility": "opencode",
-  "skill_count": 35,
+  "skill_count": 46,
   "command_count": 0,
   "agent_count": 0,
   "skills": [
@@ -42,7 +42,18 @@
     "decision-brief-framer",
     "decision-criteria-builder",
     "option-comparison-matrix",
-    "decision-recommendation"
+    "decision-recommendation",
+    "risk-research-brief",
+    "vendor-source-diligence",
+    "security-risk-review",
+    "compliance-check",
+    "tco-operational-risk",
+    "adoption-recommendation",
+    "experience-brief-framer",
+    "venue-destination-research",
+    "schedule-itinerary-planner",
+    "logistics-risk-planner",
+    "event-runbook-writer"
   ],
   "contents": [
     "README.md",
@@ -131,6 +142,17 @@
     ".opencode/skills/decision-criteria-builder/SKILL.md",
     ".opencode/skills/option-comparison-matrix/SKILL.md",
     ".opencode/skills/decision-recommendation/SKILL.md",
+    ".opencode/skills/risk-research-brief/SKILL.md",
+    ".opencode/skills/vendor-source-diligence/SKILL.md",
+    ".opencode/skills/security-risk-review/SKILL.md",
+    ".opencode/skills/compliance-check/SKILL.md",
+    ".opencode/skills/tco-operational-risk/SKILL.md",
+    ".opencode/skills/adoption-recommendation/SKILL.md",
+    ".opencode/skills/experience-brief-framer/SKILL.md",
+    ".opencode/skills/venue-destination-research/SKILL.md",
+    ".opencode/skills/schedule-itinerary-planner/SKILL.md",
+    ".opencode/skills/logistics-risk-planner/SKILL.md",
+    ".opencode/skills/event-runbook-writer/SKILL.md",
     "schemas/source-index.schema.json",
     "schemas/literature-access.schema.json",
     "schemas/access-attempts.schema.json",
@@ -156,6 +178,8 @@
     "evals/trigger/planning-trigger-evals.json",
     "evals/trigger/learning-trigger-evals.json",
     "evals/trigger/decision-trigger-evals.json",
+    "evals/trigger/risk-procurement-trigger-evals.json",
+    "evals/trigger/experience-event-trigger-evals.json",
     "evals/output/mvp-evals.json"
   ]
 }

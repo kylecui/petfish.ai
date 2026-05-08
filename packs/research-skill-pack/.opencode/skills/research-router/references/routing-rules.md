@@ -2,8 +2,8 @@
 
 ## Classification Matrix
 
-| Signal | Scientific | Product | Planning | Learning | Decision |
-|---|---|---|---|---|---|
+| Signal | Scientific | Product | Planning | Learning | Decision | Risk-Procurement | Experience-Event |
+|---|---|---|---|---|---|---|---|
 | "论文/paper/literature" | ✓ | | | | |
 | "竞品/competitor/market" | | ✓ | | | |
 | "规划/strategy/roadmap" | | | ✓ | | |
@@ -16,6 +16,8 @@
 | "文献综述/gap分析" | ✓ | | | | |
 | "学习/learning/goal/path" | | | | ✓ | |
 | "决策/decision/criteria/option" | | | | | ✓ |
+| "风险/risk/vendor/compliance/TCO" | | | | | | ✓ | |
+| "活动/event/travel/venue/itinerary" | | | | | | | ✓ |
 
 ## Complexity Assessment
 
@@ -44,6 +46,12 @@ learning-goal-framer → learning-resource-discovery → learning-path-designer 
 
 ### Decision (Full)
 decision-brief-framer → decision-criteria-builder → option-comparison-matrix → decision-recommendation → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
+
+### Risk-Procurement (Full)
+risk-research-brief → vendor-source-diligence → security-risk-review → compliance-check → tco-operational-risk → adoption-recommendation → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
+
+### Experience-Event (Full)
+experience-brief-framer → venue-destination-research → schedule-itinerary-planner → logistics-risk-planner → event-runbook-writer → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
 
 ### Light Route (any type)
 research-brief-framer → research-source-discovery → research-evidence-ledger → research-report-writer

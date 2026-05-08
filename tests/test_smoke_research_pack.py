@@ -255,6 +255,16 @@ class TestTriggerEvals:
         decision = PACK_ROOT / "evals" / "trigger" / "decision-trigger-evals.json"
         assert decision.is_file(), "decision-trigger-evals.json missing"
 
+        risk_procurement = (
+            PACK_ROOT / "evals" / "trigger" / "risk-procurement-trigger-evals.json"
+        )
+        assert risk_procurement.is_file(), "risk-procurement-trigger-evals.json missing"
+
+        experience_event = (
+            PACK_ROOT / "evals" / "trigger" / "experience-event-trigger-evals.json"
+        )
+        assert experience_event.is_file(), "experience-event-trigger-evals.json missing"
+
         router = SKILLS_DIR / "research-router" / "evals" / "trigger-evals.json"
         assert router.is_file(), "research-router trigger-evals.json missing"
 
