@@ -39,7 +39,6 @@ ALIAS_MAP = {
     "calibrate": "anti-sycophancy-calibration-pack",
     "context": "fish-trail",
     "research": "research-skill-pack",
-    "fish-research": "research-skill-pack",
 }
 
 # Reverse map: pack name → alias
