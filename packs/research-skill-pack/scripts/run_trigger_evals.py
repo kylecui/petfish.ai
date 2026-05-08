@@ -2,7 +2,7 @@
 """Trigger-eval harness for research-skill-pack.
 
 Loads trigger-evals.json files from:
-  - evals/trigger/core-trigger-evals.json  (pack-level, multi-skill)
+  - evals/trigger/*.json  (pack-level, all files)
   - .opencode/skills/*/evals/trigger-evals.json  (per-skill)
 
 Reports which prompts matched/mismatched for deterministic CI execution.
@@ -150,13 +150,14 @@ def _load_eval_files() -> list[dict[str, Any]]:
     """Discover and load all trigger-eval JSON files."""
     eval_entries: list[dict[str, Any]] = []
 
-    # Pack-level evals
-    core_evals = PACK_ROOT / "evals" / "trigger" / "core-trigger-evals.json"
-    if core_evals.exists():
-        data = json.loads(core_evals.read_text(encoding="utf-8"))
-        for entry in data.get("evals", []):
-            entry["_source"] = str(core_evals.relative_to(PACK_ROOT))
-            eval_entries.append(entry)
+    # Pack-level evals — glob all JSON files under evals/trigger/
+    trigger_dir = PACK_ROOT / "evals" / "trigger"
+    if trigger_dir.is_dir():
+        for eval_file in sorted(trigger_dir.glob("*.json")):
+            data = json.loads(eval_file.read_text(encoding="utf-8"))
+            for entry in data.get("evals", []):
+                entry["_source"] = str(eval_file.relative_to(PACK_ROOT))
+                eval_entries.append(entry)
 
     # Per-skill evals
     skills_dir = PACK_ROOT / ".opencode" / "skills"
