@@ -34,6 +34,8 @@
     ".opencode/skills/deployment-executor/SKILL.md",
     ".opencode/skills/deployment-executor/references/upgrade-strategy.md",
     ".opencode/skills/deployment-executor/references/release-layout.md",
+    ".opencode/skills/deployment-executor/references/private-repo-access.md",
+    ".opencode/skills/deployment-executor/references/local-patch-management.md",
     ".opencode/skills/deployment-executor/assets/deployment-plan-template.md",
     ".opencode/skills/deployment-verifier/SKILL.md",
     ".opencode/skills/deployment-verifier/references/smoke-test-design.md",

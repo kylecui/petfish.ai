@@ -12,6 +12,8 @@
 - Do not overwrite existing files without confirmation.
 - Do not delete files without explicit instruction.
 - Keep tasks, sources, and outputs separated.
+- Do not operate on other repositories (even with access); raise issues instead.
+- When network operations fail (SSH, package install, git clone, API calls), retry at least twice before changing approach — transient failures are common and do not warrant strategy changes.
 
 ## Directory Map
 {{ directory_map }}

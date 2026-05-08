@@ -195,11 +195,15 @@ Include `src/`, `tests/`, `scripts/`, `docs/architecture.md`, `docs/api.md`, `do
 
 For Python, prefer `uv`, `pytest`, `ruff`, optional `mypy`, optional `pre-commit`.
 
+AGENTS.md must include `Development Gotchas` and `Architecture Decisions` sections with crystallization trigger guidance. Gotchas are capped at 10 entries; excess triggers review of which entries are now redundant due to code improvements.
+
 #### Ops
 
 Include `deploy/`, `configs/`, `scripts/`, `runbooks/`, `monitoring/`, `logs/`, `evidence/`, and deployment QA.
 
 Emphasize repeatable deployment, rollback, observability, auditability, least privilege, and separation of config and secrets.
+
+AGENTS.md must include `Change Management` (three-tier: direct execute / explain impact first / high-risk with rollback confirmation) and `Experience Crystallization` (post-deployment review trigger).
 
 #### Security Research
 

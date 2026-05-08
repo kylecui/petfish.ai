@@ -111,7 +111,11 @@ license: Internal use
 
 ## 何时读取参考文件
 
--需要决定采用“发布目录 + current软链”时，读取：
+-需要决定采用"发布目录 + current软链"时，读取：
   `references/release-layout.md`
--需要区分“就地升级”和“新发布切换”时，读取：
+-需要区分"就地升级"和"新发布切换"时，读取：
   `references/upgrade-strategy.md`
+-部署私有仓库、目标服务器无GitHub凭据时，读取：
+  `references/private-repo-access.md`
+-多服务共享主机、存在本地补丁或执行git pull升级时，读取：
+  `references/local-patch-management.md`
