@@ -36,9 +36,31 @@ license: Apache-2.0
 6. 用 `source_index.py` 做索引一致性检查（仅调用脚本名，不嵌入脚本内容）。
 7. 对照 `source-quality-rubric.md` 做最终抽检。
 
+## Schema
+
+`source-index.jsonl` 每行一个 JSON 对象，字段如下：
+
+**Required fields**
+
+- `source_id` (string): pattern `SRC-\d{6}`（`SRC-` + exactly 6 digits）
+- `source_type` (string): one of `code-repo`, `dataset`, `internal-doc`, `interview`, `official-doc`, `paper`, `report`, `website`
+
+**Additional recommended fields**
+
+- `title`
+- `url`
+- `relevance_rating`
+- `quality_tier`
+
+```json
+{"source_id":"SRC-120045","source_type":"paper","title":"Retrieval-Augmented Generation in Production","url":"https://example.org/rag-production","relevance_rating":"high","quality_tier":"A"}
+```
+
 ## 质量门禁/Quality Gates
 
 - 每条来源必须有 `source_id`、`source_type`、`relevance_rating`。
+- `source_id` 必须符合 `SRC-XXXXXX`（6位数字）格式。
+- `source_type` 仅允许：`code-repo`、`dataset`、`internal-doc`、`interview`、`official-doc`、`paper`、`report`、`website`。
 - 必须有完整检索策略记录（渠道、关键词、过滤规则）。
 - 必须覆盖多元来源，不得单一渠道偏置。
 

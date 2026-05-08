@@ -52,6 +52,29 @@ license: Apache-2.0
 
 ---
 
+## Schema
+
+`evidence-ledger.jsonl` 每行一个 JSON 对象，字段如下：
+
+**Required fields**
+
+- `evidence_id` (string): pattern `EV-\d+`
+- `source_id` (string): non-empty
+- `claim` (string): non-empty
+- `evidence_type` (string): one of `EXTRACTED`, `INFERRED`, `AMBIGUOUS`, `PROPOSED`
+- `confidence` (string): one of `high`, `medium`, `low`
+
+**Optional / recommended fields**
+
+- `notes` (string): recommended for `INFERRED`
+- `contradicts` (list): recommended for `AMBIGUOUS` as a non-empty list
+
+```json
+{"evidence_id":"EV-204","source_id":"SRC-120045","claim":"Weekly index refresh improved retrieval precision by 8% in this benchmark.","evidence_type":"EXTRACTED","confidence":"high","notes":"Result extracted from benchmark table section 4.2","contradicts":["EV-199"]}
+```
+
+---
+
 ## 质量门禁/Quality Gates
 
 - 每个重要主张必须有 source_id

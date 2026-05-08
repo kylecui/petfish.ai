@@ -43,6 +43,26 @@ license: Apache-2.0
 10. 如摘录支持正式主张，移交至 `research-evidence-ledger`。
 11. 使用 `note_lint.py` 做记录规范检查，并参照 `excerpt-note-method.md`、`excerpt-notes-empty.jsonl`、`reading-note-template.md`。
 
+## Schema
+
+`excerpt-notes.jsonl` 每行一个 JSON 对象，字段如下：
+
+**Required fields**
+
+- `note_id` (string): pattern `NOTE-\d+`
+- `source_id` (string): non-empty
+- `original_text` (string): non-empty
+- `location` (object): at least one key (e.g. `{"page": 5, "section": "3.1"}`)
+
+**Optional / recommended fields (warnings if missing)**
+
+- `paraphrase` (string)
+- `why_it_matters` (string)
+
+```json
+{"note_id":"NOTE-89","source_id":"SRC-120045","original_text":"Index staleness strongly correlates with retrieval errors in weekly release cycles.","location":{"page":5,"section":"3.1"},"paraphrase":"Weekly release cadence may require more frequent index refresh to avoid stale retrieval.","why_it_matters":"Directly informs refresh policy design for the target system."}
+```
+
 ## 质量门禁/Quality Gates
 
 - 每条摘录必须有 `source_id`。

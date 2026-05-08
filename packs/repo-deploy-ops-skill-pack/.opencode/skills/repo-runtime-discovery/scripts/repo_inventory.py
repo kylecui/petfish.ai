@@ -51,6 +51,21 @@ def slurp(path: Path, limit: int = 40000) -> str:
 
 
 def detect_files(root: Path) -> dict[str, list[str]]:
+    EXCLUDE_DIRS = {
+        "node_modules",
+        ".venv",
+        "venv",
+        "__pycache__",
+        ".git",
+        ".hg",
+        "vendor",
+        ".tox",
+        ".mypy_cache",
+        ".pytest_cache",
+        "dist",
+        "build",
+        ".eggs",
+    }
     hits: dict[str, list[str]] = {
         "dockerfiles": [],
         "compose_files": [],
@@ -64,6 +79,10 @@ def detect_files(root: Path) -> dict[str, list[str]]:
     }
     for path in root.rglob("*"):
         if path.is_dir():
+            continue
+        # Skip files inside excluded vendor/cache directories
+        rel_parts = path.relative_to(root).parts
+        if any(part in EXCLUDE_DIRS for part in rel_parts):
             continue
         rp = path.relative_to(root).as_posix()
         name = path.name.lower()

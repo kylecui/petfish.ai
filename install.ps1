@@ -392,9 +392,13 @@ function Update-InstalledPacks([string]$registryDir, [string]$packName, [string]
 
     if (Test-Path $manifestFile) {
         $m = Get-Content $manifestFile -Raw -Encoding UTF8 | ConvertFrom-Json
-        if ($m.PSObject.Properties['version'])     { $entry.version = $m.version }
-        if ($m.PSObject.Properties['skills'])       { $entry.skills = $m.skills }
-        if ($m.PSObject.Properties['description'])  { $entry.description = $m.description }
+        if ($m.PSObject.Properties['version'])       { $entry.version = $m.version }
+        if ($m.PSObject.Properties['skills'])         { $entry.skills = $m.skills }
+        if ($m.PSObject.Properties['description'])    { $entry.description = $m.description }
+        if ($m.PSObject.Properties['skill_count'])    { $entry.skill_count = $m.skill_count }
+        elseif ($m.PSObject.Properties['skills'])     { $entry.skill_count = @($m.skills).Count }
+        if ($m.PSObject.Properties['command_count'])  { $entry.command_count = $m.command_count }
+        if ($m.PSObject.Properties['agent_count'])    { $entry.agent_count = $m.agent_count }
     }
 
     if (-not (Test-Path $registryDir)) {

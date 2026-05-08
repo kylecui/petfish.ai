@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.1] - 2026-05-08
+
+### Fixed
+- SKILL.md schema alignment for insight-log, evidence-ledger, source-discovery, and note-capture — added `## Schema` sections matching lint script requirements (closes #83, #82, #78)
+
 ## [0.3.0] - 2026-05-08
 
 ### Added

@@ -42,11 +42,35 @@ license: Apache-2.0
 
 1. **捕获灵感** — 用清晰标题记录核心想法
 2. **分类** — 确定 insight_type（analogy, hypothesis, research-question, method-idea, experiment-idea, product-opportunity, planning-judgment, contradiction, terminology, writing-angle）
-3. **记录触发来源** — 标注 source_ids、note_ids、触发上下文
+3. **记录触发来源** — 使用 `trigger` 对象记录 `source_ids`、`note_ids`、`context`
 4. **描述潜在价值** — 说明 potential_value（为什么这个想法可能重要）
 5. **列出验证问题** — needs_validation：要回答哪些问题才能确认/否定
 6. **列出可能产出** — possible_outputs：如果验证成功可以产出什么
 7. **设置状态** — status 设为 "open"
+
+---
+
+## Schema
+
+`insight-log.jsonl` 每行一个 JSON 对象，字段如下：
+
+**Required fields**
+
+- `insight_id` (string): pattern `INS-\d+`
+- `title` (string): non-empty
+- `insight_type` (string): one of `analogy`, `hypothesis`, `research-question`, `method-idea`, `experiment-idea`, `product-opportunity`, `planning-judgment`, `contradiction`, `terminology`, `writing-angle`
+- `content` (string): non-empty
+- `trigger` (object): at least one of:
+  - `source_ids` (list)
+  - `note_ids` (list)
+  - `context` (string)
+- `potential_value` (string)
+- `needs_validation` (list): non-empty
+- `status` (string): one of `open`, `validated`, `rejected`, `merged`
+
+```json
+{"insight_id":"INS-12","title":"RAG retrieval drift may be index freshness bound","insight_type":"hypothesis","content":"Observed answer quality drops when index staleness exceeds one release cycle.","trigger":{"source_ids":["SRC-120045"],"note_ids":["NOTE-89"],"context":"Comparing two benchmark runs after weekly data sync"},"potential_value":"Can guide refresh cadence policy and reduce stale-answer incidents.","needs_validation":["Run ablation on refresh intervals","Control for prompt/version changes"],"status":"open"}
+```
 
 ---
 

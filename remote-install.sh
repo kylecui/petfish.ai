@@ -235,9 +235,11 @@ entry = {'installed_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ
 if os.path.isfile(manifest_file):
     with open(manifest_file, 'r') as f:
         m = json.load(f)
-    for key in ('version', 'skills', 'description'):
+    for key in ('version', 'skills', 'description', 'skill_count', 'command_count', 'agent_count'):
         if key in m:
             entry[key] = m[key]
+    if 'skill_count' not in entry and 'skills' in m:
+        entry['skill_count'] = len(m['skills'])
 
 if os.path.isfile(reg_file):
     with open(reg_file, 'r') as f:
