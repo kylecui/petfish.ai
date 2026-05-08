@@ -11,7 +11,7 @@
 **Your AI Companion**
 From first commit to final delivery, PEtFiSh is always there.
 ```text
-><(((^>  PEtFiSh v0.6
+><(((^>  PEtFiSh v0.8
 
 Always Present   Companion Gateway in every interaction
 Guarding         Sense gaps, guard context, block pollution
@@ -278,6 +278,16 @@ petfish.ai/
 ---
 
 ## Version History
+### v0.8 — Multi-Platform & Agent Discipline
+
+- **v0.8.1**: Universal agent principles (cross-repo protection, network retry); complete ops AGENTS.md template (11 sections); code profile experience crystallization (Development Gotchas, Architecture Decisions); deployment-executor references for private repo access and local patch management. Closes #66, #67, #68, #69.
+- **v0.8.0**: Multi-platform instruction file generation (#63) — `detect_all_platforms()`, content condensation for token-limited platforms, Claude Code hook scripts, uv-first Python policy enforced across project.
+
+### v0.7 — Stability & Pack Versioning
+
+- **v0.7.2**: Fix #57 root cause (`grep -qF` replacing `echo | grep`); fix #65 (8 missing QA bilingual terms in topic_detector.py).
+- **v0.7.1**: Fix #57 legacy name awareness in merge_agents_md; bump fish-trail and petfish-companion-skill to 1.0.0 (#64); fix corrupted AGENTS.md markers; update all 4 installer scripts.
+
 ### v0.6 — Companion Narrative
 
 - **v0.6.4**: Bilingual website and docs; archive outdated v0.2 docs.

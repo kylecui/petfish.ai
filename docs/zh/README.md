@@ -20,7 +20,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v0.6                        │
+│  ><(((^>  胖鱼 PEtFiSh v0.8                        │
 │                                                     │
 │  常伴  每一轮交互都在                                │
 │  守护  感知缺口、守护上下文、阻断污染                │
@@ -162,6 +162,16 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v0.8 — 多平台生成 & Agent纪律
+
+- **v0.8.1**: 通用agent纪律（跨仓库保护、网络重试）；完整ops项目模板（11段）；code项目经验沉淀（Development Gotchas, Architecture Decisions）；部署skill参考文档（私有仓库访问、本地补丁管理）。关闭 #66, #67, #68, #69。
+- **v0.8.0**: 多平台指令文件生成（#63）——`detect_all_platforms()`、token受限平台内容压缩、Claude Code hook脚本、uv优先Python策略。
+
+### v0.7 — 稳定性 & Pack版本化
+
+- **v0.7.2**: 修复#57根因（`grep -qF`替换`echo | grep`）；修复#65（topic_detector.py缺失8条QA双语术语）。
+- **v0.7.1**: 修复#57 legacy名称识别；fish-trail和companion升级至1.0.0（#64）；修复AGENTS.md标记损坏；更新全部4个安装脚本。
 
 ### v0.6 — Companion Gateway
 
