@@ -280,8 +280,10 @@ petfish.ai/
 ---
 
 ## Version History
-### v0.10 — Product Research Domain
+### v0.10 — Product & Planning Research Domains
 
+- **v0.10.2**: Planning research domain — 6 new skills (environment-scanner, stakeholder-analyst, scenario-planner, policy-researcher, technology-assessor, roadmap-developer), trigger evals, smoke test coverage. Pack now has 28 skills.
+- **v0.10.1**: SKILL_builder eradication — 10 stale refs fixed across 6 files; catalog_query.py fallback now returns actual counts. Closes #87, #86.
 - **v0.10.0**: Product research domain — 5 new skills (user-research, competitor-analysis, opportunity-mapper, validation-planner, decision-brief), trigger evals, smoke test coverage. Pack now has 22 skills.
 
 ### v0.9 — Research Skill Pack

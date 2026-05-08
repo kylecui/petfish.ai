@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (22)
+## Skills (28)
 
 | Skill | Purpose |
 |---|---|
@@ -28,6 +28,12 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `product-opportunity-mapper` | JTBD, problem space mapping, and opportunity scoring |
 | `product-validation-planner` | Hypothesis lists, MVP design, and validation experiments |
 | `product-decision-brief` | Go/no-go/pivot decision briefs from research evidence |
+| `planning-environment-scanner` | PESTLE scanning, trend radar, and signal identification |
+| `planning-stakeholder-analyst` | Stakeholder mapping, influence/interest analysis, engagement |
+| `planning-scenario-planner` | Alternative futures, implications matrix, robust strategies |
+| `planning-policy-researcher` | Regulatory landscape, policy trends, compliance impact |
+| `planning-technology-assessor` | Technology maturity (TRL), adoption readiness, strategic fit |
+| `planning-roadmap-developer` | Strategic roadmap with milestones, dependencies, decision gates |
 
 ## Research Types
 

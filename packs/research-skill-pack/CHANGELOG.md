@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0] - 2026-05-09
+
+### Added
+- planning-environment-scanner: PESTLE environmental scanning, trend radar, and signal identification
+- planning-stakeholder-analyst: Stakeholder mapping by influence/interest, engagement strategies
+- planning-scenario-planner: Alternative futures development, implications matrix, robust strategies
+- planning-policy-researcher: Regulatory landscape analysis, policy trends, compliance impact
+- planning-technology-assessor: Technology maturity (TRL), adoption readiness, strategic fit
+- planning-roadmap-developer: Strategic roadmap synthesis with milestones, dependencies, decision gates
+- Trigger evals for all 6 planning skills (planning-trigger-evals.json)
+- Smoke test coverage for planning skill directories
+
 ## [0.4.0] - 2026-05-09
 
 ### Added

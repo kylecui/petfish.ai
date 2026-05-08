@@ -1,0 +1,125 @@
+{
+  "evals": [
+    {
+      "id": "planning-environment-scanner-trigger-01",
+      "skill": "planning-environment-scanner",
+      "type": "trigger",
+      "should_trigger": [
+        "环境扫描",
+        "PESTLE",
+        "趋势分析",
+        "trend analysis",
+        "external scanning",
+        "macro environment",
+        "信号识别",
+        "帮我做一个外部环境扫描"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "写论文",
+        "用户访谈",
+        "部署服务"
+      ]
+    },
+    {
+      "id": "planning-stakeholder-analyst-trigger-01",
+      "skill": "planning-stakeholder-analyst",
+      "type": "trigger",
+      "should_trigger": [
+        "利益相关方分析",
+        "stakeholder analysis",
+        "stakeholder mapping",
+        "干系人分析",
+        "影响力矩阵",
+        "engagement strategy",
+        "帮我梳理项目的利益相关方"
+      ],
+      "should_not_trigger": [
+        "用户画像",
+        "竞品矩阵",
+        "写路线图",
+        "技术评估"
+      ]
+    },
+    {
+      "id": "planning-scenario-planner-trigger-01",
+      "skill": "planning-scenario-planner",
+      "type": "trigger",
+      "should_trigger": [
+        "情景规划",
+        "scenario planning",
+        "scenario analysis",
+        "不确定性分析",
+        "alternative futures",
+        "帮我做几个未来情景假设",
+        "如果发生X会怎样"
+      ],
+      "should_not_trigger": [
+        "实验设计",
+        "MVP验证",
+        "文献综述",
+        "PESTLE"
+      ]
+    },
+    {
+      "id": "planning-policy-researcher-trigger-01",
+      "skill": "planning-policy-researcher",
+      "type": "trigger",
+      "should_trigger": [
+        "政策研究",
+        "policy research",
+        "法规分析",
+        "regulatory analysis",
+        "合规研究",
+        "compliance research",
+        "帮我分析这个领域的政策法规"
+      ],
+      "should_not_trigger": [
+        "技术选型",
+        "用户研究",
+        "论文写作",
+        "路线图"
+      ]
+    },
+    {
+      "id": "planning-technology-assessor-trigger-01",
+      "skill": "planning-technology-assessor",
+      "type": "trigger",
+      "should_trigger": [
+        "技术评估",
+        "technology assessment",
+        "技术成熟度",
+        "TRL",
+        "技术选型评估",
+        "adoption readiness",
+        "帮我评估这个技术的成熟度"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "环境扫描",
+        "实验设计",
+        "写论文"
+      ]
+    },
+    {
+      "id": "planning-roadmap-developer-trigger-01",
+      "skill": "planning-roadmap-developer",
+      "type": "trigger",
+      "should_trigger": [
+        "路线图",
+        "roadmap",
+        "战略规划",
+        "strategic planning",
+        "里程碑规划",
+        "milestone planning",
+        "帮我制定一个技术路线图"
+      ],
+      "should_not_trigger": [
+        "环境扫描",
+        "用户访谈",
+        "文献综述",
+        "供应商评估"
+      ]
+    }
+  ]
+}
