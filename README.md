@@ -102,7 +102,7 @@ mine → author → lint → audit → gate → optimize → eval
 
 ---
 
-## 10 Skill Packs
+## 11 Skill Packs
 | Alias | Purpose | Scale |
 |---|---|---|
 | `init` | Project initializer and `/initproject` wizard | Global default |
@@ -115,6 +115,7 @@ mine → author → lint → audit → gate → optimize → eval
 | `calibrate` | Anti-sycophancy review and decision calibration | Project |
 | `context` | Topic governance, context isolation, and contamination scoring | Project |
 | `trust` | Skill trust governance and policy checks | Project |
+| `research` | Research workbench — evidence-backed scientific, product, and planning research | Project |
 
 ## Profile → Auto-Install Mapping
 | Profile | Auto-installed Packs |
@@ -126,7 +127,7 @@ mine → author → lint → audit → gate → optimize → eval
 | `security` | `deploy`, `petfish`, `testdocs` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research` |
 
 ---
 
@@ -266,7 +267,8 @@ petfish.ai/
 │   ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
 │   ├── repo-deploy-ops-skill-pack/               # deploy
 │   ├── petfish-style-skill/                      # petfish
-│   └── opencode-ppt-skills/                      # ppt
+│   ├── opencode-ppt-skills/                      # ppt
+│   └── research-skill-pack/                      # research
 ├── platforms.json                                # platform registry
 ├── install.ps1                                   # local PowerShell installer
 ├── install.sh                                    # local shell installer
@@ -278,6 +280,13 @@ petfish.ai/
 ---
 
 ## Version History
+### v0.9 — Research Skill Pack
+
+- **v0.9.3**: Research pack installable — pack-manifest, installer registration, companion catalog integration, README and CHANGELOG updates.
+- **v0.9.2**: Research pack QA infrastructure — seeded fixtures, E2E smoke tests (15 pytest), trigger-eval harness, local smoke runner, CI gates. Closes #74, #75, #76.
+- **v0.9.1**: Research alias added to all 4 installers and companion catalog.
+- **v0.9.0**: Research skill pack MVP — 10 core skills, 7 JSON schemas, 9 Python scripts, pack infrastructure.
+
 ### v0.8 — Multi-Platform & Agent Discipline
 
 - **v0.8.1**: Universal agent principles (cross-repo protection, network retry); complete ops AGENTS.md template (11 sections); code profile experience crystallization (Development Gotchas, Architecture Decisions); deployment-executor references for private repo access and local patch management. Closes #66, #67, #68, #69.

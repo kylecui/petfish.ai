@@ -5,6 +5,8 @@
   "description": "Research workbench skill pack covering scientific, product, and planning research workflows with traceable evidence chains.",
   "compatibility": "opencode",
   "skill_count": 10,
+  "command_count": 0,
+  "agent_count": 0,
   "skills": [
     "research-router",
     "research-brief-framer",
@@ -80,6 +82,8 @@
     "scripts/init_research_project.py",
     "scripts/validate_research_workspace.py",
     "scripts/validate_schemas.py",
+    "scripts/run_smoke.py",
+    "scripts/run_trigger_evals.py",
     "evals/trigger/core-trigger-evals.json",
     "evals/output/mvp-evals.json"
   ]

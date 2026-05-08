@@ -49,6 +49,7 @@ input:
 | 润色, 说人话, 去AI味, 写作风格 | petfish |
 | 评审, 评价, 批判, review, calibration | calibrate |
 | topic, 话题, 上下文, 污染, 隔离 | context |
+| 研究, 调研, 文献, literature, research, 证据, evidence, 综述, 论文 | research |
 
 命中 + 未安装 + 本session未推荐 → 在回复末尾附带一行推荐。
 

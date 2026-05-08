@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0] - 2026-05-08
+
+### Added
+- Seeded fixture workspace for smoke tests (`tests/fixtures/smoke-workspace/`)
+- Local smoke runner (`scripts/run_smoke.py`) — 5-step pipeline validation
+- Trigger-eval harness (`scripts/run_trigger_evals.py`) — keyword matching with pass rate reporting
+- CI integration for smoke tests and trigger evals
+
 ## [0.1.0] - 2026-05-08
 
 ### Added
