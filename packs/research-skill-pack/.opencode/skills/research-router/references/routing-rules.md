@@ -63,3 +63,20 @@ When a task spans multiple types:
 2. Identify secondary types (inform specific sections)
 3. Create separate evidence streams per type
 4. Merge at synthesis stage
+
+## Adapter Routing
+
+Adapters are lightweight domain enhancers. They do NOT replace main skill chains — they inject domain-specific fields and checklists into existing flows.
+
+| Signal | Adapter | Enhances |
+|---|---|---|
+| "旅行/trip/vacation/travel itinerary" | travel-adapter | Experience-Event chain |
+| "会议/conference/workshop/CFP/speaker" | conference-adapter | Experience-Event chain |
+| "培训/training/workshop delivery/lab training" | training-event-adapter | Experience-Event chain |
+| "内容推荐/content selection/看什么/what to watch" | content-selection-adapter | Decision chain |
+
+### Adapter Usage Pattern
+1. Router detects domain signal → activates adapter
+2. Adapter injects domain fields into the brief
+3. Main chain proceeds with enriched input
+4. Adapter adds domain-specific verification at runbook/recommendation stage

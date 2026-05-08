@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.0] - 2026-05-09
+
+### Added
+- travel-adapter: Lightweight domain adapter for travel planning — visa, weather, transport, insurance checklists
+- conference-adapter: Lightweight domain adapter for conference planning — CFP, speakers, AV, registration checklists
+- training-event-adapter: Lightweight domain adapter for training workshops — learning goals, labs, certification checklists
+- content-selection-adapter: Lightweight domain adapter for content selection — preferences, ratings, availability checklists
+- Trigger evals for all 4 adapter skills (adapter-trigger-evals.json)
+
 ## [0.7.0] - 2026-05-09
 
 ### Added

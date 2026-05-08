@@ -1,10 +1,10 @@
 {
   "name": "research-skill-pack",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "legacy_names": [],
   "description": "Research workbench skill pack covering scientific, product, planning, learning, decision, risk-procurement, and experience-event research workflows with traceable evidence chains.",
   "compatibility": "opencode",
-  "skill_count": 46,
+  "skill_count": 50,
   "command_count": 0,
   "agent_count": 0,
   "skills": [
@@ -53,7 +53,11 @@
     "venue-destination-research",
     "schedule-itinerary-planner",
     "logistics-risk-planner",
-    "event-runbook-writer"
+    "event-runbook-writer",
+    "travel-adapter",
+    "conference-adapter",
+    "training-event-adapter",
+    "content-selection-adapter"
   ],
   "contents": [
     "README.md",
@@ -153,6 +157,10 @@
     ".opencode/skills/schedule-itinerary-planner/SKILL.md",
     ".opencode/skills/logistics-risk-planner/SKILL.md",
     ".opencode/skills/event-runbook-writer/SKILL.md",
+    ".opencode/skills/travel-adapter/SKILL.md",
+    ".opencode/skills/conference-adapter/SKILL.md",
+    ".opencode/skills/training-event-adapter/SKILL.md",
+    ".opencode/skills/content-selection-adapter/SKILL.md",
     "schemas/source-index.schema.json",
     "schemas/literature-access.schema.json",
     "schemas/access-attempts.schema.json",
@@ -180,6 +188,7 @@
     "evals/trigger/decision-trigger-evals.json",
     "evals/trigger/risk-procurement-trigger-evals.json",
     "evals/trigger/experience-event-trigger-evals.json",
+    "evals/trigger/adapter-trigger-evals.json",
     "evals/output/mvp-evals.json"
   ]
 }

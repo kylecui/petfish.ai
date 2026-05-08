@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (46)
+## Skills (50)
 
 | Skill | Purpose |
 |---|---|
@@ -52,6 +52,10 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `schedule-itinerary-planner` | Design schedules and itineraries with contingencies |
 | `logistics-risk-planner` | Plan logistics and identify risks with contingency plans |
 | `event-runbook-writer` | Generate executable event runbook with checklists |
+| `travel-adapter` | Travel domain adapter — visa, weather, transport, insurance checklists |
+| `conference-adapter` | Conference domain adapter — CFP, speakers, AV, registration checklists |
+| `training-event-adapter` | Training domain adapter — learning goals, labs, certification checklists |
+| `content-selection-adapter` | Content selection adapter — preferences, ratings, availability checklists |
 
 ## Research Types
 
@@ -62,6 +66,7 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 - **Decision**: Decision brief, criteria building, option comparison, recommendation
 - **Risk-Procurement**: Risk brief, vendor diligence, security review, compliance, TCO, adoption recommendation
 - **Experience-Event**: Experience brief, venue research, schedule planning, logistics, event runbook
+- **Adapters**: Lightweight domain adapters (travel, conference, training-event, content-selection) that enhance main research chains with domain-specific fields and checklists
 
 ## Install
 

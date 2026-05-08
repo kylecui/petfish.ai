@@ -1,0 +1,84 @@
+{
+  "evals": [
+    {
+      "id": "travel-adapter-trigger-01",
+      "skill": "travel-adapter",
+      "type": "trigger",
+      "should_trigger": [
+        "旅行规划",
+        "trip planning",
+        "旅游攻略",
+        "travel itinerary",
+        "去哪玩",
+        "vacation planning",
+        "帮我安排一次旅行"
+      ],
+      "should_not_trigger": [
+        "会议筹备",
+        "培训安排",
+        "竞品分析",
+        "学习计划"
+      ]
+    },
+    {
+      "id": "conference-adapter-trigger-01",
+      "skill": "conference-adapter",
+      "type": "trigger",
+      "should_trigger": [
+        "会议筹备",
+        "conference planning",
+        "研讨会组织",
+        "workshop planning",
+        "CFP",
+        "speaker management",
+        "帮我办一场会议"
+      ],
+      "should_not_trigger": [
+        "旅行规划",
+        "培训安排",
+        "内容推荐",
+        "用户研究"
+      ]
+    },
+    {
+      "id": "training-event-adapter-trigger-01",
+      "skill": "training-event-adapter",
+      "type": "trigger",
+      "should_trigger": [
+        "培训安排",
+        "training workshop",
+        "课程交付",
+        "workshop delivery",
+        "实训营",
+        "lab training",
+        "帮我组织一次培训活动"
+      ],
+      "should_not_trigger": [
+        "旅行规划",
+        "会议筹备",
+        "内容推荐",
+        "竞品分析"
+      ]
+    },
+    {
+      "id": "content-selection-adapter-trigger-01",
+      "skill": "content-selection-adapter",
+      "type": "trigger",
+      "should_trigger": [
+        "内容推荐",
+        "content selection",
+        "看什么电影",
+        "what to watch",
+        "书单选择",
+        "game recommendation",
+        "帮我选一个展览"
+      ],
+      "should_not_trigger": [
+        "旅行规划",
+        "会议筹备",
+        "培训安排",
+        "供应商评估"
+      ]
+    }
+  ]
+}

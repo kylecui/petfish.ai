@@ -265,6 +265,9 @@ class TestTriggerEvals:
         )
         assert experience_event.is_file(), "experience-event-trigger-evals.json missing"
 
+        adapter = PACK_ROOT / "evals" / "trigger" / "adapter-trigger-evals.json"
+        assert adapter.is_file(), "adapter-trigger-evals.json missing"
+
         router = SKILLS_DIR / "research-router" / "evals" / "trigger-evals.json"
         assert router.is_file(), "research-router trigger-evals.json missing"
 

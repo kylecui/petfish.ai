@@ -282,6 +282,7 @@ petfish.ai/
 ## Version History
 ### v0.10 — Research Pack Expansion: 7 Domains
 
+- **v0.10.5**: Adapter skills — 4 lightweight domain adapters (travel-adapter, conference-adapter, training-event-adapter, content-selection-adapter) that enhance main research chains with domain-specific fields and checklists. Trigger evals, smoke test coverage. Pack now has 50 skills.
 - **v0.10.4**: Risk-procurement and experience-event research domains — 11 new skills (risk-research-brief, vendor-source-diligence, security-risk-review, compliance-check, tco-operational-risk, adoption-recommendation, experience-brief-framer, venue-destination-research, schedule-itinerary-planner, logistics-risk-planner, event-runbook-writer), trigger evals, smoke test coverage. Pack now has 46 skills.
 - **v0.10.3**: Learning and decision research domains — 7 new skills (learning-goal-framer, learning-resource-discovery, learning-path-designer, decision-brief-framer, decision-criteria-builder, option-comparison-matrix, decision-recommendation), trigger evals, smoke test coverage. Pack now has 35 skills.
 - **v0.10.2**: Planning research domain — 6 new skills (environment-scanner, stakeholder-analyst, scenario-planner, policy-researcher, technology-assessor, roadmap-developer), trigger evals, smoke test coverage. Pack now has 28 skills.
