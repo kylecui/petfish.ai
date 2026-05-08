@@ -16,6 +16,7 @@
   "contents": [
     "AGENTS.md",
     "opencode.example.json",
+    ".claude/hooks/",
     ".opencode/skills/fish-trail/SKILL.md",
     ".opencode/skills/fish-trail/references/topic-model.md",
     ".opencode/skills/fish-trail/references/contamination-scoring.md",

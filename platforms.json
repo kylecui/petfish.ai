@@ -99,6 +99,9 @@
         "target": ".cursor/rules/petfish-agents.mdc",
         "method": "wrap_as_mdc"
       },
+      "condense": {
+        "max_tokens": 8000
+      },
       "notes": "Supports SKILL.md natively. Instructions translated to .mdc format in rules/ dir. No global skill path — project-level only."
     },
     "copilot": {
@@ -152,6 +155,9 @@
         "source": "AGENTS.md",
         "target": ".windsurfrules",
         "method": "rename_with_header"
+      },
+      "condense": {
+        "max_tokens": 6000
       },
       "notes": "Supports SKILL.md under .windsurf/skills/. Instructions file is .windsurfrules at project root."
     },

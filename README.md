@@ -230,9 +230,8 @@ uv run .opencode/skills/quality-gate/scripts/run_gate.py --path .opencode/skills
 ---
 
 ## Prerequisites
-- `uv` for Python-based skills
-- `python3` for platform config parsing and instructions translation
-- The installer warns when `uv` is missing
+- **`uv`** — required for all Python-based skills, MCP servers, and scripts with external dependencies. PEtFiSh uses uv as its sole Python environment manager. MCP servers are launched via `uv run`, standalone scripts use PEP 723 inline metadata or pack-level `pyproject.toml`. No `pip install` is used anywhere. The installer warns when `uv` is missing.
+- `python3` — used by installers for stdlib-only JSON parsing and instructions translation (no virtual environment needed)
 
 ---
 

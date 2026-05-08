@@ -146,6 +146,13 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 
 ---
 
+## 环境要求
+
+- **`uv`** — 所有带外部依赖的Python skill、MCP server和脚本都通过uv管理虚拟环境。MCP server用 `uv run` 启动，独立脚本用PEP 723 inline metadata或pack级 `pyproject.toml` 声明依赖。项目中不使用 `pip install`。安装器在uv未安装时会发出警告。
+- `python3` — 安装器中仅用于stdlib级JSON解析和指令文件翻译（无需虚拟环境）
+
+---
+
 ## 更多文档
 
 - [安装指南](petfish-install-prompt.md)
