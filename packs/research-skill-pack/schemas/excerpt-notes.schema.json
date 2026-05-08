@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Excerpt Notes Entry",
+  "type": "object",
+  "required": ["note_id", "source_id", "original_text", "location"],
+  "properties": {
+    "note_id": {"type": "string", "pattern": "^NOTE-\\d{6}$"},
+    "source_id": {"type": "string", "pattern": "^SRC-\\d{6}$"},
+    "source_title": {"type": "string"},
+    "location": {
+      "type": "object",
+      "minProperties": 1
+    },
+    "excerpt_type": {"type": "string", "enum": ["direct_quote", "paraphrase", "data_point", "definition", "method_description", "finding"]},
+    "original_text": {"type": "string", "minLength": 1},
+    "paraphrase": {"type": "string"},
+    "why_it_matters": {"type": "string"},
+    "related_questions": {"type": "array", "items": {"type": "string"}},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "linked_evidence_ids": {"type": "array", "items": {"type": "string"}},
+    "created_from": {"type": "string"}
+  }
+}

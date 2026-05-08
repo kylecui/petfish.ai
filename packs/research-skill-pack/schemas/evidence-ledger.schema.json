@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Evidence Ledger Entry",
+  "type": "object",
+  "required": ["evidence_id", "source_id", "claim", "evidence_type", "confidence"],
+  "properties": {
+    "evidence_id": {"type": "string", "pattern": "^EV-\\d{6}$"},
+    "source_id": {"type": "string", "pattern": "^SRC-\\d{6}$"},
+    "claim": {"type": "string", "minLength": 1},
+    "evidence_type": {"type": "string", "enum": ["EXTRACTED", "INFERRED", "AMBIGUOUS", "PROPOSED"]},
+    "quote_or_observation": {"type": "string"},
+    "location": {"type": "string"},
+    "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+    "supports": {"type": "array", "items": {"type": "string"}},
+    "contradicts": {"type": "array", "items": {"type": "string"}},
+    "used_in": {"type": "array", "items": {"type": "string"}},
+    "notes": {"type": "string"}
+  }
+}

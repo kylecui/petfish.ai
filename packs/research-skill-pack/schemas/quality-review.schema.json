@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Quality Review",
+  "type": "object",
+  "required": ["review_id", "report_path", "reviewer", "review_date", "overall_grade", "dimensions"],
+  "properties": {
+    "review_id": {"type": "string", "pattern": "^QR-\\d{6}$"},
+    "report_path": {"type": "string"},
+    "reviewer": {"type": "string"},
+    "review_date": {"type": "string", "format": "date"},
+    "overall_grade": {"type": "string", "enum": ["A", "B", "C", "D", "F"]},
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "score", "notes"],
+        "properties": {
+          "dimension": {"type": "string"},
+          "score": {"type": "string", "enum": ["pass", "partial", "fail"]},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "blocking_issues": {"type": "array", "items": {"type": "string"}},
+    "recommendations": {"type": "array", "items": {"type": "string"}}
+  }
+}

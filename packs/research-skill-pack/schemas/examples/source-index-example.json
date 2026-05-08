@@ -1,0 +1,13 @@
+{
+  "source_id": "SRC-000001",
+  "title": "Agent Skills Specification",
+  "source_type": "official-doc",
+  "url_or_path": "https://agentskills.io/specification",
+  "author_or_org": "Agent Skills",
+  "published_date": null,
+  "accessed_date": "2026-05-08",
+  "relevance": "high",
+  "credibility": "high",
+  "freshness": "current",
+  "notes": "Used for SKILL.md structure and progressive disclosure rules."
+}

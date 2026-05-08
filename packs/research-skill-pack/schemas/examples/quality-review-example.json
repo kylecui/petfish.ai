@@ -1,0 +1,63 @@
+{
+  "review_id": "QR-000001",
+  "report_path": "06_outputs/report.md",
+  "reviewer": "research-quality-reviewer",
+  "review_date": "2026-05-08",
+  "overall_grade": "B",
+  "dimensions": [
+    {
+      "dimension": "question-alignment",
+      "score": "pass",
+      "notes": "Report addresses all three research questions from the brief."
+    },
+    {
+      "dimension": "evidence-completeness",
+      "score": "partial",
+      "notes": "2 of 5 key claims lack evidence_id references."
+    },
+    {
+      "dimension": "citation-coverage",
+      "score": "partial",
+      "notes": "Executive summary makes 3 claims without inline citations."
+    },
+    {
+      "dimension": "logic-chain",
+      "score": "pass",
+      "notes": "No logical jumps detected between findings and recommendations."
+    },
+    {
+      "dimension": "counter-evidence",
+      "score": "fail",
+      "notes": "No contradicting evidence discussed; only supporting sources cited."
+    },
+    {
+      "dimension": "method-fit",
+      "score": "pass",
+      "notes": "Thematic synthesis appropriate for the research type."
+    },
+    {
+      "dimension": "actionability",
+      "score": "pass",
+      "notes": "Recommendations include priority and conditions."
+    },
+    {
+      "dimension": "expression-quality",
+      "score": "partial",
+      "notes": "Section 4 uses 'increasingly important' without source support."
+    },
+    {
+      "dimension": "risk-disclosure",
+      "score": "pass",
+      "notes": "Limitations section covers data freshness and sample size."
+    }
+  ],
+  "blocking_issues": [
+    "2 key claims missing evidence references",
+    "No contradicting evidence discussed"
+  ],
+  "recommendations": [
+    "Add evidence_id to claims CL-000003 and CL-000005",
+    "Add a contradiction analysis subsection",
+    "Replace 'increasingly important' with sourced trend data"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "note_id": "NOTE-000001",
+  "source_id": "SRC-000012",
+  "source_title": "Reconfigurable Switch: A Pure XDP Approach, Design and Implementation",
+  "location": {
+    "page": 2,
+    "section": "Introduction",
+    "paragraph": 3
+  },
+  "excerpt_type": "direct_quote",
+  "original_text": "Switches which connect the whole network can be the great place as the policy executing point...",
+  "paraphrase": "The author argues that switches, connecting the entire network, are ideal policy enforcement points.",
+  "why_it_matters": "Supports rSwitch as a network-side PEP research motivation.",
+  "related_questions": [
+    "What advantages do switches have over firewalls and EDR as policy enforcement points?",
+    "How does a network-side PEP handle L2-L7 access control?"
+  ],
+  "tags": [
+    "rswitch",
+    "policy-enforcement-point",
+    "lateral-movement",
+    "research-motivation"
+  ],
+  "confidence": "high",
+  "linked_evidence_ids": [],
+  "created_from": "manual-or-agent-reading"
+}

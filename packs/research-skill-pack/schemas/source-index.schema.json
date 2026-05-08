@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Source Index Entry",
+  "type": "object",
+  "required": ["source_id", "title", "source_type", "accessed_date"],
+  "properties": {
+    "source_id": {"type": "string", "pattern": "^SRC-\\d{6}$"},
+    "title": {"type": "string", "minLength": 1},
+    "source_type": {"type": "string", "enum": ["official-doc", "paper", "report", "website", "code-repo", "interview", "internal-doc", "dataset"]},
+    "url_or_path": {"type": ["string", "null"]},
+    "author_or_org": {"type": ["string", "null"]},
+    "published_date": {"type": ["string", "null"]},
+    "accessed_date": {"type": "string"},
+    "relevance": {"type": "string", "enum": ["high", "medium", "low"]},
+    "credibility": {"type": "string", "enum": ["high", "medium", "low", "unknown"]},
+    "freshness": {"type": "string", "enum": ["current", "possibly-stale", "outdated", "unknown"]},
+    "notes": {"type": "string"}
+  }
+}

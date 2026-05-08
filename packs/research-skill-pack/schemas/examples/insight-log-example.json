@@ -1,0 +1,23 @@
+{
+  "insight_id": "INS-000001",
+  "title": "rSwitch can be framed as a network-side Reference Monitor",
+  "insight_type": "analogy",
+  "content": "The rSwitch orchestrable XDP pipeline can be understood as a Reference Monitor deployed on the network forwarding path: all traffic must pass through, policy cannot be bypassed, and the enforcement point is verifiable.",
+  "trigger": {
+    "source_ids": ["SRC-000012", "SRC-000019"],
+    "note_ids": ["NOTE-000001", "NOTE-000007"],
+    "context": "Generated while reading access control and SDP/PEP related materials"
+  },
+  "potential_value": "Strengthens theoretical framing in the paper; connects Zero Trust, PDP/PEP, and the classic Reference Monitor security concept.",
+  "needs_validation": [
+    "Can all three classic Reference Monitor conditions be mapped to rSwitch?",
+    "Does the XDP pipeline truly satisfy the non-bypassable requirement?",
+    "Should theoretical Reference Monitor be distinguished from engineering PEP?"
+  ],
+  "possible_outputs": [
+    "paper-introduction",
+    "related-work",
+    "architecture-section"
+  ],
+  "status": "open"
+}

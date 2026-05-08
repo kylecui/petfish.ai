@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Access Attempts Entry",
+  "type": "object",
+  "required": ["work_id", "title", "attempts"],
+  "properties": {
+    "work_id": {"type": "string", "pattern": "^WORK-\\d{6}$"},
+    "title": {"type": "string", "minLength": 1},
+    "doi": {"type": ["string", "null"]},
+    "attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_type", "url_or_path", "version_type", "result", "selected", "reason"],
+        "properties": {
+          "source_type": {"type": "string"},
+          "url_or_path": {"type": "string"},
+          "version_type": {"type": "string", "enum": ["published-version", "accepted-manuscript", "preprint", "tech-report", "author-copy"]},
+          "result": {"type": "string", "enum": ["found", "not_found", "not_used", "error"]},
+          "selected": {"type": "boolean"},
+          "reason": {"type": "string"}
+        }
+      }
+    }
+  }
+}

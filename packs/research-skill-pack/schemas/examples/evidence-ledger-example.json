@@ -1,0 +1,13 @@
+{
+  "evidence_id": "EV-000001",
+  "source_id": "SRC-000001",
+  "claim": "A skill is a directory with SKILL.md plus optional scripts, references, and assets.",
+  "evidence_type": "EXTRACTED",
+  "quote_or_observation": "A skill is a directory containing, at minimum, a SKILL.md file...",
+  "location": "Specification / Directory structure",
+  "confidence": "high",
+  "supports": ["CL-000001"],
+  "contradicts": [],
+  "used_in": ["research-skill-pack-plan"],
+  "notes": ""
+}

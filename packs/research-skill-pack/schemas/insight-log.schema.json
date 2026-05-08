@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Insight Log Entry",
+  "type": "object",
+  "required": ["insight_id", "title", "insight_type", "content", "trigger", "potential_value", "needs_validation", "status"],
+  "properties": {
+    "insight_id": {"type": "string", "pattern": "^INS-\\d{6}$"},
+    "title": {"type": "string", "minLength": 1},
+    "insight_type": {"type": "string", "enum": ["analogy", "hypothesis", "research-question", "method-idea", "experiment-idea", "product-opportunity", "planning-judgment", "contradiction", "terminology", "writing-angle"]},
+    "content": {"type": "string", "minLength": 1},
+    "trigger": {
+      "type": "object",
+      "properties": {
+        "source_ids": {"type": "array", "items": {"type": "string"}},
+        "note_ids": {"type": "array", "items": {"type": "string"}},
+        "context": {"type": "string"}
+      }
+    },
+    "potential_value": {"type": "string", "minLength": 1},
+    "needs_validation": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "possible_outputs": {"type": "array", "items": {"type": "string"}},
+    "status": {"type": "string", "enum": ["open", "validated", "rejected", "merged"]}
+  }
+}

@@ -1,0 +1,8 @@
+[project]
+name = "research-skill-pack"
+version = "0.1.0"
+description = "Research workbench skill pack for PEtFiSh"
+requires-python = ">=3.11"
+dependencies = [
+    "jsonschema>=4.20.0",
+]

@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Literature Access Configuration",
+  "type": "object",
+  "required": ["version", "free_first", "providers"],
+  "properties": {
+    "version": {"type": "string"},
+    "free_first": {"type": "boolean"},
+    "providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["provider_id", "provider_type", "access_method", "secret_ref", "store_raw_secret"],
+        "properties": {
+          "provider_id": {"type": "string"},
+          "provider_type": {"type": "string", "enum": ["institutional-library", "publisher-account", "company-subscription", "personal-purchase", "manual-upload"]},
+          "access_method": {"type": "string", "enum": ["browser-login-or-proxy", "env-secret", "os-keychain", "manual-upload"]},
+          "secret_ref": {"type": "string"},
+          "allowed_use": {"type": "string"},
+          "store_raw_secret": {"type": "boolean", "const": false}
+        }
+      }
+    }
+  }
+}

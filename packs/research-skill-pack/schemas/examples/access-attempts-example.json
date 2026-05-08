@@ -1,0 +1,23 @@
+{
+  "work_id": "WORK-000001",
+  "title": "Example Paper Title",
+  "doi": "10.xxxx/example",
+  "attempts": [
+    {
+      "source_type": "open-access",
+      "url_or_path": "https://example.edu/paper.pdf",
+      "version_type": "accepted-manuscript",
+      "result": "found",
+      "selected": true,
+      "reason": "legal free full text available"
+    },
+    {
+      "source_type": "publisher",
+      "url_or_path": "https://publisher.example/paper",
+      "version_type": "published-version",
+      "result": "not_used",
+      "selected": false,
+      "reason": "free legal version already available"
+    }
+  ]
+}
