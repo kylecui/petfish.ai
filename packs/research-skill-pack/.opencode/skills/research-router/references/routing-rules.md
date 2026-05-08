@@ -2,18 +2,20 @@
 
 ## Classification Matrix
 
-| Signal | Scientific | Product | Planning |
-|---|---|---|---|
-| "论文/paper/literature" | ✓ | | |
-| "竞品/competitor/market" | | ✓ | |
-| "规划/strategy/roadmap" | | | ✓ |
-| "用户/user/interview" | | ✓ | |
-| "环境扫描/PESTLE/stakeholder" | | | ✓ |
-| "情景规划/scenario/policy" | | | ✓ |
-| "技术评估/TRL/roadmap" | | | ✓ |
-| "实验/experiment/hypothesis" | ✓ | | |
-| "产品机会/MVP/JTBD" | | ✓ | |
-| "文献综述/gap分析" | ✓ | | |
+| Signal | Scientific | Product | Planning | Learning | Decision |
+|---|---|---|---|---|---|
+| "论文/paper/literature" | ✓ | | | | |
+| "竞品/competitor/market" | | ✓ | | | |
+| "规划/strategy/roadmap" | | | ✓ | | |
+| "用户/user/interview" | | ✓ | | | |
+| "环境扫描/PESTLE/stakeholder" | | | ✓ | | |
+| "情景规划/scenario/policy" | | | ✓ | | |
+| "技术评估/TRL/roadmap" | | | ✓ | | |
+| "实验/experiment/hypothesis" | ✓ | | | | |
+| "产品机会/MVP/JTBD" | | ✓ | | | |
+| "文献综述/gap分析" | ✓ | | | | |
+| "学习/learning/goal/path" | | | | ✓ | |
+| "决策/decision/criteria/option" | | | | | ✓ |
 
 ## Complexity Assessment
 
@@ -36,6 +38,12 @@ research-brief-framer → research-source-discovery → research-note-capture �
 
 ### Planning (Full)
 research-brief-framer → planning-environment-scanner → planning-stakeholder-analyst → planning-scenario-planner → planning-policy-researcher → planning-technology-assessor → planning-roadmap-developer → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
+
+### Learning (Full)
+learning-goal-framer → learning-resource-discovery → learning-path-designer → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
+
+### Decision (Full)
+decision-brief-framer → decision-criteria-builder → option-comparison-matrix → decision-recommendation → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
 
 ### Light Route (any type)
 research-brief-framer → research-source-discovery → research-evidence-ledger → research-report-writer

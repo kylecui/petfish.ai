@@ -249,6 +249,12 @@ class TestTriggerEvals:
         planning = PACK_ROOT / "evals" / "trigger" / "planning-trigger-evals.json"
         assert planning.is_file(), "planning-trigger-evals.json missing"
 
+        learning = PACK_ROOT / "evals" / "trigger" / "learning-trigger-evals.json"
+        assert learning.is_file(), "learning-trigger-evals.json missing"
+
+        decision = PACK_ROOT / "evals" / "trigger" / "decision-trigger-evals.json"
+        assert decision.is_file(), "decision-trigger-evals.json missing"
+
         router = SKILLS_DIR / "research-router" / "evals" / "trigger-evals.json"
         assert router.is_file(), "research-router trigger-evals.json missing"
 

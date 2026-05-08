@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0] - 2026-05-09
+
+### Added
+- learning-goal-framer: Convert learning wishes into structured goals and assessment criteria
+- learning-resource-discovery: Find, filter, and rank learning resources by type and quality
+- learning-path-designer: Design phased learning paths with stages, objectives, and checkpoints
+- decision-brief-framer: Structure decision questions with constraints, preferences, and deal-breakers
+- decision-criteria-builder: Build weighted decision criteria with must-have and nice-to-have tags
+- option-comparison-matrix: Compare options against criteria with scoring and evidence links
+- decision-recommendation: Generate final recommendation with conditions, risks, and validation steps
+- Trigger evals for all 7 learning and decision skills
+- Smoke test coverage for learning and decision skill directories
+
 ## [0.5.0] - 2026-05-09
 
 ### Added

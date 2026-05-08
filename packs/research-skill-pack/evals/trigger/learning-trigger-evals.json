@@ -1,0 +1,67 @@
+{
+  "evals": [
+    {
+      "id": "learning-goal-framer-trigger-01",
+      "skill": "learning-goal-framer",
+      "type": "trigger",
+      "should_trigger": [
+        "学习目标",
+        "learning goal",
+        "我想学",
+        "I want to learn",
+        "学习计划",
+        "learning plan",
+        "如何入门",
+        "帮我制定一个学习计划"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "写论文",
+        "部署服务",
+        "决策简报"
+      ]
+    },
+    {
+      "id": "learning-resource-discovery-trigger-01",
+      "skill": "learning-resource-discovery",
+      "type": "trigger",
+      "should_trigger": [
+        "学习资源",
+        "learning resources",
+        "学习材料",
+        "有什么好教程",
+        "推荐书籍",
+        "resource list",
+        "在线课程推荐",
+        "帮我找一些学习资料"
+      ],
+      "should_not_trigger": [
+        "写报告",
+        "竞品分析",
+        "实验设计",
+        "决策矩阵"
+      ]
+    },
+    {
+      "id": "learning-path-designer-trigger-01",
+      "skill": "learning-path-designer",
+      "type": "trigger",
+      "should_trigger": [
+        "学习路径",
+        "learning path",
+        "学习路线",
+        "阶段规划",
+        "learning roadmap",
+        "学习里程碑",
+        "phase plan",
+        "帮我设计学习路线图"
+      ],
+      "should_not_trigger": [
+        "战略路线图",
+        "项目部署",
+        "产品路线图",
+        "环境扫描"
+      ]
+    }
+  ]
+}

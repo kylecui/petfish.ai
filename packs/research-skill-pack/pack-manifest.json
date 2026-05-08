@@ -1,10 +1,10 @@
 {
   "name": "research-skill-pack",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "legacy_names": [],
-  "description": "Research workbench skill pack covering scientific, product, and planning research workflows with traceable evidence chains.",
+  "description": "Research workbench skill pack covering scientific, product, planning, learning, and decision research workflows with traceable evidence chains.",
   "compatibility": "opencode",
-  "skill_count": 28,
+  "skill_count": 35,
   "command_count": 0,
   "agent_count": 0,
   "skills": [
@@ -35,7 +35,14 @@
     "planning-scenario-planner",
     "planning-policy-researcher",
     "planning-technology-assessor",
-    "planning-roadmap-developer"
+    "planning-roadmap-developer",
+    "learning-goal-framer",
+    "learning-resource-discovery",
+    "learning-path-designer",
+    "decision-brief-framer",
+    "decision-criteria-builder",
+    "option-comparison-matrix",
+    "decision-recommendation"
   ],
   "contents": [
     "README.md",
@@ -117,6 +124,13 @@
     ".opencode/skills/planning-policy-researcher/SKILL.md",
     ".opencode/skills/planning-technology-assessor/SKILL.md",
     ".opencode/skills/planning-roadmap-developer/SKILL.md",
+    ".opencode/skills/learning-goal-framer/SKILL.md",
+    ".opencode/skills/learning-resource-discovery/SKILL.md",
+    ".opencode/skills/learning-path-designer/SKILL.md",
+    ".opencode/skills/decision-brief-framer/SKILL.md",
+    ".opencode/skills/decision-criteria-builder/SKILL.md",
+    ".opencode/skills/option-comparison-matrix/SKILL.md",
+    ".opencode/skills/decision-recommendation/SKILL.md",
     "schemas/source-index.schema.json",
     "schemas/literature-access.schema.json",
     "schemas/access-attempts.schema.json",
@@ -140,6 +154,8 @@
     "evals/trigger/scientific-trigger-evals.json",
     "evals/trigger/product-trigger-evals.json",
     "evals/trigger/planning-trigger-evals.json",
+    "evals/trigger/learning-trigger-evals.json",
+    "evals/trigger/decision-trigger-evals.json",
     "evals/output/mvp-evals.json"
   ]
 }

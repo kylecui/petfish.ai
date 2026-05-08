@@ -1,0 +1,88 @@
+{
+  "evals": [
+    {
+      "id": "decision-brief-framer-trigger-01",
+      "skill": "decision-brief-framer",
+      "type": "trigger",
+      "should_trigger": [
+        "决策简报",
+        "decision brief",
+        "怎么选",
+        "which option",
+        "go/no-go",
+        "取舍",
+        "拍板",
+        "帮我梳理一下这个决策问题"
+      ],
+      "should_not_trigger": [
+        "学习计划",
+        "写论文",
+        "竞品分析",
+        "环境扫描"
+      ]
+    },
+    {
+      "id": "decision-criteria-builder-trigger-01",
+      "skill": "decision-criteria-builder",
+      "type": "trigger",
+      "should_trigger": [
+        "决策标准",
+        "decision criteria",
+        "评判维度",
+        "权重设计",
+        "must-have",
+        "deal-breaker",
+        "筛选条件",
+        "帮我列出选择标准"
+      ],
+      "should_not_trigger": [
+        "学习目标",
+        "实验设计",
+        "用户画像",
+        "写报告"
+      ]
+    },
+    {
+      "id": "option-comparison-matrix-trigger-01",
+      "skill": "option-comparison-matrix",
+      "type": "trigger",
+      "should_trigger": [
+        "方案对比",
+        "option comparison",
+        "对比矩阵",
+        "comparison matrix",
+        "打分表",
+        "逐项对比",
+        "scorecard",
+        "帮我做一个方案对比表"
+      ],
+      "should_not_trigger": [
+        "竞品矩阵",
+        "文献综述",
+        "学习资源",
+        "政策研究"
+      ]
+    },
+    {
+      "id": "decision-recommendation-trigger-01",
+      "skill": "decision-recommendation",
+      "type": "trigger",
+      "should_trigger": [
+        "决策建议",
+        "recommendation",
+        "最终推荐",
+        "final decision",
+        "建议方案",
+        "推荐结论",
+        "决策日志",
+        "给我一个最终推荐"
+      ],
+      "should_not_trigger": [
+        "学习路径",
+        "论文结论",
+        "产品决策简报",
+        "环境扫描"
+      ]
+    }
+  ]
+}

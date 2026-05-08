@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (28)
+## Skills (35)
 
 | Skill | Purpose |
 |---|---|
@@ -34,12 +34,21 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `planning-policy-researcher` | Regulatory landscape, policy trends, compliance impact |
 | `planning-technology-assessor` | Technology maturity (TRL), adoption readiness, strategic fit |
 | `planning-roadmap-developer` | Strategic roadmap with milestones, dependencies, decision gates |
+| `learning-goal-framer` | Convert learning wishes into structured goals and briefs |
+| `learning-resource-discovery` | Find, filter, and rank learning resources by type |
+| `learning-path-designer` | Design phased learning paths with checkpoints |
+| `decision-brief-framer` | Structure decision questions with constraints and preferences |
+| `decision-criteria-builder` | Build weighted criteria with must-have and deal-breaker tags |
+| `option-comparison-matrix` | Compare options against criteria with scoring |
+| `decision-recommendation` | Generate final recommendation with conditions and risks |
 
 ## Research Types
 
 - **Scientific**: Literature review, gap analysis, experiment design, paper writing
 - **Product**: User research, competitor analysis, opportunity mapping, MVP validation
 - **Planning**: Environment scanning, stakeholder analysis, scenario planning, roadmap
+- **Learning**: Goal framing, resource discovery, learning path design
+- **Decision**: Decision brief, criteria building, option comparison, recommendation
 
 ## Install
 
