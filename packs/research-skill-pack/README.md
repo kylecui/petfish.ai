@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (10)
+## Skills (17)
 
 | Skill | Purpose |
 |---|---|
@@ -16,6 +16,13 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `research-synthesis` | Aggregate evidence into findings and recommendations |
 | `research-report-writer` | Write evidence-linked reports |
 | `research-quality-reviewer` | Audit reports for evidence, logic, and AI slop |
+| `research-citation-auditor` | Audit citation coverage and detect unsupported claims |
+| `scientific-literature-review` | Literature search, screening, matrix, and systematic review |
+| `scientific-gap-finder` | Identify verifiable research gaps and contribution directions |
+| `scientific-methodology-designer` | Transform ideas into verifiable method designs |
+| `scientific-experiment-planner` | Experiment design with baselines, ablation, and metrics |
+| `scientific-paper-writer` | Paper skeleton and draft from evidence and analysis |
+| `scientific-review-rebuttal` | Pre-submission self-review and reviewer rebuttal |
 
 ## Research Types
 

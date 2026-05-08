@@ -282,6 +282,7 @@ petfish.ai/
 ## Version History
 ### v0.9 — Research Skill Pack
 
+- **v0.9.4**: Research pack scientific domain — 7 new skills (citation-auditor, literature-review, gap-finder, methodology-designer, experiment-planner, paper-writer, review-rebuttal), trigger evals, smoke test coverage. Pack now has 17 skills.
 - **v0.9.3**: Research pack installable — pack-manifest, installer registration, companion catalog integration, README and CHANGELOG updates.
 - **v0.9.2**: Research pack QA infrastructure — seeded fixtures, E2E smoke tests (15 pytest), trigger-eval harness, local smoke runner, CI gates. Closes #74, #75, #76.
 - **v0.9.1**: Research alias added to all 4 installers and companion catalog.

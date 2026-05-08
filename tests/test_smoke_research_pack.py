@@ -61,6 +61,15 @@ class TestFixtureIntegrity:
     def test_fixtures_exist(self):
         assert FIXTURES_DIR.is_dir(), "Seeded fixtures directory missing"
 
+    def test_all_skills_have_skill_md(self):
+        """Every skill listed in pack-manifest.json has a SKILL.md."""
+        manifest = json.loads(
+            (PACK_ROOT / "pack-manifest.json").read_text(encoding="utf-8")
+        )
+        for skill_name in manifest["skills"]:
+            skill_md = SKILLS_DIR / skill_name / "SKILL.md"
+            assert skill_md.is_file(), f"SKILL.md missing for {skill_name}"
+
     def test_brief_exists(self):
         assert (FIXTURES_DIR / "00_brief" / "research-brief.md").is_file()
 
@@ -230,6 +239,9 @@ class TestTriggerEvals:
     def test_eval_files_exist(self):
         core = PACK_ROOT / "evals" / "trigger" / "core-trigger-evals.json"
         assert core.is_file(), "core-trigger-evals.json missing"
+
+        scientific = PACK_ROOT / "evals" / "trigger" / "scientific-trigger-evals.json"
+        assert scientific.is_file(), "scientific-trigger-evals.json missing"
 
         router = SKILLS_DIR / "research-router" / "evals" / "trigger-evals.json"
         assert router.is_file(), "research-router trigger-evals.json missing"

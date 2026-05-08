@@ -1,0 +1,155 @@
+{
+  "evals": [
+    {
+      "id": "research-citation-auditor-trigger-01",
+      "skill": "research-citation-auditor",
+      "type": "trigger",
+      "should_trigger": [
+        "引用审计",
+        "citation audit",
+        "检查引用",
+        "check citations",
+        "这篇报告有没有无证据断言",
+        "unsupported claims",
+        "引用覆盖率",
+        "source verification",
+        "check if all claims have evidence"
+      ],
+      "should_not_trigger": [
+        "帮我写论文",
+        "find papers about XDP",
+        "做个文献综述",
+        "实验设计"
+      ]
+    },
+    {
+      "id": "scientific-literature-review-trigger-01",
+      "skill": "scientific-literature-review",
+      "type": "trigger",
+      "should_trigger": [
+        "文献综述",
+        "literature review",
+        "研究现状",
+        "找相关论文",
+        "比较这些方法",
+        "systematic review",
+        "帮我做个系统回顾",
+        "survey the related work on transformers"
+      ],
+      "should_not_trigger": [
+        "写论文",
+        "审稿自查",
+        "实验设计",
+        "找gap"
+      ]
+    },
+    {
+      "id": "scientific-gap-finder-trigger-01",
+      "skill": "scientific-gap-finder",
+      "type": "trigger",
+      "should_trigger": [
+        "找gap",
+        "research gap",
+        "研究空白",
+        "贡献点",
+        "novelty",
+        "identify gaps",
+        "这个领域还有什么没被解决的",
+        "what hasn't been explored in this area"
+      ],
+      "should_not_trigger": [
+        "文献综述",
+        "写论文",
+        "实验设计",
+        "方法设计"
+      ]
+    },
+    {
+      "id": "scientific-methodology-designer-trigger-01",
+      "skill": "scientific-methodology-designer",
+      "type": "trigger",
+      "should_trigger": [
+        "方法设计",
+        "methodology",
+        "research design",
+        "如何验证",
+        "实验方法",
+        "validity threats",
+        "帮我设计验证路径",
+        "how to validate this hypothesis"
+      ],
+      "should_not_trigger": [
+        "写论文",
+        "文献综述",
+        "引用审计",
+        "审稿自查"
+      ]
+    },
+    {
+      "id": "scientific-experiment-planner-trigger-01",
+      "skill": "scientific-experiment-planner",
+      "type": "trigger",
+      "should_trigger": [
+        "实验设计",
+        "experiment plan",
+        "实验方案",
+        "baseline",
+        "ablation",
+        "评价指标",
+        "metrics design",
+        "how to evaluate",
+        "帮我设计对比实验"
+      ],
+      "should_not_trigger": [
+        "文献综述",
+        "写论文",
+        "找gap",
+        "引用审计"
+      ]
+    },
+    {
+      "id": "scientific-paper-writer-trigger-01",
+      "skill": "scientific-paper-writer",
+      "type": "trigger",
+      "should_trigger": [
+        "写论文",
+        "paper writing",
+        "论文草稿",
+        "paper draft",
+        "contribution framing",
+        "related work",
+        "论文骨架",
+        "paper outline",
+        "帮我写introduction"
+      ],
+      "should_not_trigger": [
+        "文献综述",
+        "实验设计",
+        "审稿自查",
+        "引用审计"
+      ]
+    },
+    {
+      "id": "scientific-review-rebuttal-trigger-01",
+      "skill": "scientific-review-rebuttal",
+      "type": "trigger",
+      "should_trigger": [
+        "审稿自查",
+        "self-review",
+        "reviewer comments",
+        "rebuttal",
+        "审稿意见",
+        "回复审稿人",
+        "pre-submission check",
+        "paper review",
+        "帮我回复R2的意见"
+      ],
+      "should_not_trigger": [
+        "写论文",
+        "文献综述",
+        "实验设计",
+        "引用审计"
+      ]
+    }
+  ]
+}

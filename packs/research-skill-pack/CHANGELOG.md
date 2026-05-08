@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0] - 2026-05-08
+
+### Added
+- research-citation-auditor: Citation audit and evidence mapping checker
+- scientific-literature-review: Literature search, screening, matrix, and review generation
+- scientific-gap-finder: Identify verifiable research gaps from literature matrix
+- scientific-methodology-designer: Transform research ideas into verifiable method designs
+- scientific-experiment-planner: Experiment design with hypothesis, variables, baselines, and ablation
+- scientific-paper-writer: Paper skeleton and draft generation from evidence and analysis
+- scientific-review-rebuttal: Pre-submission self-review and reviewer rebuttal support
+- Trigger evals for all 7 new skills (scientific-trigger-evals.json)
+- Smoke test coverage for new skill directories
+
 ## [0.2.0] - 2026-05-08
 
 ### Added
