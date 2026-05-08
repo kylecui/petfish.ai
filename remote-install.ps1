@@ -86,6 +86,7 @@ $Aliases = @{
     "trust"     = "trustskills-governance-pack"
     "calibrate" = "anti-sycophancy-calibration-pack"
     "context"   = "fish-trail"
+    "research"  = "research-skill-pack"
     "fish-init"      = "project-initializer-skill"
     "fish-core"      = "petfish-companion-skill"
     "fish-course"    = "opencode-course-skills-pack"
@@ -95,6 +96,7 @@ $Aliases = @{
     "fish-slides"    = "opencode-ppt-skills"
     "fish-calibrate" = "anti-sycophancy-calibration-pack"
     "fish-trail"     = "fish-trail"
+    "fish-research"  = "research-skill-pack"
 }
 
 $AllPacks = @(
@@ -120,7 +122,8 @@ $PackDisplayOrder = @(
     @{ Name = "opencode-ppt-skills"; Alias = "ppt, fish-slides" },
     @{ Name = "trustskills-governance-pack"; Alias = "trust" },
     @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate, fish-calibrate" },
-    @{ Name = "fish-trail"; Alias = "context, fish-trail" }
+    @{ Name = "fish-trail"; Alias = "context, fish-trail" },
+    @{ Name = "research-skill-pack"; Alias = "research, fish-research" }
 )
 
 # --- Platform path configuration ---

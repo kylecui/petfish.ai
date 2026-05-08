@@ -349,8 +349,6 @@ Debug模式输出格式（置于回复最前）：
 3. 涉及发布前检查时，必须经过QA与QC两步
 4. 涉及目录或大规模整理时，优先用 `course-directory-structure` 做初始化或审计
 
-
-
 ### 5.3 Commands与Agents
 
 本项目除了skills以外，还可以通过 `.opencode/commands/` 与 `.opencode/agents/` 提高执行效率。
@@ -752,6 +750,8 @@ QC负责：
 
 -先分析repo与目标主机，再选择部署方式。
 -不得在未形成最小部署计划前直接执行高风险变更。
+-不操作其它仓库的内容（即使有权限），只能通过issues反馈问题和建议。
+-网络出现问题或可能是网络问题导致的中断（SSH无法连接、apt install失败、docker pull超时），不要急于改变当前方案，至少重试两次再行调整。
 -涉及覆盖、替换、重启、删除、迁移时，必须先说明：
   -本次动作影响范围
   -回滚入口
@@ -899,7 +899,7 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 <!-- END pack: anti-sycophancy-calibration-pack -->
 
 <!-- BEGIN pack: fish-trail -->
-# Context Router — 话题治理器
+# Fish Trail — 话题治理器
 
 本pack为项目提供上下文治理能力，降低跨话题污染风险。
 
@@ -907,7 +907,7 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 
 ### 交互前检查
 
-每次收到用户消息时，调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。根据返回的风险等级执行对应行为：
+每次收到用户消息时，调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。若有可用的session_id（如OpenCode session ID），应在调用时传入`session_id`参数以启用会话追踪。根据返回的风险等级执行对应行为：
 
 | 风险等级 | 行为 |
 |---------|------|
@@ -918,6 +918,17 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 ### 交互后更新
 
 当本次交互产生实质性成果（代码变更、文档输出、决策结论等）时，调用`topic_update`更新当前topic的summary和status。
+
+### 会话管理
+
+fish-trail支持会话级追踪。会话（session）绑定外部平台的session ID或自动推断创建。
+
+- **会话绑定**：在会话开始时调用`session_bind`绑定外部session_id和当前topic
+- **事件追踪**：`topic_detect`传入`session_id`时，自动记录话题切换事件到session timeline
+- **会话查询**：通过`session_list`按topic、时间、状态过滤，回答"昨天我们做了什么？"
+- **会话恢复**：通过`session_resume`查找与特定topic关联的最近session，支持跨会话上下文继承
+
+会话数据存储在`.petfish/fish-trail/sessions/`，与topic数据独立管理。
 
 ### 话题关系类型
 
@@ -932,6 +943,19 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 - **bridge**：两个topic间建立桥接，只继承交叉部分（需用户确认）
 
 对merge、archive、bridge三种类型，检测置信度较低时必须提示用户确认，不得自动执行。
+
+### 会话边界自动管理
+
+fish-trail自动管理会话边界：
+
+- `topic_detect`检测到archive或reset信号时，自动关闭关联session
+- `session_bind`时自动清理不活跃超过24小时的session
+- 使用`session_close`显式关闭session并附带summary
+- `session_resume`返回resume context（session summary + timeline digest），支持跨会话上下文继承
+- 新增`session_timeline`查看session时间线摘要
+- 使用`session_query`按时间范围、topic、agent查询活动（回答"昨天我们做了什么？"）
+- 使用`session_agents`查看agent-topic归属关系（哪个agent处理了哪个topic）
+- 使用`topic_recommend`从topic图谱推荐关联topic
 
 ### MCP不可用时的降级行为
 

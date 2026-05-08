@@ -387,6 +387,7 @@ declare -A ALIASES=(
     [trust]="trustskills-governance-pack"
     [calibrate]="anti-sycophancy-calibration-pack"
     [context]="fish-trail"
+    [research]="research-skill-pack"
     [fish-init]="project-initializer-skill"
     [fish-core]="petfish-companion-skill"
     [fish-course]="opencode-course-skills-pack"
@@ -396,6 +397,7 @@ declare -A ALIASES=(
     [fish-slides]="opencode-ppt-skills"
     [fish-calibrate]="anti-sycophancy-calibration-pack"
     [fish-trail]="fish-trail"
+    [fish-research]="research-skill-pack"
 )
 
 # --- Defaults ---
@@ -428,7 +430,7 @@ while [[ $# -gt 0 ]]; do
         -h|--help)
             echo "Usage: $0 --pack <name|all> [--target <path>] [--platform <opencode|claude|codex|cursor|copilot|windsurf|antigravity|universal|all|primary|ide|cli>] [--detect] [--global] [--force] [--list]"
             echo "胖鱼 PEtFiSh AI Worker's Companion — Self-adaptive Skill Installer"
-            echo "Aliases: course, testdocs, deploy, petfish, companion, ppt, init, trust"
+            echo "Aliases: course, testdocs, deploy, petfish, companion, ppt, init, trust, research"
             exit 0 ;;
         *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac

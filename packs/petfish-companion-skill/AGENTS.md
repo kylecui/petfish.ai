@@ -15,6 +15,7 @@
 | 写作风格/润色 | petfish | `/petfish install petfish` |
 | 评审/评价/批判/校准/反迎合 | calibrate | `/petfish install calibrate` |
 | 话题治理/上下文污染/topic管理 | context | `/petfish install context` |
+| 研究/调研/文献/证据/综述 | research | `/petfish install research` |
 
 当用户需要创建新skill、搜索外部skill、或验证skill质量时，使用companion内置的skill-author、marketplace-connector、skill-lint。
 

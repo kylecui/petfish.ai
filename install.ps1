@@ -10,7 +10,7 @@
 
 .PARAMETER Pack
     Pack name or alias. Use 'all' to install every pack.
-    Aliases: course, testdocs, deploy, init, petfish, companion, ppt, trust
+    Aliases: course, testdocs, deploy, init, petfish, companion, ppt, trust, research
     Full names also accepted.
 
 .PARAMETER Target
@@ -115,6 +115,7 @@ $Aliases = @{
     "trust"    = "trustskills-governance-pack"
     "calibrate" = "anti-sycophancy-calibration-pack"
     "context"  = "fish-trail"
+    "research" = "research-skill-pack"
     "fish-init"      = "project-initializer-skill"
     "fish-core"      = "petfish-companion-skill"
     "fish-course"    = "opencode-course-skills-pack"
@@ -124,6 +125,7 @@ $Aliases = @{
     "fish-slides"    = "opencode-ppt-skills"
     "fish-calibrate" = "anti-sycophancy-calibration-pack"
     "fish-trail"     = "fish-trail"
+    "fish-research"  = "research-skill-pack"
 }
 
 # --- Platform path configuration ---

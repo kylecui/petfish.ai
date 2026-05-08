@@ -38,6 +38,8 @@ ALIAS_MAP = {
     "trust": "trustskills-governance-pack",
     "calibrate": "anti-sycophancy-calibration-pack",
     "context": "fish-trail",
+    "research": "research-skill-pack",
+    "fish-research": "research-skill-pack",
 }
 
 # Reverse map: pack name → alias
@@ -126,6 +128,22 @@ TRIGGERS = {
         "你觉得呢",
         "对吗",
         "是不是",
+    ],
+    "research": [
+        "研究",
+        "调研",
+        "文献",
+        "literature",
+        "research",
+        "来源",
+        "证据",
+        "evidence",
+        "综述",
+        "论文",
+        "学术",
+        "academic",
+        "citation",
+        "source verification",
     ],
     "context": [
         "话题",
