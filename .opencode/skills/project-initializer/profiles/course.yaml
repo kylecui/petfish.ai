@@ -1,9 +1,0 @@
-name: course
-description: "course project initialization profile"
-overwrite_policy: no-overwrite-by-default
-requires_confirmation:
-  - overwrite
-  - shell-execution
-  - network-download
-  - development-environment
-  - existing-agents-md-modification
