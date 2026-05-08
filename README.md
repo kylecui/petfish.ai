@@ -280,8 +280,13 @@ petfish.ai/
 ---
 
 ## Version History
+### v0.10 — Product Research Domain
+
+- **v0.10.0**: Product research domain — 5 new skills (user-research, competitor-analysis, opportunity-mapper, validation-planner, decision-brief), trigger evals, smoke test coverage. Pack now has 22 skills.
+
 ### v0.9 — Research Skill Pack
 
+- **v0.9.6**: Fix smoke fixture missing adr/ directory (#85); fix trigger eval runner to glob all evals/trigger/*.json (#84).
 - **v0.9.5**: Fix SKILL.md schema mismatches in 4 research skills (#83, #82, #78); fix repo_inventory.py node_modules inclusion (#81); fix all 4 installers writing zeroed skill/command/agent counts (#71). Closes 5 issues.
 - **v0.9.4**: Research pack scientific domain — 7 new skills (citation-auditor, literature-review, gap-finder, methodology-designer, experiment-planner, paper-writer, review-rebuttal), trigger evals, smoke test coverage. Pack now has 17 skills.
 - **v0.9.3**: Research pack installable — pack-manifest, installer registration, companion catalog integration, README and CHANGELOG updates.

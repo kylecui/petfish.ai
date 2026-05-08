@@ -243,6 +243,9 @@ class TestTriggerEvals:
         scientific = PACK_ROOT / "evals" / "trigger" / "scientific-trigger-evals.json"
         assert scientific.is_file(), "scientific-trigger-evals.json missing"
 
+        product = PACK_ROOT / "evals" / "trigger" / "product-trigger-evals.json"
+        assert product.is_file(), "product-trigger-evals.json missing"
+
         router = SKILLS_DIR / "research-router" / "evals" / "trigger-evals.json"
         assert router.is_file(), "research-router trigger-evals.json missing"
 

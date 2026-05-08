@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (17)
+## Skills (22)
 
 | Skill | Purpose |
 |---|---|
@@ -23,6 +23,11 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `scientific-experiment-planner` | Experiment design with baselines, ablation, and metrics |
 | `scientific-paper-writer` | Paper skeleton and draft from evidence and analysis |
 | `scientific-review-rebuttal` | Pre-submission self-review and reviewer rebuttal |
+| `product-user-research` | User interviews, surveys, usability tests, and persona synthesis |
+| `product-competitor-analysis` | Competitor matrix, positioning, SWOT, and market sizing |
+| `product-opportunity-mapper` | JTBD, problem space mapping, and opportunity scoring |
+| `product-validation-planner` | Hypothesis lists, MVP design, and validation experiments |
+| `product-decision-brief` | Go/no-go/pivot decision briefs from research evidence |
 
 ## Research Types
 

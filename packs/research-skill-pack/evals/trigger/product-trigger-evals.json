@@ -1,0 +1,112 @@
+{
+  "evals": [
+    {
+      "id": "product-user-research-trigger-01",
+      "skill": "product-user-research",
+      "type": "trigger",
+      "should_trigger": [
+        "用户研究",
+        "user research",
+        "访谈设计",
+        "interview guide",
+        "问卷设计",
+        "survey design",
+        "用户画像",
+        "persona",
+        "可用性测试",
+        "帮我设计一个用户访谈方案"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "写论文",
+        "部署到服务器",
+        "市场定位"
+      ]
+    },
+    {
+      "id": "product-competitor-analysis-trigger-01",
+      "skill": "product-competitor-analysis",
+      "type": "trigger",
+      "should_trigger": [
+        "竞品分析",
+        "competitor analysis",
+        "competitive landscape",
+        "市场分析",
+        "market analysis",
+        "SWOT",
+        "定位分析",
+        "帮我做个竞品矩阵"
+      ],
+      "should_not_trigger": [
+        "用户研究",
+        "写论文",
+        "文献综述",
+        "产品决策"
+      ]
+    },
+    {
+      "id": "product-opportunity-mapper-trigger-01",
+      "skill": "product-opportunity-mapper",
+      "type": "trigger",
+      "should_trigger": [
+        "机会分析",
+        "opportunity mapping",
+        "JTBD",
+        "Jobs to be Done",
+        "问题空间",
+        "problem space",
+        "机会评估",
+        "需求挖掘",
+        "帮我找产品机会点"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "写论文",
+        "实验设计",
+        "用户访谈"
+      ]
+    },
+    {
+      "id": "product-validation-planner-trigger-01",
+      "skill": "product-validation-planner",
+      "type": "trigger",
+      "should_trigger": [
+        "验证计划",
+        "validation plan",
+        "MVP",
+        "假设验证",
+        "产品验证",
+        "怎么验证这个想法",
+        "how to validate this idea",
+        "帮我设计MVP方案"
+      ],
+      "should_not_trigger": [
+        "竞品分析",
+        "写论文",
+        "文献综述",
+        "用户画像"
+      ]
+    },
+    {
+      "id": "product-decision-brief-trigger-01",
+      "skill": "product-decision-brief",
+      "type": "trigger",
+      "should_trigger": [
+        "产品决策",
+        "product decision",
+        "go/no-go",
+        "决策简报",
+        "decision brief",
+        "产品建议",
+        "should we build this",
+        "帮我写产品决策报告"
+      ],
+      "should_not_trigger": [
+        "用户研究",
+        "竞品分析",
+        "写论文",
+        "实验设计"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0] - 2026-05-09
+
+### Added
+- product-user-research: User interview, survey, usability test design and persona synthesis
+- product-competitor-analysis: Competitor matrix, positioning, SWOT, and market sizing
+- product-opportunity-mapper: JTBD framework, problem space mapping, opportunity scoring
+- product-validation-planner: Hypothesis lists, MVP design, validation experiments, decision trees
+- product-decision-brief: Go/no-go/pivot decision briefs from multi-source evidence
+- Trigger evals for all 5 product skills (product-trigger-evals.json)
+- Smoke test coverage for product skill directories
+
 ## [0.3.1] - 2026-05-08
 
 ### Fixed
