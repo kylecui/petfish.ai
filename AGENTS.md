@@ -172,6 +172,26 @@ Debug模式输出格式（置于回复最前）：
 
 ---
 
+## Python环境策略（强制）
+
+本项目使用 **uv** 作为唯一的Python虚拟环境管理工具。所有skill脚本、MCP server、第三方工具的Python环境一律通过uv管理。
+
+### 规则
+
+- MCP server启动命令使用 `["uv", "run", "python", "server.py"]`，不使用裸 `python3`
+- 有外部依赖的独立脚本使用 PEP 723 inline metadata（`# /// script`）或所属pack的 `pyproject.toml`
+- 安装器中的 `python3 -c` 内联调用仅限stdlib，不需要uv（无外部依赖=无虚拟环境需求）
+- 项目中不存在 `pip install`，不使用 `pip` 管理依赖
+- 安装器在uv未安装时发出警告
+
+### 禁止事项
+
+- 禁止使用 `pip install` 安装依赖
+- 禁止在MCP server配置中使用裸 `python3` 启动有外部依赖的脚本
+- 禁止绕过uv直接创建或激活venv
+
+---
+
 <!-- BEGIN pack: opencode-course-skills-pack -->
 # 课程开发项目AGENTS.md
 

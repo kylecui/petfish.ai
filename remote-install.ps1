@@ -208,19 +208,29 @@ function Get-DetectionOrder {
 }
 
 function Get-DetectedPlatform([string]$targetPath) {
+    $all = Get-AllDetectedPlatforms $targetPath
+    return $all[0]
+}
+
+function Get-AllDetectedPlatforms([string]$targetPath) {
+    $found = @()
     foreach ($platformName in (Get-DetectionOrder)) {
         $cfg = Get-PlatformConfig $platformName
         foreach ($marker in $cfg.DetectMarkers) {
             if (-not [string]::IsNullOrWhiteSpace($marker)) {
                 $markerPath = Join-Path $targetPath $marker
                 if (Test-Path $markerPath) {
-                    return $platformName
+                    $found += $platformName
+                    break
                 }
             }
         }
     }
-    Write-Host "  [detect] No platform marker found. Falling back to 'universal'. Use -Platform to specify explicitly." -ForegroundColor Yellow
-    return "universal"
+    if ($found.Count -eq 0) {
+        Write-Host "  [detect] No platform marker found. Falling back to 'universal'. Use -Platform to specify explicitly." -ForegroundColor Yellow
+        return @("universal")
+    }
+    return @($found)
 }
 
 # --- Merge helpers ---
@@ -494,6 +504,117 @@ function Compare-PackVersion([string]$registryDir, [string]$packName, [string]$m
     return "same"
 }
 
+function Compress-InstructionContent([string]$content, [int]$maxTokens) {
+    $charCount = $content.Length
+    $estTokens = [math]::Floor($charCount / 4)
+
+    if ($estTokens -le $maxTokens) {
+        return $content
+    }
+
+    $tempInput = [System.IO.Path]::GetTempFileName()
+    $tempOutput = [System.IO.Path]::GetTempFileName()
+    [System.IO.File]::WriteAllText($tempInput, $content, [System.Text.Encoding]::UTF8)
+
+    $pyScript = @'
+import sys
+
+max_tokens = int(sys.argv[1])
+input_file = sys.argv[2]
+output_file = sys.argv[3]
+
+with open(input_file, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+sections = []
+current = []
+current_priority = 1
+current_name = ""
+
+for line in content.split('\n'):
+    if line.startswith('<!-- BEGIN pack:'):
+        if current:
+            sections.append((current_name, current_priority, '\n'.join(current)))
+        current = [line]
+        current_name = line.split('pack:')[1].split('-->')[0].strip() if 'pack:' in line else ""
+        p0_packs = ['petfish-companion-skill', 'fish-trail']
+        if current_name in p0_packs:
+            current_priority = 0
+        else:
+            current_priority = 1
+    elif line.startswith('<!-- END pack:'):
+        current.append(line)
+        sections.append((current_name, current_priority, '\n'.join(current)))
+        current = []
+        current_name = ""
+        current_priority = 1
+    else:
+        current.append(line)
+
+if current:
+    sections.append((current_name, current_priority, '\n'.join(current)))
+
+p0 = [(n, p, c) for n, p, c in sections if p == 0]
+p1 = [(n, p, c) for n, p, c in sections if p == 1]
+
+result_parts = []
+used_tokens = 0
+footer = "\n<!-- Condensed by PEtFiSh. Full rules: AGENTS.md -->"
+footer_tokens = len(footer) // 4
+
+for name, pri, text in p0:
+    tokens = len(text) // 4
+    result_parts.append(text)
+    used_tokens += tokens
+
+budget = max_tokens - footer_tokens
+for name, pri, text in p1:
+    tokens = len(text) // 4
+    if used_tokens + tokens <= budget:
+        result_parts.append(text)
+        used_tokens += tokens
+    else:
+        lines = text.split('\n')
+        snippet_lines = []
+        found_content = False
+        for l in lines:
+            snippet_lines.append(l)
+            if found_content and l.strip() == '':
+                break
+            if l.strip():
+                found_content = True
+        snippet = '\n'.join(snippet_lines)
+        snippet_tokens = len(snippet) // 4
+        if used_tokens + snippet_tokens <= budget:
+            result_parts.append(snippet)
+            used_tokens += snippet_tokens
+
+output = '\n'.join(result_parts) + footer
+with open(output_file, 'w', encoding='utf-8') as f:
+    f.write(output)
+'@
+
+    $tempScript = [System.IO.Path]::GetTempFileName() -replace '\.tmp$', '.py'
+    [System.IO.File]::WriteAllText($tempScript, $pyScript, [System.Text.Encoding]::UTF8)
+
+    try {
+        & python3 $tempScript $maxTokens $tempInput $tempOutput 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            & python $tempScript $maxTokens $tempInput $tempOutput 2>$null
+        }
+        if (Test-Path $tempOutput) {
+            $result = [System.IO.File]::ReadAllText($tempOutput, [System.Text.Encoding]::UTF8)
+            return $result
+        }
+    } finally {
+        Remove-Item $tempInput -Force -ErrorAction SilentlyContinue
+        Remove-Item $tempOutput -Force -ErrorAction SilentlyContinue
+        Remove-Item $tempScript -Force -ErrorAction SilentlyContinue
+    }
+
+    return $content
+}
+
 function Update-TranslatedInstructions([string]$sourceFile, [string]$destinationFile, [string]$platformName) {
     $cfg = Get-PlatformConfig $platformName
     $translation = $cfg.InstructionsTranslation
@@ -528,6 +649,54 @@ function Update-TranslatedInstructions([string]$sourceFile, [string]$destination
     finally {
         if (Test-Path $tempFile) {
             Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function New-SecondaryInstructions([string]$targetPath, [switch]$ForceOverwrite, [string[]]$detectedPlatforms) {
+    $primaryInstructions = Join-Path $targetPath "AGENTS.md"
+    if (-not (Test-Path $primaryInstructions)) { return }
+
+    Write-Host ""
+    Write-Host "  [translate] Generating instruction files for detected platforms..." -ForegroundColor DarkCyan
+
+    foreach ($platformName in $detectedPlatforms) {
+        if ($platformName -eq $Platform) { continue }
+
+        $cfg = Get-PlatformConfig $platformName
+        $translation = $cfg.InstructionsTranslation
+        if (-not $translation -or -not $translation.PSObject.Properties["target"]) { continue }
+        $transTarget = $translation.target
+        if ([string]::IsNullOrWhiteSpace($transTarget) -or $transTarget -eq "AGENTS.md") { continue }
+
+        $dstTranslated = Join-Path $targetPath $transTarget
+
+        $condenseConfig = $null
+        $platformData = $PlatformRegistry.platforms.PSObject.Properties[$platformName].Value
+        if ($platformData -and $platformData.PSObject.Properties["condense"]) {
+            $condenseConfig = $platformData.condense
+        }
+
+        $sourceToTranslate = $primaryInstructions
+        if ($condenseConfig -and $condenseConfig.max_tokens -gt 0) {
+            $fullContent = Get-Content $primaryInstructions -Raw -Encoding UTF8
+            $condensed = Compress-InstructionContent $fullContent $condenseConfig.max_tokens
+            $tempFile = [System.IO.Path]::GetTempFileName()
+            [System.IO.File]::WriteAllText($tempFile, $condensed, [System.Text.Encoding]::UTF8)
+            $sourceToTranslate = $tempFile
+        }
+
+        $translatedResult = Update-TranslatedInstructions $sourceToTranslate $dstTranslated $platformName
+
+        if ($sourceToTranslate -ne $primaryInstructions) {
+            Remove-Item $sourceToTranslate -Force -ErrorAction SilentlyContinue
+        }
+
+        switch ($translatedResult) {
+            "created" { Write-Host "    + $transTarget (created for $platformName)" -ForegroundColor DarkGreen }
+            "merged"  { Write-Host "    + $transTarget (merged for $platformName)" -ForegroundColor DarkGreen }
+            "updated" { Write-Host "    + $transTarget (updated for $platformName)" -ForegroundColor DarkGreen }
+            "exists"  { Write-Warning "    SKIP $transTarget (exists for $platformName)" }
         }
     }
 }
@@ -650,20 +819,6 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 "exists"  { Write-Warning "    SKIP AGENTS.md (pack section exists, use -Force to update)"; $script:skipped++ }
             }
 
-            $translation = $cfg.InstructionsTranslation
-            $translationTarget = if ($translation -and $translation.PSObject.Properties["target"]) { $translation.target } else { $cfg.InstructionsFile }
-            if ($translation -and $translationTarget -and $translationTarget -ne "AGENTS.md") {
-                $dstTranslated = Join-Path $targetPath $translationTarget
-                $translatedResult = Update-TranslatedInstructions $dstAgents $dstTranslated $platformName
-                $translatedLabel = $translationTarget
-                switch ($translatedResult) {
-                    "created" { Write-Host "    + $translatedLabel (created)" -ForegroundColor DarkGreen; $script:installed++ }
-                    "merged"  { Write-Host "    + $translatedLabel (merged)" -ForegroundColor DarkGreen; $script:installed++ }
-                    "updated" { Write-Host "    + $translatedLabel (updated)" -ForegroundColor DarkGreen; $script:installed++ }
-                    "exists"  { Write-Warning "    SKIP $translatedLabel (managed section exists, use -Force to update)"; $script:skipped++ }
-                }
-            }
-
             if ($cfg.GeminiMd) {
                 $dstGemini = Join-Path $targetPath "GEMINI.md"
                 $geminiResult = Merge-AgentsMd $agentsMd $dstGemini $packName -ForceOverwrite:$forceThisPack -ManifestFile $manifestFile
@@ -759,6 +914,76 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 if (Test-Path $dstItem) { Remove-Item -Path $dstItem -Recurse -Force }
                 Copy-Item -Path $item.FullName -Destination $dstItem -Recurse
                 Write-Host "    + commands/$($item.Name)" -ForegroundColor DarkGreen
+                $script:installed++
+            }
+        }
+
+        # --- Copy Claude hooks (if platform is claude and pack has hooks) ---
+        if ($platformName -eq "claude") {
+            $srcHooks = Join-Path $packRoot ".claude" "hooks"
+            if (Test-Path $srcHooks) {
+                $targetHooks = Join-Path $targetPath ".claude" "hooks"
+                if (-not (Test-Path $targetHooks)) { New-Item -ItemType Directory -Path $targetHooks -Force | Out-Null }
+                foreach ($hookFile in (Get-ChildItem $srcHooks -File)) {
+                    $dstHook = Join-Path $targetHooks $hookFile.Name
+                    if ((Test-Path $dstHook) -and -not $forceThisPack) {
+                        Write-Warning "    SKIP hooks/$($hookFile.Name) (exists, use -Force to overwrite)"
+                        $script:skipped++
+                        continue
+                    }
+                    Copy-Item $hookFile.FullName $dstHook -Force
+                    Write-Host "    + hooks/$($hookFile.Name)" -ForegroundColor DarkGreen
+                    $script:installed++
+                }
+
+                # --- Merge hooks into .claude/settings.json ---
+                $claudeSettings = Join-Path $targetPath ".claude" "settings.json"
+                $hooksConfig = @{
+                    hooks = @{
+                        UserPromptSubmit = @(@{ hooks = @(@{ type = "command"; command = "bash .claude/hooks/fish-trail-gateway.sh"; timeout = 5 }) })
+                        PreCompact = @(@{ hooks = @(@{ type = "command"; command = "bash .claude/hooks/fish-trail-precompact.sh"; timeout = 5 }) })
+                        PostCompact = @(@{ hooks = @(@{ type = "command"; command = "bash .claude/hooks/fish-trail-postcompact.sh"; timeout = 5 }) })
+                    }
+                }
+                
+                $existingSettings = @{}
+                if (Test-Path $claudeSettings) {
+                    try {
+                        $existingSettings = Get-Content $claudeSettings -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable
+                    } catch {
+                        $existingSettings = @{}
+                    }
+                }
+                
+                if (-not $existingSettings.ContainsKey('hooks')) {
+                    $existingSettings['hooks'] = @{}
+                }
+                
+                foreach ($eventName in $hooksConfig.hooks.Keys) {
+                    if (-not $existingSettings['hooks'].ContainsKey($eventName)) {
+                        $existingSettings['hooks'][$eventName] = $hooksConfig.hooks[$eventName]
+                    } else {
+                        # Check for duplicates
+                        $existingCommands = @()
+                        foreach ($group in $existingSettings['hooks'][$eventName]) {
+                            foreach ($hook in $group.hooks) {
+                                if ($hook.command) { $existingCommands += $hook.command }
+                            }
+                        }
+                        foreach ($group in $hooksConfig.hooks[$eventName]) {
+                            foreach ($hook in $group.hooks) {
+                                if ($hook.command -and $hook.command -notin $existingCommands) {
+                                    $existingSettings['hooks'][$eventName] += $group
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                $settingsDir = Split-Path $claudeSettings -Parent
+                if (-not (Test-Path $settingsDir)) { New-Item -ItemType Directory -Path $settingsDir -Force | Out-Null }
+                $existingSettings | ConvertTo-Json -Depth 10 | Set-Content $claudeSettings -Encoding UTF8 -NoNewline
+                Write-Host "    + .claude/settings.json (hooks merged)" -ForegroundColor DarkGreen
                 $script:installed++
             }
         }
@@ -887,11 +1112,6 @@ if ($List) {
     exit 0
 }
 
-if ($Detect -and $PlatformExplicitlyPassed) {
-    Write-Error "-Detect cannot be used together with an explicit -Platform value."
-    exit 1
-}
-
 if (-not $Pack) {
     Write-Error "Missing -Pack parameter. Use -List to see available packs, or -Pack all."
     exit 1
@@ -953,10 +1173,21 @@ try {
         exit 1
     }
 
+    $script:DetectedPlatforms = @()
     if ($Detect) {
         $detectTarget = (Resolve-Path $Target -ErrorAction Stop).Path
-        $Platform = Get-DetectedPlatform $detectTarget
-        Write-Host "  [detect] Detected platform: $Platform" -ForegroundColor DarkCyan
+        if ($PlatformExplicitlyPassed) {
+            $script:DetectedPlatforms = Get-AllDetectedPlatforms $detectTarget
+            Write-Host "  [detect] Primary platform: $Platform (explicit)" -ForegroundColor DarkCyan
+            Write-Host "  [detect] All detected platforms: $($script:DetectedPlatforms -join ', ')" -ForegroundColor DarkCyan
+        } else {
+            $script:DetectedPlatforms = Get-AllDetectedPlatforms $detectTarget
+            $Platform = $script:DetectedPlatforms[0]
+            Write-Host "  [detect] Detected primary platform: $Platform" -ForegroundColor DarkCyan
+            if ($script:DetectedPlatforms.Count -gt 1) {
+                Write-Host "  [detect] Also detected: $($script:DetectedPlatforms[1..($script:DetectedPlatforms.Count-1)] -join ', ')" -ForegroundColor DarkCyan
+            }
+        }
     }
 
     if (-not $Global) {
@@ -970,6 +1201,11 @@ try {
         } else {
             Install-ForPlatform $p $packsToInstall $Target -ForceInstall:$Force
         }
+    }
+
+    # --- Generate instruction files for secondary detected platforms ---
+    if ($script:DetectedPlatforms.Count -gt 0 -and -not $Global) {
+        New-SecondaryInstructions $Target -ForceOverwrite:$Force -detectedPlatforms $script:DetectedPlatforms
     }
 }
 finally {

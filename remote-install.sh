@@ -499,11 +499,6 @@ if $LIST; then
     exit 0
 fi
 
-if $DETECT && $PLATFORM_EXPLICIT; then
-    echo "Error: --detect cannot be used together with an explicit --platform value." >&2
-    exit 1
-fi
-
 if [[ -z "$PACK" ]]; then
     echo "Error: --pack required. Use --list to see available packs." >&2
     echo "Example: curl -fsSL https://raw.githubusercontent.com/$REPO/$BRANCH/remote-install.sh | bash -s -- --pack course" >&2
@@ -718,28 +713,172 @@ get_platform_registry_dir() {
 detect_platform() {
     local target_path="$1"
 
+    detect_all_platforms "$target_path" | head -n 1
+}
+
+detect_all_platforms() {
+    local target_path="$1"
+    local found=()
     local platform_name
     while IFS= read -r platform_name; do
         [[ -n "$platform_name" ]] || continue
-
         local markers
         markers="$(get_platform_field "$platform_name" "detect_markers")"
         [[ -n "$markers" ]] || continue
-
         local marker
         local -a marker_list=()
         IFS=',' read -r -a marker_list <<< "$markers"
         for marker in "${marker_list[@]}"; do
             [[ -n "$marker" ]] || continue
             if [[ -e "$target_path/$marker" ]]; then
-                printf '%s\n' "$platform_name"
-                return
+                found+=("$platform_name")
+                break
             fi
         done
     done < <(get_detection_order)
+    if (( ${#found[@]} == 0 )); then
+        echo "  [detect] No platform marker found. Falling back to 'universal'. Use --platform to specify explicitly." >&2
+        echo "universal"
+    else
+        printf '%s\n' "${found[@]}"
+    fi
+}
 
-    echo "  [detect] No platform marker found. Falling back to 'universal'. Use --platform to specify explicitly." >&2
-    printf '%s\n' "universal"
+generate_secondary_instructions() {
+    local target_path="$1"
+    local force="$2"
+    shift 2
+    local detected=("$@")
+
+    local primary_instructions="$target_path/AGENTS.md"
+    [[ -f "$primary_instructions" ]] || return 0
+
+    echo ""
+    echo "  [translate] Generating instruction files for detected platforms..."
+
+    local platform_name
+    for platform_name in "${detected[@]}"; do
+        [[ "$platform_name" == "$PLATFORM" ]] && continue
+
+        local trans_target
+        trans_target="$(get_platform_field "$platform_name" "instructions_translation.target")"
+        [[ -n "$trans_target" ]] || continue
+        [[ "$trans_target" == "AGENTS.md" ]] && continue
+
+        local max_tokens
+        max_tokens="$(get_platform_field "$platform_name" "condense.max_tokens")"
+
+        local source_to_translate="$primary_instructions"
+        if [[ -n "$max_tokens" ]] && (( max_tokens > 0 )); then
+            local full_content
+            full_content="$(cat "$primary_instructions")"
+            local condensed
+            condensed="$(condense_content "$full_content" "$max_tokens")"
+            local condensed_tmp
+            condensed_tmp="$(mktemp)"
+            printf '%s' "$condensed" > "$condensed_tmp"
+            source_to_translate="$condensed_tmp"
+        fi
+
+        update_translated_instructions "$source_to_translate" "$target_path/$trans_target" "$platform_name" "$force"
+
+        [[ "$source_to_translate" != "$primary_instructions" ]] && rm -f "$source_to_translate"
+    done
+}
+
+condense_content() {
+    local content="$1"
+    local max_tokens="$2"
+
+    local char_count=${#content}
+    local est_tokens=$(( char_count / 4 ))
+
+    if (( est_tokens <= max_tokens )); then
+        printf '%s' "$content"
+        return
+    fi
+
+    local tmpfile
+    tmpfile="$(mktemp)"
+    printf '%s' "$content" > "$tmpfile"
+
+    python3 - "$max_tokens" "$tmpfile" <<'PYEOF'
+import os
+import sys
+
+max_tokens = int(sys.argv[1])
+input_file = sys.argv[2]
+
+with open(input_file, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+sections = []
+current = []
+current_priority = 1
+current_name = ""
+
+for line in content.split('\n'):
+    if line.startswith('<!-- BEGIN pack:'):
+        if current:
+            sections.append((current_name, current_priority, '\n'.join(current)))
+        current = [line]
+        current_name = line.split('pack:')[1].split('-->')[0].strip() if 'pack:' in line else ""
+        p0_packs = ['petfish-companion-skill', 'fish-trail']
+        if current_name in p0_packs:
+            current_priority = 0
+        else:
+            current_priority = 1
+    elif line.startswith('<!-- END pack:'):
+        current.append(line)
+        sections.append((current_name, current_priority, '\n'.join(current)))
+        current = []
+        current_name = ""
+        current_priority = 1
+    else:
+        current.append(line)
+
+if current:
+    sections.append((current_name, current_priority, '\n'.join(current)))
+
+p0 = [(n, p, c) for n, p, c in sections if p == 0]
+p1 = [(n, p, c) for n, p, c in sections if p == 1]
+
+result_parts = []
+used_tokens = 0
+footer = "\n<!-- Condensed by PEtFiSh. Full rules: AGENTS.md -->"
+footer_tokens = len(footer) // 4
+
+for name, pri, text in p0:
+    tokens = len(text) // 4
+    result_parts.append(text)
+    used_tokens += tokens
+
+budget = max_tokens - footer_tokens
+for name, pri, text in p1:
+    tokens = len(text) // 4
+    if used_tokens + tokens <= budget:
+        result_parts.append(text)
+        used_tokens += tokens
+    else:
+        lines = text.split('\n')
+        snippet_lines = []
+        found_content = False
+        for l in lines:
+            snippet_lines.append(l)
+            if found_content and l.strip() == '':
+                break
+            if l.strip():
+                found_content = True
+        snippet = '\n'.join(snippet_lines)
+        snippet_tokens = len(snippet) // 4
+        if used_tokens + snippet_tokens <= budget:
+            result_parts.append(snippet)
+            used_tokens += snippet_tokens
+
+output = '\n'.join(result_parts) + footer
+sys.stdout.write(output)
+os.unlink(input_file)
+PYEOF
 }
 
 update_translated_instructions() {
@@ -790,8 +929,20 @@ alwaysApply: true
 # --- Detect platform if requested ---
 if $DETECT; then
     DETECT_TARGET="$(cd "$TARGET" && pwd)"
-    PLATFORM="$(detect_platform "$DETECT_TARGET")"
-    echo "  [detect] Detected platform: $PLATFORM"
+    if $PLATFORM_EXPLICIT; then
+        mapfile -t DETECTED_PLATFORMS < <(detect_all_platforms "$DETECT_TARGET")
+        echo "  [detect] Primary platform: $PLATFORM (explicit)"
+        echo "  [detect] All detected platforms: ${DETECTED_PLATFORMS[*]}"
+    else
+        mapfile -t DETECTED_PLATFORMS < <(detect_all_platforms "$DETECT_TARGET")
+        PLATFORM="${DETECTED_PLATFORMS[0]}"
+        echo "  [detect] Detected primary platform: $PLATFORM"
+        if (( ${#DETECTED_PLATFORMS[@]} > 1 )); then
+            echo "  [detect] Also detected: ${DETECTED_PLATFORMS[*]:1}"
+        fi
+    fi
+else
+    DETECTED_PLATFORMS=()
 fi
 
 # --- Resolve platform list ---
@@ -899,12 +1050,6 @@ install_for_platform() {
                 esac
             fi
 
-            # Instructions translation (AGENTS.md → CLAUDE.md, .mdc, copilot-instructions.md, .windsurfrules)
-            local trans_target
-            trans_target="$(get_platform_field "$platform_name" "instructions_translation.target")"
-            if [[ -n "$trans_target" ]]; then
-                update_translated_instructions "$dst_instructions" "$TARGET/$trans_target" "$platform_name" "$force_this_pack"
-            fi
         fi
 
         # --- Merge opencode.json (OpenCode only) ---
@@ -995,6 +1140,79 @@ install_for_platform() {
                     echo "    + commands/$item_name"
                     ((installed++)) || true
                 done
+            fi
+        fi
+
+        # --- Copy Claude hooks (if platform is claude and pack has hooks) ---
+        if [[ "$platform_name" == "claude" ]]; then
+            local src_hooks="$pack_root/.claude/hooks"
+            if [[ -d "$src_hooks" ]]; then
+                local target_hooks="$TARGET/.claude/hooks"
+                mkdir -p "$target_hooks"
+                for hook_file in "$src_hooks"/*; do
+                    [[ -f "$hook_file" ]] || continue
+                    local hook_name
+                    hook_name="$(basename "$hook_file")"
+                    local dst_hook="$target_hooks/$hook_name"
+                    if [[ -f "$dst_hook" ]] && ! $force_this_pack; then
+                        echo "    SKIP hooks/$hook_name (exists, use --force to overwrite)"
+                        ((skipped++)) || true
+                        continue
+                    fi
+                    cp -f "$hook_file" "$dst_hook"
+                    chmod +x "$dst_hook"
+                    echo "    + hooks/$hook_name"
+                    ((installed++)) || true
+                done
+
+                # --- Merge hooks into .claude/settings.json ---
+                local claude_settings="$TARGET/.claude/settings.json"
+                local hooks_config='{"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"bash .claude/hooks/fish-trail-gateway.sh","timeout":5}]}],"PreCompact":[{"hooks":[{"type":"command","command":"bash .claude/hooks/fish-trail-precompact.sh","timeout":5}]}],"PostCompact":[{"hooks":[{"type":"command","command":"bash .claude/hooks/fish-trail-postcompact.sh","timeout":5}]}]}}'
+                
+                python3 - "$claude_settings" "$hooks_config" <<'PYEOF'
+import json, sys, os
+
+settings_path = sys.argv[1]
+hooks_to_add = json.loads(sys.argv[2])
+
+if os.path.isfile(settings_path):
+    try:
+        with open(settings_path, 'r', encoding='utf-8') as f:
+            settings = json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        settings = {}
+else:
+    os.makedirs(os.path.dirname(settings_path), exist_ok=True)
+    settings = {}
+
+if 'hooks' not in settings:
+    settings['hooks'] = {}
+
+for event_name, event_groups in hooks_to_add['hooks'].items():
+    if event_name not in settings['hooks']:
+        settings['hooks'][event_name] = event_groups
+    else:
+        # Check if our hook command already exists to avoid duplicates
+        existing_commands = set()
+        for group in settings['hooks'][event_name]:
+            for hook in group.get('hooks', []):
+                if hook.get('command'):
+                    existing_commands.add(hook['command'])
+        
+        for group in event_groups:
+            for hook in group.get('hooks', []):
+                if hook.get('command') and hook['command'] not in existing_commands:
+                    settings['hooks'][event_name].append(group)
+                    break
+
+with open(settings_path, 'w', encoding='utf-8') as f:
+    json.dump(settings, f, indent=2, ensure_ascii=False)
+    f.write('\n')
+PYEOF
+                if [[ $? -eq 0 ]]; then
+                    echo "    + .claude/settings.json (hooks merged)"
+                    ((installed++)) || true
+                fi
             fi
         fi
     done
@@ -1154,3 +1372,8 @@ fi
 for platform_name in "${PLATFORMS[@]}"; do
     install_for_platform "$platform_name" "${PACKS[@]}"
 done
+
+# --- Generate instruction files for secondary detected platforms ---
+if (( ${#DETECTED_PLATFORMS[@]} > 0 )) && ! $GLOBAL; then
+    generate_secondary_instructions "$TARGET" "$FORCE" "${DETECTED_PLATFORMS[@]}"
+fi
