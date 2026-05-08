@@ -296,7 +296,9 @@ def build_catalog() -> list[dict]:
             reg_info = installed_registry.get(pack_name, {})
             entry["description"] = reg_info.get("description", "")
             entry["version"] = reg_info.get("version", "unknown")
-            entry["skill_count"] = reg_info.get("skill_count", 0)
+            entry["skill_count"] = reg_info.get(
+                "skill_count", len(reg_info.get("skills", []))
+            )
             entry["command_count"] = reg_info.get("command_count", 0)
             entry["agent_count"] = reg_info.get("agent_count", 0)
 

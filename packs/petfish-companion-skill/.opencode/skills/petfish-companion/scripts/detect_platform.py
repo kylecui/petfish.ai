@@ -45,7 +45,7 @@ PRIORITY = [
 
 
 def load_markers_from_platforms_json() -> dict[str, list[str]] | None:
-    """Try to load detect_markers from platforms.json in the SKILL_builder repo."""
+    """Try to load detect_markers from platforms.json in the petfish.ai repo."""
     # Walk up from this script to find platforms.json
     current = Path(__file__).resolve().parent
     for _ in range(10):

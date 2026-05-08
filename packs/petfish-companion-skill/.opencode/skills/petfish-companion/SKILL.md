@@ -148,11 +148,11 @@ Tier 1和Tier 2均未命中 → 不输出任何推荐，静默通过。
 **远程安装（无需clone）：**
 ```powershell
 # PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.ps1))) -Pack <alias>
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias>
 ```
 ```bash
 # Bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote-install.sh | bash -s -- --pack <alias>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias>
 ```
 
 ### 3.2 平台适配
@@ -175,7 +175,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/SKILL_builder/master/remote
 
 当搜索skill时，按以下优先级：
 
-1. **胖鱼自有仓库**（SKILL_builder/packs/）— 质量最高，安全已审计
+1. **胖鱼自有仓库**（petfish.ai/packs/）— 质量最高，安全已审计
 2. **三方市场**（SkillKit、Smithery、Glama等）— 社区验证
 3. **GitHub高星仓库**（★ > 1000）— 广泛使用
 4. **GitHub低星仓库** — 需要额外审查

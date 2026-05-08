@@ -5,7 +5,7 @@ PEtFiSh Companion — Check Installed Packs
 Reads installed-packs.json from the target project and reports:
   - Which packs are installed (with version and timestamp)
   - Which packs from the catalog are NOT installed
-  - Optional: version comparison against latest in SKILL_builder
+  - Optional: version comparison against latest in petfish.ai
 
 Usage:
   uv run check_installed.py --target /path/to/project

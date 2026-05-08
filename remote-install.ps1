@@ -1136,7 +1136,7 @@ if (($packItems -contains "init" -or $packItems -contains "project-initializer-s
     Write-Host "  [info] init pack defaults to global install. Use -Target to install locally." -ForegroundColor DarkCyan
 }
 
-$tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) "skill_builder_$(Get-Random)"
+$tmpDir = Join-Path ([System.IO.Path]::GetTempPath()) "petfish_$(Get-Random)"
 New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
 
 try {
