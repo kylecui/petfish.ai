@@ -170,7 +170,7 @@ OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——
 | security | deploy, petfish, testdocs |
 | writing | petfish, ppt |
 | skills-package | petfish, testdocs |
-| comprehensive | course, deploy, petfish, ppt, testdocs |
+| comprehensive | course, deploy, petfish, ppt, testdocs, trust, context, research |
 
 ---
 

@@ -428,7 +428,7 @@ comprehensive
 | `security` | `fish-deploy`, `fish-style`, `fish-testdocs`, `fish-audit`, `fish-trail` |
 | `writing` | `fish-style`, `fish-slides`, `fish-calibrate` |
 | `skills-package` | `fish-style`, `fish-testdocs`, `fish-core`, `fish-gate`, `fish-trail` |
-| `comprehensive` | `fish-course`, `fish-deploy`, `fish-style`, `fish-slides`, `fish-testdocs`, `fish-calibrate`, `fish-trust`, `fish-trail` |
+| `comprehensive` | `fish-course`, `fish-deploy`, `fish-style`, `fish-slides`, `fish-testdocs`, `fish-calibrate`, `fish-trust`, `fish-trail`, `fish-research` |
 
 ### 8.1 关于 fish-trail 的默认安装
 
