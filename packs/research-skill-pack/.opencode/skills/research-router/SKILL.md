@@ -1,6 +1,6 @@
 ---
 name: research-router
-description: 研究入口与任务路由器。根据用户请求判断研究类型（科学研究、产品研究、规划研究、学习研究、决策研究、风险采购研究、活动体验研究）、复杂度并推荐合适的研究skill链路。Use when the user says "研究", "帮我研究", "仔细研究", "research", "investigate", "survey", "lit review", "调研", "文献", "综述", "竞品分析", "市场分析", "论文方向", "规划方案", or gives a vague research intent that needs routing to the correct research skill chain.
+description: 研究入口与任务路由器。根据用户请求判断研究类型（科学研究、产品研究、规划研究、学习研究、决策研究、风险采购研究、活动体验研究）、复杂度并推荐合适的研究skill链路。Use when the user says "研究", "帮我研究", "仔细研究", "research", "investigate", "survey", "lit review", "调研", "文献", "综述", "竞品分析", "市场分析", "论文方向", "规划方案", or gives a vague research intent that needs routing to the correct research skill chain. Also triggers for agent-initiated research subtasks: feasibility study, architecture research, technology assessment, design research, fork analysis, approach comparison, state-of-the-art review, 可行性分析, 技术选型, 方案对比, 现状调研.
 compatibility: opencode
 license: Apache-2.0
 ---
@@ -14,6 +14,7 @@ license: Apache-2.0
 - 用户说“帮我研究一下… / 做调研 / 综述 / 竞品分析 / 规划方案 / 论文方向 / 市场分析”。
 - 用户目标模糊，需要先结构化研究任务。
 - 用户不确定该走科学研究、产品研究还是规划研究链路。
+- Agent自发子任务涉及可行性分析、技术选型、方案对比、架构调研、现状了解等研究性动作。
 
 ## 输入/Input
 
