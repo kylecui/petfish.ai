@@ -18,6 +18,8 @@ import json
 import sys
 from pathlib import Path
 import platform as platform_mod
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 
 # Platform → registry file path (relative to project root)
 PLATFORM_REGISTRY_PATHS = {
@@ -42,6 +44,7 @@ KNOWN_PACKS = {
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
     "calibrate": "anti-sycophancy-calibration-pack",
     "context": "fish-trail",
+    "research": "research-skill-pack",
     "trust": "trustskills-governance-pack",
 }
 
@@ -106,6 +109,185 @@ def load_registry(path: Path) -> dict:
     except (json.JSONDecodeError, OSError) as e:
         print(f"Error reading {path}: {e}", file=sys.stderr)
         return {}
+
+
+def compare_semver(installed: str, source: str) -> str:
+    """Compare semver strings. Returns 'same', 'newer', 'older', or 'unknown'.
+
+    'newer' means source is newer than installed (update available).
+    'older' means installed is newer than source.
+    """
+
+    def _parse(v: str) -> list[int] | None:
+        if not isinstance(v, str) or not v.strip():
+            return None
+        parts = v.strip().split(".")
+        parsed = []
+        for part in parts:
+            if not part.isdigit():
+                return None
+            parsed.append(int(part))
+        return parsed
+
+    installed_parts = _parse(installed)
+    source_parts = _parse(source)
+    if installed_parts is None or source_parts is None:
+        return "unknown"
+
+    width = max(len(installed_parts), len(source_parts))
+    installed_parts.extend([0] * (width - len(installed_parts)))
+    source_parts.extend([0] * (width - len(source_parts)))
+
+    for idx in range(width):
+        if source_parts[idx] > installed_parts[idx]:
+            return "newer"
+        if source_parts[idx] < installed_parts[idx]:
+            return "older"
+    return "same"
+
+
+def _fetch_json(url: str, timeout: int = 10) -> dict:
+    req = urllib_request.Request(
+        url,
+        headers={
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "petfish-companion-check-updates",
+        },
+    )
+    with urllib_request.urlopen(req, timeout=timeout) as resp:
+        data = resp.read()
+    return json.loads(data.decode("utf-8"))
+
+
+def check_updates(
+    target: Path,
+    platform: str | None = None,
+    as_json: bool = False,
+    repo: str = "kylecui/petfish.ai",
+):
+    """Check update availability for installed packs from latest GitHub release."""
+    registry_path = find_registry(target, platform)
+    if not registry_path:
+        error_msg = "no registry found"
+        if as_json:
+            print(
+                json.dumps(
+                    {
+                        "latest_release": None,
+                        "updates": [],
+                        "up_to_date": [],
+                        "errors": [error_msg],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        else:
+            print(f"⚠️ Could not check updates: {error_msg}")
+        return
+
+    registry = load_registry(registry_path)
+    installed = registry.get("packs", {})
+
+    updates = []
+    up_to_date = []
+    errors = []
+
+    try:
+        release_meta = _fetch_json(
+            f"https://api.github.com/repos/{repo}/releases/latest", timeout=10
+        )
+        latest_tag = str(release_meta.get("tag_name", "")).strip()
+        if not latest_tag:
+            raise ValueError("latest release tag not found")
+    except (
+        urllib_error.URLError,
+        urllib_error.HTTPError,
+        TimeoutError,
+        OSError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as exc:
+        message = str(exc)
+        if as_json:
+            print(
+                json.dumps(
+                    {
+                        "latest_release": None,
+                        "updates": [],
+                        "up_to_date": [],
+                        "errors": [message],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        else:
+            print(f"⚠️ Could not check updates: {message}")
+        return
+
+    for alias, pack_name in KNOWN_PACKS.items():
+        info = installed.get(pack_name)
+        if not isinstance(info, dict):
+            continue
+
+        installed_version = str(info.get("version", "unknown"))
+        manifest_url = (
+            f"https://raw.githubusercontent.com/{repo}/{latest_tag}/packs/"
+            f"{pack_name}/pack-manifest.json"
+        )
+
+        try:
+            manifest = _fetch_json(manifest_url, timeout=10)
+            source_version = str(manifest.get("version", "unknown"))
+        except (
+            urllib_error.URLError,
+            urllib_error.HTTPError,
+            TimeoutError,
+            OSError,
+            json.JSONDecodeError,
+            ValueError,
+        ) as exc:
+            errors.append(f"{alias}: {exc}")
+            continue
+
+        comparison = compare_semver(installed_version, source_version)
+        row = {
+            "alias": alias,
+            "pack": pack_name,
+            "installed": installed_version,
+            "available": source_version,
+        }
+        if comparison == "newer":
+            updates.append(row)
+        else:
+            up_to_date.append(row)
+
+    if as_json:
+        print(
+            json.dumps(
+                {
+                    "latest_release": latest_tag,
+                    "updates": updates,
+                    "up_to_date": up_to_date,
+                    "errors": errors,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+
+    if updates:
+        for row in updates:
+            print(f"⬆️  {row['alias']} {row['installed']} → {row['available']}")
+    elif errors and not up_to_date:
+        print(f"⚠️ Could not check updates: {errors[0]}")
+    else:
+        print(f"✅ All packs are up to date (latest release: {latest_tag})")
+
+    if errors and (updates or up_to_date):
+        print(f"⚠️ Could not check updates: {errors[0]}")
 
 
 def check(target: Path, platform: str | None = None, as_json: bool = False):
@@ -190,6 +372,17 @@ def main():
         choices=list(PLATFORM_REGISTRY_PATHS.keys()),
         help="Limit search to specific platform registry",
     )
+    parser.add_argument(
+        "--check-updates",
+        action="store_true",
+        help="Check available updates from latest GitHub release",
+    )
+    parser.add_argument(
+        "--repo",
+        type=str,
+        default="kylecui/petfish.ai",
+        help="GitHub repo in owner/name format (default: kylecui/petfish.ai)",
+    )
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     args = parser.parse_args()
 
@@ -198,7 +391,15 @@ def main():
         print(f"Target path does not exist: {target}", file=sys.stderr)
         sys.exit(1)
 
-    check(target, platform=args.platform, as_json=args.json)
+    if args.check_updates:
+        check_updates(
+            target,
+            platform=args.platform,
+            as_json=args.json,
+            repo=args.repo,
+        )
+    else:
+        check(target, platform=args.platform, as_json=args.json)
 
 
 if __name__ == "__main__":

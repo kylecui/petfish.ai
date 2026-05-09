@@ -53,6 +53,7 @@
 - `/petfish optimize <path>` — 分析并优化skill描述
 - `/petfish eval <path>` — 测试skill触发准确率
 - `/petfish stats` — 查看skill使用统计
+- `/petfish upgrade` — 显示升级命令
 
 ## 行为边界
 

@@ -2,10 +2,11 @@
 name: petfish-companion
 description: >
   胖鱼PEtFiSh常驻伙伴：感知需求与能力缺口（Tier1领域映射+Tier2意图检测）、
-  查询已装pack状态、推荐安装/升级并提供/petfish命令入口。Use when users ask
-  /petfish, “what skills do I have”, “what else can you do”, need deploy/course/
-  ppt/testdocs/petfish/calibrate/context/research capabilities, or need cross-
-  marketplace skill/MCP discovery and skill ecosystem governance.
+  查询已装pack状态、自动检查更新、推荐安装/升级并提供/petfish命令入口。Use when
+  users ask /petfish, /petfish upgrade, "what skills do I have", "what else can
+  you do", "check for updates", need deploy/course/ppt/testdocs/petfish/calibrate/
+  context/research capabilities, or need cross-marketplace skill/MCP discovery
+  and skill ecosystem governance.
 metadata:
   author: petfish-team
   version: 0.2.0
@@ -104,17 +105,31 @@ Tier 1和Tier 2均未命中 → 不输出任何推荐，静默通过。
 
 ### 2.6 升级提示流程
 
-当检测到已安装pack版本低于最新版时：
+**会话首次交互时**，自动运行更新检查：
+
+```bash
+uv run .opencode/skills/petfish-companion/scripts/check_installed.py --target . --check-updates
+```
+
+如果有可用更新，在回复末尾附带一行通知：
 
 ```
-胖鱼: "[pack名]有新版本可用（v0.1.0 → v0.2.0）。要升级吗？
-      升级命令：重新运行安装命令并加 --force 参数。"
+💡 PEtFiSh updates available: deploy 1.0.0 → 1.1.0, course 1.0.0 → 1.2.0. Run: /petfish upgrade
 ```
+
+当用户运行`/petfish upgrade`时：
+
+```bash
+uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
+```
+
+输出适合当前OS的升级命令。
 
 **规则：**
-- 每次会话最多主动推荐**1次**同一个pack的升级（避免打扰）
-- 升级检测依赖`installed-packs.json`中的`version`字段与远端`pack-manifest.json`的版本对比
-- 用户拒绝后，本次会话不再提示该pack的升级
+- 每次会话最多检查**1次**更新（首次交互时）
+- 更新检查依赖GitHub API查询latest release，再逐pack对比`installed-packs.json`中的版本与远端`pack-manifest.json`的版本
+- 网络不可用时静默跳过，不阻塞正常工作
+- 用户拒绝后，本次会话不再提示升级
 
 ### 2.7 节制规则
 
@@ -304,15 +319,27 @@ uv run .opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --p
 uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py --action report --target .
 ```
 
+### 4.14 /petfish upgrade
+
+显示适合当前OS的升级命令：
+
+```bash
+uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
+```
+
+也可搭配`--json`输出JSON格式。
+
 ## 5. 治理规则
 
 ### 5.1 版本检查
 
-当用户运行`/petfish status`时，如果已安装pack的版本低于胖鱼仓库中的最新版本，提示：
+**会话首次交互时自动执行**：运行`check_installed.py --check-updates`查询GitHub最新release并对比已装pack版本。如有更新，在回复末尾附带一行通知。
+
+当用户运行`/petfish status`时，同样检查版本并提示：
 
 ```
 ⚠️ deploy pack有新版本可用 (installed: 0.1.0, latest: 0.2.0)
-   运行 /petfish install deploy --force 更新
+   运行 /petfish upgrade 查看升级命令
 ```
 
 ### 5.2 安全扫描状态
