@@ -1,6 +1,6 @@
 ---
 name: conference-adapter
-description: 为会议与研讨会场景补充CFP截止、讲者管理、AV技术、注册胸牌、赞助与会后论文集等领域字段与检查清单，不复制主流程。Use when the user says "会议筹备", "conference planning", "研讨会组织", "workshop planning", "CFP", "speaker management", or "帮我办一场会议".
+description: 为会议/研讨会场景补充CFP截止、讲者管理、AV与直播录制、注册胸牌、赞助履约、并行议程与会后proceedings检查清单，不复制主流程。Use when the user says "会议筹备", "conference planning", "研讨会组织", "workshop planning", "CFP", "speaker management", "keynote", "panel", "poster", "直播录制", or "帮我办一场会议".
 compatibility: opencode
 license: Apache-2.0
 ---

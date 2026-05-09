@@ -1,12 +1,11 @@
 ---
 name: skill-author
 description: >
-  Generate new OpenCode or Claude Code skills from scratch. Use when the user
-  asks to create a skill, generate a skill, write a new skill, scaffold a
-  skill for a workflow/tool/domain, or build a reusable skill package with
-  SKILL.md, references, scripts, assets, and eval guidance. Trigger phrases
-  include "create a skill", "generate skill", "new skill", "write a skill",
-  and "skill for X".
+  Generate/scaffold new OpenCode or Claude skills from scratch. Trigger on
+  “create a skill”, “generate skill”, “new skill”, “write a skill”, “skill for
+  X”. Produces valid skill directory + SKILL.md (role/activation/workflow/
+  boundaries), references/scripts/assets/evals as needed, enforces name rules,
+  states assumptions, and runs skill-lint validation when available.
 metadata:
   version: 0.2.0
   author: petfish-team

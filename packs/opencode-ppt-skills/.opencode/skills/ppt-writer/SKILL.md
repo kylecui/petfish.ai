@@ -1,6 +1,6 @@
 ---
 name: ppt-writer
-description: Use this skill when the user wants to create, rewrite, edit, update, restructure, generate, polish, validate, or export a PowerPoint/PPTX deck, slide presentation, pitch deck, courseware, proposal deck, report deck, or template-based presentation. Prefer this skill for PPTX output, including when source material comes from Markdown, notes, PDFs, Word documents, existing PPTX files, outlines, or meeting transcripts.
+description: Use this skill when the user wants to create/rewrite/restructure/update/validate/export PPT/PPTX decks (课件、提案、汇报、论文、技术方案). Trigger for 从Markdown/文档/纪要/旧PPT生成新deck, template/style unification, per-slide rewrite plans, build_deck + qa_deck workflow, visual QA, and iterative generate→QA→fix→re-verify delivery.
 license: MIT
 compatibility: opencode; requires uv for bundled Python scripts; optional LibreOffice and Poppler for visual QA; Node/PptxGenJS may be used for advanced custom layouts when available.
 metadata:

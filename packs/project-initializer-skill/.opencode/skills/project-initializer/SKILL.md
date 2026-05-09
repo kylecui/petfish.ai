@@ -1,6 +1,6 @@
 ---
 name: project-initializer
-description: Use this skill when a user wants to initialize, scaffold, bootstrap, or standardize a new AI-agent-friendly project workspace, including OpenCode project skills, AGENTS.md, README, QA files, MCP templates, uv/Python development setup, course projects, code projects, ops projects, security research projects, writing projects, skills packages, or comprehensive mixed projects. This skill is for safe project initialization and must not silently overwrite existing files.
+description: Use this skill to initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.md/README/.opencode/docs/tasks/qa/mcp templates, run profile setup (minimal/course/code/ops/security/research/writing/skills-package/comprehensive), configure uv dev env, and provide post-init wizard + pack install guidance. Enforces safe no-overwrite init with explicit confirmation for risky operations.
 license: Proprietary. Adapt for internal use.
 compatibility: Designed for OpenCode project-level skills. Optional script requires Python 3.10+; uv is recommended for Python development projects.
 metadata:

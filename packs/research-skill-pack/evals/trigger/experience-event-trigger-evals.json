@@ -99,6 +99,27 @@
         "采用建议",
         "学习计划"
       ]
+    },
+    {
+      "id": "participant-experience-designer-trigger-01",
+      "skill": "participant-experience-designer",
+      "type": "trigger",
+      "should_trigger": [
+        "参与者体验",
+        "participant experience",
+        "用户旅程",
+        "attendee journey",
+        "体验设计",
+        "参会体验",
+        "participant journey",
+        "帮我优化参与者体验"
+      ],
+      "should_not_trigger": [
+        "用户研究",
+        "产品体验",
+        "学习路径",
+        "决策建议"
+      ]
     }
   ]
 }

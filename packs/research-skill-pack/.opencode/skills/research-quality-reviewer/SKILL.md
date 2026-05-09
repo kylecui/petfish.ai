@@ -1,6 +1,6 @@
 ---
 name: research-quality-reviewer
-description: 独立审查研究报告的证据覆盖、逻辑链、引用完整性、反面证据和AI表达质量。Use when reviewing a research report for evidence completeness, logical coherence, citation coverage, counter-evidence discussion, and AI slop detection before publication.
+description: 研究报告独立质审：检查证据覆盖、引用完整性、逻辑链、反面证据、方法匹配、可执行建议、风险披露与AI腔（AI slop），给出发布前评级。Use when users ask “报告审查/quality review/发布前检查/check my report/AI腔检测”.
 compatibility: opencode
 license: Apache-2.0
 ---

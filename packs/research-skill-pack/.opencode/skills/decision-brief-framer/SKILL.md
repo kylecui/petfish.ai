@@ -1,6 +1,6 @@
 ---
 name: decision-brief-framer
-description: 将模糊决策请求转化为结构化决策简报，明确决策问题、备选项、决策人、约束、偏好、must-have、nice-to-have与一票否决项。Use when the user says "决策简报", "decision brief", "怎么选", "which option", "go/no-go", "取舍", or "拍板".
+description: 将模糊决策请求转化为结构化决策简报，明确决策问题、备选项、决策人、约束、偏好、must-have、nice-to-have与一票否决项。Use when the user says "决策简报", "decision brief", "怎么选", "which option", "go/no-go", "取舍", "拍板", "是否上线", "是否采购", or "该不该".
 compatibility: opencode
 license: Apache-2.0
 ---

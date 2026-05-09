@@ -1,12 +1,11 @@
 ---
 name: marketplace-connector
 description: >
-  Search and discover AI skills from multiple marketplaces and registries.
-  Aggregates results from PEtFiSh own repo, Glama MCP registry, Smithery,
-  SkillKit, anthropics/skills, and GitHub. Use when user asks to find skills,
-  search for tools, discover MCP servers, or needs capabilities not available
-  locally. Triggers: "find a skill for", "search marketplace", "is there a
-  skill that", "MCP server for", "discover tools for", /petfish search.
+  Search/discover skills and MCP servers across PEtFiSh, Glama, Smithery,
+  SkillKit, anthropics/skills, and GitHub. Use for /petfish search, “find a
+  skill for…”, “search marketplace”, “is there a skill that…”, “MCP server
+  for…”, “discover tools for…”, or when local capabilities are missing. Returns
+  ranked cross-source results plus install/config guidance.
 metadata:
   author: petfish-team
   version: 0.2.0

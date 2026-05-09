@@ -1,6 +1,6 @@
 ---
 name: product-competitor-analysis
-description: 系统化执行竞品发现、功能矩阵、定位分析、SWOT与市场规模估算，提炼可执行差异化方向。Use when the user says "竞品分析", "competitor analysis", "竞品", "competitive landscape", "市场分析", "market analysis", "SWOT", "定位分析", "positioning", or "market sizing".
+description: 系统化执行竞品发现、功能矩阵、定位分析、SWOT与市场规模估算，提炼可执行差异化方向。Use when the user says "竞品分析", "competitor analysis", "竞品", "competitive landscape", "功能矩阵", "feature matrix", "市场分析", "market analysis", "SWOT", "定位分析", "positioning", "market sizing", "差异化", or "differentiation".
 compatibility: opencode
 license: Apache-2.0
 ---

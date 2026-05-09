@@ -1,13 +1,10 @@
 ---
 name: quality-gate
 description: >
-  PEtFiSh skill发布门禁。在skill进入胖鱼自有仓库前，依次运行格式检查(skill-lint)、
-  安全审计(skill-security-auditor)、元数据验证，生成综合评审报告并给出发布决策：
-  pass（允许发布）、conditional（需人工确认后发布）、fail（不允许发布）。
-  Use this skill when publishing a new skill to the PEtFiSh registry,
-  when running pre-merge checks, when deciding if a mined or authored
-  skill meets quality standards, or when the user says "publish skill",
-  "can this skill be released", "run quality gate", "check before publish".
+  PEtFiSh skill发布门禁：串行执行skill-lint + skill-security-auditor + 元数据校验，
+  输出门禁报告与PASS/CONDITIONAL/FAIL决策。Use for “publish skill”, “can this
+  skill be released”, “run quality gate”, “check before publish”, pre-merge
+  checks, and recursive batch gating of skill roots before registry release.
 metadata:
   author: petfish-team
   version: 0.2.0

@@ -1,6 +1,6 @@
 ---
 name: planning-scenario-planner
-description: 情景规划与替代未来构建（关键不确定性、情景矩阵、稳健策略），将环境与利益相关方输入转化为战略选项。Use when the user says "情景规划", "scenario planning", "alternative futures", "关键不确定性", "scenario matrix", or "robust strategy".
+description: 情景规划与替代未来构建（关键不确定性、情景矩阵、稳健策略），将环境与利益相关方输入转化为战略选项。Use when the user says "情景规划", "scenario planning", "alternative futures", "关键不确定性", "scenario matrix", "稳健策略", "robust strategy", "多路径战略", "战略选项", "技术投资情景", or "政策应对情景".
 compatibility: opencode
 license: Apache-2.0
 ---

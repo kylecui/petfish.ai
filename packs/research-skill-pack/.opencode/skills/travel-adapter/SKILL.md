@@ -1,6 +1,6 @@
 ---
 name: travel-adapter
-description: 为旅行场景补充目的地类型、签证入境、天气季节、本地交通、货币语言、健康与保险等领域字段与检查清单，不复制主流程。Use when the user says "旅行规划", "trip planning", "旅游攻略", "travel itinerary", "去哪玩", "vacation planning", or "帮我安排一次旅行".
+description: 为旅行场景补充目的地类型、签证入境、天气季节、本地交通、货币语言、健康保险与跨城/跨国核验清单，不复制主流程。Use when the user says "旅行规划", "trip planning", "旅游攻略", "travel itinerary", "vacation planning", "跨国行程", "签证", "入境政策", "去哪玩", or "帮我安排一次旅行".
 compatibility: opencode
 license: Apache-2.0
 ---

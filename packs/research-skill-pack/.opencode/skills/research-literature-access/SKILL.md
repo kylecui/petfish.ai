@@ -1,6 +1,6 @@
 ---
 name: research-literature-access
-description: 文献合法访问与访问记录管理，优先寻找同一文献的合法免费全文来源，必要时使用用户授权访问。Use when literature, standards, or reports are behind paywalls and you need legal free full-text first, then user-authorized institutional or personal access with full audit records.
+description: 文献全文合法获取与访问审计：处理付费墙、版本差异（published/accepted/preprint/tech report）、全文缺失与授权访问确认，优先free-first并记录access-attempts。Use when users ask “文献全文/论文打不开/付费墙/合法获取/check版本/source access”, needing legal full-text, user-authorized access, and audit logs.
 compatibility: opencode
 license: Apache-2.0
 ---

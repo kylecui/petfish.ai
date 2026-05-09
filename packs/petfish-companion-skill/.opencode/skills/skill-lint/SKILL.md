@@ -1,12 +1,11 @@
 ---
 name: skill-lint
 description: >
-  Use this skill when the user asks to lint skill, check skill, validate
-  skill, review skill quality, or asks is this skill valid. It validates
-  SKILL.md frontmatter, instruction quality, skill directory structure,
-  reference duplication, and basic script security patterns. Use it for new
-  skills before publishing, during pack QA, or when debugging why a skill is
-  not loading or matching reliably.
+  Use this skill to lint/check/validate skill quality and trigger reliability.
+  Trigger on “lint skill”, “check skill”, “validate skill”, “is this skill
+  valid”, pre-publish QA, or debugging load/match issues. Runs lint_skill.py on
+  single skill or recursive roots, reports ERROR/WARN/INFO with rule IDs,
+  score/counts, JSON output, and optional dry-run/apply fix workflow.
 metadata:
   version: 0.2.0
   author: petfish-team

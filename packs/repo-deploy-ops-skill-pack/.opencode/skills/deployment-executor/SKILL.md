@@ -1,6 +1,6 @@
 ---
 name: deployment-executor
-description: 按部署计划执行上线、升级或重部署，优先使用repo已有的Docker/compose/systemd/k8s方式，并在执行前建立回滚点、记录路径与版本、保留变更摘要。Use when you already know how the service should be deployed and need to execute the rollout safely.
+description: 按已确认部署计划执行上线/升级/重部署：优先repo现有Docker/compose/systemd/k8s信号，先Plan→Validate→Execute，建立回滚点并记录版本/路径/命令/变更摘要。Trigger for执行发布、切换release目录、配置注入、迁移与启动；用于部署方式已明确且需要安全落地时。
 compatibility: Requires deployment access to the target host. Common tools: ssh, rsync, git, docker or systemctl. Python 3.11+ and uv recommended for helper scripts.
 license: Internal use
 ---

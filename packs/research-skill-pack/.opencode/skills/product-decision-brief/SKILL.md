@@ -1,6 +1,6 @@
 ---
 name: product-decision-brief
-description: 将用户研究、竞品分析与验证结果综合为go/no-go/pivot决策简报，提供可追溯结论与风险说明。Use when the user says "产品决策", "product decision", "go/no-go", "决策简报", "decision brief", "产品建议", or "should we build this".
+description: 将用户研究、竞品分析与验证结果综合为go/no-go/pivot决策简报，提供可追溯结论与风险说明。Use when the user says "产品决策", "product decision", "go/no-go", "pivot", "决策简报", "decision brief", "should we build this", "管理层决策材料", "tradeoff", "收益风险权衡", or "替代方案对比".
 compatibility: opencode
 license: Apache-2.0
 ---

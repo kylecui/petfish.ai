@@ -1,6 +1,6 @@
 ---
 name: incident-rollback
-description: 处理部署失败、上线后故障、健康检查异常、接口错误、日志爆红等事件，优先止血、判断是否回滚、执行回滚并形成incident/rollback记录。Use when a deployment goes wrong or a running service must be stabilized quickly.
+description: 处理部署失败与线上故障：health check失败、核心API错误、502/504、重启循环、依赖异常等。先定级与止血，再判断修复或回滚，执行回滚并输出incident/rollback记录（影响、证据、动作、当前状态、后续修复）。Use when rollout fails or service needs rapid stabilization.
 compatibility: Requires access to the target environment and prior deployment context. Helpful tools: systemctl, journalctl, docker logs, curl, ssh.
 license: Internal use
 ---

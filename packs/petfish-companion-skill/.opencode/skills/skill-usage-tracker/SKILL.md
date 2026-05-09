@@ -1,13 +1,11 @@
 ---
 name: skill-usage-tracker
 description: >
-  追踪PEtFiSh skill的使用情况。记录每个skill的激活次数、使用频率、
-  项目关联和用户反馈。生成使用报告帮助发现高价值skill、低活跃skill
-  和潜在优化机会。支持数据驱动的skill推荐和生态治理。
-  Use this skill when tracking skill usage patterns, generating usage
-  reports, analyzing which skills are most/least used, understanding
-  project-skill affinity, or when the user says "usage stats",
-  "which skills are popular", "skill analytics", "track usage".
+  追踪并分析skill使用：记录激活事件、会话覆盖、helpful/not_helpful反馈，
+  生成usage report识别高价值与低活跃skill并给出推荐优化。Use for “usage
+  stats”, “which skills are popular”, “skill analytics”, “track usage”,
+  project-skill affinity analysis, and local governance insights via
+  .opencode/skill-usage.json.
 metadata:
   author: petfish-team
   version: 0.2.0

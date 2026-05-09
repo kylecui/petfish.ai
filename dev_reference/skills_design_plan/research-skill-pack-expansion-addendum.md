@@ -3,7 +3,9 @@
 > 文档类型：V2计划补充文档  
 > 适用对象：`research-skill-pack`后续扩展  
 > 主题：在科研研究、产品研究、规划/战略研究之外，如何补充更多通用研究能力  
-> 建议状态：Design Addendum / 可进入后续实施规划  
+> 建议状态：**Implemented** — 所有Phase A-E已交付，4个P3 skill在v0.10.9补齐  
+> 交付版本：v0.10.0 ~ v0.10.9  
+> 最终skill数：54（含4个adapter）  
 
 ---
 

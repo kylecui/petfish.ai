@@ -1,6 +1,6 @@
 ---
 name: scientific-methodology-designer
-description: 将研究想法转化为可验证方法设计，明确对象、假设、I/O、差异化、验证路径与有效性威胁边界。Use when the user says "方法设计", "methodology", "research design", "如何验证", "实验方法", or "validity threats".
+description: 科学方法设计：把研究想法落成可证伪research design，定义研究对象、核心假设、I/O、差异化、验证路径与validity threats，明确可声称与不可声称边界。Use when users ask “方法设计/methodology/research design/如何验证/实验方法/method section/validity threats”.
 compatibility: opencode
 license: Apache-2.0
 ---

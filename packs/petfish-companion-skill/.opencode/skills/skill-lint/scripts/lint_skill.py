@@ -46,14 +46,20 @@ class Finding:
     severity: str
     message: str
     fix: str
+    type: str | None = None
+    coverage_pct: float | None = None
 
     def to_dict(self) -> dict:
-        return {
+        payload: dict[str, object] = {
             "id": self.id,
+            "type": self.type or self.id,
             "severity": self.severity,
             "message": self.message,
             "fix": self.fix,
         }
+        if self.coverage_pct is not None:
+            payload["coverage_pct"] = self.coverage_pct
+        return payload
 
 
 @dataclass
@@ -225,9 +231,221 @@ def has_trigger_hint(description: str) -> bool:
 
 
 def add_finding(
-    findings: list[Finding], rule_id: str, severity: str, message: str, fix: str
+    findings: list[Finding],
+    rule_id: str,
+    severity: str,
+    message: str,
+    fix: str,
+    finding_type: str | None = None,
+    coverage_pct: float | None = None,
 ):
-    findings.append(Finding(rule_id, severity, message, fix))
+    findings.append(
+        Finding(
+            rule_id,
+            severity,
+            message,
+            fix,
+            type=finding_type,
+            coverage_pct=coverage_pct,
+        )
+    )
+
+
+TRIGGER_SECTION_TITLES = (
+    "触发场景",
+    "trigger",
+    "use this skill when",
+    "适用场景",
+    "when to use",
+    "触发短语",
+    "trigger phrases",
+)
+
+TRIGGER_STOPWORDS = {
+    "the",
+    "and",
+    "for",
+    "with",
+    "this",
+    "that",
+    "from",
+    "when",
+    "where",
+    "which",
+    "user",
+    "users",
+    "skill",
+    "skills",
+    "asks",
+    "ask",
+    "use",
+    "using",
+    "used",
+    "trigger",
+    "triggers",
+    "phrases",
+    "phrase",
+    "适用",
+    "触发",
+    "场景",
+    "用户",
+    "使用",
+    "技能",
+    "时候",
+}
+
+
+def normalized_whitespace(text: str) -> str:
+    return " ".join(text.strip().split())
+
+
+def normalize_for_match(text: str) -> str:
+    cleaned = re.sub(r"[`*_~#>\[\](){}]", " ", text.lower())
+    cleaned = re.sub(r"[\s\-_/\\]+", " ", cleaned)
+    return normalized_whitespace(cleaned)
+
+
+def extract_terms(text: str) -> set[str]:
+    terms: set[str] = set()
+    for token in re.findall(r"[a-z][a-z0-9-]{1,}|[\u4e00-\u9fff]{2,}", text.lower()):
+        token = token.strip("-_")
+        if len(token) < 2:
+            continue
+        if token in TRIGGER_STOPWORDS:
+            continue
+        terms.add(token)
+    return terms
+
+
+def extract_trigger_sections(body: str) -> str:
+    lines = body.splitlines()
+    captured_chunks: list[str] = []
+    collecting = False
+
+    for line in lines:
+        heading_match = re.match(r"^\s{0,3}#{1,6}\s*(.+?)\s*$", line)
+        if heading_match:
+            heading = heading_match.group(1).strip().lower()
+            collecting = any(title in heading for title in TRIGGER_SECTION_TITLES)
+            continue
+
+        inline_match = re.match(r"^\s*(?:[-*]\s*)?([^:：]+)\s*[:：]\s*(.+)$", line)
+        if inline_match:
+            lead = inline_match.group(1).strip().lower()
+            value = inline_match.group(2).strip()
+            if any(title in lead for title in TRIGGER_SECTION_TITLES):
+                captured_chunks.append(value)
+
+        if collecting:
+            captured_chunks.append(line)
+
+    return "\n".join(captured_chunks)
+
+
+def extract_quoted_phrases(text: str) -> set[str]:
+    phrases: set[str] = set()
+    patterns = [
+        r'"([^"\n]{2,120})"',
+        r"'([^'\n]{2,120})'",
+        r"“([^”\n]{2,120})”",
+        r"‘([^’\n]{2,120})’",
+    ]
+    for pattern in patterns:
+        for match in re.findall(pattern, text):
+            phrase = normalize_for_match(match)
+            if len(phrase) >= 2:
+                phrases.add(phrase)
+    return phrases
+
+
+def extract_trigger_keywords(body: str) -> set[str]:
+    section_text = extract_trigger_sections(body)
+    if not section_text.strip():
+        return set()
+
+    keywords: set[str] = set()
+    separator_pattern = re.compile(r"[/、,，;；]|\bor\b", re.I)
+    section_header_pattern = re.compile(
+        r"^(?:use\s+this\s+skill\s+when|when\s+to\s+use|trigger(?:\s+phrases?)?|触发(?:场景|短语)?|适用场景)\s*[:：-]?\s*",
+        re.I,
+    )
+
+    for raw_line in section_text.splitlines():
+        line = re.sub(r"^\s*(?:[-*+]|\d+\.)\s*", "", raw_line).strip()
+        if not line:
+            continue
+
+        quoted = extract_quoted_phrases(line)
+        if quoted:
+            keywords.update(extract_terms(" ".join(quoted)))
+
+        if not separator_pattern.search(line):
+            continue
+
+        normalized_line = section_header_pattern.sub("", line)
+        for chunk in re.split(separator_pattern, normalized_line):
+            chunk = normalize_for_match(chunk)
+            if not chunk or len(chunk) < 2:
+                continue
+            keywords.update(extract_terms(chunk))
+
+    return keywords
+
+
+def term_is_covered(
+    term: str, description_terms: set[str], normalized_description: str
+) -> bool:
+    if term in normalized_description:
+        return True
+    for desc_term in description_terms:
+        if term == desc_term:
+            return True
+        if len(term) >= 2 and len(desc_term) >= 2:
+            if term in desc_term or desc_term in term:
+                return True
+    return False
+
+
+def check_trigger_coverage(
+    description: str, body: str, findings: list[Finding]
+) -> None:
+    if not description.strip() or not body.strip():
+        return
+
+    body_terms = extract_trigger_keywords(body)
+    if not body_terms:
+        return
+
+    normalized_description = normalize_for_match(description)
+    description_terms = extract_terms(description)
+
+    matched = {
+        term
+        for term in body_terms
+        if term_is_covered(term, description_terms, normalized_description)
+    }
+    coverage_pct = round((len(matched) / len(body_terms)) * 100, 1)
+
+    if coverage_pct < 50:
+        add_finding(
+            findings,
+            "trigger-coverage",
+            "error",
+            f"description trigger coverage is {coverage_pct}% ({len(matched)}/{len(body_terms)})",
+            "Include key trigger terms from SKILL.md trigger sections in the frontmatter description.",
+            finding_type="trigger-coverage",
+            coverage_pct=coverage_pct,
+        )
+    elif coverage_pct < 80:
+        add_finding(
+            findings,
+            "trigger-coverage",
+            "warn",
+            f"description trigger coverage is {coverage_pct}% ({len(matched)}/{len(body_terms)})",
+            "Expand the frontmatter description to cover more trigger terms from SKILL.md trigger sections.",
+            finding_type="trigger-coverage",
+            coverage_pct=coverage_pct,
+        )
 
 
 def relative_display(path: Path) -> str:
@@ -491,6 +709,8 @@ def lint_skill_dir(skill_dir: Path) -> tuple[LintResult, dict, str]:
             "missing metadata.author",
             "Add metadata.author to show ownership of the skill.",
         )
+
+    check_trigger_coverage(description, body, findings)
 
     references_dir = skill_dir / "references"
     scripts_dir = skill_dir / "scripts"

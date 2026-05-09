@@ -1,6 +1,6 @@
 ---
 name: scientific-literature-review
-description: 科学文献检索、筛选、矩阵化与综述生成。覆盖检索策略、纳入排除标准、全文审阅、研究脉络归纳与方法分类，不做摘要堆叠。Use when the user says "文献综述", "literature review", "研究现状", "找相关论文", "比较这些方法", or "systematic review".
+description: 科学文献综述与systematic review：围绕RQ执行检索策略、纳入排除筛选、全文复核、文献矩阵构建与方法比较，输出研究现状、related work脉络、争议点与研究空白。Use when users ask “文献综述/literature review/systematic review/研究现状/找相关论文/比较方法/related work”.
 compatibility: opencode
 license: Apache-2.0
 ---

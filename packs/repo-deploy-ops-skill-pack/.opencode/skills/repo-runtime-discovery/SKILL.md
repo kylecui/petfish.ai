@@ -1,6 +1,6 @@
 ---
 name: repo-runtime-discovery
-description: 读取本地仓库或GitHub repo，识别技术栈、构建方式、启动入口、配置与密钥需求、数据库/缓存/MQ依赖，以及适合的部署方法。Use when the user asks to inspect a repo before deployment, infer runtime/build/test/run commands, understand Docker/systemd/compose/k8s signals, or generate a deployment brief.
+description: 读取本地或GitHub repo做部署前识别：技术栈、build/test/run入口、Docker/compose/systemd/k8s信号、配置与密钥需求、依赖(DB/Redis/MQ/存储)、health端点与端口，并产出deployment brief与候选部署方式。Trigger for“先读repo再部署”/“不确定怎么启动上线”/runtime inference requests.
 compatibility: Requires git and Python 3.11+; uv recommended for scripts. Helpful for local repos and GitHub repositories.
 license: Internal use
 ---

@@ -1,6 +1,6 @@
 ---
 name: research-synthesis
-description: 综合证据形成结构化分析，包括主题聚类、对比矩阵、矛盾分析和置信度分级。Use when aggregating evidence from the ledger into findings, patterns, contradictions, and recommendations using methods like thematic synthesis, comparative matrix, or gap analysis.
+description: 研究综合分析：将evidence ledger转为主题聚类、对比矩阵、缺口分析、矛盾分析与置信度分级，形成key findings与recommendation options。Use when users ask “综合分析/证据整合/对比方法/形成结论与建议/synthesis matrix”, requiring findings↔evidence traceability and contradiction handling.
 compatibility: opencode
 license: Apache-2.0
 ---

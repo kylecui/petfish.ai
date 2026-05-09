@@ -1,6 +1,6 @@
 ---
 name: risk-research-brief
-description: 明确评估对象、采用场景、风险边界与决策要求，形成可执行的风险采购研究简报。Use when the user says "风险评估", "risk assessment", "工具评估", "tool evaluation", "供应商评估", "vendor evaluation", "是否值得引入", or "should we adopt".
+description: 明确评估对象、采用场景、风险边界与决策要求，形成可执行的风险采购研究简报。Use when the user says "风险评估", "risk assessment", "工具评估", "tool evaluation", "供应商评估", "vendor evaluation", "是否值得引入", "should we adopt", "要不要引入", or "采购评估".
 compatibility: opencode
 license: Apache-2.0
 ---

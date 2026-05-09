@@ -1,6 +1,6 @@
 ---
 name: learning-goal-framer
-description: 将模糊学习愿望转化为结构化学习目标，明确目标能力、当前基线、应用场景、时间约束、产出要求与评估标准。Use when the user says "学习目标", "learning goal", "我想学", "I want to learn", "学习计划", "learning plan", or "如何入门".
+description: 将模糊学习愿望转化为结构化学习目标，明确目标能力、当前基线、应用场景、时间约束、产出要求与评估标准。Use when the user says "学习目标", "learning goal", "我想学", "I want to learn", "学习计划", "learning plan", "如何入门", "学习范围", or "学什么".
 compatibility: opencode
 license: Apache-2.0
 ---

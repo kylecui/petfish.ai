@@ -1,13 +1,11 @@
 ---
 name: skill-description-optimizer
 description: >
-  Analyze and optimize skill descriptions to maximize trigger accuracy. Use
-  this skill when the user asks to optimize description, improve trigger, fix
-  skill description, investigate description too broad, or debug why a skill is
-  not triggering or activates too broadly. It evaluates description length,
-  trigger phrase density, specificity, activation boundaries, and keyword
-  overlap with sibling skills, then suggests a sharper description with clearer
-  trigger boundaries and lower semantic overlap.
+  Analyze/optimize SKILL.md frontmatter descriptions for trigger precision.
+  Trigger on “optimize description”, “improve trigger”, “fix skill description”,
+  “description too broad”, “skill not triggering”. Checks length, trigger phrase
+  density, specificity score, activation boundaries, sibling overlap/collision,
+  then outputs actionable rewrite suggestions and a replacement description.
 metadata:
   author: petfish-team
   version: 0.2.0

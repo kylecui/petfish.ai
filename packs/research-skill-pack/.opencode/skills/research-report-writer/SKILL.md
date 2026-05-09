@@ -1,6 +1,6 @@
 ---
 name: research-report-writer
-description: 将证据与分析转化为正式研究报告，支持科学研究、产品研究和规划研究等多种报告类型。Use when writing the final research report, executive summary, or paper draft from evidence and synthesis, ensuring every claim links back to the evidence ledger.
+description: 基于research brief、evidence ledger与synthesis写正式研究报告/执行摘要，支持科学研究、产品研究、规划研究、白皮书与提案，确保每个claim可追溯evidence_id并披露方法与局限。Use when users ask “写研究报告/executive summary/白皮书/提案/论文初稿/report writing”.
 compatibility: opencode
 license: Apache-2.0
 ---

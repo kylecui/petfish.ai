@@ -1,6 +1,6 @@
 ---
 name: planning-roadmap-developer
-description: 战略路线图开发与分阶段落地设计（里程碑、依赖关系、决策门、资源节奏），整合环境、利益相关方、情景、政策与技术评估输入。Use when the user says "战略路线图", "roadmap", "milestone plan", "dependency map", "decision gate", or "phased strategy".
+description: 战略路线图开发与分阶段落地设计（里程碑、依赖关系、决策门、资源节奏），整合环境、利益相关方、情景、政策与技术评估输入。Use when the user says "战略路线图", "roadmap", "milestone plan", "dependency map", "decision gate", "phased strategy", "季度规划", "年度规划", "go/no-go gate", or "执行路线图".
 compatibility: opencode
 license: Apache-2.0
 ---

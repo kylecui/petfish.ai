@@ -1,6 +1,6 @@
 ---
 name: deployment-verifier
-description: 对已部署服务做功能性验证，包括health/readiness、核心API smoke test、页面可访问性、日志关键字、端口监听、依赖连接与异常日志排查。Use when you need to prove that a deployment actually works rather than only that a process started.
+description: 对已部署/升级/回滚后的服务做功能验证：health/readiness、核心API smoke test、页面可访问性、端口监听、日志与依赖(DB/Redis/MQ/proxy)核验。Trigger for验收、交接、巡检、故障修复后复验；用于证明“服务可用”而非仅“进程已启动”。
 compatibility: Requires network access to the service under test. Python 3.11+ and uv recommended. Helpful tools: curl, jq, grep, journalctl, docker logs.
 license: Internal use
 ---

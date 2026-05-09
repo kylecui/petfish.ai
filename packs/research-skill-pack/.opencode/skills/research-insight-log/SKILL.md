@@ -1,6 +1,6 @@
 ---
 name: research-insight-log
-description: 灵感、假设、类比、问题和研究构想记录器。保存"尚未证明但可能重要"的研究想法及其触发来源和验证路径。Use when capturing ideas, analogies, hypotheses, questions, or research hunches during reading that are not yet proven but may be valuable for the research.
+description: 研究灵感日志：记录“我突然想到”“记一下这个想法”的hypothesis/analogy/research-question/method-idea/experiment-idea等，绑定触发来源(source_ids/note_ids/context)、potential value与验证问题。Use when users ask to capture hunches/ideas not yet proven, for later validation instead of direct claims.
 compatibility: opencode
 license: Apache-2.0
 ---

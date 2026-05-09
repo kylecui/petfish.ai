@@ -1,6 +1,6 @@
 ---
 name: planning-policy-researcher
-description: 政策与监管研究（法规版图、政策趋势、合规要求、政策影响评估），将制度约束转化为战略规划输入。Use when the user says "政策研究", "policy analysis", "regulatory landscape", "compliance", "policy trend", or "法规影响".
+description: 政策与监管研究（法规版图、政策趋势、合规要求、政策影响评估），将制度约束转化为战略规划输入。Use when the user says "政策研究", "policy analysis", "regulatory landscape", "compliance", "policy trend", "法规影响", "监管风险", "regulatory risk", "政策边界", "窗口期", or "policy shock".
 compatibility: opencode
 license: Apache-2.0
 ---

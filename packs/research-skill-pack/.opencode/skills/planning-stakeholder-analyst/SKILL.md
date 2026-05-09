@@ -1,6 +1,6 @@
 ---
 name: planning-stakeholder-analyst
-description: 利益相关方分析与参与策略设计（影响力-关注度映射、关系网络、诉求识别），为规划研究建立可执行协同路径。Use when the user says "利益相关方分析", "stakeholder analysis", "influence-interest matrix", "engagement plan", "stakeholder map", or "参与策略".
+description: 利益相关方分析与参与策略设计（影响力-关注度映射、关系网络、诉求识别），为规划研究建立可执行协同路径。Use when the user says "利益相关方分析", "stakeholder analysis", "stakeholder map", "影响力-关注度", "influence-interest matrix", "engagement plan", "关键决策主体", "诉求冲突", "conflict mapping", or "参与策略".
 compatibility: opencode
 license: Apache-2.0
 ---

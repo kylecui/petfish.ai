@@ -1,6 +1,6 @@
 ---
 name: decision-recommendation
-description: 基于决策简报、标准与对比矩阵生成最终推荐，明确适用条件、备选路径、风险、验证步骤与决策日志。Use when the user says "最终建议", "decision recommendation", "推荐方案", "go/no-go", "决策结论", or "下一步怎么定".
+description: 基于decision brief、criteria与comparison matrix生成最终推荐，明确生效条件、备选/回退路径、风险、试点验证与决策日志。Use when the user says "最终建议", "decision recommendation", "推荐方案", "go/no-go", "决策结论", "回退策略", "pilot", "PoC", "执行计划", or "decision log".
 compatibility: opencode
 license: Apache-2.0
 ---

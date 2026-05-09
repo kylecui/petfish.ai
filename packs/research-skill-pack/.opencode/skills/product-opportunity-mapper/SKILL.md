@@ -1,6 +1,6 @@
 ---
 name: product-opportunity-mapper
-description: 基于用户证据与竞争格局做问题空间映射，结合JTBD识别、评分并优先级排序产品机会。Use when the user says "机会分析", "opportunity mapping", "JTBD", "Jobs to be Done", "问题空间", "problem space", "机会评估", "opportunity scoring", "需求分析", or "需求挖掘".
+description: 基于用户证据与竞争格局做问题空间映射，结合JTBD识别、评分并优先级排序产品机会。Use when the user says "机会分析", "opportunity mapping", "JTBD", "Jobs to be Done", "问题空间", "problem space", "机会评估", "opportunity scoring", "需求分析", "需求挖掘", "underserved", "overserved", "优先级矩阵", or "priority matrix".
 compatibility: opencode
 license: Apache-2.0
 ---

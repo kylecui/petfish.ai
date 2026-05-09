@@ -1,6 +1,6 @@
 ---
 name: planning-environment-scanner
-description: 环境扫描与外部趋势分析（PESTLE、趋势雷达、信号识别），将外部变量转化为战略研究输入。Use when the user says "环境扫描", "PESTLE", "趋势分析", "trend analysis", "external scanning", "macro environment", or "信号识别".
+description: 环境扫描与外部趋势分析（PESTLE、趋势雷达、信号识别），将外部变量转化为战略研究输入。Use when the user says "环境扫描", "PESTLE", "趋势分析", "trend analysis", "external scanning", "macro environment", "趋势雷达", "trend radar", "信号识别", "weak signals", "外部风险", or "外部机会".
 compatibility: opencode
 license: Apache-2.0
 ---

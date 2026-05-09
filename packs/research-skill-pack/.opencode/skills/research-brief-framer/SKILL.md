@@ -1,6 +1,6 @@
 ---
 name: research-brief-framer
-description: 将模糊研究意图转化为结构化research brief，明确研究问题、范围边界、证据要求与验收标准。Use when a vague research goal needs structuring into a formal research brief with core questions, sub-questions, scope boundaries, evidence requirements, and acceptance criteria.
+description: 将模糊研究意图转化为结构化research brief，明确研究问题、范围边界、证据要求与验收标准。Use when the user says "研究目标", "研究问题", "research brief", "研究计划", "启动研究", "研究任务", or when a vague research goal needs structuring into a formal research brief with core questions, sub-questions, scope boundaries, evidence requirements, and acceptance criteria.
 compatibility: opencode
 license: Apache-2.0
 ---

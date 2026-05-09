@@ -1,6 +1,6 @@
 ---
 name: learning-path-designer
-description: 基于学习目标与资源清单设计分阶段学习路径，定义阶段目标、资源组合、练习任务、交付物与评估检查点。Use when the user says "学习路径", "learning path", "学习路线", "roadmap", "分阶段学习", or "怎么安排学习".
+description: 基于学习目标与资源清单设计分阶段学习路径，定义阶段目标、资源组合、练习任务、交付物与评估检查点。Use when the user says "学习路径", "learning path", "学习路线", "roadmap", "分阶段学习", "学习里程碑", "milestone", "检查点", "checkpoint", "理论+实操", or "怎么安排学习".
 compatibility: opencode
 license: Apache-2.0
 ---

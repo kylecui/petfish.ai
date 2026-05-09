@@ -1,6 +1,6 @@
 ---
 name: vendor-source-diligence
-description: 对供应商、开源项目与数据来源做尽职调查，识别身份、稳定性、维护与锁定风险。Use when the user says "供应商尽调", "vendor due diligence", "开源可用性", "open source risk", "数据源可信度", or "source reliability".
+description: 对供应商、开源项目与数据来源做尽调，评估身份与治理、SLA与支持、许可证兼容、bus factor、锁定与退出条件。Use when the user says "供应商尽调", "vendor due diligence", "source diligence", "开源风险", "open source risk", "数据源可信度", "SLA", "lock-in risk", "exit condition", or "source reliability".
 compatibility: opencode
 license: Apache-2.0
 ---

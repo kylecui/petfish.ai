@@ -1,6 +1,6 @@
 ---
 name: scientific-experiment-planner
-description: 科学研究实验设计与验证规划。围绕假设、变量、baseline、ablation、指标、统计检验和复现要求，生成可执行实验计划。Use when the user says "实验设计", "experiment plan", "实验方案", "baseline", "ablation", "评价指标", "metrics design", or "how to evaluate".
+description: 科学实验设计与验证规划：围绕可检验假设、变量、baseline、ablation、评价指标、统计检验与复现要求生成experiment plan，回答“如何评估贡献”。Use when users ask “实验设计/experiment plan/实验方案/baseline/ablation/评价指标/metrics design/how to evaluate/benchmark plan”.
 compatibility: opencode
 license: Apache-2.0
 ---

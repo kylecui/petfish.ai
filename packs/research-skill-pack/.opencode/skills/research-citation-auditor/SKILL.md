@@ -1,6 +1,6 @@
 ---
 name: research-citation-auditor
-description: 引用审计与证据映射检查器。逐条核对报告claim是否可追溯到evidence_id与source_id，识别无证据断言、引用缺口、来源失效与“最新/领先/主流”类表述失配。Use when the user says "引用审计", "citation audit", "检查引用", "check citations", "unsupported claims", "引用覆盖", or "source verification".
+description: 引用审计与source verification：逐条核对claim→evidence_id→source_id链路，识别unsupported claims、引用缺口、来源失效/过时、统计口径不一致及“最新/领先/主流/最佳”证据不足。Use when users ask “citation audit/检查引用/引用覆盖/check citations/source verification/unsupported claims”.
 compatibility: opencode
 license: Apache-2.0
 ---
