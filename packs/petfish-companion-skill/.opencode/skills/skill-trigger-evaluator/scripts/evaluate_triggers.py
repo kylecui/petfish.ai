@@ -13,6 +13,36 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
+
+EmbeddingManager: Any = None
+
+try:
+    # Add fish-trail MCP path for embedding import
+    _ft_mcp = (
+        Path(__file__).resolve().parents[5]
+        / "fish-trail"
+        / ".opencode"
+        / "skills"
+        / "fish-trail"
+        / "mcp"
+        / "context-state"
+    )
+    if _ft_mcp.is_dir():
+        sys.path.insert(0, str(_ft_mcp))
+    from embeddings import EmbeddingManager as _EmbeddingManager  # type: ignore[reportMissingImports]
+
+    EmbeddingManager = _EmbeddingManager
+
+    _HAS_EMBEDDINGS = True
+except ImportError:
+    _HAS_EMBEDDINGS = False
+
+TRIGGER_SCORE_THRESHOLD = 0.3
+SEMANTIC_PROMOTION_THRESHOLD = 0.65
+SEMANTIC_DEMOTION_THRESHOLD = 0.3
+
+_embedding_mgr = None
 
 STOPWORDS = {
     "a",
@@ -127,6 +157,11 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.80,
         help="Minimum acceptable trigger pass rate (default: 0.80)",
+    )
+    parser.add_argument(
+        "--semantic",
+        action="store_true",
+        help="Enable semantic fallback scoring when embeddings are available",
     )
     return parser.parse_args()
 
@@ -369,6 +404,22 @@ def score_query(description_keywords: set[str], query: str) -> tuple[float, list
     return score, matched
 
 
+def _embedding_similarity(text_a: str, text_b: str) -> float:
+    if _embedding_mgr is None:
+        return -1.0
+    try:
+        vec_a = _embedding_mgr.encode(text_a)
+        vec_b = _embedding_mgr.encode(text_b)
+        dot = sum(a * b for a, b in zip(vec_a, vec_b))
+        norm_a = sum(a * a for a in vec_a) ** 0.5
+        norm_b = sum(b * b for b in vec_b) ** 0.5
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        return dot / (norm_a * norm_b)
+    except Exception:
+        return -1.0
+
+
 def build_positive_queries(
     skill_name: str, description_keywords: list[str], trigger_phrases: list[str]
 ) -> list[str]:
@@ -464,16 +515,39 @@ def load_test_file(test_file: Path) -> dict:
 
 
 def evaluate_queries(
-    description_keywords: set[str], queries: list[str], expected: str
+    description_keywords: set[str],
+    description_text: str,
+    queries: list[str],
+    expected: str,
+    semantic_enabled: bool,
 ) -> list[QueryResult]:
     results: list[QueryResult] = []
     for query in queries:
-        score, matched_keywords = score_query(description_keywords, query)
+        keyword_score, matched_keywords = score_query(description_keywords, query)
+        score = keyword_score
+        triggered = keyword_score >= TRIGGER_SCORE_THRESHOLD
+
+        if semantic_enabled:
+            similarity = _embedding_similarity(query, description_text)
+
+            if (
+                keyword_score < TRIGGER_SCORE_THRESHOLD
+                and similarity > SEMANTIC_PROMOTION_THRESHOLD
+            ):
+                score = similarity
+                triggered = True
+            elif (
+                keyword_score >= TRIGGER_SCORE_THRESHOLD
+                and 0.0 <= similarity < SEMANTIC_DEMOTION_THRESHOLD
+            ):
+                score = similarity
+                triggered = False
+
         results.append(
             QueryResult(
                 query=query,
                 expected=expected,
-                triggered=score >= 0.3,
+                triggered=triggered,
                 score=score,
                 matched_keywords=matched_keywords,
             )
@@ -523,6 +597,7 @@ def build_report(
     negative_results: list[QueryResult],
     cross_trigger_conflicts: list[dict],
     threshold: float,
+    semantic_enabled: bool,
 ) -> dict:
     total_positive = len(positive_results)
     total_negative = len(negative_results)
@@ -550,6 +625,7 @@ def build_report(
         "passed_positive": passed_positive,
         "failed_negative": failed_negative,
         "cross_trigger_conflicts": cross_trigger_conflicts,
+        "semantic_enabled": semantic_enabled,
         "verdict": verdict,
     }
 
@@ -591,6 +667,8 @@ def print_human_report(
 
 
 def main() -> int:
+    global _embedding_mgr
+
     args = parse_args()
     skill_dir = Path(args.path).expanduser().resolve()
     if not skill_dir.is_dir():
@@ -604,6 +682,16 @@ def main() -> int:
         return 2
 
     description_keywords = extract_keywords(skill.description)
+
+    semantic_enabled = bool(args.semantic and _HAS_EMBEDDINGS and EmbeddingManager)
+    _embedding_mgr = None
+    if semantic_enabled:
+        try:
+            _embedding_mgr = EmbeddingManager(base_dir=str(skill_dir))
+        except Exception:
+            _embedding_mgr = None
+            semantic_enabled = False
+
     if args.test_file:
         test_path = Path(args.test_file).expanduser().resolve()
         if not test_path.is_file():
@@ -621,10 +709,18 @@ def main() -> int:
     positive_queries = test_payload.get("should_trigger", [])
     negative_queries = test_payload.get("should_not_trigger", [])
     positive_results = evaluate_queries(
-        description_keywords, positive_queries, "should_trigger"
+        description_keywords,
+        skill.description,
+        positive_queries,
+        "should_trigger",
+        semantic_enabled,
     )
     negative_results = evaluate_queries(
-        description_keywords, negative_queries, "should_not_trigger"
+        description_keywords,
+        skill.description,
+        negative_queries,
+        "should_not_trigger",
+        semantic_enabled,
     )
 
     cross_trigger_conflicts: list[dict] = []
@@ -645,6 +741,7 @@ def main() -> int:
         negative_results,
         cross_trigger_conflicts,
         args.threshold,
+        semantic_enabled,
     )
 
     if args.json:

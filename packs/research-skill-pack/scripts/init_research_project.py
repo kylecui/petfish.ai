@@ -89,10 +89,17 @@ def main() -> int:
             directories_created += 1
 
     context_content = (
-        f"# Context\n\n"
-        f"- Project Name: {args.name}\n"
-        f"- Research Type: {args.rtype}\n"
-        f"- Created At: {date.today().isoformat()}\n"
+        f"# Research Context\n\n"
+        f"## Project\n\n"
+        f"- **Name**: {args.name}\n"
+        f"- **Type**: {args.rtype}\n"
+        f"- **Created**: {date.today().isoformat()}\n\n"
+        f"## Purpose\n\n"
+        f"<!-- Why this research exists. What question are we answering? -->\n\n"
+        f"## Scope\n\n"
+        f"<!-- What is in scope and out of scope. -->\n\n"
+        f"## Key Decisions\n\n"
+        f"<!-- Record important decisions and their rationale here. -->\n"
     )
     if write_if_missing(root / "CONTEXT.md", context_content):
         files_created += 1

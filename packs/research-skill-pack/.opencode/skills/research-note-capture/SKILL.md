@@ -63,6 +63,13 @@ license: Apache-2.0
 {"note_id":"NOTE-89","source_id":"SRC-120045","original_text":"Index staleness strongly correlates with retrieval errors in weekly release cycles.","location":{"page":5,"section":"3.1"},"paraphrase":"Weekly release cadence may require more frequent index refresh to avoid stale retrieval.","why_it_matters":"Directly informs refresh policy design for the target system."}
 ```
 
+## 参考资料/References
+
+- `references/excerpt-note-method.md` — 摘录笔记方法论与最佳实践
+- `assets/reading-note-template.md` — 阅读笔记Markdown模板
+- `assets/excerpt-notes-empty.jsonl` — 空的JSONL模板，可直接复制使用
+- `scripts/note_lint.py` — 笔记格式校验脚本，运行方式: `uv run note_lint.py --input <path>`
+
 ## 质量门禁/Quality Gates
 
 - 每条摘录必须有 `source_id`。

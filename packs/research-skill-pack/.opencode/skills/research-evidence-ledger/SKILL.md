@@ -32,10 +32,10 @@ license: Apache-2.0
 
 ## 输出/Output
 
-- `evidence-ledger.jsonl` — 结构化证据账本
-- `claim-map.md` — 主张-证据映射图
-- `contradiction-log.md` — 矛盾记录
-- `uncertainty-log.md` — 不确定性记录
+- `evidence-ledger.jsonl` — 结构化证据账本（必须）
+- `claim-map.md` — 主张-证据映射图（推荐，多条证据时生成）
+- `contradiction-log.md` — 矛盾记录（可选，仅存在矛盾证据时生成）
+- `uncertainty-log.md` — 不确定性记录（可选，仅存在AMBIGUOUS类型证据时生成）
 
 ---
 

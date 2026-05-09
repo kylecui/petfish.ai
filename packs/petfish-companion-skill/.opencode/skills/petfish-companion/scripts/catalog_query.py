@@ -216,15 +216,15 @@ _REGISTRY_PATHS = [
 ]
 
 
-def _load_installed_registry() -> dict:
-    """Load installed-packs.json from the current project or global paths.
+def _load_installed_registry(target: Path | None = None) -> dict:
+    """Load installed-packs.json from the target project or global paths.
 
     Returns a dict of pack_name -> {version, installed_at, ...} or empty dict.
     """
-    # Search from CWD upward for installed-packs.json
-    cwd = Path.cwd()
+    # Search from target first (backward compatible default: CWD)
+    base = target if target is not None else Path.cwd()
     for rel in _REGISTRY_PATHS:
-        path = cwd / rel
+        path = base / rel
         if path.exists():
             try:
                 with open(path, "r", encoding="utf-8") as f:
@@ -256,7 +256,7 @@ def _load_installed_registry() -> dict:
     return {}
 
 
-def build_catalog() -> list[dict]:
+def build_catalog(target: Path | None = None) -> list[dict]:
     """Build catalog from manifest files, with installed-packs.json fallback."""
     packs_root = _find_packs_root()
     installed_registry = None  # Lazy-loaded only if needed
@@ -291,7 +291,7 @@ def build_catalog() -> list[dict]:
         else:
             # Fallback: try installed-packs.json registry
             if installed_registry is None:
-                installed_registry = _load_installed_registry()
+                installed_registry = _load_installed_registry(target)
 
             reg_info = installed_registry.get(pack_name, {})
             entry["description"] = reg_info.get("description", "")
@@ -322,9 +322,9 @@ def _counts_str(entry: dict) -> str:
     return " ".join(parts) if parts else ""
 
 
-def list_packs(as_json: bool = False):
+def list_packs(as_json: bool = False, target: Path | None = None):
     """List all packs."""
-    catalog = build_catalog()
+    catalog = build_catalog(target)
 
     if as_json:
         print(json.dumps(catalog, ensure_ascii=False, indent=2))
@@ -352,9 +352,9 @@ def list_packs(as_json: bool = False):
     print("Use --search <keyword> to filter by capability.")
 
 
-def search_packs(term: str, as_json: bool = False):
+def search_packs(term: str, as_json: bool = False, target: Path | None = None):
     """Search packs by keyword across name, description, and triggers."""
-    catalog = build_catalog()
+    catalog = build_catalog(target)
     term_lower = term.lower()
     results = []
     for p in catalog:
@@ -389,13 +389,13 @@ def search_packs(term: str, as_json: bool = False):
         print()
 
 
-def show_profile(name: str, as_json: bool = False):
+def show_profile(name: str, as_json: bool = False, target: Path | None = None):
     """Show packs for a given profile."""
     if name not in PROFILES:
         print(f"Unknown profile '{name}'. Available: {', '.join(PROFILES.keys())}")
         sys.exit(1)
 
-    catalog = build_catalog()
+    catalog = build_catalog(target)
     aliases = PROFILES[name]
     packs = [p for p in catalog if p["alias"] in aliases]
 
@@ -414,21 +414,115 @@ def show_profile(name: str, as_json: bool = False):
     print()
 
 
+def show_triggers(as_json: bool = False):
+    """Show all trigger keywords grouped by alias."""
+    rows = [
+        {"alias": alias, "triggers": TRIGGERS.get(alias, [])} for alias in ALIAS_MAP
+    ]
+
+    if as_json:
+        print(json.dumps(rows, ensure_ascii=False, indent=2))
+        return
+
+    for row in rows:
+        print(f"{row['alias']}: {', '.join(row['triggers'])}")
+
+
+def suggest_packs(as_json: bool = False, target: Path | None = None):
+    """Suggest known packs that are currently not installed."""
+    catalog = build_catalog(target)
+    installed = _load_installed_registry(target)
+    suggestions = [
+        {
+            "alias": p["alias"],
+            "pack": p["pack"],
+            "install_scope": p["install_scope"],
+            "description": p.get("description", ""),
+        }
+        for p in catalog
+        if p["pack"] not in installed
+    ]
+
+    if as_json:
+        print(json.dumps(suggestions, ensure_ascii=False, indent=2))
+        return
+
+    if not suggestions:
+        print("No suggestions. All known packs are already installed.")
+        return
+
+    print("Suggested packs:")
+    for row in suggestions:
+        print(f"  {row['alias']} ({row['pack']})")
+
+
+def show_counts(as_json: bool = False, target: Path | None = None):
+    """Show aggregate pack/skill/command/agent counts."""
+    catalog = build_catalog(target)
+    result = {
+        "packs": len(catalog),
+        "skills": sum(int(p.get("skill_count", 0) or 0) for p in catalog),
+        "commands": sum(int(p.get("command_count", 0) or 0) for p in catalog),
+        "agents": sum(int(p.get("agent_count", 0) or 0) for p in catalog),
+    }
+
+    if as_json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    print(
+        f"packs={result['packs']} skills={result['skills']} "
+        f"cmds={result['commands']} agents={result['agents']}"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="PEtFiSh Skill Catalog Query")
-    group = parser.add_mutually_exclusive_group(required=True)
+    parser.add_argument(
+        "subcommand",
+        nargs="?",
+        choices=["catalog", "triggers", "suggest", "counts"],
+        help="Subcommand mode",
+    )
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument("--list", action="store_true", help="List all packs")
     group.add_argument("--search", type=str, help="Search by keyword")
     group.add_argument("--profile", type=str, help="Show packs for a profile")
+    parser.add_argument(
+        "--target",
+        type=str,
+        help="Target project path for installed registry lookup (default: current working directory)",
+    )
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     args = parser.parse_args()
 
+    target = Path(args.target).resolve() if args.target else Path.cwd()
+    if args.target and not target.exists():
+        print(f"Target path does not exist: {target}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.subcommand:
+        if args.subcommand == "catalog":
+            list_packs(as_json=args.json, target=target)
+        elif args.subcommand == "triggers":
+            show_triggers(as_json=args.json)
+        elif args.subcommand == "suggest":
+            suggest_packs(as_json=args.json, target=target)
+        elif args.subcommand == "counts":
+            show_counts(as_json=args.json, target=target)
+        return
+
+    if not (args.list or args.search or args.profile):
+        parser.error(
+            "one mode is required: subcommand or one of --list/--search/--profile"
+        )
+
     if args.list:
-        list_packs(as_json=args.json)
+        list_packs(as_json=args.json, target=target)
     elif args.search:
-        search_packs(args.search, as_json=args.json)
+        search_packs(args.search, as_json=args.json, target=target)
     elif args.profile:
-        show_profile(args.profile, as_json=args.json)
+        show_profile(args.profile, as_json=args.json, target=target)
 
 
 if __name__ == "__main__":

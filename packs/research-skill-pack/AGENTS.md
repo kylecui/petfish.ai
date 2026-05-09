@@ -108,4 +108,14 @@ research/
 | 需要会议筹备领域增强 | conference-adapter |
 | 需要培训活动领域增强 | training-event-adapter |
 | 需要内容选择领域增强 | content-selection-adapter |
+
+## 数据格式约定
+
+- 面向机器消费的数据技能（source-discovery、note-capture、evidence-ledger）默认使用 JSONL。
+- JSONL 便于结构化校验、lint 检查、脚本处理与流水线拼接。
+- 面向人类阅读的输出技能（brief-framer、synthesis、report-writer）默认使用 Markdown。
+- Markdown 更适合叙述、审阅与协作编辑。
+- 这是有意设计：JSONL 负责保存可追踪证据链，Markdown 负责呈现结论与洞见。
+- 两种格式都有效，不存在“谁替代谁”。
+- 选择原则：下游消费者是脚本就优先 JSONL；是读者/评审就优先 Markdown。
 <!-- END pack: research-skill-pack -->
