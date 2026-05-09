@@ -46,10 +46,27 @@ Offer these choices:
 1. **code** — General coding project (installs: deploy, petfish, testdocs)
 2. **course** — Course development (installs: course, petfish)
 3. **ops** — Operations/infrastructure (installs: deploy, petfish)
-4. **writing** — Writing/documentation (installs: petfish, ppt)
-5. **minimal** — Just the basics (installs: petfish only)
-6. **comprehensive** — Everything (installs: course, deploy, petfish, ppt, testdocs, calibrate, context)
-7. **custom** — Let me choose specific packs
+4. **security** — Security research (installs: deploy, petfish, testdocs, trust)
+5. **research** — Research project (installs: petfish, research)
+6. **writing** — Writing/documentation (installs: petfish, ppt)
+7. **minimal** — Just the basics (installs: petfish only)
+8. **comprehensive** — Everything (installs: course, deploy, petfish, ppt, testdocs, trust, context, research)
+9. **custom** — Let me choose specific packs
+
+If user chooses **research** or any profile that includes the research pack, ask a follow-up question:
+
+```
+What kind of research will this project focus on?
+
+1. Academic — scientific literature, experiments, papers
+2. Business — product research, market analysis, competitor analysis, decisions, procurement
+3. Planning — strategy, stakeholders, scenarios, learning paths
+4. Experiential — events, travel, venues, logistics
+5. Mixed — all research domains
+6. Custom — pick specific domains
+```
+
+This determines how the research workspace is scaffolded and which skill chains agents prioritize.
 
 If user chooses **custom**, show available packs:
 - `init` — Project initializer + wizard
@@ -62,8 +79,9 @@ If user chooses **custom**, show available packs:
 - `calibrate` — Anti-sycophancy calibration for reviews (1 skill)
 - `context` — Topic governance and context isolation (1 skill)
 - `trust` — Skill trust governance engine (1 skill)
+- `research` — Research workbench — 50 skills across 8 domains (scientific, product, planning, learning, decision, risk-procurement, experience-event, adapters)
 
-Ask which packs they want.
+Ask which packs they want. If they include `research`, ask the research domain follow-up question above.
 
 ---
 
