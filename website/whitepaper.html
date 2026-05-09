@@ -88,7 +88,7 @@
     <a href="/" class="back-link"><span class="copy-zh">← 返回首页</span><span class="copy-en">← Back to home</span></a>
 
     <h1><span class="copy-zh">胖鱼 PEtFiSh 技术白皮书</span><span class="copy-en">PEtFiSh Technical Whitepaper</span></h1>
-    <p class="version">v0.6.2 · 2026-05</p>
+    <p class="version">v0.10.10 · 2026-05</p>
 
     <div class="toc">
       <h4>目录 / Contents</h4>
@@ -138,7 +138,7 @@
 │  └──────────────────┼──────────────────────────────────┘     │
 │                     ↓                                         │
 │  ┌──────────────────────────────────────────────────────┐    │
-│  │  /petfish (14 subcommands)   install.ps1 / .sh       │    │
+│  │  /petfish (15 subcommands)   install.ps1 / .sh       │    │
 │  └──────────────────┬──────────────────────────────────┘     │
 │                     ↓                                         │
 │  ┌──────────────────────────────────────────────────────┐    │
@@ -146,7 +146,7 @@
 │  └──────────────────┬──────────────────────────────────┘     │
 │                     ↓                                         │
 │  ┌──────────────────────────────────────────────────────┐    │
-│  │  Pack Layer (10 packs · pack-manifest.json schema)    │    │
+│  │  Pack Layer (11 packs · pack-manifest.json schema)    │    │
 │  └──────────────────┬──────────────────────────────────┘     │
 │                     ↓                                         │
 │  ┌──────────────────────────────────────────────────────┐    │
@@ -167,7 +167,7 @@
       </tr>
       <tr>
         <td><span class="copy-zh">用户接口层</span><span class="copy-en">User Interface Layer</span></td>
-        <td><code>/petfish</code> <span class="copy-zh">14个子命令 + 4个install脚本</span><span class="copy-en">14 subcommands + 4 install scripts</span></td>
+        <td><code>/petfish</code> <span class="copy-zh">15个子命令（含<code>/petfish upgrade</code>） + 4个install脚本</span><span class="copy-en">15 subcommands (including <code>/petfish upgrade</code>) + 4 install scripts</span></td>
         <td><code>install.ps1/sh</code>, <code>remote-install.ps1/sh</code></td>
       </tr>
       <tr>
@@ -177,7 +177,7 @@
       </tr>
       <tr>
         <td><span class="copy-zh">Pack层</span><span class="copy-en">Pack Layer</span></td>
-        <td><span class="copy-zh">10个skill pack，按领域组织</span><span class="copy-en">10 skill packs, organized by domain</span></td>
+        <td><span class="copy-zh">11个skill pack，按领域组织</span><span class="copy-en">11 skill packs, organized by domain</span></td>
         <td><code>packs/*/pack-manifest.json</code></td>
       </tr>
       <tr>
@@ -259,7 +259,7 @@
 
     <h2 id="context"><span class="copy-zh">D. 上下文治理（守护层）</span><span class="copy-en">D. Context Governance (Guarding Layer)</span></h2>
 
-    <p><span class="copy-zh"><code>fish-trail</code> pack通过本地MCP server提供话题感知的上下文治理。纯Python标准库实现，零外部依赖。</span><span class="copy-en"><code>fish-trail</code> pack provides topic-aware context governance via local MCP server. Pure Python stdlib, zero external dependencies.</span></p>
+    <p><span class="copy-zh">鱼迹<code>fish-trail</code> pack通过本地MCP server提供话题感知的上下文治理。纯Python标准库实现，零外部依赖。</span><span class="copy-en"><code>fish-trail</code> pack provides topic-aware context governance via local MCP server. Pure Python stdlib, zero external dependencies.</span></p>
 
     <h3><span class="copy-zh">核心能力</span><span class="copy-en">Core Capabilities</span></h3>
     <table>
@@ -543,7 +543,7 @@ skill目录
     <pre>
 {
   "name": "petfish-companion-skill",
-  "version": "0.6.2",
+  "version": "0.10.10",
   "description": "AI Worker's Companion...",
   "compatibility": "opencode, claude, codex, cursor, copilot, windsurf, antigravity, universal",
   "skill_count": 10,
@@ -554,7 +554,7 @@ skill目录
   "agents": []
 }</pre>
 
-    <h3>10 <span class="copy-zh">个Pack定位</span><span class="copy-en">Packs</span></h3>
+    <h3>11 <span class="copy-zh">个Pack定位</span><span class="copy-en">Packs</span></h3>
     <table>
       <tr>
         <th>Pack</th>
@@ -562,16 +562,17 @@ skill目录
         <th><span class="copy-zh">承诺映射</span><span class="copy-en">Promise Mapping</span></th>
         <th><span class="copy-zh">规模</span><span class="copy-en">Scale</span></th>
       </tr>
-      <tr><td>petfish-companion-skill</td><td><code>companion</code></td><td><span class="copy-zh">常伴</span><span class="copy-en">Always-Present</span></td><td>10 skills, 1 cmd</td></tr>
-      <tr><td>fish-trail</td><td><code>context</code></td><td><span class="copy-zh">守护</span><span class="copy-en">Guarding</span></td><td>1 skill, 31 MCP</td></tr>
-      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code></td><td><span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></td><td>1 skill</td></tr>
-      <tr><td>trustskills-governance-pack</td><td><code>trust</code></td><td><span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></td><td>1 skill</td></tr>
+      <tr><td>petfish-companion-skill</td><td><code>companion</code> · 胖鱼</td><td><span class="copy-zh">常伴</span><span class="copy-en">Always-Present</span></td><td>10 skills, 1 cmd</td></tr>
+      <tr><td>fish-trail</td><td><code>context</code> · 鱼迹</td><td><span class="copy-zh">守护</span><span class="copy-en">Guarding</span></td><td>1 skill, 31 MCP</td></tr>
+      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code> · 鱼刺</td><td><span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></td><td>1 skill</td></tr>
+      <tr><td>trustskills-governance-pack</td><td><code>trust</code> · 鱼鳞</td><td><span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></td><td>1 skill</td></tr>
       <tr><td>project-initializer-skill</td><td><code>init</code></td><td>—</td><td>1 skill, 1 cmd</td></tr>
       <tr><td>opencode-course-skills-pack</td><td><code>course</code></td><td>—</td><td>15 skills, 10 cmds, 8 agents</td></tr>
       <tr><td>repo-deploy-ops-skill-pack</td><td><code>deploy</code></td><td>—</td><td>7 skills</td></tr>
-      <tr><td>petfish-style-skill</td><td><code>petfish</code></td><td>—</td><td>1 skill</td></tr>
+      <tr><td>petfish-style-skill</td><td><code>petfish</code> · 鱼话</td><td>—</td><td>1 skill</td></tr>
       <tr><td>opencode-skill-pack-testcases-usage-docs</td><td><code>testdocs</code></td><td>—</td><td>2 skills</td></tr>
       <tr><td>opencode-ppt-skills</td><td><code>ppt</code></td><td>—</td><td>2 skills</td></tr>
+      <tr><td>research-skill-pack</td><td><code>research</code> · 鱼渊</td><td>—</td><td>54 skills</td></tr>
     </table>
 
     <h2 id="companion-skills"><span class="copy-zh">J. Companion内核：10个内置Skill</span><span class="copy-en">J. Companion Core: 10 Built-in Skills</span></h2>
@@ -592,7 +593,7 @@ mine → author → lint → audit → gate → optimize → eval
       </tr>
       <tr>
         <td>petfish-companion</td>
-        <td><span class="copy-zh">总控调度，动态读取pack-manifest.json，路由/petfish 14个子命令</span><span class="copy-en">Orchestration, dynamically reads pack-manifest.json, routes /petfish 14 subcommands</span></td>
+        <td><span class="copy-zh">总控调度，动态读取pack-manifest.json，路由/petfish 15个子命令（含<code>/petfish upgrade</code>）</span><span class="copy-en">Orchestration, dynamically reads pack-manifest.json, routes /petfish 15 subcommands (including <code>/petfish upgrade</code>)</span></td>
       </tr>
       <tr>
         <td>marketplace-connector</td>
