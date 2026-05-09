@@ -171,17 +171,80 @@
     .timeline-item h3 { font-size: 15px; margin-bottom: 6px; }
     .timeline-item p { color: var(--text-muted); font-size: 14px; }
 
-    /* ── Packs grid ── */
+    /* ── Packs pyramid ── */
     .packs-section h2 { font-size: 24px; margin-bottom: 12px; text-align: center; }
-    .packs-section > .container > p { text-align: center; color: var(--text-muted); margin-bottom: 32px; font-size: 14px; }
-    .packs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .packs-section > .container > p { text-align: center; color: var(--text-muted); margin-bottom: 40px; font-size: 14px; }
+
+    .packs-tier { margin-bottom: 0; }
+    .packs-tier-label {
+      text-align: center; font-size: 11px; font-family: var(--font-mono);
+      color: var(--text-muted); margin-bottom: 14px; letter-spacing: 3px; text-transform: uppercase;
+    }
+
+    /* Tier 1: companion hero card */
+    .pack-card-hero {
+      background: var(--bg-card); border: 1.5px solid var(--accent);
+      border-radius: 12px; padding: 28px 32px;
+      text-align: center; max-width: 400px; margin: 0 auto;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 24px rgba(57,211,83,0.08), 0 0 0 1px rgba(57,211,83,0.05);
+    }
+    .pack-card-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(57,211,83,0.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .pack-card-hero .hero-fish-icon {
+      font-family: var(--font-mono); font-size: 20px; color: var(--accent);
+      opacity: 0.5; margin-bottom: 8px;
+    }
+    .pack-card-hero .pack-name { font-weight: 700; font-size: 17px; margin-bottom: 6px; }
+    .pack-card-hero .pack-desc { color: var(--text-muted); font-size: 13px; margin-bottom: 8px; line-height: 1.7; }
+    .pack-card-hero .pack-meta { font-size: 11px; color: var(--accent); font-family: var(--font-mono); opacity: 0.8; }
+
+    /* Tier connector */
+    .tier-connector {
+      text-align: center; padding: 10px 0;
+      position: relative; height: 28px;
+    }
+    .tier-connector::before {
+      content: ''; position: absolute; left: 50%; top: 0; bottom: 0;
+      width: 1px; background: linear-gradient(to bottom, var(--accent), var(--border));
+    }
+
+    /* Centered row grids */
+    .packs-row {
+      display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;
+    }
+
     .pack-card {
       background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px;
+      border-radius: var(--radius); padding: 16px 18px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      position: relative; overflow: hidden;
     }
-    .pack-card .pack-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-    .pack-card .pack-desc { color: var(--text-muted); font-size: 13px; margin-bottom: 8px; }
-    .pack-card .pack-meta { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+    .pack-card:hover {
+      border-color: color-mix(in srgb, var(--text-muted) 40%, transparent);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .pack-card .pack-name { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+    .pack-card .pack-desc { color: var(--text-muted); font-size: 12px; margin-bottom: 6px; line-height: 1.6; }
+    .pack-card .pack-meta { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); opacity: 0.7; }
+
+    /* Row sizing: 2-up, 3-up, 5-up */
+    .packs-row-2 .pack-card { width: 280px; }
+    .packs-row-3 .pack-card { width: 250px; }
+    .packs-row-5 .pack-card { width: 160px; }
+
+    /* Top accent bar on core cards */
+    .pack-card[data-accent]::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .pack-card[data-accent="blue"]::before { background: var(--accent2); }
+    .pack-card[data-accent="orange"]::before { background: var(--accent3); }
+    .pack-card[data-accent="purple"]::before { background: #a371f7; }
+    .pack-card[data-accent="pink"]::before { background: #f778ba; }
+    .pack-card[data-accent="cyan"]::before { background: #79c0ff; }
 
     /* ── Install ── */
     .install-section h2 { font-size: 24px; margin-bottom: 24px; text-align: center; }
@@ -238,7 +301,9 @@
       .pillar-grid { grid-template-columns: 1fr; }
       .hero h1 { font-size: 32px; }
       .hero .tagline { font-size: 16px; letter-spacing: 4px; }
-      .packs-grid { grid-template-columns: 1fr; }
+      .packs-row-2 .pack-card,
+      .packs-row-3 .pack-card,
+      .packs-row-5 .pack-card { width: 100%; }
     }
 
     /* ── Language toggle ── */
@@ -411,74 +476,104 @@
       <span class="copy-zh">胖鱼有四个核心能力包，支撑它作为可靠伙伴的四个承诺：常伴、守护、可信、秉正。此外提供多个领域的能力包供你按需安装。<br/>不够用？胖鱼可以搜索第三方市场、从任意仓库挖掘、甚至帮你直接构造新的能力包。</span>
       <span class="copy-en">PEtFiSh has four core packs supporting its four promises. Plus multiple domain packs for on-demand install. Not enough? PEtFiSh can search third-party markets, mine any repo, or help you build new capability packs from scratch.</span>
     </p>
-    <div class="packs-grid">
-
-      <div class="pack-card" style="border-color: var(--accent);">
-        <div class="pack-name">companion · <span class="copy-zh">胖鱼</span><span class="copy-en">PEtFiSh</span> <span style="font-size:11px;color:var(--accent);"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
-        <div class="pack-desc"><span class="copy-zh">胖鱼本体——Companion Gateway + 10个生命周期管理Skill + 15个子命令（含<code>/petfish upgrade</code>）</span><span class="copy-en">PEtFiSh core — Companion Gateway + 10 lifecycle skills + 15 subcommands (including <code>/petfish upgrade</code>)</span></div>
+    <!-- Row 1: 胖鱼 (1) -->
+    <div class="packs-tier">
+      <div class="packs-tier-label"><span class="copy-zh">伙伴本体</span><span class="copy-en">Companion Core</span></div>
+      <div class="pack-card-hero">
+        <div class="hero-fish-icon">><(((^></div>
+        <div class="pack-name">companion · <span class="copy-zh">胖鱼</span><span class="copy-en">PEtFiSh</span></div>
+        <div class="pack-desc"><span class="copy-zh">Companion Gateway + 10个生命周期Skill + 15个子命令</span><span class="copy-en">Companion Gateway + 10 lifecycle skills + 15 subcommands</span></div>
         <div class="pack-meta">10 skills · global · <span class="copy-zh">常伴</span><span class="copy-en">Always Present</span></div>
       </div>
+    </div>
 
-      <div class="pack-card" style="border-color: var(--accent2);">
-        <div class="pack-name">context · <span class="copy-zh">鱼迹</span><span class="copy-en">Fish Trail</span> <span style="font-size:11px;color:var(--accent2);"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
-        <div class="pack-desc"><span class="copy-zh">鱼迹话题治理器——上下文隔离、污染评分、7种关系、31个MCP tools、会话管理</span><span class="copy-en">Topic governance — context isolation, contamination scoring, 7 relationships, 31 MCP tools</span></div>
-        <div class="pack-meta">1 skill · 31 MCP tools · <span class="copy-zh">守护</span><span class="copy-en">Guarding</span></div>
+    <div class="tier-connector"></div>
+
+    <!-- Row 2: 核心 (2) — 守护 + 可信 -->
+    <div class="packs-tier">
+      <div class="packs-tier-label"><span class="copy-zh">核心能力</span><span class="copy-en">Core Packs</span></div>
+      <div class="packs-row packs-row-2">
+
+        <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
+          <div class="pack-name">context · <span class="copy-zh">鱼迹</span><span class="copy-en">Fish Trail</span> <span style="font-size:11px;color:var(--accent2);"><span class="copy-zh">守护</span><span class="copy-en">Guard</span></span></div>
+          <div class="pack-desc"><span class="copy-zh">话题治理·上下文隔离·污染评分</span><span class="copy-en">Topic governance · context isolation</span></div>
+          <div class="pack-meta">1 skill · 31 MCP tools</div>
+        </div>
+
+        <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
+          <div class="pack-name">trust · <span class="copy-zh">鱼鳞</span><span class="copy-en">Fish Scale</span> <span style="font-size:11px;color:var(--accent3);"><span class="copy-zh">可信</span><span class="copy-en">Trust</span></span></div>
+          <div class="pack-desc"><span class="copy-zh">Skill可信度·6维风险·4条红线</span><span class="copy-en">Trust governance · 6 risk dims · 4 red lines</span></div>
+          <div class="pack-meta">1 skill</div>
+        </div>
+
       </div>
+    </div>
 
-      <div class="pack-card" style="border-color: var(--accent3);">
-        <div class="pack-name">trust · <span class="copy-zh">鱼鳞</span><span class="copy-en">Fish Scale</span> <span style="font-size:11px;color:var(--accent3);"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
-        <div class="pack-desc"><span class="copy-zh">鱼鳞Skill可信度治理——6维风险、5级动作、4条红线，信任是审计出来的</span><span class="copy-en">Skill trust governance — 6 risk dimensions, 5 action levels, 4 red lines</span></div>
-        <div class="pack-meta">1 skill · <span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></div>
+    <div class="tier-connector"></div>
+
+    <!-- Row 3: 核心 (3) — 秉正 + 鱼话 + 鱼渊 -->
+    <div class="packs-tier">
+      <div class="packs-row packs-row-3">
+
+        <div class="pack-card" data-accent="purple" style="border-color: #a371f7;">
+          <div class="pack-name">calibrate · <span class="copy-zh">鱼刺</span><span class="copy-en">Fishbone</span> <span style="font-size:11px;color:#a371f7;"><span class="copy-zh">秉正</span><span class="copy-en">Honest</span></span></div>
+          <div class="pack-desc"><span class="copy-zh">反迎合·先中性化再给结论</span><span class="copy-en">Anti-sycophancy calibration</span></div>
+          <div class="pack-meta">1 skill</div>
+        </div>
+
+        <div class="pack-card" data-accent="pink" style="border-color: #f778ba;">
+          <div class="pack-name">petfish · <span class="copy-zh">鱼话</span><span class="copy-en">Fish Talk</span></div>
+          <div class="pack-desc"><span class="copy-zh">说人话·去AI味·结构化表达</span><span class="copy-en">Engineering writing · no AI slop</span></div>
+          <div class="pack-meta">1 skill</div>
+        </div>
+
+        <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
+          <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
+          <div class="pack-desc"><span class="copy-zh">七大研究领域·证据驱动</span><span class="copy-en">7 research domains · evidence-driven</span></div>
+          <div class="pack-meta">54 skills · 7 domains</div>
+        </div>
+
       </div>
+    </div>
 
-      <div class="pack-card" style="border-color: #a371f7;">
-        <div class="pack-name">calibrate · <span class="copy-zh">鱼刺</span><span class="copy-en">Fishbone</span> <span style="font-size:11px;color:#a371f7;"><span class="copy-zh">核心</span><span class="copy-en">core</span></span></div>
-        <div class="pack-desc"><span class="copy-zh">鱼刺反迎合决策校准——评审不顺着说，先中性化再给结论，至少补一个反方</span><span class="copy-en">Anti-sycophancy calibration — neutralize first, then conclude, always with counter-arguments</span></div>
-        <div class="pack-meta">1 skill · <span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></div>
+    <div class="tier-connector"></div>
+
+    <!-- Row 4: 领域扩展 (5) -->
+    <div class="packs-tier">
+      <div class="packs-tier-label"><span class="copy-zh">领域扩展</span><span class="copy-en">Domain Packs</span></div>
+      <div class="packs-row packs-row-5">
+
+        <div class="pack-card">
+          <div class="pack-name">init</div>
+          <div class="pack-desc"><span class="copy-zh">初始化向导</span><span class="copy-en">Project init</span></div>
+          <div class="pack-meta">1 skill</div>
+        </div>
+
+        <div class="pack-card">
+          <div class="pack-name">course</div>
+          <div class="pack-desc"><span class="copy-zh">课程开发</span><span class="copy-en">Course dev</span></div>
+          <div class="pack-meta">15 skills</div>
+        </div>
+
+        <div class="pack-card">
+          <div class="pack-name">deploy</div>
+          <div class="pack-desc"><span class="copy-zh">部署运维</span><span class="copy-en">Deploy &amp; ops</span></div>
+          <div class="pack-meta">7 skills</div>
+        </div>
+
+        <div class="pack-card">
+          <div class="pack-name">testdocs</div>
+          <div class="pack-desc"><span class="copy-zh">测试文档</span><span class="copy-en">Test &amp; docs</span></div>
+          <div class="pack-meta">2 skills</div>
+        </div>
+
+        <div class="pack-card">
+          <div class="pack-name">ppt</div>
+          <div class="pack-desc"><span class="copy-zh">演示文稿</span><span class="copy-en">Presentations</span></div>
+          <div class="pack-meta">2 skills</div>
+        </div>
+
       </div>
-
-      <div class="pack-card">
-        <div class="pack-name">init</div>
-        <div class="pack-desc"><span class="copy-zh">项目初始化向导，<code>/initproject</code>一键启动，自动匹配安装</span><span class="copy-en">Project initializer wizard, <code>/initproject</code> one-command setup</span></div>
-        <div class="pack-meta">1 skill · global</div>
-      </div>
-
-      <div class="pack-card">
-        <div class="pack-name">course</div>
-        <div class="pack-desc"><span class="copy-zh">课程开发全套：提纲、正文、实验、QA/QC、15个skill、10个命令、8个agent</span><span class="copy-en">Full course development: outline, content, labs, QA/QC, 15 skills, 10 commands, 8 agents</span></div>
-        <div class="pack-meta">15 skills · 10 cmds · 8 agents</div>
-      </div>
-
-      <div class="pack-card">
-        <div class="pack-name">deploy</div>
-        <div class="pack-desc"><span class="copy-zh">部署与运维：CI/CD、Docker、健康检查、回滚、服务生命周期管理</span><span class="copy-en">Deployment &amp; ops: CI/CD, Docker, health checks, rollback, service lifecycle</span></div>
-        <div class="pack-meta">7 skills</div>
-      </div>
-
-      <div class="pack-card">
-        <div class="pack-name">petfish · <span class="copy-zh">鱼话</span><span class="copy-en">Fish Talk</span></div>
-        <div class="pack-desc"><span class="copy-zh">鱼话工程写作风格——让AI说人话，去AI味，结构化表达</span><span class="copy-en">Engineering writing style — make AI write like a human, remove AI slop</span></div>
-        <div class="pack-meta">1 skill</div>
-      </div>
-
-      <div class="pack-card">
-        <div class="pack-name">testdocs</div>
-        <div class="pack-desc"><span class="copy-zh">测试用例生成与使用文档自动化</span><span class="copy-en">Test case generation &amp; usage documentation</span></div>
-        <div class="pack-meta">2 skills</div>
-      </div>
-
-      <div class="pack-card">
-        <div class="pack-name">ppt</div>
-        <div class="pack-desc"><span class="copy-zh">PPT设计与演示文稿制作辅助</span><span class="copy-en">Slide design &amp; presentation creation</span></div>
-        <div class="pack-meta">2 skills</div>
-      </div>
-
-      <div class="pack-card">
-        <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
-        <div class="pack-desc"><span class="copy-zh">鱼渊研究工作台——科研、产品、规划、学习、决策、风险采购、体验活动七大领域，证据驱动</span><span class="copy-en">Research workbench — scientific, product, planning, learning, decision, risk-procurement, experience-event domains</span></div>
-        <div class="pack-meta">54 skills · 7 domains</div>
-      </div>
-
     </div>
   </div>
 </section>
