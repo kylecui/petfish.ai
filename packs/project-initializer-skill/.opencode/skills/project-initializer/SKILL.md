@@ -23,7 +23,7 @@ Use this skill for requests such as:
 
 - Initialize a project, repo, workspace, OpenCode project, AI-assisted project, or skill package.
 - Generate `AGENTS.md`, `.opencode/skills`, project templates, QA templates, task plans, or MCP configuration examples.
-- Set up a course, code, ops, security research, writing, skills-package, comprehensive, or minimal project.
+- Set up a course, code, ops, security, research, writing, skills-package, comprehensive, or minimal project.
 - Prepare a project for long-term collaboration between human maintainers and AI agents.
 
 Do not use this skill for ordinary one-off file editing unrelated to project initialization.
@@ -56,7 +56,7 @@ If the user has already described enough context, infer the project profile and 
 
 Ask no more than five questions at once. Prefer these:
 
-1. What is the project mainly for: course, code, ops, security research, writing, skills package, comprehensive, or minimal?
+1. What is the project mainly for: course, code, ops, security, research, writing, skills package, comprehensive, or minimal?
 2. Which directory should be initialized? Use the current directory if unspecified.
 3. May I create `AGENTS.md`, `README.md`, `.opencode/`, `docs/`, `tasks/`, `qa/`, and related files without overwriting existing files?
 4. Is a development environment needed, such as Python `uv`, `pytest`, `ruff`, `mypy`, Node, or frontend tooling?
@@ -86,12 +86,34 @@ Supported profiles:
 - `course`
 - `code`
 - `ops`
-- `security-research`
+- `security`
+- `research`
 - `writing`
 - `skills-package`
 - `comprehensive`
 
 If multiple substantial intents are present, use `comprehensive` and tailor the directories. Do not create unnecessary empty modules.
+
+#### Research Domain Clarification
+
+When the profile is `research`, ask the user to choose a research category:
+
+```text
+What kind of research will this project focus on?
+
+1. Academic — scientific literature, experiments, papers
+2. Business — product research, market analysis, competitor analysis, decisions, procurement
+3. Planning — strategy, stakeholders, scenarios, learning paths
+4. Experiential — events, travel, venues, logistics
+5. Mixed — all research domains
+6. Custom — pick specific domains from the list
+
+Available domains for custom: scientific, product, planning, learning, decision, risk-procurement, experience-event, adapters
+```
+
+Map the selection to `init_research_project.py --type <category>`. For custom, also pass `--domains <selected>`.
+
+This question is only asked for the `research` profile. For `comprehensive`, research is installed with `mixed` (all domains) without asking.
 
 ### 3. Directory Safety Check
 
@@ -311,10 +333,11 @@ After `init_project.py` completes successfully, automatically install recommende
 | `course` | `course`, `petfish` |
 | `code` | `deploy`, `petfish`, `testdocs` |
 | `ops` | `deploy`, `petfish` |
-| `security` | `deploy`, `petfish`, `testdocs` |
+| `security` | `deploy`, `petfish`, `testdocs`, `trust` |
+| `research` | `petfish`, `research` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research` |
 
 #### Procedure
 

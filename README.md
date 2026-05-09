@@ -124,7 +124,8 @@ mine → author → lint → audit → gate → optimize → eval
 | `course` | `course`, `petfish` |
 | `code` | `deploy`, `petfish`, `testdocs` |
 | `ops` | `deploy`, `petfish` |
-| `security` | `deploy`, `petfish`, `testdocs` |
+| `security` | `deploy`, `petfish`, `testdocs`, `trust` |
+| `research` | `petfish`, `research` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
 | `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research` |

@@ -11,6 +11,50 @@ from pathlib import Path
 
 RESEARCH_TYPES = ("scientific", "product", "planning", "mixed")
 
+# Category aliases group multiple domains under broader labels.
+# The mapped value is the workspace --type used for directory scaffolding.
+CATEGORY_ALIASES: dict[str, str] = {
+    "academic": "scientific",
+    "business": "product",
+    "experiential": "planning",
+    # Direct types pass through unchanged.
+    "scientific": "scientific",
+    "product": "product",
+    "planning": "planning",
+    "mixed": "mixed",
+    "custom": "mixed",
+}
+
+# Which research domains each category covers (for CONTEXT.md).
+CATEGORY_DOMAINS: dict[str, list[str]] = {
+    "academic": ["scientific"],
+    "business": ["product", "decision", "risk-procurement"],
+    "planning": ["planning", "learning"],
+    "experiential": ["experience-event", "adapters"],
+    "mixed": [
+        "scientific",
+        "product",
+        "planning",
+        "learning",
+        "decision",
+        "risk-procurement",
+        "experience-event",
+        "adapters",
+    ],
+    "custom": [],  # filled at runtime from --domains
+}
+
+ALL_DOMAINS = [
+    "scientific",
+    "product",
+    "planning",
+    "learning",
+    "decision",
+    "risk-procurement",
+    "experience-event",
+    "adapters",
+]
+
 
 def md_title_from_filename(file_path: Path) -> str:
     stem = file_path.stem.replace("-", " ").replace("_", " ").strip()
@@ -28,10 +72,44 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Initialize a standard research workspace tree."
     )
-    parser.add_argument("--type", required=True, choices=RESEARCH_TYPES, dest="rtype")
+    valid_types = list(RESEARCH_TYPES) + [
+        k for k in CATEGORY_ALIASES if k not in RESEARCH_TYPES
+    ]
+    parser.add_argument(
+        "--type",
+        required=True,
+        choices=valid_types,
+        dest="rtype",
+        help="Research type or category alias.",
+    )
     parser.add_argument("--name", required=True, help="Project name.")
     parser.add_argument("--path", required=True, help="Target workspace root path.")
-    return parser.parse_args()
+    parser.add_argument(
+        "--domains",
+        nargs="*",
+        default=None,
+        help="Specific domains for custom category (e.g. scientific product decision).",
+    )
+    args = parser.parse_args()
+
+    # Resolve category alias to workspace type.
+    args.category = args.rtype
+    args.rtype = CATEGORY_ALIASES.get(args.rtype, args.rtype)
+
+    # Resolve active domains.
+    if args.category == "custom" and args.domains:
+        invalid = [d for d in args.domains if d not in ALL_DOMAINS]
+        if invalid:
+            parser.error(
+                f"Unknown domains: {', '.join(invalid)}. Valid: {', '.join(ALL_DOMAINS)}"
+            )
+        args.active_domains = args.domains
+    elif args.category in CATEGORY_DOMAINS:
+        args.active_domains = CATEGORY_DOMAINS[args.category]
+    else:
+        args.active_domains = CATEGORY_DOMAINS.get("mixed", ALL_DOMAINS)
+
+    return args
 
 
 def main() -> int:
@@ -88,12 +166,18 @@ def main() -> int:
             d.mkdir(parents=True, exist_ok=True)
             directories_created += 1
 
+    domains_lines = "\n".join(f"  - {d}" for d in args.active_domains)
     context_content = (
         f"# Research Context\n\n"
         f"## Project\n\n"
         f"- **Name**: {args.name}\n"
-        f"- **Type**: {args.rtype}\n"
+        f"- **Category**: {args.category}\n"
+        f"- **Workspace Type**: {args.rtype}\n"
         f"- **Created**: {date.today().isoformat()}\n\n"
+        f"## Active Domains\n\n"
+        f"{domains_lines}\n\n"
+        f"Agents should prioritize skill chains from these domains. "
+        f"Other domains remain available but are not the primary focus.\n\n"
         f"## Purpose\n\n"
         f"<!-- Why this research exists. What question are we answering? -->\n\n"
         f"## Scope\n\n"
@@ -127,6 +211,9 @@ def main() -> int:
     result = {
         "status": "ok",
         "path": str(root.resolve()),
+        "category": args.category,
+        "workspace_type": args.rtype,
+        "active_domains": args.active_domains,
         "directories_created": directories_created,
         "files_created": files_created,
     }

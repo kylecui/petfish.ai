@@ -168,6 +168,7 @@ PROFILES = {
     "security": ["deploy", "petfish", "testdocs", "trust"],
     "writing": ["petfish", "ppt"],
     "skills-package": ["petfish", "testdocs"],
+    "research": ["petfish", "research"],
     "comprehensive": [
         "course",
         "deploy",
@@ -176,6 +177,7 @@ PROFILES = {
         "testdocs",
         "trust",
         "context",
+        "research",
     ],
 }
 
