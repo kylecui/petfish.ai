@@ -82,7 +82,7 @@
     <a href="/" class="back-link"><span class="copy-zh">← 返回首页</span><span class="copy-en">← Back to home</span></a>
 
     <h1><span class="copy-zh">为什么我给AI找了个伙伴</span><span class="copy-en">Why I Got My AI a Companion</span></h1>
-    <p class="date"><span class="copy-zh">2026年5月 · v0.6.2</span><span class="copy-en">May 2026 · v0.6.2</span></p>
+    <p class="date"><span class="copy-zh">2026年5月 · v0.10.10</span><span class="copy-en">May 2026 · v0.10.10</span></p>
 
     <p><span class="copy-zh">我每天花大量时间和AI一起写代码。AI很能干，但有个问题——它是个工具。</span><span class="copy-en">I spend a lot of time every day writing code with AI. AI is very capable, but there's a problem — it's a tool.</span></p>
 
@@ -129,7 +129,7 @@
 
     <p><strong><span class="copy-zh">三层能力感知</span><span class="copy-en">Three-tier sensing</span></strong><span class="copy-zh">——第一层，关键词匹配已知领域（你说"部署"它知道推荐deploy pack）。第二层，意图级分析（你说"帮我发个邮件通知团队"，它检测到这需要邮件集成，你没有）。第三层，什么都没检测到，闭嘴。每个领域每次会话最多提醒一次。</span><span class="copy-en"> — tier one, keyword match against known domains (say "deploy" and it knows to recommend the deploy pack). Tier two, intent-level analysis (say "send an email to the team" and it detects you need email integration but don't have it). Tier three, nothing detected, stays quiet. Each domain, at most one reminder per session.</span></p>
 
-    <p><strong>Fish-trail<span class="copy-zh">话题治理</span><span class="copy-en"> topic governance</span></strong><span class="copy-zh">——追踪你的话题关系（继续？分叉？切换？合并？），给上下文污染打分（0-100），在风险高的时候主动建议你处理。31个MCP工具支撑底层状态管理。</span><span class="copy-en"> — tracks your topic relationships (continue? fork? switch? merge?), scores context contamination (0-100), and proactively suggests you deal with it when risk is high. 31 MCP tools handle the underlying state management.</span></p>
+    <p><strong>鱼迹Fish-trail<span class="copy-zh">话题治理</span><span class="copy-en"> topic governance</span></strong><span class="copy-zh">——追踪你的话题关系（继续？分叉？切换？合并？），给上下文污染打分（0-100），在风险高的时候主动建议你处理。31个MCP工具支撑底层状态管理。</span><span class="copy-en"> — Fish Trail (鱼迹) topic governance tracks your topic relationships (continue? fork? switch? merge?), scores context contamination (0-100), and proactively suggests you deal with it when risk is high. 31 MCP tools handle the underlying state management.</span></p>
 
     <p><strong><span class="copy-zh">质量门禁</span><span class="copy-en">Quality gates</span></strong><span class="copy-zh">——Lint 40+条规则打分，安全审计检测shell注入/硬编码凭证/危险网络调用，四条红线（subprocess+network组合、敏感路径读写、无审批sudo、subprocess+os组合）命中即deny。像代码CI一样管理AI能力。</span><span class="copy-en"> — lint scores against 40+ rules, security audit catches shell injection / hardcoded credentials / dangerous network calls, four red lines (subprocess+network combo, sensitive path read/write, unapproved sudo, subprocess+os combo) trigger an instant deny. Managing AI capabilities like code CI.</span></p>
 
@@ -137,7 +137,7 @@
 
     <h2><span class="copy-zh">不只是我自己的能力包</span><span class="copy-en">Not just my own packs</span></h2>
 
-    <p><span class="copy-zh">胖鱼自带四个核心包（companion、context、trust、calibrate）和七个领域包（init、course、deploy、petfish、testdocs、ppt、research）。但它不是一个封闭的11个包的集合。</span><span class="copy-en">PEtFiSh ships with four core packs (companion, context, trust, calibrate) and seven domain packs (init, course, deploy, petfish, testdocs, ppt, research). But it's not a closed collection of 11 packs.</span></p>
+    <p><span class="copy-zh">胖鱼自带四个核心包（companion/胖鱼、context/鱼迹、trust/鱼鳞、calibrate/鱼刺）和七个领域包（init、course、deploy、petfish/鱼话、testdocs、ppt、research/鱼渊）。但它不是一个封闭的11个包的集合。</span><span class="copy-en">PEtFiSh ships with four core packs (companion, context/Fish Trail, trust/Fish Scale, calibrate/Fishbone) and seven domain packs (init, course, deploy, petfish/Fish Talk, testdocs, ppt, research/Fish Depth). But it's not a closed collection of 11 packs.</span></p>
 
     <p><code>/petfish search</code><span class="copy-zh"> 可以跨6个来源搜索第三方skill。</span><span class="copy-en"> searches third-party skills across 6 sources. </span><code>/petfish mine</code><span class="copy-zh"> 可以从任意GitHub仓库挖掘可skill化的模块。</span><span class="copy-en"> mines any GitHub repo for extractable skill patterns. </span><code>/petfish create</code><span class="copy-zh"> 可以帮你从零构造新的能力包。</span><span class="copy-en"> scaffolds new packs from scratch. </span><code>/petfish gate</code><span class="copy-zh"> 确保你构造出来的东西质量过关。</span><span class="copy-en"> makes sure what you build actually passes muster.</span></p>
 
