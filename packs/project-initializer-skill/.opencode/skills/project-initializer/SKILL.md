@@ -339,6 +339,21 @@ After `init_project.py` completes successfully, automatically install recommende
 | `skills-package` | `petfish`, `testdocs` |
 | `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research` |
 
+#### Pack Customization
+
+Before installing, present the recommended pack list and ask if the user wants to add or remove packs:
+
+```text
+Based on your profile, these packs will be installed:
+  [list from mapping above]
+
+Available packs not included: [remaining packs from full catalog]
+
+Would you like to add or remove any packs? (Enter pack names, or "proceed" to continue)
+```
+
+If the user adds `research` (or any profile already includes it), trigger the Research Domain Clarification (section 2) before proceeding with installation. This ensures the research workspace is scaffolded with the correct domain focus regardless of which profile was originally selected.
+
 #### Procedure
 
 1. After initialization, inform the user: "正在安装推荐的petfish技能包..."
