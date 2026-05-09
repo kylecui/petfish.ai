@@ -96,7 +96,7 @@ If multiple substantial intents are present, use `comprehensive` and tailor the 
 
 #### Research Domain Clarification
 
-When the profile is `research`, ask the user to choose a research category:
+When the selected profile includes the `research` pack (currently: `research`, `comprehensive`), ask the user to choose a research category:
 
 ```text
 What kind of research will this project focus on?
@@ -113,7 +113,7 @@ Available domains for custom: scientific, product, planning, learning, decision,
 
 Map the selection to `init_research_project.py --type <category>`. For custom, also pass `--domains <selected>`.
 
-This question is only asked for the `research` profile. For `comprehensive`, research is installed with `mixed` (all domains) without asking.
+This question is asked for ANY profile whose recommended packs include `research`. Check the Profile → Pack Mapping table to determine eligibility.
 
 ### 3. Directory Safety Check
 
