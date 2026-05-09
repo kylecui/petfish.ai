@@ -21,6 +21,7 @@ Usage:
 import argparse
 import json
 import sys
+import platform as platform_mod
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
@@ -485,6 +486,40 @@ def show_counts(as_json: bool = False, target: Path | None = None):
     )
 
 
+def show_upgrade_command(as_json: bool = False):
+    """Show one-line command to upgrade packs."""
+    os_name = platform_mod.system()
+    is_windows = os_name == "Windows"
+
+    if is_windows:
+        command = (
+            "& ([scriptblock]::Create((irm "
+            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1"
+            "))) -Pack all -Force"
+        )
+    else:
+        command = (
+            "curl -fsSL "
+            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh "
+            "| bash -s -- --pack all --force"
+        )
+
+    if as_json:
+        print(
+            json.dumps(
+                {"os": os_name, "command": command}, ensure_ascii=False, indent=2
+            )
+        )
+        return
+
+    print("To upgrade all packs, run:")
+    print(command)
+    print()
+    print(
+        'To upgrade a specific pack: replace "all" with the pack alias (e.g., "deploy")'
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description="PEtFiSh Skill Catalog Query")
     parser.add_argument(
@@ -497,6 +532,9 @@ def main():
     group.add_argument("--list", action="store_true", help="List all packs")
     group.add_argument("--search", type=str, help="Search by keyword")
     group.add_argument("--profile", type=str, help="Show packs for a profile")
+    group.add_argument(
+        "--upgrade", action="store_true", help="Show command to upgrade packs"
+    )
     parser.add_argument(
         "--target",
         type=str,
@@ -521,9 +559,9 @@ def main():
             show_counts(as_json=args.json, target=target)
         return
 
-    if not (args.list or args.search or args.profile):
+    if not (args.list or args.search or args.profile or args.upgrade):
         parser.error(
-            "one mode is required: subcommand or one of --list/--search/--profile"
+            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade"
         )
 
     if args.list:
@@ -532,6 +570,8 @@ def main():
         search_packs(args.search, as_json=args.json, target=target)
     elif args.profile:
         show_profile(args.profile, as_json=args.json, target=target)
+    elif args.upgrade:
+        show_upgrade_command(as_json=args.json)
 
 
 if __name__ == "__main__":

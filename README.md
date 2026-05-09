@@ -73,6 +73,7 @@ See [docs/companion-gateway.md](docs/companion-gateway.md) for the full flow.
 | `/petfish optimize <path>` | Improve skill descriptions and triggers |
 | `/petfish eval <path>` | Test trigger accuracy |
 | `/petfish stats` | View usage analytics |
+| `/petfish upgrade` | Show upgrade command for installed packs |
 
 ---
 
@@ -181,7 +182,7 @@ curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
 ---
 
 ## Upgrade
-Re-run the install command with `--force` to upgrade.
+Run `/petfish upgrade` to see the upgrade command for your OS, or re-run the install command with `--force`:
 ```text
 Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
 ```
@@ -283,6 +284,9 @@ petfish.ai/
 ## Version History
 ### v0.10 — Research Pack Expansion: 7 Domains
 
+- **v0.10.10**: Auto-update capability — `check_installed.py --check-updates` queries GitHub latest release and compares installed pack versions; `catalog_query.py --upgrade` shows OS-appropriate upgrade command; Companion Gateway now checks for updates on session start; `/petfish upgrade` command added. Also fixes missing `research` alias in `KNOWN_PACKS`.
+- **v0.10.9**: Systemic trigger keyword coverage fix — align all skill descriptions with body trigger words across all 11 packs (~74 skills updated); add `check_trigger_coverage()` lint rule to `lint_skill.py`; integrate trigger-coverage into `run_gate.py` decision logic; add Description-Body alignment discipline to root AGENTS.md; expand research triggers in `catalog_query.py`. Closes #91, #89, #88.
+- **v0.10.7–v0.10.8**: Fix research pack integration — complete 9-touchpoint checklist for research pack (remote installer, companion catalog, README, docs, website). Crystallize "one audit, one fix" development lesson.
 - **v0.10.6**: Fix 4 backlog issues — replace duplicate QA script with qa_scan.py (#80), add `--target` to suggest for fixture isolation (#73), document JSONL/Markdown design and improve research pack UX (#79), add hybrid semantic+keyword trigger scoring with `--semantic` flag (#77). Closes #80, #73, #79, #77.
 - **v0.10.5**: Adapter skills — 4 lightweight domain adapters (travel-adapter, conference-adapter, training-event-adapter, content-selection-adapter) that enhance main research chains with domain-specific fields and checklists. Trigger evals, smoke test coverage. Pack now has 50 skills.
 - **v0.10.4**: Risk-procurement and experience-event research domains — 11 new skills (risk-research-brief, vendor-source-diligence, security-risk-review, compliance-check, tco-operational-risk, adoption-recommendation, experience-brief-framer, venue-destination-research, schedule-itinerary-planner, logistics-risk-planner, event-runbook-writer), trigger evals, smoke test coverage. Pack now has 46 skills.

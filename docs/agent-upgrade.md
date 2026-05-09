@@ -78,7 +78,7 @@ Same as install guide:
 
 ## Step 3: Upgrade all installed packs
 
-Run the remote installer with `--force` flag to upgrade everything:
+You can run `/petfish upgrade` to see the upgrade command for your OS, or run the remote installer with `--force` flag directly:
 
 **Bash:**
 ```bash

@@ -91,6 +91,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `/petfish optimize <path>` | 分析并优化skill描述 |
 | `/petfish eval <path>` | 测试触发准确率 |
 | `/petfish stats` | 查看使用统计 |
+| `/petfish upgrade` | 显示升级命令 |
 | `/petfish detect` | 检测当前平台 |
 
 ---
@@ -132,7 +133,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 
 ## 升级
 
-重跑安装命令加 `--force`：
+运行 `/petfish upgrade` 查看适合当前OS的升级命令，或直接重跑安装命令加 `--force`：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
