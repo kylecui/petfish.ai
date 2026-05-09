@@ -1,6 +1,6 @@
 ---
 name: repo-service-lifecycle
-description: 端到端处理“读取本地repo或GitHub仓库 → 规划部署 → 部署到指定主机 → 做功能验证 → 留下运维与回滚方案”的任务。Use when the user asks to deploy a repository, bring up a service on a host, verify it works, keep it running, upgrade it safely, or perform ongoing DevOps/SRE style operations.
+description: 端到端总控skill：读取repo/GitHub→主机就绪检查→部署计划→执行部署→功能验证→持续运维→故障回滚。Trigger for“帮我把这个仓库部署到主机并验收/持续运维/安全升级”。用于跨阶段DevOps/SRE任务，并按需路由到repo-runtime-discovery、target-host-readiness、deployment-executor、deployment-verifier、service-operations、incident-rollback。
 compatibility: Requires OpenCode skills support. Typical tools: git, ssh, rsync, curl, jq, Python 3.11+, uv. Optional: docker, docker compose, systemctl, kubectl, helm.
 license: Internal use
 ---

@@ -1,8 +1,6 @@
 ---
 name: skill-reference-discovery
-description: Use this skill when the user wants to search GitHub or other public sources
-  for relevant high-quality agent skills, compare them, and extract reusable patterns
-  for the current OpenCode skill pack.
+description: Use this skill when the user wants to search GitHub/public sources for high-quality agent skills, run a skill reference scan, compare candidate repositories, evaluate credibility/maintenance/relevance/portability, extract reusable patterns, identify cautions or mismatches, and recommend what to adapt for the current OpenCode skill pack.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

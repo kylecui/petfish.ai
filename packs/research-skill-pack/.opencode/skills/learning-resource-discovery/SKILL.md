@@ -1,6 +1,6 @@
 ---
 name: learning-resource-discovery
-description: 按学习目标发现、筛选并排序学习资源，覆盖官方文档、教材、论文、教程、课程、代码仓库、实验与基准。Use when the user says "学习资源", "learning resources", "资料推荐", "resource discovery", "课程推荐", "教程", or "学什么材料".
+description: 按学习目标发现、筛选并排序学习资源，覆盖官方文档、教材、论文、教程、课程、代码仓库、实验与基准。Use when the user says "学习资源", "learning resources", "资料推荐", "resource discovery", "课程推荐", "教程", "入门到进阶", "beginner to advanced", "资源可信度", "资源更新频率", "resource ranking", or "学什么材料".
 compatibility: opencode
 license: Apache-2.0
 ---

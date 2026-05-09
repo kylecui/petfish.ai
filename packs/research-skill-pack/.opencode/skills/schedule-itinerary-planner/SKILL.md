@@ -1,6 +1,6 @@
 ---
 name: schedule-itinerary-planner
-description: 基于活动brief与场地研究设计可执行日程与行程，平衡活动密度、转场、休息与备选方案。Use when the user says "行程安排", "itinerary planning", "日程设计", "schedule planning", "活动流程", "event agenda", "帮我排时间", or "plan the day".
+description: 基于activity brief与场地研究设计可执行日程/行程，平衡活动密度、转场缓冲、休息餐食与A/B备选方案。Use when the user says "行程安排", "itinerary planning", "日程设计", "schedule planning", "活动流程", "event agenda", "多天活动", "会议议程", "trip route", "帮我排时间", or "plan the day".
 compatibility: opencode
 license: Apache-2.0
 ---

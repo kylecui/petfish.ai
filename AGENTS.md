@@ -208,6 +208,144 @@ Debug模式输出格式（置于回复最前）：
 
 ---
 
+## 新Pack引入检查清单（强制）
+
+引入新的skill pack时，必须覆盖以下9个触点。遗漏任何一项将导致用户安装后功能缺失。
+
+此清单源自v0.10.7/v0.10.8的教训：research pack在v0.9.0完成开发，但直到v0.10.7才被发现未接入安装流程，导致用户通过one-liner安装后无法获取该pack。
+
+### 9个触点
+
+| # | 触点 | 文件位置 | 说明 |
+|---|------|---------|------|
+| 1 | 本地安装器别名 | `install.ps1`, `install.sh` | 添加pack别名到安装器的pack映射表。本地安装器通过扫描`packs/`目录动态发现pack，但别名映射仍需手动注册 |
+| 2 | 远程安装器ALL_PACKS数组 | `remote-install.ps1`, `remote-install.sh` | **必须手动添加**。远程安装器使用静态数组，不扫描目录 |
+| 3 | Companion catalog PROFILES | `catalog_query.py` PROFILES dict | 将新pack加入相关profile（至少加入`comprehensive`） |
+| 4 | project-initializer | `project-initializer/SKILL.md` + `init_project.py` | 在初始化向导中添加新profile或将pack关联到现有profile |
+| 5 | README profile表 | `README.md` | 更新Pack列表、Profile → Auto-Install Mapping表 |
+| 6 | 网站 | `website/index.html`, `website/pitch.html`, `website/blog.html` | 更新pack卡片、pack表格、pack计数 |
+| 7 | 安装/升级指南 | `docs/agent-install.md`, `docs/agent-upgrade.md` | 更新安装示例和pack列表 |
+| 8 | 中文翻译 | `docs/zh/README.md` | 同步更新中文版 |
+| 9 | 归档文档 | `docs/archive/` 下相关文件 | 更新白皮书、介绍文档中的pack计数和列表 |
+
+### 关键陷阱：本地 vs 远程安装器架构差异
+
+- **本地安装器**（`install.ps1`, `install.sh`）：动态扫描`packs/`目录发现可用pack。新增pack目录后自动可见，但别名映射仍需注册。
+- **远程安装器**（`remote-install.ps1`, `remote-install.sh`）：使用**硬编码的静态数组**（`$AllPacks` / `ALL_PACKS`）。新增pack必须手动添加到数组中，否则`--pack all`会静默跳过。
+
+这一不对称是v0.10.7遗漏的根本原因。开发时使用本地安装器测试通过，但用户通过远程安装器安装时该pack不存在。
+
+### 检查方法
+
+引入新pack后，运行以下验证：
+
+1. 在9个触点文件中搜索新pack名称，确认全部出现
+2. 使用`--pack all`分别测试本地和远程安装器
+3. 确认`/petfish catalog`能列出新pack
+4. 确认`/initproject`的profile选择能关联到新pack
+
+---
+
+## Release检查清单（强制）
+
+每次发布前，必须完成以下检查。
+
+### 发布前
+
+- [ ] 所有计划变更已合入`dev`分支
+- [ ] `dev`分支测试通过（smoke test + trigger eval如适用）
+- [ ] 如涉及新pack：已完成上述9触点检查清单
+- [ ] 如涉及安装器变更：本地和远程安装器均已测试
+- [ ] CHANGELOG已更新（如pack有独立CHANGELOG）
+- [ ] README版本历史已更新
+- [ ] 如涉及schema变更：已验证SKILL.md与schema字段名对齐
+
+### 发布时
+
+- [ ] 创建PR从`dev`合并到`master`
+- [ ] PR合并后立即创建GitHub Release（`gh release create vX.Y.Z --target master`）
+- [ ] Release notes包含变更要点
+- [ ] Tag格式为语义化版本号（`vX.Y.Z`）
+
+### 发布后
+
+- [ ] 验证`gh release view --json tagName`返回正确的latest tag
+- [ ] 使用远程安装器测试安装新版本
+- [ ] 确认网站和文档中的版本信息一致
+
+---
+
+## Schema与SKILL.md对齐纪律（强制）
+
+skill中如果同时存在JSON schema（`schemas/*.json`）和SKILL.md指令，两者的字段名、必填/可选标记、类型定义必须完全一致。
+
+### 常见失败模式
+
+- Schema中字段名为`search_queries`，SKILL.md中写成`queries` → 用户按SKILL.md填写后schema校验失败
+- Schema标记某字段`required`，SKILL.md中未提及 → 用户遗漏必填字段
+- Schema定义`enum`值列表，SKILL.md中的可选值不同 → 输出不一致
+
+### 规则
+
+1. 修改schema时，同步检查并更新SKILL.md中的对应描述
+2. 修改SKILL.md中的字段描述时，同步检查schema是否需要更新
+3. 新建skill时，如果包含schema，必须交叉验证字段名一致性
+4. PR review时，schema变更必须附带SKILL.md的对应变更（反之亦然）
+
+此规则源自#83、#82、#78三个issue的教训：多个research skill的schema与SKILL.md存在字段名不匹配，导致输出格式不一致。
+
+---
+
+## Description与Body触发词对齐纪律（强制）
+
+Agent匹配skill时只读frontmatter `description`字段，body中的触发场景section对匹配不可见。因此description必须覆盖body中列出的触发关键词。
+
+### 规则
+
+1. 修改SKILL.md body中的触发词（触发场景、Trigger、Use this skill when等section）时，**必须**同步更新frontmatter description
+2. 新建skill时，frontmatter description**必须**覆盖body触发词的≥80%
+3. description长度不超过500字符，优先保留高频、高区分度的触发词
+4. 中英文触发词都要覆盖——用户可能用中文或英文表达同一意图
+5. PR review时，body触发词变更**必须**附带description的对应变更
+
+### 自动化检查
+
+- `skill-lint` 的 `lint_skill.py` 已内置 `trigger-coverage` 检查规则
+- 覆盖率 <50% 报ERROR，50%-80% 报WARNING，≥80% 通过
+- `quality-gate` 的 `run_gate.py` 在检测到trigger-coverage ERROR时，decision降级为CONDITIONAL
+
+### 常见失败模式
+
+- Body列出"帮我研究"、"仔细研究"等触发短语，但description中没有"研究"一词 → 用户输入"帮我研究一下"时skill不被匹配
+- Body列出中文触发词但description只有英文 → 中文用户无法触发
+- Body新增触发场景但忘记更新description → 新场景无法匹配
+
+此规则源自Issue #91的教训：research-router的body列出了完整的触发场景，但description中缺少"研究"这个最基本的中文关键词，导致用户输入"帮我仔细研究一下XXX"时skill未被触发。经全量审计发现这是跨所有pack的系统性问题。
+
+---
+
+## 开发经验沉淀
+
+### "一次全审一次全修" > 逐步修补
+
+当变更涉及多个文件或多个触点时，先用系统性审计一次找出所有需要修改的位置，再统一修改。逐步修补容易遗漏，且每次遗漏都需要一个新的patch release。
+
+v0.10.7遗漏了9个触点中的4个，v0.10.8通过并行审计一次性补齐。这说明：
+
+- 第一次修改时投入额外时间做全面审计，总成本低于反复修补
+- 对于跨文件变更，使用多个并行搜索覆盖不同角度比单次搜索更可靠
+- 维护一个固定的检查清单（如上述9触点）比依赖记忆更可靠
+
+### 研究范式 > 领域模板
+
+设计skill时，按问题类型（learning、decision、risk）抽象，而不是按生活领域（travel、shopping）拆分。后者会导致skill爆炸且大量重复。领域差异通过轻量adapter层解决，而不是为每个领域建一套完整pipeline。
+
+### 格式分离：JSONL给机器，Markdown给人
+
+当同一份输出需要同时服务于后续pipeline处理和人类阅读时，不要试图用一种格式兼顾。JSONL用于结构化数据传递，Markdown用于人类可读的报告和文档。
+
+---
+
 <!-- BEGIN pack: opencode-course-skills-pack -->
 # 课程开发项目AGENTS.md
 

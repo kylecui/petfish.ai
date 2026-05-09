@@ -1,6 +1,6 @@
 ---
 name: product-user-research
-description: 设计并分析用户研究（访谈、问卷、可用性测试、用户画像），将用户证据转化为产品决策输入。Use when the user says "用户研究", "user research", "访谈设计", "interview guide", "问卷设计", "survey design", "用户画像", "persona", "usability test", or "可用性测试".
+description: 设计并分析用户研究（访谈、问卷、可用性测试、用户画像、用户旅程图），将用户证据转化为产品决策输入。Use when the user says "用户研究", "user research", "访谈设计", "interview guide", "问卷设计", "survey design", "用户画像", "persona", "用户旅程图", "journey map", "usability test", "可用性测试", "PRD洞察", or "路线图洞察".
 compatibility: opencode
 license: Apache-2.0
 ---

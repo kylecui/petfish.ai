@@ -1,6 +1,6 @@
 ---
 name: service-operations
-description: 对已上线服务做持续运维，包括版本记录、状态巡检、日志检查、资源观察、证书/磁盘/队列等运行观察点、升级前核对、变更留痕，以及运维交接文档。Use when the service is already running and the user wants ongoing operations, routine SRE work, upgrades, or operational hygiene.
+description: 对已上线服务做持续运维：版本/commit/image记录，健康与状态巡检，日志与资源(CPU/内存/磁盘/队列)观察，依赖与证书风险检查，升级前核对，变更留痕与runbook交接。Trigger for日常SRE巡检、上线后保活、运维交接、升级准备和操作卫生治理。
 compatibility: Requires access to the running environment. Python 3.11+ and uv recommended. Helpful tools: systemctl, journalctl, docker, df, free, ss, curl.
 license: Internal use
 ---

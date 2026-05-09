@@ -1,18 +1,11 @@
 ---
 name: petfish-companion
 description: >
-  胖鱼PEtFiSh常驻伙伴skill。在整个项目生命周期中持续感知用户需求，
-  自动推荐并安装匹配的skill pack，管理已装skill状态，
-  连接胖鱼自有仓库与三方市场获取新能力。
-  当用户需要部署、课程开发、PPT制作、代码测试、文档生成、
-  风格改写等能力但尚未安装对应skill时，主动提示并协助安装。
-  Use this skill when the user needs capability that may require
-  additional skill packs, when checking installed skill status,
-  when searching for skills from PEtFiSh registry or third-party
-  marketplaces, or when managing the project's skill ecosystem.
-  Also activates when user says /petfish, asks "what skills do I have",
-  "what else can you do", "I need help with X but don't have the tools",
-  or similar capability-discovery queries.
+  胖鱼PEtFiSh常驻伙伴：感知需求与能力缺口（Tier1领域映射+Tier2意图检测）、
+  查询已装pack状态、推荐安装/升级并提供/petfish命令入口。Use when users ask
+  /petfish, “what skills do I have”, “what else can you do”, need deploy/course/
+  ppt/testdocs/petfish/calibrate/context/research capabilities, or need cross-
+  marketplace skill/MCP discovery and skill ecosystem governance.
 metadata:
   author: petfish-team
   version: 0.2.0

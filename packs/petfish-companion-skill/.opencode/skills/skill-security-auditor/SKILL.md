@@ -1,13 +1,11 @@
 ---
 name: skill-security-auditor
 description: >
-  Audits PEtFiSh skills for security risks. Use this skill when the user asks to
-  audit skill security, check skill safety, run a security review, or asks is
-  this skill safe. It reviews SKILL.md instructions, scripts/, references/, and
-  MCP or tool scope for dangerous commands, secret access, excessive file
-  permissions, remote code execution, prompt injection vectors, and unsafe MCP
-  tool usage. Produces a security audit report with a 0.0-1.0 risk score,
-  findings by severity, a pass or fail verdict, and remediation guidance.
+  Audit skills for security risks. Trigger on “audit skill security”, “check
+  skill safety”, “security review”, “is this skill safe”. Scans SKILL.md,
+  scripts/, references/, MCP/tool scope for prompt injection, secret access,
+  dangerous commands, remote execution, excessive permissions, unsafe network/
+  file operations; returns 0.0-1.0 risk score, severity findings, pass/fail, and remediation guidance.
 metadata:
   author: petfish-team
   version: 0.2.0

@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (50)
+## Skills (54)
 
 | Skill | Purpose |
 |---|---|
@@ -35,8 +35,11 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `planning-technology-assessor` | Technology maturity (TRL), adoption readiness, strategic fit |
 | `planning-roadmap-developer` | Strategic roadmap with milestones, dependencies, decision gates |
 | `learning-goal-framer` | Convert learning wishes into structured goals and briefs |
+| `learning-prerequisite-mapper` | Map prerequisite knowledge and learning dependencies |
 | `learning-resource-discovery` | Find, filter, and rank learning resources by type |
 | `learning-path-designer` | Design phased learning paths with checkpoints |
+| `learning-practice-planner` | Design practice tasks, drills, labs, and projects |
+| `learning-progress-reviewer` | Phase-based learning progress checks and effectiveness review |
 | `decision-brief-framer` | Structure decision questions with constraints and preferences |
 | `decision-criteria-builder` | Build weighted criteria with must-have and deal-breaker tags |
 | `option-comparison-matrix` | Compare options against criteria with scoring |
@@ -50,6 +53,7 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `experience-brief-framer` | Define experience or event goals, constraints, and criteria |
 | `venue-destination-research` | Research venues, destinations, and locations |
 | `schedule-itinerary-planner` | Design schedules and itineraries with contingencies |
+| `participant-experience-designer` | Design participant journey with touchpoint optimization |
 | `logistics-risk-planner` | Plan logistics and identify risks with contingency plans |
 | `event-runbook-writer` | Generate executable event runbook with checklists |
 | `travel-adapter` | Travel domain adapter — visa, weather, transport, insurance checklists |
@@ -62,10 +66,10 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 - **Scientific**: Literature review, gap analysis, experiment design, paper writing
 - **Product**: User research, competitor analysis, opportunity mapping, MVP validation
 - **Planning**: Environment scanning, stakeholder analysis, scenario planning, roadmap
-- **Learning**: Goal framing, resource discovery, learning path design
+- **Learning**: Goal framing, prerequisite mapping, resource discovery, learning path design, practice planning, progress review
 - **Decision**: Decision brief, criteria building, option comparison, recommendation
 - **Risk-Procurement**: Risk brief, vendor diligence, security review, compliance, TCO, adoption recommendation
-- **Experience-Event**: Experience brief, venue research, schedule planning, logistics, event runbook
+- **Experience-Event**: Experience brief, venue research, schedule planning, participant experience design, logistics, event runbook
 - **Adapters**: Lightweight domain adapters (travel, conference, training-event, content-selection) that enhance main research chains with domain-specific fields and checklists
 
 ## Install

@@ -1,6 +1,6 @@
 ---
 name: scientific-gap-finder
-description: 从文献矩阵识别可验证研究空白，区分真实gap与伪gap，并为每个gap给出可执行贡献方向。Use when the user says "找gap", "research gap", "研究空白", "贡献点", "novelty", or "identify gaps".
+description: 基于文献矩阵做research gap分析：识别真实gap vs 伪gap，绑定支撑与反例论文，评估novelty与可验证性，并产出贡献方向(contribution options)。Use when users ask “找gap/研究空白/research gap/identify gaps/贡献点/novelty/创新点定位”.
 compatibility: opencode
 license: Apache-2.0
 ---

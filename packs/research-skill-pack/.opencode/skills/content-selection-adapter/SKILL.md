@@ -1,6 +1,6 @@
 ---
 name: content-selection-adapter
-description: 为内容选择场景补充偏好画像、可用性、分级限制、群体兼容、口碑聚合与备选方案等领域字段与检查清单，不复制主流程。Use when the user says "内容推荐", "content selection", "看什么电影", "what to watch", "书单选择", "game recommendation", or "帮我选一个展览/演出".
+description: 为内容选择场景补充偏好画像、可用性、分级限制、群体兼容、口碑聚合、实时场次票价核验与备选方案检查清单，不复制主流程。Use when the user says "内容推荐", "content selection", "看什么电影", "what to watch", "书单选择", "game recommendation", "多人偏好冲突", "场次票价", "可用性", or "帮我选一个展览/演出".
 compatibility: opencode
 license: Apache-2.0
 ---

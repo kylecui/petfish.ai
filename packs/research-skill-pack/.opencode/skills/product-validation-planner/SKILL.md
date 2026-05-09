@@ -1,6 +1,6 @@
 ---
 name: product-validation-planner
-description: 设计产品验证计划，围绕假设清单、最小MVP、量化成功标准与决策树，降低投入前不确定性。Use when the user says "验证计划", "validation plan", "MVP", "假设验证", "hypothesis testing", "产品验证", "product validation", or "怎么验证这个想法".
+description: 设计产品验证计划，围绕假设清单、最小MVP、量化成功标准与决策树，降低投入前不确定性。Use when the user says "验证计划", "validation plan", "MVP", "假设验证", "hypothesis testing", "产品验证", "product validation", "success metrics", "go/pivot/kill", "决策树", "decision tree", or "怎么验证这个想法".
 compatibility: opencode
 license: Apache-2.0
 ---

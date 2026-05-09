@@ -1,6 +1,6 @@
 ---
 name: research-note-capture
-description: 摘录笔记捕获，记录原文摘录、出处位置、转述与“为什么重要”，避免过早综合结论。Use when reading sources and you need to capture key excerpts with provenance, location, paraphrase, and why-it-matters before synthesis or final claims.
+description: 阅读摘录与证据笔记捕获：从PDF/DOC/网页提取关键原文，记录出处位置(page/section/paragraph)、paraphrase与why_it_matters，支持“先摘录不要总结”“读文献摘重点”。Use when users ask “阅读笔记/摘录重点/quote capture/excerpt notes” before synthesis, with traceable source_id and location.
 compatibility: opencode
 license: Apache-2.0
 ---

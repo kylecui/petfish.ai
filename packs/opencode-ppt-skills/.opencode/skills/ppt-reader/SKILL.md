@@ -1,6 +1,6 @@
 ---
 name: ppt-reader
-description: Use this skill when the user needs to read, inspect, summarize, audit, compare, or extract structure from PowerPoint/PPTX files, slide decks, presentations, templates, speaker notes, comments, embedded media, slide text, or visual slide images. Prefer this skill for PPTX input even when the final output is a report, outline, meeting summary, course material mapping, or rewrite plan.
+description: Use this skill when the user needs to read/inspect/summarize/audit/compare PPT/PPTX, extract slide inventory (titles, structure, notes, comments, media, links), review templates/layout/placeholders/sensitive info, or produce rewrite briefs and per-slide action plans for ppt-writer. Trigger for 读取/总结/审阅/对比课件、提案、汇报材料 and visual QA requests.
 license: MIT
 compatibility: opencode; requires uv for bundled Python scripts; optional LibreOffice and Poppler for slide rendering.
 metadata:
@@ -125,4 +125,3 @@ uv run scripts/render_slides.py input.pptx --out output/rendered --resolution 15
 
 - `scripts/pptx_extract.py`：抽取PPTX结构、文本、备注、媒体、外部链接，输出JSON和Markdown。
 - `scripts/render_slides.py`：调用LibreOffice和Poppler把PPTX渲染为逐页图片，用于视觉QA。
-

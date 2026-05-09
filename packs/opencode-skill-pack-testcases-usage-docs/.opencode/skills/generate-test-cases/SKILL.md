@@ -1,6 +1,6 @@
 ---
 name: generate-test-cases
-description: Use this skill when the user wants test cases, a test matrix, regression cases, acceptance cases, API tests, CLI tests, UI tests, or automated test ideas derived from the current project's design, interfaces, configuration, or code. It is for grounded synthesis from the current repository, not for generic testing advice.
+description: Use this skill when the user asks to generate test cases/test matrix for the current repo: API/CLI/UI/SDK/service, smoke/regression/acceptance/negative/boundary tests, traceability mapping, coverage gap补齐, or automation scaffolds (pytest/Playwright/contract). Trigger for 根据项目/模块/设计文档生成测试用例；not for generic testing theory.
 license: Proprietary. See project package context.
 compatibility: Designed for OpenCode and Agent Skills compatible clients. Prefer Python 3.11+ and uv for running bundled scripts.
 metadata:

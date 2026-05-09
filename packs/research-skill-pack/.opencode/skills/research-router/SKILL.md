@@ -1,6 +1,6 @@
 ---
 name: research-router
-description: 研究入口与任务路由器。根据用户请求判断研究类型、复杂度并推荐合适的研究skill链路。Use when the user says "research", "investigate", "survey", "lit review", "调研", "综述", "竞品分析", or gives a vague research intent that needs routing to the correct research skill chain.
+description: 研究入口与任务路由器。根据用户请求判断研究类型（科学研究、产品研究、规划研究、学习研究、决策研究、风险采购研究、活动体验研究）、复杂度并推荐合适的研究skill链路。Use when the user says "研究", "帮我研究", "仔细研究", "research", "investigate", "survey", "lit review", "调研", "文献", "综述", "竞品分析", "市场分析", "论文方向", "规划方案", or gives a vague research intent that needs routing to the correct research skill chain.
 compatibility: opencode
 license: Apache-2.0
 ---

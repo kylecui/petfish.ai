@@ -1,6 +1,6 @@
 ---
 name: training-event-adapter
-description: 为培训与工作坊场景补充学习目标映射、学员前置条件、实验环境、讲师讲义、考核认证与反馈闭环等领域字段与检查清单，不复制主流程。Use when the user says "培训安排", "training workshop", "课程交付", "workshop delivery", "实训营", "lab training", or "帮我组织一次培训活动".
+description: 为培训与工作坊场景补充学习目标映射、学员前置条件、实验环境、讲师材料、考核认证、出勤追踪与反馈闭环检查清单，不复制主流程。Use when the user says "培训安排", "training workshop", "课程交付", "workshop delivery", "实训营", "lab training", "学习目标", "认证考核", "实验环境", or "帮我组织一次培训活动".
 compatibility: opencode
 license: Apache-2.0
 ---

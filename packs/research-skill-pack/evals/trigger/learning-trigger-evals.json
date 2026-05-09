@@ -62,6 +62,69 @@
         "产品路线图",
         "环境扫描"
       ]
+    },
+    {
+      "id": "learning-prerequisite-mapper-trigger-01",
+      "skill": "learning-prerequisite-mapper",
+      "type": "trigger",
+      "should_trigger": [
+        "前置知识",
+        "prerequisite",
+        "先修要求",
+        "学习依赖",
+        "knowledge dependency",
+        "基础不够",
+        "需要先学什么",
+        "帮我梳理前置知识"
+      ],
+      "should_not_trigger": [
+        "学习路径",
+        "练习计划",
+        "竞品分析",
+        "风险评估"
+      ]
+    },
+    {
+      "id": "learning-practice-planner-trigger-01",
+      "skill": "learning-practice-planner",
+      "type": "trigger",
+      "should_trigger": [
+        "练习计划",
+        "practice plan",
+        "实操任务",
+        "hands-on",
+        "动手练习",
+        "练习设计",
+        "lab exercise",
+        "帮我设计练习任务"
+      ],
+      "should_not_trigger": [
+        "学习目标",
+        "学习资源",
+        "实验设计",
+        "竞品分析"
+      ]
+    },
+    {
+      "id": "learning-progress-reviewer-trigger-01",
+      "skill": "learning-progress-reviewer",
+      "type": "trigger",
+      "should_trigger": [
+        "学习进度",
+        "learning progress",
+        "阶段检查",
+        "学习效果",
+        "掌握程度",
+        "复盘",
+        "progress review",
+        "帮我检查学习进度"
+      ],
+      "should_not_trigger": [
+        "质量审查",
+        "代码审查",
+        "项目进度",
+        "部署验证"
+      ]
     }
   ]
 }

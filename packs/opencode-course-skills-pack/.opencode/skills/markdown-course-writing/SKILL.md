@@ -1,8 +1,6 @@
 ---
 name: markdown-course-writing
-description: Use this skill when the user wants polished Markdown output for course
-  plans, outlines, lesson notes, labs, learner handouts, instructor guides, QA records,
-  or course reports.
+description: Use this skill when the user wants polished Markdown artifacts for course plans, outlines, lesson notes, lab guides, learner handouts, instructor guides, QA/QC records, or course reports; also when converting PDF/DOCX/images/notes into structured Markdown with normalized terms, explicit assumptions, and verification placeholders.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

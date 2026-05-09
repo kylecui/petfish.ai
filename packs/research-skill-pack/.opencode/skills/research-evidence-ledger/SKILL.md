@@ -1,6 +1,6 @@
 ---
 name: research-evidence-ledger
-description: 从摘录笔记和来源中提取正式证据，建立可追踪的证据账本，区分事实、推断、不确定性和建议。Use when promoting notes to formal evidence entries with type classification (EXTRACTED/INFERRED/AMBIGUOUS/PROPOSED), confidence rating, and claim mapping.
+description: 证据账本构建与claim映射：把摘录笔记提升为正式证据，分类EXTRACTED/INFERRED/AMBIGUOUS/PROPOSED，标注confidence、矛盾与不确定性，输出claim map。Use when users ask “建立证据链/证据账本/claim mapping/区分事实与推断/矛盾证据”, preparing report-ready evidence.
 compatibility: opencode
 license: Apache-2.0
 ---

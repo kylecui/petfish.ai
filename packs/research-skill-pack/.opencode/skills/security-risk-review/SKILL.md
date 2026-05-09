@@ -1,6 +1,6 @@
 ---
 name: security-risk-review
-description: 针对候选方案进行安全风险评审，覆盖数据暴露、访问控制、密钥处理与供应链风险。Use when the user says "安全评审", "security risk review", "数据泄露风险", "access control review", "prompt injection", or "supply chain risk".
+description: 对候选方案执行安全风险评审，覆盖数据暴露、访问控制、密钥管理、供应链、执行越权、prompt injection与审计响应能力。Use when the user says "安全评审", "security risk review", "security risk assessment", "数据泄露风险", "access control review", "prompt injection", "tool abuse", "越权执行", "incident response", or "supply chain risk".
 compatibility: opencode
 license: Apache-2.0
 ---

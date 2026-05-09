@@ -2,6 +2,22 @@
 
 本项目已安装胖鱼PEtFiSh伙伴skill。
 
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. 用户说"/petfish"或任何petfish子命令时，**必须**路由到 `petfish-companion` skill处理
+2. 用户需要创建新skill时，**必须**使用 `skill-author`；需要验证skill质量时，**必须**使用 `skill-lint`
+3. 用户需要搜索外部skill或MCP server时，**必须**使用 `marketplace-connector`
+4. 用户需要发布skill时，**必须**使用 `quality-gate` 运行完整发布门禁（lint+security→决策）
+5. 用户需要从仓库挖掘skill候选时，**必须**使用 `repo-skill-miner`
+6. 用户需要安全审计skill时，**必须**使用 `skill-security-auditor`
+
+### 冲突解决
+
+- 当用户同时涉及skill创建和质量检查时，先创建（`skill-author`），后检查（`skill-lint` → `quality-gate`）
+- 当用户请求"搜索skill"时，区分：搜索外部市场用 `marketplace-connector`，搜索已安装skill用 `petfish-companion`
+
 ## 感知规则
 
 在对话过程中，如果用户的需求涉及以下领域，但对应skill pack尚未安装，应主动提示：

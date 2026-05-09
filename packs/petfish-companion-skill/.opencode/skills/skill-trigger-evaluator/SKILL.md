@@ -1,13 +1,11 @@
 ---
 name: skill-trigger-evaluator
 description: >
-  Tests whether skills trigger correctly by running them against positive
-  (`should_trigger`) and negative (`should_not_trigger`) query sets. Measures
-  trigger pass rate, false positive rate, and false negative rate so you can
-  verify a skill activates precisely when needed and stays silent when it
-  should not. Use this skill when the user asks to evaluate triggers, test
-  skill trigger accuracy, inspect false positive rate, or asks "is my skill
-  triggering correctly".
+  Evaluate whether a skill triggers correctly using positive should_trigger and
+  negative should_not_trigger query sets. Trigger on “evaluate triggers”, “test
+  skill trigger”, “trigger accuracy”, “false positive rate”, “is my skill
+  triggering correctly”. Reports pass rate, false positive/negative rates,
+  per-query decisions, and sibling cross-trigger conflicts when requested.
 metadata:
   author: petfish-team
   version: 0.2.0

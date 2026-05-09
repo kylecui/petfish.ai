@@ -1,6 +1,6 @@
 ---
 name: planning-technology-assessor
-description: 技术评估与采用准备度分析（TRL成熟度、落地可行性、集成复杂度、战略匹配），将技术变量纳入规划决策。Use when the user says "技术评估", "technology assessment", "TRL", "adoption readiness", "integration feasibility", or "strategic fit".
+description: 技术评估与采用准备度分析（TRL成熟度、落地可行性、集成复杂度、战略匹配），将技术变量纳入规划决策。Use when the user says "技术评估", "technology assessment", "TRL", "adoption readiness", "integration feasibility", "strategic fit", "技术里程碑", "技术决策门", "maturity matrix", or "technology prioritization".
 compatibility: opencode
 license: Apache-2.0
 ---

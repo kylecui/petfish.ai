@@ -54,9 +54,22 @@ research/
   adr/
 ```
 
-## Skill路由
+## Skill路由（强制）
 
-| 用户意图 | 推荐skill |
+### 必须遵守的路由规则
+
+1. **研究意图必须首先路由到 research-router**：当用户表达研究、调研、文献、综述、竞品分析、市场分析、论文方向等研究意图时，**必须**首先路由到 `research-router`，由router判断研究类型后再分发到具体skill。不得跳过router直接调用下游skill。
+2. **证据链路必须完整**：涉及证据收集和报告生成的任务，**必须**按照默认研究流程（router → brief → sources → ... → report → review）执行，不得跳过中间环节直接写报告。
+3. **质量审查必须独立于生成**：`research-quality-reviewer` **必须**在 `research-report-writer` 之后独立运行，不得将生成与审查合并在同一步骤。
+4. **研究意图 vs 普通搜索的冲突解决**：当用户请求可能同时匹配"搜索信息"和"做研究"时，以下信号判定为研究意图并路由到research-router：
+   - 包含"研究"、"调研"、"综述"、"literature"、"survey"等明确研究词汇
+   - 要求系统性分析、证据收集、对比评估
+   - 涉及多来源交叉验证、方法设计、实验规划
+   - 要求产出结构化报告或决策建议
+
+### 意图分类 → Skill路由映射
+
+| 用户意图 | 必须路由到 |
 |---|---|
 | 模糊研究请求 | research-router |
 | 需要定义研究问题 | research-brief-framer |
@@ -87,8 +100,11 @@ research/
 | 需要技术评估或成熟度分析 | planning-technology-assessor |
 | 需要战略路线图或里程碑规划 | planning-roadmap-developer |
 | 需要定义学习目标或学习计划 | learning-goal-framer |
+| 需要梳理前置知识或学习依赖 | learning-prerequisite-mapper |
 | 需要发现和筛选学习资源 | learning-resource-discovery |
 | 需要设计分阶段学习路径 | learning-path-designer |
+| 需要设计练习任务或动手实操 | learning-practice-planner |
+| 需要检查学习进度或阶段复盘 | learning-progress-reviewer |
 | 需要定义决策问题和约束 | decision-brief-framer |
 | 需要构建决策标准和权重 | decision-criteria-builder |
 | 需要方案对比打分矩阵 | option-comparison-matrix |
@@ -102,6 +118,7 @@ research/
 | 需要定义活动或体验目标 | experience-brief-framer |
 | 需要场地或目的地研究 | venue-destination-research |
 | 需要日程或行程规划 | schedule-itinerary-planner |
+| 需要参与者体验设计或旅程优化 | participant-experience-designer |
 | 需要后勤和风险预案 | logistics-risk-planner |
 | 需要活动执行手册 | event-runbook-writer |
 | 需要旅行规划领域增强 | travel-adapter |

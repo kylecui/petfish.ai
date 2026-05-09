@@ -1,6 +1,6 @@
 ---
 name: event-runbook-writer
-description: 将活动研究成果转化为可执行runbook，明确时间线、角色分工、检查清单、沟通机制与应急流程。Use when the user says "活动执行手册", "event runbook", "现场执行", "operation playbook", "活动checklist", "execution checklist", "活动复盘模板", or "run of show".
+description: 将活动研究成果转为可执行runbook/run of show，覆盖before/during/after时间线、角色分工、检查清单、沟通升级链路、应急SOP与复盘模板。Use when the user says "活动执行手册", "event runbook", "run of show", "现场执行", "operation playbook", "execution checklist", "升级路径", "应急SOP", or "活动复盘模板".
 compatibility: opencode
 license: Apache-2.0
 ---

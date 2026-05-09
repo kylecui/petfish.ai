@@ -52,7 +52,7 @@ def run_lint(skill_path: str) -> dict:
             text=True,
             timeout=60,
         )
-        if result.returncode == 0 and result.stdout.strip():
+        if result.stdout.strip():
             data = json.loads(result.stdout.strip())
             score = data.get("score", 0)
             return {
@@ -268,6 +268,15 @@ def make_decision(
     lint_score = lint_result.get("score", 0)
     if lint_score < 95:
         return "CONDITIONAL" if lint_score >= 80 else "FAIL"
+
+    has_trigger_coverage_error = any(
+        finding.get("type") == "trigger-coverage"
+        and str(finding.get("severity", "")).lower() == "error"
+        for finding in lint_result.get("findings", [])
+        if isinstance(finding, dict)
+    )
+    if has_trigger_coverage_error:
+        return "CONDITIONAL"
 
     return "PASS"
 

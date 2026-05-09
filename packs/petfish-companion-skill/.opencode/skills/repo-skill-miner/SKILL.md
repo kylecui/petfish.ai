@@ -1,12 +1,11 @@
 ---
 name: repo-skill-miner
 description: >
-  This skill analyzes GitHub repositories or local repos to identify reusable
-  workflows that can be extracted as PEtFiSh skills. Use it when the user asks
-  to analyze this repo for skills, mine skills from a project, identify what
-  skills can we extract, or skillize this repo. It produces a mining report
-  with candidate skills, their boundaries, required tools, priority, and
-  security risks while filtering out one-off, unsafe, or non-automatable ideas.
+  Analyze GitHub/local repos to mine reusable workflows for PEtFiSh skills.
+  Trigger on “analyze this repo for skills”, “mine skills from…”, “what skills
+  can we extract”, “skillize this repo”. Scans docs + executable entrypoints,
+  filters one-off/unsafe/non-automatable ideas, and outputs candidate skills,
+  boundaries, required tools, risks, and priority ranking.
 metadata:
   author: petfish-team
   version: 0.2.0

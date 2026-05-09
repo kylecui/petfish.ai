@@ -2,6 +2,21 @@
 
 本项目包含一套用于 **repo部署、验证、运维、回滚** 的OpenCode skills。
 
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. 用户要求"部署/上线/deploy"时，**必须**先用 `repo-runtime-discovery` 识别技术栈，再用 `target-host-readiness` 检查主机，最后用 `deployment-executor` 执行
+2. 用户给出宽泛部署任务（"帮我把这个repo部署起来"）时，**必须**启用 `repo-service-lifecycle` 作为总控
+3. 部署完成后，**必须**用 `deployment-verifier` 给出至少一份验证结果（健康检查/smoke test/日志核验）
+4. 遇到部署异常或线上故障时，**必须**使用 `incident-rollback` 处理，优先止血
+5. 持续运维场景**必须**使用 `service-operations`，记录版本、路径、端口、变更时间
+
+### 冲突解决
+
+- 当用户同时要求"部署并运维"时，先走部署链路（discovery→readiness→executor→verifier），完成后再切入 `service-operations`
+- 当不确定是新部署还是升级时，先用 `repo-runtime-discovery` 判断现有部署状态
+
 ## 工作原则
 
 -当用户要求“读取repo/GitHub项目并部署到指定主机”时，优先走完整链路：

@@ -1,6 +1,6 @@
 ---
 name: target-host-readiness
-description: 检查目标Linux主机是否满足部署前提，包括OS、架构、磁盘、内存、网络、端口占用、docker/systemd/nginx/python/node等运行时、目录可写性，以及部署权限。Use when preparing a server for deployment, validating a target host, checking environment drift, or confirming prerequisites before rollout.
+description: 检查目标Linux主机部署就绪性：OS/架构/CPU/内存/磁盘，网络与端口冲突，docker/systemd/nginx/python/node等运行时，可写目录与sudo/服务管理权限，并区分阻塞项与建议项。Trigger for首次部署前检查、升级前核对、环境漂移巡检与rollout前置验证。
 compatibility: Best for Linux hosts with ssh access. Requires Python 3.11+; uv recommended. Helpful commands: ssh, df, ss, systemctl, journalctl, docker.
 license: Internal use
 ---

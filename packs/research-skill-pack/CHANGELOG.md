@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.9.0] - 2026-05-09
+
+### Added
+- learning-prerequisite-mapper: Map prerequisite knowledge and learning dependencies
+- learning-practice-planner: Design practice tasks, drills, labs, and projects for learning paths
+- learning-progress-reviewer: Phase-based learning progress checks and effectiveness review
+- participant-experience-designer: Design participant journey with touchpoint optimization for events
+
+### Fixed
+- Product skill quality parity: added references/ directories with methodology guides to all 5 product skills (product-user-research, product-competitor-analysis, product-opportunity-mapper, product-validation-planner, product-decision-brief) — closes #88
+- evaluate_triggers.py --semantic flag: fixed path resolution to support both repo and installed layouts — closes #89
+- research-type-taxonomy.md: added learning, decision, risk-procurement, experience-event, and adapter domain documentation
+
 ## [0.8.0] - 2026-05-09
 
 ### Added

@@ -19,16 +19,38 @@ EmbeddingManager: Any = None
 
 try:
     # Add fish-trail MCP path for embedding import
-    _ft_mcp = (
-        Path(__file__).resolve().parents[5]
-        / "fish-trail"
-        / ".opencode"
-        / "skills"
-        / "fish-trail"
-        / "mcp"
-        / "context-state"
-    )
-    if _ft_mcp.is_dir():
+    # Try multiple parent depths to support both repo layout (parents[5])
+    # and installed layout (parents[3]: .opencode/skills/skill-trigger-evaluator/scripts/)
+    _ft_mcp = None
+    _script_path = Path(__file__).resolve()
+    for _depth in (5, 4, 3):
+        _candidate = (
+            _script_path.parents[_depth]
+            / "fish-trail"
+            / ".opencode"
+            / "skills"
+            / "fish-trail"
+            / "mcp"
+            / "context-state"
+        )
+        if _candidate.is_dir():
+            _ft_mcp = _candidate
+            break
+    # Also check sibling pack layout: ../../fish-trail-context-state-pack/...
+    if _ft_mcp is None:
+        for _depth in (5, 4, 3):
+            _candidate = (
+                _script_path.parents[_depth]
+                / ".opencode"
+                / "skills"
+                / "fish-trail"
+                / "mcp"
+                / "context-state"
+            )
+            if _candidate.is_dir():
+                _ft_mcp = _candidate
+                break
+    if _ft_mcp is not None and _ft_mcp.is_dir():
         sys.path.insert(0, str(_ft_mcp))
     from embeddings import EmbeddingManager as _EmbeddingManager  # type: ignore[reportMissingImports]
 
