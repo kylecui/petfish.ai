@@ -95,7 +95,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 
 ---
 
-## 10个能力包
+## 11个能力包
 
 | 别名 | 定位 | 规模 |
 |------|------|------|
@@ -109,6 +109,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `petfish` | 工程写作风格 | 1 skill |
 | `testdocs` | 测试用例与文档 | 2 skills |
 | `ppt` | PPT设计 | 2 skills |
+| `research` | 研究工作台——科研、产品、规划等8个领域 | 50 skills |
 
 ---
 

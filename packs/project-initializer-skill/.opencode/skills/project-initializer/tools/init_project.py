@@ -144,7 +144,7 @@ PROFILES: Dict[str, Dict[str, object]] = {
             "qa-reviewer",
         ],
     },
-    "security-research": {
+    "security": {
         "dirs": [
             ".opencode/skills",
             ".opencode/agents",
@@ -237,6 +237,34 @@ PROFILES: Dict[str, Dict[str, object]] = {
             "skill-reviewer",
             "skill-threat-modeler",
             "mcp-config-writer",
+            "qa-reviewer",
+        ],
+    },
+    "research": {
+        "dirs": [
+            ".opencode/skills",
+            ".opencode/agents",
+            ".opencode/templates",
+            "research",
+            "research/briefs",
+            "research/evidence",
+            "research/outputs",
+            "references",
+            "qa",
+        ],
+        "files": [
+            "AGENTS.md",
+            "README.md",
+            "research/briefs/README.md",
+            "research/evidence/README.md",
+            "research/outputs/README.md",
+            "qa/research-checklist.md",
+            ".opencode/skills/manifest.md",
+        ],
+        "skills": [
+            "research-brief-framer",
+            "evidence-collector",
+            "report-writer",
             "qa-reviewer",
         ],
     },

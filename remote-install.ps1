@@ -109,7 +109,8 @@ $AllPacks = @(
     "opencode-ppt-skills",
     "trustskills-governance-pack",
     "anti-sycophancy-calibration-pack",
-    "fish-trail"
+    "fish-trail",
+    "research-skill-pack"
 )
 
 $PackDisplayOrder = @(
