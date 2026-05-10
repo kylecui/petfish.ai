@@ -898,6 +898,21 @@ QC负责：
 
 本项目包含一套用于 **repo部署、验证、运维、回滚** 的OpenCode skills。
 
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. 用户要求"部署/上线/deploy"时，**必须**先用 `repo-runtime-discovery` 识别技术栈，再用 `target-host-readiness` 检查主机，最后用 `deployment-executor` 执行
+2. 用户给出宽泛部署任务（"帮我把这个repo部署起来"）时，**必须**启用 `repo-service-lifecycle` 作为总控
+3. 部署完成后，**必须**用 `deployment-verifier` 给出至少一份验证结果（健康检查/smoke test/日志核验）
+4. 遇到部署异常或线上故障时，**必须**使用 `incident-rollback` 处理，优先止血
+5. 持续运维场景**必须**使用 `service-operations`，记录版本、路径、端口、变更时间
+
+### 冲突解决
+
+- 当用户同时要求"部署并运维"时，先走部署链路（discovery→readiness→executor→verifier），完成后再切入 `service-operations`
+- 当不确定是新部署还是升级时，先用 `repo-runtime-discovery` 判断现有部署状态
+
 ## 工作原则
 
 -当用户要求“读取repo/GitHub项目并部署到指定主机”时，优先走完整链路：
@@ -951,6 +966,20 @@ QC负责：
 <!-- BEGIN pack: petfish-style-skill -->
 # AGENTS.md
 
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. 用户说"润色"、"说人话"、"去AI味"、"用我的语言习惯表达"、"按我的风格写"时，**必须**路由到 `petfish-style-rewriter` skill
+2. 涉及中英文技术写作风格改写时，**必须**使用本skill而非通用写作行为
+3. 输出**必须**符合以下标准：结构清晰、问题驱动、简洁语言、证据支撑、无修辞夸张、无网络口号
+4. 中英混排术语**必须**紧凑：用`Webhook挂载`而非`Webhook 挂载`
+
+### 冲突解决
+
+- 当润色意图与评审意图并存时，同时加载 `petfish-style-rewriter` 和 `anti-sycophancy-calibration`
+- 当用户请求"帮我改一下"但上下文是代码而非文本时，不启用本skill
+
 ## Project Writing Policy
 
 When the user asks to rewrite, polish, humanize, formalize, simplify, or make text closer to Petfish's writing style, use the local skill:
@@ -998,6 +1027,22 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 
 本项目已安装胖鱼PEtFiSh伙伴skill。
 
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. 用户说"/petfish"或任何petfish子命令时，**必须**路由到 `petfish-companion` skill处理
+2. 用户需要创建新skill时，**必须**使用 `skill-author`；需要验证skill质量时，**必须**使用 `skill-lint`
+3. 用户需要搜索外部skill或MCP server时，**必须**使用 `marketplace-connector`
+4. 用户需要发布skill时，**必须**使用 `quality-gate` 运行完整发布门禁（lint+security→决策）
+5. 用户需要从仓库挖掘skill候选时，**必须**使用 `repo-skill-miner`
+6. 用户需要安全审计skill时，**必须**使用 `skill-security-auditor`
+
+### 冲突解决
+
+- 当用户同时涉及skill创建和质量检查时，先创建（`skill-author`），后检查（`skill-lint` → `quality-gate`）
+- 当用户请求"搜索skill"时，区分：搜索外部市场用 `marketplace-connector`，搜索已安装skill用 `petfish-companion`
+
 ## 感知规则
 
 在对话过程中，如果用户的需求涉及以下领域，但对应skill pack尚未安装，应主动提示：
@@ -1011,6 +1056,7 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 | 写作风格/润色 | petfish | `/petfish install petfish` |
 | 评审/评价/批判/校准/反迎合 | calibrate | `/petfish install calibrate` |
 | 话题治理/上下文污染/topic管理 | context | `/petfish install context` |
+| 研究/调研/文献/证据/综述 | research | `/petfish install research` |
 
 当用户需要创建新skill、搜索外部skill、或验证skill质量时，使用companion内置的skill-author、marketplace-connector、skill-lint。
 
@@ -1046,10 +1092,24 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 
 本pack提供一个用于反迎合决策校准的prompt skill，帮助Agent在评审、方案设计、代码审查、写作反馈等判断型任务中减少顺着用户说的倾向。
 
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. 涉及评审、评价、批判、review、critique、feedback、judgment类任务时，**必须**加载 `anti-sycophancy-calibration` skill
+2. 用户在问确认性问题（"对吗？/right?/是不是?/你同意吗?"）时，**必须**先中性化问题再给结论，不得直接顺着用户预设表态
+3. 涉及方案评估、可行性分析、code review、架构判断时，**必须**先给评分维度再做判断
+4. 简单事实查询、翻译、排版、机械编辑**不得**启用本skill，除非用户明确要求judgment或critique
+
+### 冲突解决
+
+- 当评审意图与写作润色意图并存时（如"帮我润色并评审这段话"），同时加载 `petfish-style-rewriter` 和 `anti-sycophancy-calibration`
+- 当用户请求"帮我review"但上下文是简单校对时，按校对处理，不启用本skill
+
 ## 何时启用
 
 - 用户要求评审、评价、批判、review、critique、feedback、judgment、decision、evaluation、calibration
-- 用户在问“对吗？/right?/是不是?/你同意吗?/is this correct?”这类确认性问题
+- 用户在问"对吗？/right?/是不是?/你同意吗?/is this correct?"这类确认性问题
 - 用户需要方案评估、可行性分析、code review、架构判断、论文或提案反馈
 
 ## 行为规则
@@ -1072,6 +1132,20 @@ Thinking can be exploratory, but final writing must be structured. The agent sho
 # Fish Trail — 话题治理器
 
 本pack为项目提供上下文治理能力，降低跨话题污染风险。
+
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. 涉及话题管理、上下文治理、污染检测、话题切换类任务时，**必须**路由到 `fish-trail` skill
+2. 用户说"整理话题"、"切换到X"、"合并话题"、"topic管理"时，**必须**加载fish-trail执行深度治理
+3. topic_detect返回high风险时，**必须**暂停正常处理，向用户说明风险并建议fork/switch/reset
+4. 对merge、archive、bridge三种关系类型，检测置信度低时**必须**提示用户确认，**不得**自动执行
+
+### 冲突解决
+
+- 当话题治理与正常任务并行时，话题治理优先级更高——先处理上下文风险，再执行任务
+- 当MCP不可用时，不阻塞正常工作，静默降级
 
 ## Always-On行为（每次交互自动执行）
 
@@ -1144,3 +1218,143 @@ fish-trail自动管理会话边界：
 - 用户主动要求话题管理（"整理一下话题"、"切换到X"、"把这两个话题合并"等）
 - 用户使用fish-trail相关关键词（topic、话题、上下文、污染、继承、隔离等）
 <!-- END pack: fish-trail -->
+
+<!-- BEGIN pack: research-skill-pack -->
+# Research Skill Pack Rules
+
+本项目已安装研究工作台技能包（research-skill-pack）。
+
+## 工作原则
+
+- 先定义问题，再搜集资料
+- 先合法获取全文，再摘录原文与出处
+- 先记录阅读笔记和灵光闪现，再提升为正式证据
+- 先建立证据账本，再形成判断
+- 先区分事实、推断、灵感、假设与建议，再写报告
+- 生成与审查分离
+- skill本体短小精确，复杂知识放入references与scripts
+
+## 默认研究流程
+
+```
+research-router → research-brief-framer → research-source-discovery → research-literature-access → research-note-capture → research-insight-log → research-evidence-ledger → research-synthesis → research-report-writer → research-quality-reviewer
+```
+
+## 证据类型系统
+
+| Type | Meaning | Can enter report? |
+|---|---|---|
+| EXTRACTED | Directly from source | Yes, with citation |
+| INFERRED | Derived from multiple facts | Yes, with reasoning |
+| AMBIGUOUS | Conflicting sources | Yes, as uncertainty |
+| PROPOSED | Our suggestion/hypothesis | Yes, labeled as recommendation |
+
+## 必须遵守
+
+- 每条重要claim必须有source_id和evidence_id
+- 不得把模型常识当作研究事实
+- 不得把摘要伪装成原文
+- 不得存储明文凭据
+- 不得使用非法来源获取文献
+- 质量审查必须独立于报告生成
+- 灵感不能直接当作事实进入报告
+
+## 研究工作区结构
+
+```
+research/
+  CONTEXT.md
+  00_brief/
+  01_sources/
+  02_notes/
+  03_evidence/
+  04_methods/
+  05_analysis/
+  06_outputs/
+  07_reviews/
+  adr/
+```
+
+## Skill路由（强制）
+
+### 必须遵守的路由规则
+
+1. **研究意图必须首先路由到 research-router**：当用户表达研究、调研、文献、综述、竞品分析、市场分析、论文方向等研究意图时，**必须**首先路由到 `research-router`，由router判断研究类型后再分发到具体skill。不得跳过router直接调用下游skill。
+2. **证据链路必须完整**：涉及证据收集和报告生成的任务，**必须**按照默认研究流程（router → brief → sources → ... → report → review）执行，不得跳过中间环节直接写报告。
+3. **质量审查必须独立于生成**：`research-quality-reviewer` **必须**在 `research-report-writer` 之后独立运行，不得将生成与审查合并在同一步骤。
+4. **研究意图 vs 普通搜索的冲突解决**：当用户请求可能同时匹配"搜索信息"和"做研究"时，以下信号判定为研究意图并路由到research-router：
+   - 包含"研究"、"调研"、"综述"、"literature"、"survey"等明确研究词汇
+   - 要求系统性分析、证据收集、对比评估
+   - 涉及多来源交叉验证、方法设计、实验规划
+   - 要求产出结构化报告或决策建议
+5. **Agent自发研究同样必须路由**：当agent在执行复合任务时自行判断需要研究（如可行性分析、架构调研、技术选型、方案对比等），即使没有用户消息显式触发，**也必须**路由到 `research-router`。判断标准：agent的子任务目标包含"调研"、"分析可行性"、"对比方案"、"评估技术"、"了解现状"等研究性动作时，视为研究意图。不得因为是agent自发行为而跳过路由。
+
+### 意图分类 → Skill路由映射
+
+| 用户意图 | 必须路由到 |
+|---|---|
+| 模糊研究请求 | research-router |
+| 需要定义研究问题 | research-brief-framer |
+| 需要找资料 | research-source-discovery |
+| 需要获取文献全文 | research-literature-access |
+| 需要摘录和阅读笔记 | research-note-capture |
+| 有想法要记录 | research-insight-log |
+| 需要建立证据 | research-evidence-ledger |
+| 需要综合分析 | research-synthesis |
+| 需要写报告 | research-report-writer |
+| 需要审查报告质量 | research-quality-reviewer |
+| 需要引用审计或检查无证据断言 | research-citation-auditor |
+| 需要文献综述或系统回顾 | scientific-literature-review |
+| 需要找研究空白或贡献点 | scientific-gap-finder |
+| 需要方法设计或验证路径 | scientific-methodology-designer |
+| 需要实验设计或评价指标 | scientific-experiment-planner |
+| 需要写论文或论文骨架 | scientific-paper-writer |
+| 需要审稿自查或回复审稿人 | scientific-review-rebuttal |
+| 需要用户研究、访谈、问卷或画像 | product-user-research |
+| 需要竞品分析、市场分析或SWOT | product-competitor-analysis |
+| 需要机会分析、JTBD或需求挖掘 | product-opportunity-mapper |
+| 需要验证计划、MVP设计或假设验证 | product-validation-planner |
+| 需要产品决策简报或go/no-go建议 | product-decision-brief |
+| 需要环境扫描、PESTLE或趋势分析 | planning-environment-scanner |
+| 需要利益相关方分析或参与策略 | planning-stakeholder-analyst |
+| 需要情景规划或不确定性分析 | planning-scenario-planner |
+| 需要政策研究或法规分析 | planning-policy-researcher |
+| 需要技术评估或成熟度分析 | planning-technology-assessor |
+| 需要战略路线图或里程碑规划 | planning-roadmap-developer |
+| 需要定义学习目标或学习计划 | learning-goal-framer |
+| 需要梳理前置知识或学习依赖 | learning-prerequisite-mapper |
+| 需要发现和筛选学习资源 | learning-resource-discovery |
+| 需要设计分阶段学习路径 | learning-path-designer |
+| 需要设计练习任务或动手实操 | learning-practice-planner |
+| 需要检查学习进度或阶段复盘 | learning-progress-reviewer |
+| 需要定义决策问题和约束 | decision-brief-framer |
+| 需要构建决策标准和权重 | decision-criteria-builder |
+| 需要方案对比打分矩阵 | option-comparison-matrix |
+| 需要生成最终决策建议 | decision-recommendation |
+| 需要定义风险评估对象和边界 | risk-research-brief |
+| 需要供应商或开源项目尽调 | vendor-source-diligence |
+| 需要安全风险审查 | security-risk-review |
+| 需要合规风险检查 | compliance-check |
+| 需要总拥有成本和运营风险评估 | tco-operational-risk |
+| 需要最终采用建议 | adoption-recommendation |
+| 需要定义活动或体验目标 | experience-brief-framer |
+| 需要场地或目的地研究 | venue-destination-research |
+| 需要日程或行程规划 | schedule-itinerary-planner |
+| 需要参与者体验设计或旅程优化 | participant-experience-designer |
+| 需要后勤和风险预案 | logistics-risk-planner |
+| 需要活动执行手册 | event-runbook-writer |
+| 需要旅行规划领域增强 | travel-adapter |
+| 需要会议筹备领域增强 | conference-adapter |
+| 需要培训活动领域增强 | training-event-adapter |
+| 需要内容选择领域增强 | content-selection-adapter |
+
+## 数据格式约定
+
+- 面向机器消费的数据技能（source-discovery、note-capture、evidence-ledger）默认使用 JSONL。
+- JSONL 便于结构化校验、lint 检查、脚本处理与流水线拼接。
+- 面向人类阅读的输出技能（brief-framer、synthesis、report-writer）默认使用 Markdown。
+- Markdown 更适合叙述、审阅与协作编辑。
+- 这是有意设计：JSONL 负责保存可追踪证据链，Markdown 负责呈现结论与洞见。
+- 两种格式都有效，不存在“谁替代谁”。
+- 选择原则：下游消费者是脚本就优先 JSONL；是读者/评审就优先 Markdown。
+<!-- END pack: research-skill-pack -->
