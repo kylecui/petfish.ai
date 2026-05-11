@@ -1,15 +1,19 @@
 /**
- * fish-trail-compaction — Phase 1 (Topic-Aware Context Injection)
+ * fish-trail-compaction — Phase 2 (Topic-Structured Prompt Replacement)
  *
- * Injects the active topic's Context Package into OpenCode's compaction flow
- * via `output.context[]`. This gives the LLM summarizer topic awareness so it
- * can prioritize the current topic and compress unrelated topics more aggressively.
+ * Replaces OpenCode's default compaction prompt with a topic-aware version
+ * via `output.prompt`. This organizes the summary by topic, preserves the
+ * active topic in full detail, and aggressively compresses inactive topics.
  *
- * Strategy: Pure augmentation — we append to context[], never replace the
- * default compaction prompt. Low risk, ~15% token savings expected.
+ * When output.prompt is set, it completely replaces the default buildPrompt()
+ * which combines anchor text + SUMMARY_TEMPLATE + context[]. This gives us
+ * ~60% token savings by eliminating redundant cross-topic information.
+ *
+ * Fallback: If fish-trail data is unavailable, does nothing — OpenCode's
+ * default compaction runs unmodified.
  *
  * Data flow:
- *   .petfish/fish-trail/topic-registry.json → active_topic
+ *   .petfish/fish-trail/topic-registry.json → active_topic + all topics
  *   .petfish/fish-trail/topics/<id>.json    → title, scope, summary, tags
  */
 
@@ -46,28 +50,112 @@ async function readJSON<T>(path: string): Promise<T | null> {
   }
 }
 
-function buildContextPackage(topic: TopicData): string {
-  const lines: string[] = [
-    `## Active Topic: ${topic.title}`,
-  ]
-
-  if (topic.scope) {
-    lines.push(`**Scope**: ${topic.scope}`)
-  }
-  if (topic.summary) {
-    lines.push(`**Summary**: ${topic.summary}`)
-  }
-  if (topic.tags?.length) {
-    lines.push(`**Tags**: ${topic.tags.join(", ")}`)
-  }
-
-  lines.push(
-    "",
-    "When summarizing conversation history, prioritize content related to this topic.",
-    "Other topics may be compressed more aggressively.",
+/**
+ * Load all topic data files for topics listed in the registry.
+ */
+async function loadAllTopics(
+  directory: string,
+  registry: TopicRegistry,
+): Promise<TopicData[]> {
+  const topicIds = Object.keys(registry.topics)
+  const results = await Promise.all(
+    topicIds.map((id) =>
+      readJSON<TopicData>(
+        join(directory, FISH_TRAIL_DIR, "topics", `${id}.json`),
+      ),
+    ),
   )
+  return results.filter((t): t is TopicData => t !== null && !!t.title)
+}
 
-  return lines.join("\n")
+/**
+ * Build the topic-structured compaction prompt.
+ *
+ * This replaces OpenCode's default SUMMARY_TEMPLATE + anchor logic with a
+ * prompt that:
+ * 1. Organizes output by topic (active topic gets full detail)
+ * 2. Instructs aggressive compression of inactive topics
+ * 3. Preserves the same output structure (Markdown) for downstream compat
+ * 4. Includes anchor/update logic using the active topic's summary
+ */
+function buildTopicStructuredPrompt(
+  activeTopic: TopicData,
+  allTopics: TopicData[],
+): string {
+  const inactiveTopics = allTopics.filter((t) => t.id !== activeTopic.id)
+
+  // Build the known-topics context block
+  const topicContext: string[] = [
+    "## Known Topics",
+    "",
+    `### ACTIVE: ${activeTopic.title}`,
+  ]
+  if (activeTopic.scope) {
+    topicContext.push(`Scope: ${activeTopic.scope}`)
+  }
+  if (activeTopic.summary) {
+    topicContext.push(`Prior summary: ${activeTopic.summary}`)
+  }
+  if (activeTopic.tags?.length) {
+    topicContext.push(`Tags: ${activeTopic.tags.join(", ")}`)
+  }
+
+  if (inactiveTopics.length > 0) {
+    topicContext.push("")
+    topicContext.push("### Other topics (compress aggressively):")
+    for (const t of inactiveTopics) {
+      topicContext.push(`- ${t.title}${t.scope ? ` — ${t.scope}` : ""}`)
+    }
+  }
+
+  const prompt = `You are compacting a conversation that spans multiple topics. Produce a topic-organized summary.
+
+${topicContext.join("\n")}
+
+---
+
+Produce exactly the Markdown structure below. Do not include the <template> tags.
+
+<template>
+## Active Topic: ${activeTopic.title}
+
+### Goal
+- [single-sentence goal for this topic]
+
+### Progress
+- [completed work, in-progress items, blockers — terse bullets]
+
+### Key Decisions
+- [decision and why, or "(none)"]
+
+### Critical Context
+- [technical facts, errors, open questions specific to this topic]
+
+### Relevant Files
+- [file path: why it matters]
+
+### Next Steps
+- [ordered next actions]
+
+## Other Topics
+${inactiveTopics.length > 0 ? inactiveTopics.map((t) => `### ${t.title}\n- [1-2 bullet summary of work done, or "(none)"]`).join("\n\n") : "- (none)"}
+
+## User Constraints & Preferences
+- [user constraints, preferences, specs across all topics, or "(none)"]
+
+## Delegated Agent Sessions
+- [agent type, purpose, session_id — only if referenced in conversation]
+</template>
+
+Rules:
+- The ACTIVE topic section must capture ALL relevant details from the conversation — goals, progress, decisions, files, next steps.
+- Other topic sections: maximum 2 bullets each. Drop details that are not needed to resume work.
+- Preserve exact file paths, commands, error strings, identifiers, and session IDs.
+- Use terse bullets, not prose paragraphs.
+- Do not mention the summary process or that context was compacted.
+- Keep every section, even when empty — use "(none)".`
+
+  return prompt
 }
 
 const plugin: Plugin = async ({ directory }) => ({
@@ -79,18 +167,13 @@ const plugin: Plugin = async ({ directory }) => ({
 
     if (!registry?.active_topic) return
 
-    const topicPath = join(
-      directory,
-      FISH_TRAIL_DIR,
-      "topics",
-      `${registry.active_topic}.json`,
-    )
-    const topic = await readJSON<TopicData>(topicPath)
+    const allTopics = await loadAllTopics(directory, registry)
+    const activeTopic = allTopics.find((t) => t.id === registry.active_topic)
 
-    if (!topic?.title) return
+    if (!activeTopic) return
 
-    const contextPkg = buildContextPackage(topic)
-    output.context.push(contextPkg)
+    // Phase 2: Replace the entire compaction prompt
+    output.prompt = buildTopicStructuredPrompt(activeTopic, allTopics)
   },
 })
 

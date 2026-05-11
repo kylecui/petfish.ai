@@ -1,18 +1,20 @@
 # Synthesis: Topic-Aware Compaction
 
 > 关联 Brief: `../00_brief/research-brief.md` (TAC-2026-001)
-> Evidence Ledger: `../03_evidence/evidence-ledger.jsonl` (14 entries)
-> 日期: 2026-05-10
+> Evidence Ledger: `../03_evidence/evidence-ledger.jsonl` (17 entries)
+> 日期: 2026-05-11 (updated with Phase 2 A/B test results)
 
 ---
 
 ## Executive Summary
 
-**结论: fish-trail可以通过OpenCode的plugin hook增强compaction，且Phase 1风险极低。**
+**结论: fish-trail可以通过OpenCode的plugin hook增强compaction，且Phase 2已通过A/B测试验证——20.3% token节约，零质量损失。**
 
 OpenCode的`experimental.session.compacting` hook提供了足够的集成表面，fish-trail的现有数据模型（topic summary、Context Package、contamination score）可以直接复用。三个核心假设均已通过源码验证（E001-E005）。11+个外部项目已在生产中使用同一hook（E013），API稳定性风险可控。
 
-三阶段渐进路径仍然是最优实现策略，但Phase 3的原始设计需要修正（E010）。
+Phase 2 A/B测试（E015-E017）揭示了关键洞察：**主要节约机制不是摘要压缩，而是API调用减少**。Topic-structured compaction使模型产生更聚焦的回复，减少中间工具调用链，从而复合降低cache读取和总耗时。
+
+三阶段渐进路径仍然是最优实现策略，但Phase 3的原始设计需要修正（E010），且Phase 2的实际收益模式与预期不同。
 
 ---
 
@@ -184,13 +186,19 @@ if JSON解析失败 → 静默跳过
 
 | 维度 | Phase 1 (Context注入) | Phase 2 (Prompt替换) | Phase 3 (预计算摘要) |
 |------|------|------|------|
-| Token节约 | ~15% | ~60% | ~80% (修正后) |
+| Token节约 | ~15% | **20.3% (实测)** | ~80% (修正后) |
+| API调用减少 | 未测量 | **36.4% (140→89)** | TBD |
+| Cache读取减少 | 未测量 | **49.9% (10.6M→5.3M)** | TBD |
+| 耗时减少 | 未测量 | **39.4% (49min→30min)** | TBD |
+| 召回质量 | 未测量 | **无损失** | TBD |
 | 实现复杂度 | 低 (~100行TS) | 中 (~300行TS) | 高 (~500行TS) |
-| 风险等级 | 极低 | 中 | 高 |
+| 风险等级 | 极低 | 中（已验证安全） | 高 |
 | 依赖 | 文件系统 | 文件系统 + MCP | 文件系统 + MCP + 深入hook理解 |
 | 降级能力 | 完美（静默跳过） | 可行（回退到Phase 1） | 困难（需要回退整个compaction逻辑） |
 | 生态参考 | engram等11+项目 | 部分项目 | 无参考 |
 | 开发周期 | 1天 | 3-5天 | 1-2周 |
+
+> **Phase 2 实测关键发现**: 20.3% token节约低于预估的60%，但实际价值远超预期。主要机制不是摘要压缩比，而是**行为变化**——topic-structured compaction使模型减少36.4%的API调用（平均4.2 calls/msg vs 6.7），产生更聚焦的consolidated回复。这一行为变化复合导致cache读取降低49.9%、总耗时降低39.4%。（E015-E017）
 
 ---
 
@@ -282,16 +290,18 @@ export default { id: "fish-trail-compaction", server: plugin }
 | F4 | fish-trail现有数据模型可直接复用，无需修改 | 0.90 | E007-E008 |
 | F5 | 11+外部项目验证了hook API的稳定性 | 0.90 | E013 |
 | F6 | SessionID映射是Phase 2+的关键设计决策 | 0.85 | E009 |
-| F7 | Token节约的主要收益在Phase 2（~60%），Phase 1是验证阶段 | 0.75 | Estimated |
+| F7 | Phase 2实测token节约20.3%，低于预估60%，但综合效益（API调用-36%、耗时-39%、cache-50%）远超预期 | 1.0 | E015-E017 |
+| F8 | 主要节约机制是行为变化（模型产生更聚焦回复），非摘要压缩比 | 0.90 | E016 |
+| F9 | Phase 2零召回质量损失，零运行错误 | 1.0 | E017 |
 
 ---
 
 ## 9. Recommendations
 
-1. **立即实施Phase 1** — 代码量小（~50行），风险极低，验证集成可行性
-2. **Phase 1验证后启动Phase 2设计** — 重点解决session映射和contamination-based压缩排序
-3. **推迟Phase 3** — 边际收益（60%→80%）不值得其复杂性，除非Phase 2数据表明需要
-4. **同步记录token数据** — 从Phase 1开始建立baseline，用于Phase 2的量化决策
+1. ~~**立即实施Phase 1**~~ ✅ 已完成并验证（commit `2fcb999`）
+2. ~~**Phase 1验证后启动Phase 2设计**~~ ✅ 已完成并通过A/B测试验证（E015-E017）
+3. **重新评估Phase 3** — Phase 2的实际收益模式（行为变化 > 压缩比）意味着Phase 3的"跳过LLM"策略可能无法带来同等的行为变化收益。建议观察Phase 2在更多真实场景中的表现后再决定。
+4. **将Phase 2 plugin纳入fish-trail标准分发** — A/B测试已验证安全性和有效性，可作为fish-trail pack的可选组件提供
 5. **考虑`chat.system.transform`** — 除compaction外，在每次对话中注入轻量topic awareness可能有额外价值
 
 ---
@@ -314,3 +324,6 @@ export default { id: "fish-trail-compaction", server: plugin }
 | 默认模板结构 | E012 |
 | 生态成熟度 | E013 |
 | 辅助hooks | E014 |
+| Phase 2 token节约量化 | E015 |
+| Phase 2 行为变化机制 | E016 |
+| Phase 2 召回质量保持 | E017 |
