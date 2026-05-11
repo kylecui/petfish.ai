@@ -1,0 +1,13 @@
+{
+  "skill": "review-roaster",
+  "should_trigger": [
+    "给我写个吐槽版",
+    "roast this review",
+    "来个脱口秀版"
+  ],
+  "should_not_trigger": [
+    "写个正式review",
+    "帮我润色",
+    "代码审查"
+  ]
+}
