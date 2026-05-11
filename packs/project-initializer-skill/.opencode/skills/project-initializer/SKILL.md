@@ -166,7 +166,14 @@ Typical safe commands:
 ```bash
 uv run python tools/init_project.py --profile comprehensive --target . --with-opencode --with-mcp-template --no-overwrite --dry-run
 uv run python tools/init_project.py --profile comprehensive --target . --with-opencode --with-mcp-template --no-overwrite
+uv run python tools/init_project.py --profile comprehensive --target . --with-opencode --with-mcp-template --no-overwrite --with-git --detect-env
 ```
+
+CLI flags to surface in plans and examples:
+
+- `--with-git`: initialize git repo and create initial commit (best-effort; non-interactive)
+- `--no-git`: explicitly skip git initialization
+- `--detect-env`: detect and report `uv`/Python/Node.js versions (`not found` when unavailable)
 
 For Python development projects, prefer documenting commands unless the user confirms execution:
 
@@ -450,10 +457,12 @@ If skipped, leave the file empty or with a single placeholder task.
 
 Ask (Chinese / English): "要现在初始化Git仓库吗？(y/n)" / "Initialize a Git repo now? (y/n)"
 
-If yes, execute:
+If `--with-git` was already used during initialization, git is already initialized with an initial commit. No extra action is needed in this step.
+
+If not already initialized and user says yes, execute:
 
 ```bash
-cd <project_dir> && git init && git add . && git commit -m "init: project scaffold via petfish project-initializer"
+cd <project_dir> && git init && git add . && git commit -m "init"
 ```
 
 If skipped, remind the user to do it later.
