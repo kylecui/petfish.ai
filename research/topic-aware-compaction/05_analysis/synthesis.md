@@ -300,7 +300,7 @@ export default { id: "fish-trail-compaction", server: plugin }
 
 1. ~~**立即实施Phase 1**~~ ✅ 已完成并验证（commit `2fcb999`）
 2. ~~**Phase 1验证后启动Phase 2设计**~~ ✅ 已完成并通过A/B测试验证（E015-E017）
-3. **重新评估Phase 3** — Phase 2的实际收益模式（行为变化 > 压缩比）意味着Phase 3的"跳过LLM"策略可能无法带来同等的行为变化收益。建议观察Phase 2在更多真实场景中的表现后再决定。
+3. ~~**重新评估Phase 3**~~ 🚫 **已决定搁置 (2026-05-11)**。Phase 2的收益主要来自行为变化（模型产生更聚焦回复、减少API调用），而非摘要压缩比。Phase 3的"跳过LLM"策略无法复现这一行为变化机制——预计算摘要可能反而失去LLM在compaction时的上下文理解能力。Phase 2已提供20%+ token节约、40% wall time加速，ROI充分。如未来出现新的证据（如更大session的测试数据），可重新评估。
 4. **将Phase 2 plugin纳入fish-trail标准分发** — A/B测试已验证安全性和有效性，可作为fish-trail pack的可选组件提供
 5. **考虑`chat.system.transform`** — 除compaction外，在每次对话中注入轻量topic awareness可能有额外价值
 
