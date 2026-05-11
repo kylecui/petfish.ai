@@ -41,3 +41,7 @@ __pycache__/
 
 # PetFish Remote connector (per-machine config)
 connector.yaml
+
+# A/B test ephemeral directories
+test-baseline/
+test-plugin/
