@@ -1,6 +1,6 @@
 ---
 name: fish-trail
-description: Use this skill when topic_detect is high risk, users ask to 整理/切换/合并/归档话题 or 清空上下文, or mention topic governance/上下文污染/继承隔离/session resume. It routes continue/fork/switch/merge/archive/reset/bridge, applies context policy, builds context packages, logs decisions, and manages session boundaries via context-state MCP.
+description: topic_detect is high risk, users ask to 整理/切换/合并/归档话题 or 清空上下文, or mention topic governance/上下文污染/继承隔离/session resume. It routes continue/fork/switch/merge/archive/reset/bridge, applies context policy, builds context packages, logs decisions, and manages session boundaries via context-state MCP.
 mcp:
   context-state:
     command: uv

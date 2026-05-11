@@ -1,8 +1,8 @@
 ---
 name: drawio-course-diagrams
-description: Use this skill when the user wants course-related diagrams in draw.io
-  form, including architecture diagrams, module maps, timelines, workflows, role flows,
-  lab topologies, or slide-ready visual structures.
+description: Course-related diagrams in draw.io form, including architecture diagrams,
+  module maps, timelines, workflows, role flows, lab topologies, or slide-ready visual
+  structures.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

@@ -1,0 +1,23 @@
+{
+  "skill": "product-decision-brief",
+  "should_trigger": [
+    "用户要求“产品决策 / product decision / 决策简报”",
+    "需要给出 go/no-go/pivot 的结论建议",
+    "需要回答“should we build this”并展示证据链",
+    "需要将研究阶段成果汇总为管理层可读决策材料",
+    "Help me with product decision brief",
+    "I need product decision brief",
+    "decision help needed",
+    "tradeoff help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

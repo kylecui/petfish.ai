@@ -1,8 +1,7 @@
 ---
 name: course-directory-structure
-description: Use this skill when the user wants to create, reorganize, normalize,
-  or audit a course project directory tree, including naming rules, artifact placement,
-  archive cleanup, and scaffold generation.
+description: Create, reorganize, normalize, or audit a course project directory tree,
+  including naming rules, artifact placement, archive cleanup, and scaffold generation.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

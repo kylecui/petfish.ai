@@ -1,8 +1,8 @@
 ---
 name: course-methodology-playbook
-description: Use this skill when the user wants reusable course-development methods,
-  review heuristics, historical conventions, playbooks, or packaged guidance extracted
-  from prior course discussions and project practice.
+description: Reusable course-development methods, review heuristics, historical conventions,
+  playbooks, or packaged guidance extracted from prior course discussions and project
+  practice.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

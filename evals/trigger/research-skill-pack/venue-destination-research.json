@@ -1,0 +1,23 @@
+{
+  "skill": "venue-destination-research",
+  "should_trigger": [
+    "用户要求“场地调研 / venue research / 目的地选择 / destination research”",
+    "需要评估多个城市、酒店、会场或景点作为活动承载地点",
+    "需要比较容量、价格、设施、交通与评价差异",
+    "需要确认地方政策、许可要求、季节天气与安全风险",
+    "Help me with venue destination research",
+    "I need venue destination research",
+    "destination help needed",
+    "research help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "translate this to Japanese"
+  ]
+}

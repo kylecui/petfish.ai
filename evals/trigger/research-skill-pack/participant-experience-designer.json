@@ -1,0 +1,23 @@
+{
+  "skill": "participant-experience-designer",
+  "should_trigger": [
+    "已有活动brief与日程，需要以参与者视角优化体验",
+    "需要绘制attendee journey并识别痛点",
+    "需要提升开场、互动、转场与收尾的体验连贯性",
+    "需要为执行团队提供体验检查清单",
+    "Help me with participant experience designer",
+    "I need participant experience designer",
+    "participant help needed",
+    "experience help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

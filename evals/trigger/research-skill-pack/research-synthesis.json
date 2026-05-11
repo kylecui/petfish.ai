@@ -1,0 +1,23 @@
+{
+  "skill": "research-synthesis",
+  "should_trigger": [
+    "已有证据账本，需要形成主题、模式、矛盾、结论",
+    "需要将多篇论文/竞品/政策组织成对比矩阵",
+    "需要从证据推导建议",
+    "需要对结论进行置信度分级",
+    "Help me with research synthesis",
+    "I need research synthesis",
+    "recommendation help needed",
+    "contradiction help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

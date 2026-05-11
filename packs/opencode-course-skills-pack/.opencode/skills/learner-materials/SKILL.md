@@ -1,8 +1,7 @@
 ---
 name: learner-materials
-description: Use this skill when the user wants learner-facing course assets such
-  as handouts, reading packs, worksheets, pre-class guides, post-class exercises,
-  glossaries, or concise recap notes.
+description: Learner-facing course assets such as handouts, reading packs, worksheets,
+  pre-class guides, post-class exercises, glossaries, or concise recap notes.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

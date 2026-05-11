@@ -1,0 +1,23 @@
+{
+  "skill": "product-opportunity-mapper",
+  "should_trigger": [
+    "用户提出“机会分析 / opportunity mapping / 问题空间”",
+    "需要用 JTBD（Jobs to be Done）统一表达用户需求",
+    "需要机会评分（opportunity scoring）支持路线图排序",
+    "需要识别 underserved/overserved 区域寻找切入点",
+    "Help me with product opportunity mapper",
+    "I need product opportunity mapper",
+    "opportunity help needed",
+    "underserved help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

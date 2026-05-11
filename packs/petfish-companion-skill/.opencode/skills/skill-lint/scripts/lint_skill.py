@@ -39,6 +39,24 @@ TRIGGER_HINTS = (
     "适用于",
 )
 
+# Filler prefixes that inflate description token count without adding trigger value.
+# Kept in sync with scripts/compress_descriptions.py FILLER_PREFIXES.
+COMPRESSIBLE_PREFIXES: list[re.Pattern[str]] = [
+    re.compile(p, re.IGNORECASE)
+    for p in [
+        r"^Use this skill when the user wants to\s+",
+        r"^Use this skill when the user needs to\s+",
+        r"^Use this skill when the user asks to\s+",
+        r"^Use this skill when the user wants\s+",
+        r"^Use this skill when the user needs\s+",
+        r"^Use this skill when the user asks\s+",
+        r"^Use this skill when the user\s+",
+        r"^Use this skill to\s+",
+        r"^Use this skill when\s+",
+        r"^Use this skill for\s+",
+    ]
+]
+
 
 @dataclass
 class Finding:
@@ -712,6 +730,19 @@ def lint_skill_dir(skill_dir: Path) -> tuple[LintResult, dict, str]:
 
     check_trigger_coverage(description, body, findings)
 
+    # FM010: description compression check
+    if description:
+        for pat in COMPRESSIBLE_PREFIXES:
+            if pat.search(description):
+                add_finding(
+                    findings,
+                    "FM010",
+                    "warn",
+                    "description contains compressible filler prefix (wastes tokens in system prompt)",
+                    "Remove the filler prefix. Run: uv run scripts/compress_descriptions.py --root <path> --apply",
+                )
+                break  # one warning per skill is enough
+
     references_dir = skill_dir / "references"
     scripts_dir = skill_dir / "scripts"
     evals_dir = skill_dir / "evals"
@@ -816,6 +847,8 @@ def build_fix_plan(
     description = str(frontmatter.get("description", "")).strip()
     if "FM006" in rule_ids and description:
         plan.append("Trim description to 1024 characters")
+    if "FM010" in rule_ids and description:
+        plan.append("Remove compressible filler prefix from description")
     return plan
 
 
@@ -869,6 +902,22 @@ def apply_fixes(
             dump_frontmatter(updated) + body.lstrip("\n"), encoding="utf-8"
         )
         applied.append("Trimmed description to 1024 characters")
+
+    if "FM010" in rule_ids and description:
+        compressed = description
+        for pat in COMPRESSIBLE_PREFIXES:
+            compressed = pat.sub("", compressed)
+        if compressed != description:
+            # Capitalize first letter after prefix removal
+            if compressed and compressed[0].islower():
+                compressed = compressed[0].upper() + compressed[1:]
+            updated = dict(frontmatter)
+            updated["description"] = compressed
+            skill_md = skill_dir / "SKILL.md"
+            skill_md.write_text(
+                dump_frontmatter(updated) + body.lstrip("\n"), encoding="utf-8"
+            )
+            applied.append("Removed compressible filler prefix from description")
 
     return applied
 

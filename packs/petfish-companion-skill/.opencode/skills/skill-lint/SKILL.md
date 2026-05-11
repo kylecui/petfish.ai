@@ -1,11 +1,11 @@
 ---
 name: skill-lint
 description: >
-  Use this skill to lint/check/validate skill quality and trigger reliability.
-  Trigger on “lint skill”, “check skill”, “validate skill”, “is this skill
-  valid”, pre-publish QA, or debugging load/match issues. Runs lint_skill.py on
-  single skill or recursive roots, reports ERROR/WARN/INFO with rule IDs,
-  score/counts, JSON output, and optional dry-run/apply fix workflow.
+  Lint/check/validate skill quality and trigger reliability. Trigger on “lint
+  skill”, “check skill”, “validate skill”, “is this skill valid”, pre-publish
+  QA, or debugging load/match issues. Runs lint_skill.py on single skill or
+  recursive roots, reports ERROR/WARN/INFO with rule IDs, score/counts, JSON
+  output, and optional dry-run/apply fix workflow.
 metadata:
   version: 0.2.0
   author: petfish-team

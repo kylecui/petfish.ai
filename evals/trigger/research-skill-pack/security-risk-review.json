@@ -1,0 +1,23 @@
+{
+  "skill": "security-risk-review",
+  "should_trigger": [
+    "用户要求“安全风险评审 / security review / security risk assessment”",
+    "需要评估候选工具是否会引入数据泄露与权限扩散风险",
+    "需要识别LLM/Agent链路中的prompt injection与执行越权风险",
+    "采购流程要求提交安全章节作为go/no-go输入",
+    "Help me with security risk review",
+    "I need security risk review",
+    "assessment help needed",
+    "injection help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

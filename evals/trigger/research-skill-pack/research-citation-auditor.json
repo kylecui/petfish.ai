@@ -1,0 +1,23 @@
+{
+  "skill": "research-citation-auditor",
+  "should_trigger": [
+    "用户要求“引用审计 / citation audit / 检查引用 / check citations”",
+    "报告准备对外提交，需做最终 source verification",
+    "团队质疑报告是否存在 unsupported claims",
+    "需要评估引用覆盖率与关键claim证据密度",
+    "Help me with research citation auditor",
+    "I need research citation auditor",
+    "verification help needed",
+    "evidence_id help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

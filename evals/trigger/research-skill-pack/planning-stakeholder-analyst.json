@@ -1,0 +1,23 @@
+{
+  "skill": "planning-stakeholder-analyst",
+  "should_trigger": [
+    "用户要求“利益相关方分析 / stakeholder analysis / stakeholder map”",
+    "需要识别关键决策主体与潜在阻力方",
+    "需要制定沟通和参与计划（engagement plan）",
+    "需要评估多方诉求冲突对战略规划的影响",
+    "Help me with planning stakeholder analyst",
+    "I need planning stakeholder analyst",
+    "influence-interest help needed",
+    "stakeholder help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

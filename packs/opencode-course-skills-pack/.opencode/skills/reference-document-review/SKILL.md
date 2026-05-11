@@ -1,8 +1,7 @@
 ---
 name: reference-document-review
-description: Use this skill when the user provides or mentions reference materials
-  in PDF, Markdown, DOC, DOCX, images, slides, or mixed formats and wants them read,
-  normalized, compared, extracted, or converted into course inputs.
+description: Read, normalize, compare, extract, or convert reference materials in PDF,
+  Markdown, DOC, DOCX, images, slides, or mixed formats into course inputs.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

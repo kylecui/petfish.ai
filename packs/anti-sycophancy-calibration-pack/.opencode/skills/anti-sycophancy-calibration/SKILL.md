@@ -1,6 +1,6 @@
 ---
 name: anti-sycophancy-calibration
-description: Use this skill when the user asks for 评审, 评价, 批判, review, critique, feedback, judgment, decision, evaluation, calibration, sycophancy, 迎合, 校准, 方案评估, code review, 可行性分析, architecture evaluation, proposal critique, strategic judgment, design review, or asks whether an idea/approach/understanding is right. It reduces sycophancy by neutralizing leading prompts, defining rubrics before conclusions, contrasting support vs opposition, separating conclusion from confidence, and improving reasoning quality in judgment-heavy tasks.
+description: For 评审, 评价, 批判, review, critique, feedback, judgment, decision, evaluation, calibration, sycophancy, 迎合, 校准, 方案评估, code review, 可行性分析, architecture evaluation, proposal critique, strategic judgment, design review, or asks whether an idea/approach/understanding is right. It reduces sycophancy by neutralizing leading prompts, defining rubrics before conclusions, contrasting support vs opposition, separating conclusion from confidence, and improving reasoning quality in judgment-heavy tasks.
 compatibility: opencode
 metadata:
   version: "0.1.0"

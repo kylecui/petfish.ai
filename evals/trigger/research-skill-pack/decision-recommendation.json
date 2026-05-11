@@ -1,0 +1,23 @@
+{
+  "skill": "decision-recommendation",
+  "should_trigger": [
+    "已完成比较矩阵，需要形成最终决策建议",
+    "需要明确推荐的生效条件与风险边界",
+    "需要给出备选路线与回退策略",
+    "需要形成可审计的决策日志",
+    "Help me with decision recommendation",
+    "I need decision recommendation",
+    "recommendation help needed",
+    "comparison help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

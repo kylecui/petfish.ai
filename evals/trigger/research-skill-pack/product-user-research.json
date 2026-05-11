@@ -1,0 +1,23 @@
+{
+  "skill": "product-user-research",
+  "should_trigger": [
+    "用户要求“用户研究 / user research / 访谈设计 / interview guide”",
+    "需要设计“问卷设计 / survey design / 可用性测试”并定义执行口径",
+    "需要将研究结果沉淀为用户画像（persona）或用户旅程图",
+    "团队需回答“哪些用户问题最影响当前产品决策”",
+    "Help me with product user research",
+    "I need product user research",
+    "interview help needed",
+    "usability help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

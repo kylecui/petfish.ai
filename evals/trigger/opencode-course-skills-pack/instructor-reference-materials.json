@@ -1,0 +1,19 @@
+{
+  "skill": "instructor-reference-materials",
+  "should_trigger": [
+    "Help me with instructor reference materials",
+    "I need instructor reference materials",
+    "instructor-only help needed",
+    "discussion help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

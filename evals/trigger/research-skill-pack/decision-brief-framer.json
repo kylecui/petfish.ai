@@ -1,0 +1,23 @@
+{
+  "skill": "decision-brief-framer",
+  "should_trigger": [
+    "用户要求“怎么选/选哪个/是否上线/是否采购”",
+    "需要把讨论从观点对撞转成结构化决策问题",
+    "需要明确决策人、时限和责任边界",
+    "需要区分必须满足项与偏好项",
+    "Help me with decision brief framer",
+    "I need decision brief framer",
+    "nice-to-have help needed",
+    "must-have help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

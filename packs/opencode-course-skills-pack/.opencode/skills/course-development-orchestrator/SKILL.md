@@ -1,9 +1,6 @@
 ---
 name: course-development-orchestrator
-description: 'Use this skill when the user wants to drive a course project end to
-  end: break work into plans, outlines, content, labs, learner materials, instructor
-  materials, QA, QC, and release decisions, even if the request is phrased broadly
-  as course development or curriculum work.'
+description: Drive course projects end to end — plans, outlines, content, labs, learner/instructor materials, QA, QC, and release decisions. Also triggers for broad course development or curriculum requests.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

@@ -1,8 +1,7 @@
 ---
 name: course-outline-design
-description: Use this skill when the user wants to create, modify, or review a course
-  outline, syllabus, chapter tree, hour allocation, module progression, learning objectives,
-  or prerequisite map.
+description: Create, modify, or review a course outline, syllabus, chapter tree, hour
+  allocation, module progression, learning objectives, or prerequisite map.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

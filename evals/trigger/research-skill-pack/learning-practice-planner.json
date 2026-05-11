@@ -1,0 +1,23 @@
+{
+  "skill": "learning-practice-planner",
+  "should_trigger": [
+    "需要把资源学习转化为动手训练任务",
+    "需要平衡概念练习、代码实验与小项目实践",
+    "需要定义练习验收标准与复盘节奏",
+    "需要降低“看懂了但做不出”的学习偏差",
+    "Help me with learning practice planner",
+    "I need learning practice planner",
+    "practice help needed",
+    "hands-on help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

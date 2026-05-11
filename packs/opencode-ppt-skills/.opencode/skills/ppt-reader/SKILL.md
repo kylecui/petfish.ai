@@ -1,6 +1,6 @@
 ---
 name: ppt-reader
-description: Use this skill when the user needs to read/inspect/summarize/audit/compare PPT/PPTX, extract slide inventory (titles, structure, notes, comments, media, links), review templates/layout/placeholders/sensitive info, or produce rewrite briefs and per-slide action plans for ppt-writer. Trigger for 读取/总结/审阅/对比课件、提案、汇报材料 and visual QA requests.
+description: Read/inspect/summarize/audit/compare PPT/PPTX, extract slide inventory (titles, structure, notes, comments, media, links), review templates/layout/placeholders/sensitive info, or produce rewrite briefs and per-slide action plans for ppt-writer. Trigger for 读取/总结/审阅/对比课件、提案、汇报材料 and visual QA requests.
 license: MIT
 compatibility: opencode; requires uv for bundled Python scripts; optional LibreOffice and Poppler for slide rendering.
 metadata:

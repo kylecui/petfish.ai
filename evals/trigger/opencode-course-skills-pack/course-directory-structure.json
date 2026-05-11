@@ -1,0 +1,23 @@
+{
+  "skill": "course-directory-structure",
+  "should_trigger": [
+    "initialize a new course repository",
+    "create a standard course artifact tree",
+    "reorganize messy course files",
+    "normalize naming and placement",
+    "Help me with course directory structure",
+    "I need course directory structure",
+    "generation help needed",
+    "reorganize help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today",
+    "translate this to Japanese"
+  ]
+}

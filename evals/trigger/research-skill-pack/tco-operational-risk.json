@@ -1,0 +1,23 @@
+{
+  "skill": "tco-operational-risk",
+  "should_trigger": [
+    "用户要求“总拥有成本评估 / TCO analysis / cost-risk analysis”",
+    "需要判断方案在1-3年周期是否可持续",
+    "需要比较“买、建、混合”方案的长期运维负担",
+    "采购评审需明确锁定风险与退出成本",
+    "Help me with tco operational risk",
+    "I need tco operational risk",
+    "operational help needed",
+    "ownership help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

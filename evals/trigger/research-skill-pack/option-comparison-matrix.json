@@ -1,0 +1,22 @@
+{
+  "skill": "option-comparison-matrix",
+  "should_trigger": [
+    "需要把“主观看法”转换成“证据+分数”",
+    "需要识别方案短板与补救空间",
+    "需要形成可共享的决策对比底稿",
+    "Help me with option comparison matrix",
+    "I need option comparison matrix",
+    "deal-breaker help needed",
+    "sensitivity help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}
