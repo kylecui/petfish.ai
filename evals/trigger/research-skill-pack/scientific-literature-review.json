@@ -1,0 +1,23 @@
+{
+  "skill": "scientific-literature-review",
+  "should_trigger": [
+    "用户说“文献综述 / literature review / systematic review”",
+    "用户询问“这个方向的研究现状是什么”",
+    "用户要求“找相关论文并比较方法”",
+    "用户需要形成可追溯的 related work 基础",
+    "Help me with scientific literature review",
+    "I need scientific literature review",
+    "systematic help needed",
+    "literature help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

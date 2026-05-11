@@ -1,0 +1,23 @@
+{
+  "skill": "adoption-recommendation",
+  "should_trigger": [
+    "用户要求“最终建议 / recommendation / go-no-go decision”",
+    "风险采购链路已完成，需要形成统一决策版本",
+    "需要给出“能不能上、在什么条件下上、失败怎么收敛”",
+    "评审会前需要标准化结论、控制措施与后续验证计划",
+    "Help me with adoption recommendation",
+    "I need adoption recommendation",
+    "recommendation help needed",
+    "sufficiency help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

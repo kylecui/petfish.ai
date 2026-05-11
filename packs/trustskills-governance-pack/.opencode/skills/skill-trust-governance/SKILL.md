@@ -1,6 +1,6 @@
 ---
 name: skill-trust-governance
-description: Use this skill for skill trust/governance requests: skill trust, skill安全, 治理, 可信度, trust scan, risk score, redline check, pre-publish trust verification. It wraps trustskills CLI via scripts/trust_scan.py for single-skill or root scans, manifest generation/verification, custom policy YAML, and returns governance level (allow/allow_with_ask/sandbox_required/manual_review_required/deny) with JSON-ready output.
+description: Skill trust/governance requests: skill trust, skill安全, 治理, 可信度, trust scan, risk score, redline check, pre-publish trust verification. It wraps trustskills CLI via scripts/trust_scan.py for single-skill or root scans, manifest generation/verification, custom policy YAML, and returns governance level (allow/allow_with_ask/sandbox_required/manual_review_required/deny) with JSON-ready output.
 version: 0.1.0
 compatibility: opencode
 ---

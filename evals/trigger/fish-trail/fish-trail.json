@@ -1,0 +1,23 @@
+{
+  "skill": "fish-trail",
+  "should_trigger": [
+    "embedding",
+    "enabled",
+    "preload",
+    "timeout_ms",
+    "Help me with fish trail",
+    "I need fish trail",
+    "context-state help needed",
+    "topic_detect help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

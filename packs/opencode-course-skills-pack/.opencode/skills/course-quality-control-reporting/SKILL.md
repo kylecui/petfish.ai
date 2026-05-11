@@ -1,8 +1,7 @@
 ---
 name: course-quality-control-reporting
-description: Use this skill when the user wants to turn QA findings into concrete
-  quality control actions, remediation plans, closure tracking, and release or re-review
-  reports.
+description: Turn QA findings into concrete quality control actions, remediation plans,
+  closure tracking, and release or re-review reports.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

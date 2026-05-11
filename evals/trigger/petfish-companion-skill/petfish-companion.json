@@ -1,0 +1,23 @@
+{
+  "skill": "petfish-companion",
+  "should_trigger": [
+    "换个方向",
+    "帮我查一下这个API的rate limit",
+    "帮我发个邮件通知团队",
+    "翻译这段话成日语",
+    "Help me with petfish companion",
+    "I need petfish companion",
+    "cross-marketplace help needed",
+    "capabilities help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today",
+    "translate this to Japanese"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "skill": "product-competitor-analysis",
+  "should_trigger": [
+    "用户提出“竞品分析 / competitor analysis / competitive landscape”",
+    "需要制作功能矩阵并比较主流方案能力边界",
+    "需要定位分析（positioning）或SWOT用于策略评审",
+    "需要市场分析与market sizing评估机会规模",
+    "Help me with product competitor analysis",
+    "I need product competitor analysis",
+    "differentiation help needed",
+    "competitive help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

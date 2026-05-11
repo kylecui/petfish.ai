@@ -1,8 +1,6 @@
 ---
 name: course-content-authoring
-description: Use this skill when the user wants to create, revise, expand, compress,
-  or review actual course chapter content, including explanations, examples, transitions,
-  key takeaways, and teaching flow.
+description: Create, revise, expand, compress, or review course chapter content, including explanations, examples, transitions, key takeaways, and teaching flow.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

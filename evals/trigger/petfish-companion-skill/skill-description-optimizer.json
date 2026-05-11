@@ -1,0 +1,23 @@
+{
+  "skill": "skill-description-optimizer",
+  "should_trigger": [
+    "\"optimize description\"",
+    "\"improve trigger\"",
+    "\"fix skill description\"",
+    "\"description too broad\"",
+    "Help me with skill description optimizer",
+    "I need skill description optimizer",
+    "descriptions help needed",
+    "suggestions help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today",
+    "translate this to Japanese"
+  ]
+}

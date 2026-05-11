@@ -1,8 +1,7 @@
 ---
 name: development-plan-governance
-description: Use this skill when the user wants to create, revise, or review a course
-  development plan, including milestones, owners, dependencies, deliverables, risks,
-  acceptance gates, and change control.
+description: Create, revise, or review a course development plan, including milestones,
+  owners, dependencies, deliverables, risks, acceptance gates, and change control.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

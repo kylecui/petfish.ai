@@ -1,6 +1,6 @@
 ---
 name: generate-usage-docs
-description: Use this skill when the user asks to generate grounded usage docs from the current repo: README, Quick Start, configuration, usage, API/CLI/SDK docs, troubleshooting, FAQ, deployment/operator guides, or to整理零散设计说明 into user-facing doc sets. Trigger for 根据代码与设计文档生成交付级文档；not for generic polishing/translation.
+description: Generate grounded usage docs from the current repo: README, Quick Start, configuration, usage, API/CLI/SDK docs, troubleshooting, FAQ, deployment/operator guides, or to整理零散设计说明 into user-facing doc sets. Trigger for 根据代码与设计文档生成交付级文档；not for generic polishing/translation.
 license: Proprietary. See project package context.
 compatibility: Designed for OpenCode and Agent Skills compatible clients. Prefer Python 3.11+ and uv for running bundled scripts.
 metadata:

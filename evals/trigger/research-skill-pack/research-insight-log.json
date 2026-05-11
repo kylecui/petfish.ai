@@ -1,0 +1,23 @@
+{
+  "skill": "research-insight-log",
+  "should_trigger": [
+    "用户说\"我突然想到…\"或\"记一下这个想法\"",
+    "Agent在阅读多个来源时发现跨源连接",
+    "发现潜在研究缺口、论文贡献点、产品机会或规划判断",
+    "某个概念可以迁移到另一领域",
+    "Help me with research insight log",
+    "I need research insight log",
+    "research-question help needed",
+    "experiment-idea help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

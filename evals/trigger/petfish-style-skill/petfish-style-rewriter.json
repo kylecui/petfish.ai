@@ -1,0 +1,23 @@
+{
+  "skill": "petfish-style-rewriter",
+  "should_trigger": [
+    "rewrite in my style",
+    "make this clearer",
+    "make this more professional but less AI-like",
+    "本章小结",
+    "Help me with petfish style rewriter",
+    "I need petfish style rewriter",
+    "engineering-oriented help needed",
+    "evidence-based help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "what is the weather today",
+    "translate this to Japanese"
+  ]
+}

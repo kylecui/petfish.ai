@@ -1,0 +1,23 @@
+{
+  "skill": "research-quality-reviewer",
+  "should_trigger": [
+    "研究报告准备接受审查",
+    "需要检查证据覆盖和引用完整性",
+    "需要检测AI生成的空洞表达、无根据主张或修辞填充",
+    "需要发布前的质量评级",
+    "Help me with research quality reviewer",
+    "I need research quality reviewer",
+    "quality help needed",
+    "review help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

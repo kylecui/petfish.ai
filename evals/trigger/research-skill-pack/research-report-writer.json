@@ -1,0 +1,23 @@
+{
+  "skill": "research-report-writer",
+  "should_trigger": [
+    "需要生成研究报告、提案、白皮书、论文初稿、产品研究报告、规划报告",
+    "已有研究简报、证据和分析，准备输出最终文档",
+    "需要执行摘要（executive summary）",
+    "越来越重要",
+    "Help me with research report writer",
+    "I need research report writer",
+    "evidence_id help needed",
+    "executive help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

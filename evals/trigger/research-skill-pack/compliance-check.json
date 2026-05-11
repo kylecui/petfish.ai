@@ -1,0 +1,23 @@
+{
+  "skill": "compliance-check",
+  "should_trigger": [
+    "用户提出“合规检查 / compliance check / 法规风险评估”",
+    "方案涉及个人信息、敏感数据或跨境处理",
+    "采购流程要求核验license、合同条款与政策符合性",
+    "需要判断行业监管约束对方案上线的影响",
+    "Help me with compliance check",
+    "I need compliance check",
+    "cross-border help needed",
+    "compliance help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "skill": "skill-lint",
+  "should_trigger": [
+    "a single skill directory",
+    "a skill that fails to trigger reliably",
+    "a skill that is about to be published or committed",
+    "Help me with skill lint",
+    "I need skill lint",
+    "reliability help needed",
+    "pre-publish help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today",
+    "translate this to Japanese"
+  ]
+}

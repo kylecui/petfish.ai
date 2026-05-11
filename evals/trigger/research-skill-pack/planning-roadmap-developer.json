@@ -1,0 +1,23 @@
+{
+  "skill": "planning-roadmap-developer",
+  "should_trigger": [
+    "用户要求“战略路线图 / roadmap / milestone plan”",
+    "需要把研究结论转成可落地的阶段计划",
+    "需要定义关键依赖关系和跨团队协同节奏",
+    "需要设置go/no-go决策门与调整触发条件",
+    "Help me with planning roadmap developer",
+    "I need planning roadmap developer",
+    "dependency help needed",
+    "milestone help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

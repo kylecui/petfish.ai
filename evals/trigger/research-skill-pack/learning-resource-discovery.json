@@ -1,0 +1,23 @@
+{
+  "skill": "learning-resource-discovery",
+  "should_trigger": [
+    "已有学习目标，需要系统搜集学习资料",
+    "需要区分入门、进阶、实战、前沿等资源层次",
+    "需要判断资源可信度、更新频率与适配度",
+    "需要产出可复用的资源索引而非一次性列表",
+    "Help me with learning resource discovery",
+    "I need learning resource discovery",
+    "resources help needed",
+    "discovery help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

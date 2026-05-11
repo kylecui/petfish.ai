@@ -1,0 +1,19 @@
+{
+  "skill": "ppt-writer",
+  "should_trigger": [
+    "Help me with ppt writer",
+    "I need ppt writer",
+    "restructure help needed",
+    "unification help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "deploy this to production",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today",
+    "translate this to Japanese",
+    "write a unit test for login"
+  ]
+}

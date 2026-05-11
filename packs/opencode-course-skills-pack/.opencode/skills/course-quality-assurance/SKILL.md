@@ -1,8 +1,8 @@
 ---
 name: course-quality-assurance
-description: 'Use this skill when the user wants structured course QA: completeness
-  checks, consistency review, pedagogical review, lab readiness checks, artifact coverage,
-  issue logging, or release readiness assessment.'
+description: 'Structured course QA: completeness checks, consistency review, pedagogical
+  review, lab readiness checks, artifact coverage, issue logging, or release readiness
+  assessment.'
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

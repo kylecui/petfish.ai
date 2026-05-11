@@ -1,0 +1,23 @@
+{
+  "skill": "conference-adapter",
+  "should_trigger": [
+    "用户要求“会议筹备 / conference planning / 研讨会组织 / workshop planning”",
+    "需要管理CFP/投稿截止、讲者邀约、会场AV与直播录制",
+    "需要规划注册报到、胸牌系统、赞助包与社交活动",
+    "需要协调多会场并行议程（keynote/panel/workshop/poster）",
+    "Help me with conference adapter",
+    "I need conference adapter",
+    "proceedings help needed",
+    "conference help needed"
+  ],
+  "should_not_trigger": [
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "what is the weather today",
+    "translate this to Japanese",
+    "write a unit test for login"
+  ]
+}

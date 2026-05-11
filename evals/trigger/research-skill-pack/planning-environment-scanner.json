@@ -1,0 +1,23 @@
+{
+  "skill": "planning-environment-scanner",
+  "should_trigger": [
+    "用户要求“环境扫描 / PESTLE / macro environment / external scanning”",
+    "需要建立趋势雷达并识别未来3-5年的外部变化",
+    "需要从政策、市场、技术与社会变化中提取战略信号",
+    "团队需要为情景规划提供可信的外部变量输入",
+    "Help me with planning environment scanner",
+    "I need planning environment scanner",
+    "environment help needed",
+    "analysis help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

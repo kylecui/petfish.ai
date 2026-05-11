@@ -1,0 +1,23 @@
+{
+  "skill": "research-note-capture",
+  "should_trigger": [
+    "用户说“帮我读这篇文章并摘录重点”",
+    "用户要求记录“有价值的原文和出处”",
+    "用户上传 PDF/DOC/网页并要求阅读笔记",
+    "用户明确要求“先摘录，不要太快总结”",
+    "Help me with research note capture",
+    "I need research note capture",
+    "why_it_matters help needed",
+    "paraphrase help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

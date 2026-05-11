@@ -1,6 +1,6 @@
 ---
 name: petfish-style-rewriter
-description: Use this skill when the user asks to rewrite, polish, humanize, simplify, de-AI, formalize, or express content in Petfish's writing style. It rewrites Chinese or English technical, academic, business, course, proposal, patent, and email content into a clear, structured, concise, evidence-based, engineering-oriented style. Trigger especially for phrases such as "用我的语言习惯表达", "说人话", "润色", "去AI味", "按我的风格写", or "make it sound human but still professional".
+description: Rewrite, polish, humanize, simplify, de-AI, formalize, or express content in Petfish's writing style. It rewrites Chinese or English technical, academic, business, course, proposal, patent, and email content into a clear, structured, concise, evidence-based, engineering-oriented style. Trigger especially for phrases such as "用我的语言习惯表达", "说人话", "润色", "去AI味", "按我的风格写", or "make it sound human but still professional".
 compatibility: opencode
 metadata:
   version: "4.0.0"

@@ -1,8 +1,8 @@
 ---
 name: course-lab-design
-description: Use this skill when the user wants to create, modify, review, or operationalize
-  course labs, exercises, demos, or hands-on projects, including objectives, environment,
-  steps, validation, troubleshooting, and answer keys.
+description: Create, modify, review, or operationalize course labs, exercises, demos,
+  or hands-on projects, including objectives, environment, steps, validation, troubleshooting,
+  and answer keys.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

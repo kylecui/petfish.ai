@@ -1,0 +1,23 @@
+{
+  "skill": "research-source-discovery",
+  "should_trigger": [
+    "需要查找论文、官方文档、竞品材料、政策文件、行业报告等",
+    "需要建立和维护 source index",
+    "需要按 authority/relevance/freshness/verifiability/bias/granularity 评估来源质量",
+    "source_id",
+    "Help me with research source discovery",
+    "I need research source discovery",
+    "verifiability help needed",
+    "granularity help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

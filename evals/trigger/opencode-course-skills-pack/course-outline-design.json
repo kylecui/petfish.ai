@@ -1,0 +1,19 @@
+{
+  "skill": "course-outline-design",
+  "should_trigger": [
+    "Help me with course outline design",
+    "I need course outline design",
+    "prerequisite help needed",
+    "progression help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today",
+    "translate this to Japanese"
+  ]
+}

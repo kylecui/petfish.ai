@@ -1,8 +1,7 @@
 ---
 name: instructor-reference-materials
-description: Use this skill when the user wants instructor-only assets such as teaching
-  notes, speaking points, timing guidance, answer keys, discussion prompts, demo cues,
-  or delivery risk reminders.
+description: Instructor-only assets such as teaching notes, speaking points, timing
+  guidance, answer keys, discussion prompts, demo cues, or delivery risk reminders.
 license: Proprietary
 compatibility: Designed for OpenCode. Assumes repo-local `.opencode/skills` discovery
   and standard read/edit/bash tools; optional scripts should run through a repo-local uv environment; requires uv and Python 3.11+.

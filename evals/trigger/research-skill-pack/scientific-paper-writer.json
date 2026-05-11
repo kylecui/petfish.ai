@@ -1,0 +1,23 @@
+{
+  "skill": "scientific-paper-writer",
+  "should_trigger": [
+    "已有实验与分析结果，需要快速形成论文骨架或初稿",
+    "需要重构引言、贡献声明与相关工作，避免流水账式写法",
+    "需要确保evaluation section逐条回应贡献主张",
+    "需要将evidence ledger中的证据映射到论文叙事结构",
+    "Help me with scientific paper writer",
+    "I need scientific paper writer",
+    "contribution help needed",
+    "evaluation help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

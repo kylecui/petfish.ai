@@ -1,0 +1,23 @@
+{
+  "skill": "repo-skill-miner",
+  "should_trigger": [
+    "analyze this repo for skills",
+    "mine skills from",
+    "what skills can we extract",
+    "skillize this repo",
+    "Help me with repo skill miner",
+    "I need repo skill miner",
+    "non-automatable help needed",
+    "entrypoints help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

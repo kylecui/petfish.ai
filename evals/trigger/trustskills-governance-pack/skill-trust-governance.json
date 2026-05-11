@@ -1,0 +1,23 @@
+{
+  "skill": "skill-trust-governance",
+  "should_trigger": [
+    "skill trust",
+    "skill安全",
+    "治理",
+    "可信度",
+    "Help me with skill trust governance",
+    "I need skill trust governance",
+    "manual_review_required help needed",
+    "sandbox_required help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today",
+    "translate this to Japanese"
+  ]
+}

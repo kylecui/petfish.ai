@@ -1,0 +1,23 @@
+{
+  "skill": "planning-technology-assessor",
+  "should_trigger": [
+    "用户要求“技术评估 / technology assessment / TRL”",
+    "需要判断候选技术是否具备采用准备度",
+    "需要评估技术集成可行性与依赖条件",
+    "需要在政策约束和情景变化下比较技术路径",
+    "Help me with planning technology assessor",
+    "I need planning technology assessor",
+    "prioritization help needed",
+    "integration help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

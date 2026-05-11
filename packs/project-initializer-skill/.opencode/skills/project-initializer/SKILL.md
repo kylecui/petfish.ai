@@ -1,6 +1,6 @@
 ---
 name: project-initializer
-description: Use this skill to initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.md/README/.opencode/docs/tasks/qa/mcp templates, run profile setup (minimal/course/code/ops/security/research/writing/skills-package/comprehensive), configure uv dev env, and provide post-init wizard + pack install guidance. Enforces safe no-overwrite init with explicit confirmation for risky operations.
+description: Initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.md/README/.opencode/docs/tasks/qa/mcp templates, run profile setup (minimal/course/code/ops/security/research/writing/skills-package/comprehensive), configure uv dev env, and provide post-init wizard + pack install guidance. Enforces safe no-overwrite init with explicit confirmation for risky operations.
 license: Proprietary. Adapt for internal use.
 compatibility: Designed for OpenCode project-level skills. Optional script requires Python 3.10+; uv is recommended for Python development projects.
 metadata:

@@ -1,0 +1,23 @@
+{
+  "skill": "planning-scenario-planner",
+  "should_trigger": [
+    "用户要求“情景规划 / scenario planning / alternative futures”",
+    "需要围绕高不确定性议题制定多路径战略方案",
+    "需要评估外部变化与利益相关方行为对未来路径的影响",
+    "需要识别跨情景都成立的稳健策略",
+    "Help me with planning scenario planner",
+    "I need planning scenario planner",
+    "alternative help needed",
+    "scenario help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}

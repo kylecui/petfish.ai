@@ -1,0 +1,23 @@
+{
+  "skill": "scientific-gap-finder",
+  "should_trigger": [
+    "用户要求“找gap / identify gaps / 研究空白分析”",
+    "文献综述后需要确定贡献点与novelty定位",
+    "论文引言/贡献段落需要证据化支撑",
+    "团队需要判断某idea是实质创新还是重复工作",
+    "Help me with scientific gap finder",
+    "I need scientific gap finder",
+    "contribution help needed",
+    "research help needed"
+  ],
+  "should_not_trigger": [
+    "帮我写个函数",
+    "fix the bug in auth.py",
+    "deploy this to production",
+    "create a new React component",
+    "run the tests",
+    "refactor this class",
+    "帮我润色这段话",
+    "what is the weather today"
+  ]
+}
