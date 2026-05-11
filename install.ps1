@@ -326,6 +326,38 @@ function Merge-AgentsMd([string]$srcFile, [string]$dstFile, [string]$packName, [
     return "merged"
 }
 
+# Dual-write: write pack AGENTS.md content as standalone L1 rules file (Phase 1, v0.11.0)
+# Only called for --platform opencode. Strips BEGIN/END markers before writing.
+function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$packName) {
+    $L1Map = @{
+        "opencode-course-skills-pack"        = "course-skills.md"
+        "repo-deploy-ops-skill-pack"         = "deploy-ops.md"
+        "petfish-style-skill"                = "petfish-style.md"
+        "petfish-companion-skill"            = "petfish-companion.md"
+        "anti-sycophancy-calibration-pack"   = "anti-sycophancy.md"
+        "fish-trail"                         = "fish-trail.md"
+        "research-skill-pack"                = "research.md"
+    }
+    $l1Name = $L1Map[$packName]
+    if (-not $l1Name) { return }
+
+    $rulesDir = Join-Path $targetDir ".opencode" "agents-rules"
+    if (-not (Test-Path $rulesDir)) {
+        New-Item -ItemType Directory -Path $rulesDir -Force | Out-Null
+    }
+
+    $content = (Get-Content $srcFile -Raw -Encoding UTF8).TrimEnd()
+    $beginMarker = "<!-- BEGIN pack: $packName -->"
+    $endMarker = "<!-- END pack: $packName -->"
+    $content = $content -replace "(?m)^$([regex]::Escape($beginMarker))\s*$", ""
+    $content = $content -replace "(?m)^$([regex]::Escape($endMarker))\s*$", ""
+    $content = $content.Trim() + "`n"
+
+    $dstFile = Join-Path $rulesDir $l1Name
+    Set-Content -Path $dstFile -Value $content -NoNewline -Encoding UTF8
+    Write-Host "    + .opencode/agents-rules/$l1Name" -ForegroundColor DarkGreen
+}
+
 function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOverwrite, [string]$SkillsDir = ".opencode/skills") {
     $src = Get-Content $srcFile -Raw -Encoding UTF8 | ConvertFrom-Json
     $normalizedSkillsDir = if ([string]::IsNullOrWhiteSpace($SkillsDir)) { ".opencode/skills" } else { ($SkillsDir -replace '[\\/]+$','') }
@@ -835,13 +867,26 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         # --- Merge AGENTS.md ---
         $agentsMd = Join-Path $packRoot "AGENTS.md"
         if (Test-Path $agentsMd) {
-            $dstAgents = Join-Path $targetPath "AGENTS.md"
-            $result = Merge-AgentsMd $agentsMd $dstAgents $packName -ForceOverwrite:$forceThisPack -ManifestFile $manifestFile
-            switch ($result) {
-                "created"  { Write-Host "    + AGENTS.md (created)" -ForegroundColor DarkGreen; $script:installed++ }
-                "merged"   { Write-Host "    + AGENTS.md (merged)" -ForegroundColor DarkGreen; $script:installed++ }
-                "updated"  { Write-Host "    + AGENTS.md (updated)" -ForegroundColor DarkGreen; $script:installed++ }
-                "exists"   { Write-Warning "    SKIP AGENTS.md (pack section exists, use -Force to update)"; $script:skipped++ }
+            # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
+            $hasL1 = $false
+            if ($platformName -eq "opencode") {
+                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack")
+                $hasL1 = $L1Packs -contains $packName
+            }
+
+            if ($hasL1) {
+                # L1-only: write standalone rules file, skip inline merge
+                Write-PackRulesFile $agentsMd $targetPath $packName
+            } else {
+                # Non-opencode or packs without L1: merge inline as before
+                $dstAgents = Join-Path $targetPath "AGENTS.md"
+                $result = Merge-AgentsMd $agentsMd $dstAgents $packName -ForceOverwrite:$forceThisPack -ManifestFile $manifestFile
+                switch ($result) {
+                    "created"  { Write-Host "    + AGENTS.md (created)" -ForegroundColor DarkGreen; $script:installed++ }
+                    "merged"   { Write-Host "    + AGENTS.md (merged)" -ForegroundColor DarkGreen; $script:installed++ }
+                    "updated"  { Write-Host "    + AGENTS.md (updated)" -ForegroundColor DarkGreen; $script:installed++ }
+                    "exists"   { Write-Warning "    SKIP AGENTS.md (pack section exists, use -Force to update)"; $script:skipped++ }
+                }
             }
 
             # Antigravity: also create/merge GEMINI.md

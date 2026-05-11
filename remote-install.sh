@@ -146,6 +146,35 @@ open(dst_file, 'w', encoding='utf-8').write(text)
     echo "merged"
 }
 
+write_pack_rules_file() {
+    local src_file="$1" target_dir="$2" pack_name="$3"
+    local l1_name=""
+
+    case "$pack_name" in
+        opencode-course-skills-pack)       l1_name="course-skills.md" ;;
+        repo-deploy-ops-skill-pack)        l1_name="deploy-ops.md" ;;
+        petfish-style-skill)               l1_name="petfish-style.md" ;;
+        petfish-companion-skill)           l1_name="petfish-companion.md" ;;
+        anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
+        fish-trail)                        l1_name="fish-trail.md" ;;
+        research-skill-pack)               l1_name="research.md" ;;
+        *) return ;;
+    esac
+
+    local rules_dir="$target_dir/.opencode/agents-rules"
+    mkdir -p "$rules_dir"
+
+    local content
+    content="$(cat "$src_file")"
+    # Remove BEGIN/END markers
+    content="$(echo "$content" | sed "/^<!-- BEGIN pack: $pack_name -->$/d" | sed "/^<!-- END pack: $pack_name -->$/d")"
+    # Trim leading/trailing whitespace and ensure trailing newline
+    content="$(echo "$content" | sed -e 's/^[[:space:]]*//' -e '/./,$!d' | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }')"
+
+    printf '%s\n' "$content" > "$rules_dir/$l1_name"
+    echo "    + .opencode/agents-rules/$l1_name" >&2
+}
+
 merge_opencode_json() {
     local src_file="$1" dst_file="$2" force="$3" skills_dir="${4:-.opencode/skills}"
 
@@ -1033,15 +1062,30 @@ install_for_platform() {
 
         # --- Merge instructions file (AGENTS.md / CLAUDE.md / etc) ---
         if [[ -n "$instructions_file" && -f "$pack_root/AGENTS.md" ]]; then
-            local dst_instructions="$TARGET/$instructions_file"
-            local result
-            result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_instructions" "$pack_name" "$force_this_pack" "$manifest_file")"
-            case "$result" in
-                created) echo "    + $instructions_file (created)"; ((installed++)) || true ;;
-                merged)  echo "    + $instructions_file (merged)";  ((installed++)) || true ;;
-                updated) echo "    + $instructions_file (updated)"; ((installed++)) || true ;;
-                exists)  echo "    SKIP $instructions_file (pack section exists, use --force to update)"; ((skipped++)) || true ;;
-            esac
+            # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
+            local has_l1=false
+            if [[ "$platform_name" == "opencode" ]]; then
+                case "$pack_name" in
+                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack)
+                        has_l1=true ;;
+                esac
+            fi
+
+            if $has_l1; then
+                # L1-only: write standalone rules file, skip inline merge
+                write_pack_rules_file "$pack_root/AGENTS.md" "$TARGET" "$pack_name"
+            else
+                # Non-opencode or packs without L1: merge inline as before
+                local dst_instructions="$TARGET/$instructions_file"
+                local result
+                result="$(merge_agents_md "$pack_root/AGENTS.md" "$dst_instructions" "$pack_name" "$force_this_pack" "$manifest_file")"
+                case "$result" in
+                    created) echo "    + $instructions_file (created)"; ((installed++)) || true ;;
+                    merged)  echo "    + $instructions_file (merged)";  ((installed++)) || true ;;
+                    updated) echo "    + $instructions_file (updated)"; ((installed++)) || true ;;
+                    exists)  echo "    SKIP $instructions_file (pack section exists, use --force to update)"; ((skipped++)) || true ;;
+                esac
+            fi
 
             # Antigravity: also create/merge GEMINI.md
             if [[ "$platform_name" == "antigravity" ]]; then
