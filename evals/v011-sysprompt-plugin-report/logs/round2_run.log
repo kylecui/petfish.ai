@@ -1,0 +1,158 @@
+Topic-Aware Compaction A/B Test Harness
+Baseline: localhost:3100
+Plugin:   localhost:3300
+Model:    github-copilot/claude-sonnet-4
+
+============================================================
+  Running BASELINE test
+============================================================
+  Session: ses_1e3c6d2baffeHrnhpHFhWVhd28
+  [1/21] Topic: python-setup... ✓
+  [2/21] Topic: database... ✓
+  [3/21] Topic: cicd... ✓
+  [4/21] Topic: python-setup... ✓
+  [5/21] Topic: database... ✓
+  [6/21] Topic: cicd... ✓
+  [7/21] Topic: python-setup... ✓
+  [8/21] Topic: database... ✓
+  [9/21] Topic: cicd... ✓
+  [10/21] Topic: python-setup... ✓
+  [11/21] Topic: database... ✓
+  [12/21] Topic: cicd... ✓
+  [13/21] Topic: python-setup... ✓
+  [14/21] Topic: database... ✓
+  [15/21] Topic: cicd... ✓
+  [16/21] Topic: python-setup... ✓
+  [17/21] Topic: database... ✓
+  [18/21] Topic: cicd... ✓
+  [19/21] Topic: python-setup... ✓
+  [20/21] Topic: database... ✓
+  [21/21] Topic: cicd... ✓
+
+  Recall questions:
+  [Q1] Topic: python-setup... ✓
+  [Q2] Topic: database... ✓
+  [Q3] Topic: cicd... ✓
+  Session preserved: ses_1e3c6d2baffeHrnhpHFhWVhd28
+
+============================================================
+  Running PLUGIN test
+============================================================
+  Session: ses_1e3a18a28ffezFeVOtPqdsoULl
+  [1/21] Topic: python-setup... ✓
+  [2/21] Topic: database... ✓
+  [3/21] Topic: cicd... ✓
+  [4/21] Topic: python-setup... ✓
+  [5/21] Topic: database... ✓
+  [6/21] Topic: cicd... ✓
+  [7/21] Topic: python-setup... ✓
+  [8/21] Topic: database... ✓
+  [9/21] Topic: cicd... ✓
+  [10/21] Topic: python-setup... ✓
+  [11/21] Topic: database... ✓
+  [12/21] Topic: cicd... ✓
+  [13/21] Topic: python-setup... ✓
+  [14/21] Topic: database... ✓
+  [15/21] Topic: cicd... ✓
+  [16/21] Topic: python-setup... ✓
+  [17/21] Topic: database... ✓
+  [18/21] Topic: cicd... ✓
+  [19/21] Topic: python-setup... ✓
+  [20/21] Topic: database... ✓
+  [21/21] Topic: cicd... ✓
+
+  Recall questions:
+  [Q1] Topic: python-setup... ✓
+  [Q2] Topic: database... ✓
+  [Q3] Topic: cicd... ✓
+  Session preserved: ses_1e3a18a28ffezFeVOtPqdsoULl
+
+============================================================
+  A/B TEST REPORT
+============================================================
+
+Token Usage Comparison:
+Metric                        Baseline       Plugin        Delta        %
+-----------------------------------------------------------------------
+Input Tokens                   576,137      510,717     -65,420  -11.4%
+Output Tokens                  149,061      124,995     -24,066  -16.1%
+Reasoning Tokens                     0            0           0    0.0%
+Cache Read                   5,654,659    4,508,906  -1,145,753  -20.3%
+Cache Write                          0            0           0    0.0%
+TOTAL                          725,198      635,712     -89,486  -12.3%
+
+Metric                        Baseline       Plugin
+-------------------------------------------------
+Messages                            64           64
+Peak Context Window            152,844      141,031
+Compactions                          2            1
+Wall Time (s)                   2442.2       2186.7
+Errors                               0            0
+
+
+Recall Responses (truncated to 500 chars):
+
+--- Topic: python-setup ---
+  BASELINE: Here's the complete answer.
+
+---
+
+# `pyproject.toml` Dependencies — Complete Inventory
+
+**⚠️ `pyproject.toml` does NOT exist on disk.** It was designed in a previous session but never written to a fil...
+  PLUGIN:   
+From the `pyproject.toml` already read:
+
+## Production Dependencies
+
+| Package | Version Constraint | Purpose |
+|---|---|---|
+| `click` | >=8.1 | CLI framework (run/validate/status commands) |
+| `fas...
+
+--- Topic: database ---
+  BASELINE: Here's the complete PostgreSQL schema summary.
+
+---
+
+# Complete PostgreSQL Schema Summary
+
+## Tables (7 total)
+
+### Core Tables (Migration 001)
+
+| Table | Purpose | Primary Key | Columns |
+|-------|--...
+  PLUGIN:   
+## Tables (7)
+
+| Table | Purpose |
+|---|---|
+| `tenants` | Multi-tenant root. UUID PK, name, slug (unique), plan, is_active |
+| `users` | Tenant-scoped. email, full_name, role, is_active. `UNIQUE(ten...
+
+--- Topic: cicd ---
+  BASELINE: 
+
+Based on the files I already read, here's the complete CI/CD stage breakdown.
+
+---
+
+# CI/CD Stages — Complete Summary
+
+## 3 Workflows, 13 Jobs Total
+
+```
+┌───────────────────────────────────────────...
+  PLUGIN:   
+## Workflows & Triggers
+
+### 1. Integration Tests (`integration.yml`)
+
+| Trigger | Stage |
+|---|---|
+| Push to `main`/`develop` | Build Docker Compose test stack, run pytest, upload coverage |
+| PR t...
+
+
+Full results saved to: /home/kylecui/dev/petfish_tester/experiments/compact-test-round2/ab_test_results.json
