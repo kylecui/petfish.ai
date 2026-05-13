@@ -222,37 +222,59 @@ print('    + opencode.json (plugin registered)')
 
 # v0.10.x → v0.11.x migration: remove old inline pack section from AGENTS.md
 remove_inline_pack_section() {
-    local agents_file="$1" pack_name="$2"
+    local agents_file="$1" pack_name="$2" manifest_file="${3:-}"
     [[ -f "$agents_file" ]] || return 0
 
-    local begin_marker="<!-- BEGIN pack: $pack_name -->"
-    local end_marker="<!-- END pack: $pack_name -->"
+    # Collect all names to remove: current + legacy names from manifest
+    local names_to_try=("$pack_name")
+    if [[ -n "$manifest_file" && -f "$manifest_file" ]]; then
+        local legacy
+        legacy="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for n in m.get('legacy_names', []):
+    print(n)
+" "$manifest_file" 2>/dev/null)" || true
+        while IFS= read -r name; do
+            [[ -n "$name" ]] && names_to_try+=("$name")
+        done <<< "$legacy"
+    fi
 
-    # Check if marker exists
-    grep -qF "$begin_marker" "$agents_file" || return 0
+    local removed=false
+    for name in "${names_to_try[@]}"; do
+        local begin_marker="<!-- BEGIN pack: $name -->"
+        local end_marker="<!-- END pack: $name -->"
 
-    python3 -c "
-import re, sys
+        grep -qF "$begin_marker" "$agents_file" || continue
 
-agents_file = sys.argv[1]
-begin_marker = sys.argv[2]
-end_marker = sys.argv[3]
-pack_name = sys.argv[4]
+        # Use awk to remove section between markers (inclusive), no python3 dependency
+        local tmp_file="${agents_file}.tmp.$$"
+        awk -v bm="$begin_marker" -v em="$end_marker" '
+            index($0, bm) { skip=1; next }
+            skip && index($0, em) { skip=0; next }
+            !skip { print }
+        ' "$agents_file" > "$tmp_file"
 
-with open(agents_file, 'r', encoding='utf-8') as f:
-    content = f.read()
+        if [[ -s "$tmp_file" ]]; then
+            mv "$tmp_file" "$agents_file"
+            removed=true
+            echo "    - AGENTS.md (removed inline section for $name)" >&2
+        else
+            rm -f "$tmp_file"
+        fi
+    done
 
-# Remove everything between BEGIN and END markers (inclusive)
-pattern = r'\n?\s*' + re.escape(begin_marker) + r'.*?' + re.escape(end_marker) + r'\s*\n?'
-new_content = re.sub(pattern, '\n', content, flags=re.DOTALL)
-# Collapse triple+ newlines to double
-new_content = re.sub(r'\n{3,}', '\n\n', new_content)
-
-with open(agents_file, 'w', encoding='utf-8') as f:
-    f.write(new_content.rstrip() + '\n')
-
-print(f'    - AGENTS.md (removed inline section for {pack_name} → migrated to L1)')
-" "$agents_file" "$begin_marker" "$end_marker" "$pack_name" >&2
+    # Collapse triple+ blank lines to one blank line
+    if $removed; then
+        local tmp_file="${agents_file}.tmp.$$"
+        awk 'NF {blank=0} !NF {blank++} blank<=1' "$agents_file" > "$tmp_file"
+        if [[ -s "$tmp_file" ]]; then
+            mv "$tmp_file" "$agents_file"
+        else
+            rm -f "$tmp_file"
+        fi
+    fi
 }
 
 merge_opencode_json() {
@@ -1154,7 +1176,7 @@ install_for_platform() {
                 install_plugin_file "$SCRIPT_DIR" "$TARGET"
                 register_plugin_in_config "$TARGET/opencode.json"
                 # v0.10.x → v0.11.x migration: remove old inline section from AGENTS.md
-                remove_inline_pack_section "$TARGET/AGENTS.md" "$pack_name"
+                remove_inline_pack_section "$TARGET/AGENTS.md" "$pack_name" "$manifest_file"
             else
                 # Non-opencode or packs without L1: merge inline as before
                 local dst_agents="$TARGET/AGENTS.md"
