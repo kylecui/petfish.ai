@@ -9,7 +9,6 @@
         "citation audit",
         "检查引用",
         "check citations",
-        "这篇报告有没有无证据断言",
         "unsupported claims",
         "引用覆盖率",
         "source verification",
@@ -53,9 +52,7 @@
         "研究空白",
         "贡献点",
         "novelty",
-        "identify gaps",
-        "这个领域还有什么没被解决的",
-        "what hasn't been explored in this area"
+        "identify gaps"
       ],
       "should_not_trigger": [
         "文献综述",
@@ -75,8 +72,7 @@
         "如何验证",
         "实验方法",
         "validity threats",
-        "帮我设计验证路径",
-        "how to validate this hypothesis"
+        "帮我设计验证路径"
       ],
       "should_not_trigger": [
         "写论文",

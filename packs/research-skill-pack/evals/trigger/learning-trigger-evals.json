@@ -78,7 +78,6 @@
         "帮我梳理前置知识"
       ],
       "should_not_trigger": [
-        "学习路径",
         "练习计划",
         "竞品分析",
         "风险评估"
@@ -95,7 +94,6 @@
         "hands-on",
         "动手练习",
         "练习设计",
-        "lab exercise",
         "帮我设计练习任务"
       ],
       "should_not_trigger": [

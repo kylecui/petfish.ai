@@ -1,6 +1,6 @@
 ---
 name: option-comparison-matrix
-description: 基于criteria对候选方案做矩阵比较，输出评分、证据链接、deal-breaker淘汰、证据缺口与敏感性检查。Use when the user says "方案对比", "comparison matrix", "打分比较", "option scoring", "横向评估", "deal-breaker", "淘汰规则", "加权排名", "sensitivity analysis", or "证据缺口".
+description: 基于criteria对候选方案做矩阵比较，输出评分、证据链接、deal-breaker淘汰、证据缺口与敏感性检查。Use when the user says "方案对比", "comparison matrix", "打分表", "逐项对比", "scorecard", "打分比较", "option scoring", "横向评估", "deal-breaker", "淘汰规则", "加权排名", "sensitivity analysis", or "证据缺口".
 compatibility: opencode
 license: Apache-2.0
 ---

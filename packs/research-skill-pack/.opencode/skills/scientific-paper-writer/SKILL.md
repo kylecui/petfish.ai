@@ -1,6 +1,6 @@
 ---
 name: scientific-paper-writer
-description: 科研论文写作与骨架生成：基于research brief、evidence ledger、synthesis和实验结果产出paper outline与paper draft，强化contribution framing、related work组织与claim↔evaluation闭环。Use when users ask “写论文/paper writing/论文草稿/paper draft/论文骨架/paper outline/contribution framing/related work”.
+description: 科研论文写作与骨架生成：基于research brief、evidence ledger、synthesis和实验结果产出paper outline与paper draft，强化contribution framing、related work组织与claim↔evaluation闭环。Use when users ask “写论文/paper writing/introduction/论文草稿/paper draft/论文骨架/paper outline/contribution framing/related work”.
 compatibility: opencode
 license: Apache-2.0
 ---

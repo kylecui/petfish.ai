@@ -1,6 +1,6 @@
 ---
 name: venue-destination-research
-description: 研究并评估城市/酒店/会场/景点候选，覆盖可达性、容量、成本、设施、安全、天气与法规许可，输出推荐/备选/淘汰清单。Use when the user says "场地调研", "venue research", "目的地选择", "destination research", "活动地点", "event location", "选酒店", "where should we go", "许可要求", or "weather risk".
+description: 研究并评估城市/酒店/会场/景点候选，覆盖可达性、容量、成本、设施、安全、天气与法规许可，输出推荐/备选/淘汰清单。Use when the user says "场地调研", "venue research", "目的地选择", "destination research", "活动地点", "event location", "选酒店", "合适的场地", "去哪里", "where should we go", "许可要求", or "weather risk".
 compatibility: opencode
 license: Apache-2.0
 ---

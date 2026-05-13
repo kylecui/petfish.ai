@@ -51,8 +51,7 @@
         "scenario analysis",
         "不确定性分析",
         "alternative futures",
-        "帮我做几个未来情景假设",
-        "如果发生X会怎样"
+        "帮我做几个未来情景假设"
       ],
       "should_not_trigger": [
         "实验设计",

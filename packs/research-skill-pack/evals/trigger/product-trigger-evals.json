@@ -77,7 +77,6 @@
         "假设验证",
         "产品验证",
         "怎么验证这个想法",
-        "how to validate this idea",
         "帮我设计MVP方案"
       ],
       "should_not_trigger": [
@@ -102,8 +101,6 @@
         "帮我写产品决策报告"
       ],
       "should_not_trigger": [
-        "用户研究",
-        "竞品分析",
         "写论文",
         "实验设计"
       ]
