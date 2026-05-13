@@ -3,6 +3,9 @@ name: logistics-risk-planner
 description: 规划活动物流与风险应对，覆盖交通/住宿/设备物资/许可、controllable vs uncontrollable风险、预算超支与取消应急路径。Use when the user says "后勤规划", "logistics planning", "物资准备", "风险预案", "risk contingency", "应急方案", "event logistics", "活动保障", "活动取消", "预算超支", or "backup plan".
 compatibility: opencode
 license: Apache-2.0
+metadata:
+  version: "0.11.1"
+  author: "petfish-team"
 ---
 
 ## 作用/Purpose
