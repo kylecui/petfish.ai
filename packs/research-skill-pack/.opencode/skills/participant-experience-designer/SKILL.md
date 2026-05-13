@@ -1,6 +1,6 @@
 ---
 name: participant-experience-designer
-description: 从参与者视角优化活动全流程体验，设计attendee journey触点、痛点缓解、互动机制与体验指标，覆盖Before到After阶段。Use when the user says "参与者体验", "participant experience", "用户旅程", "attendee journey", "体验设计", "参会体验", "触点优化", "体验指标", or "journey mapping".
+description: 从参与者视角优化活动全流程体验，设计attendee journey触点、痛点缓解、互动机制与体验指标，覆盖Before到After阶段。Use when the user says "参与者体验", "participant experience", "用户旅程", "attendee journey", "体验设计", "参会体验", "触点优化", "体验指标", "journey mapping", "痛点识别", "互动设计", "体验风险", "体验检查清单", "开场体验", "转场体验", "收尾体验", or "体验连贯性".
 compatibility: opencode
 license: Apache-2.0
 ---

@@ -1,6 +1,6 @@
 ---
 name: learning-prerequisite-mapper
-description: 为学习目标梳理前置知识与依赖关系，形成分层先修结构与补齐顺序，避免学习路径断层。Use when the user says "前置知识", "prerequisite", "先修要求", "学习依赖", "knowledge dependency", "基础不够", "知识断层", or "需要先学什么".
+description: 为学习目标梳理前置知识与依赖关系，形成分层先修结构与补齐顺序，避免学习路径断层。Use when the user says "前置知识", "prerequisite", "先修要求", "学习依赖", "knowledge dependency", "基础不够", "知识断层", "需要先学什么", "依赖顺序", "补齐优先级", "跳级学习", "知识模块", "先修依赖图", "最小可学路径", "阻塞点", or "知识缺口".
 compatibility: opencode
 license: Apache-2.0
 ---

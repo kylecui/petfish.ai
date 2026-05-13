@@ -1,6 +1,6 @@
 ---
 name: learning-practice-planner
-description: 基于学习路径设计分层练习与实操任务，构建从概念巩固到项目迁移的练习闭环。Use when the user says "练习计划", "practice plan", "实操任务", "hands-on", "动手练习", "Concept Drill", "Code Lab", "Mini Project", "Transfer Task", "验收标准", or "练习设计".
+description: 基于学习路径设计分层练习与实操任务，构建从概念巩固到项目迁移的练习闭环。Use when the user says "练习计划", "practice plan", "实操任务", "hands-on", "动手练习", "Concept Drill", "Code Lab", "Mini Project", "Transfer Task", "验收标准", "练习设计", "动手训练", "代码实验", "小项目实践", "练习编排", "复盘节奏", "概念练习", "看懂了但做不出", or "练什么".
 compatibility: opencode
 license: Apache-2.0
 ---
