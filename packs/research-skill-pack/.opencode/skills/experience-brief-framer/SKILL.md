@@ -3,6 +3,9 @@ name: experience-brief-framer
 description: 定义体验或活动目标、参与者、约束、偏好与成功标准，形成可执行的活动研究简报。Use when the user says "活动策划", "event planning", "旅行规划", "trip planning", "体验设计", "experience design", "帮我安排", "help me organize", "会议策划", "工作坊", "团建", or "展览".
 compatibility: opencode
 license: Apache-2.0
+metadata:
+  version: "0.11.1"
+  author: "petfish-team"
 ---
 
 ## 作用/Purpose
