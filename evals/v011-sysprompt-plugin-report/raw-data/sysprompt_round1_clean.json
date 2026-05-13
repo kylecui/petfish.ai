@@ -1,0 +1,1028 @@
+{
+  "timestamp": "2026-05-12T20:45:03+0800",
+  "model": "github-copilot/claude-sonnet-4",
+  "baseline": {
+    "tokens": {
+      "input": 455533,
+      "output": 131384,
+      "reasoning": 0,
+      "cache_read": 5692657,
+      "cache_write": 0,
+      "total": 586917
+    },
+    "messages": 76,
+    "compactions": 2,
+    "wall_time_s": 2040.9,
+    "errors": [],
+    "recall": {
+      "python-setup": "No `pyproject.toml` exists on disk. It was discussed/generated in conversation but never written to a file.\n\nFrom the session history, the intended dependencies were:\n\n**Runtime:**\n- `httpx >= 0.27`\n- `pydantic >= 2.0`\n- `pydantic-settings >= 2.7`\n- `structlog`\n- `click >= 8.1`\n- `psycopg[binary] >= 3.2`\n- `psycopg-pool >= 3.2`\n- `alembic >= 1.15`\n- `redis[hiredis] >= 5.0`\n- `prometheus-client`\n- `python-jose`\n- `fastapi`\n- `uvicorn`\n\n**Dev:**\n- `pytest >= 8.0`\n- `pytest-asyncio >= 0.24`\n- `pyte",
+      "database": "\n\nFrom the three migration files on disk:\n\n## Tables (migration 001)\n\n| Table | Key Columns | Notes |\n|---|---|---|\n| **tenants** | id (UUID PK), name, slug (unique), is_active, created_at, updated_at | Top-level tenant entity, not RLS-scoped |\n| **users** | id (UUID PK), tenant_id (FK→tenants), email, display_name, is_active, created_at, updated_at | Unique constraint on (tenant_id, email) |\n| **projects** | id (UUID PK), tenant_id (FK→tenants), name, description, is_archived, created_at, updat",
+      "cicd": "\n\nFrom `.github/workflows/ci.yml`:\n\n## Pipeline Stages\n\n| Stage | Trigger | What It Does |\n|---|---|---|\n| **lint** | Every push & PR to main | Runs `ruff check` and `ruff format --check` |\n| **unit-test** | After lint passes | pytest matrix across Python 3.12 & 3.13, generates coverage |\n| **integration-test** | After unit-test passes | Spins up Postgres + Redis via `docker-compose.test.yml`, runs `test_integration.py` against real services |\n| **docker-build** | After integration-test passes, "
+    },
+    "session_id": "ses_1e40b54daffetxhsx6jPpBLtio",
+    "peak_context_window": 152990,
+    "per_message_tokens": [
+      {
+        "input": 534,
+        "output": 823,
+        "cache_read": 44487,
+        "effective_ctx": 45021
+      },
+      {
+        "input": 911,
+        "output": 2568,
+        "cache_read": 45018,
+        "effective_ctx": 45929
+      },
+      {
+        "input": 2687,
+        "output": 4150,
+        "cache_read": 45926,
+        "effective_ctx": 48613
+      },
+      {
+        "input": 4243,
+        "output": 4531,
+        "cache_read": 48610,
+        "effective_ctx": 52853
+      },
+      {
+        "input": 4623,
+        "output": 6229,
+        "cache_read": 52850,
+        "effective_ctx": 57473
+      },
+      {
+        "input": 6325,
+        "output": 3172,
+        "cache_read": 57470,
+        "effective_ctx": 63795
+      },
+      {
+        "input": 3244,
+        "output": 9583,
+        "cache_read": 63792,
+        "effective_ctx": 67036
+      },
+      {
+        "input": 9653,
+        "output": 12635,
+        "cache_read": 67033,
+        "effective_ctx": 76686
+      },
+      {
+        "input": 12715,
+        "output": 7947,
+        "cache_read": 76683,
+        "effective_ctx": 89398
+      },
+      {
+        "input": 8054,
+        "output": 5968,
+        "cache_read": 89395,
+        "effective_ctx": 97449
+      },
+      {
+        "input": 6044,
+        "output": 9506,
+        "cache_read": 97446,
+        "effective_ctx": 103490
+      },
+      {
+        "input": 9584,
+        "output": 13304,
+        "cache_read": 103487,
+        "effective_ctx": 113071
+      },
+      {
+        "input": 13393,
+        "output": 9438,
+        "cache_read": 113068,
+        "effective_ctx": 126461
+      },
+      {
+        "input": 9789,
+        "output": 321,
+        "cache_read": 126458,
+        "effective_ctx": 136247
+      },
+      {
+        "input": 509,
+        "output": 8632,
+        "cache_read": 136244,
+        "effective_ctx": 136753
+      },
+      {
+        "input": 8912,
+        "output": 2860,
+        "cache_read": 136752,
+        "effective_ctx": 145664
+      },
+      {
+        "input": 104846,
+        "output": 2371,
+        "cache_read": 0,
+        "effective_ctx": 104846
+      },
+      {
+        "input": 2726,
+        "output": 222,
+        "cache_read": 44487,
+        "effective_ctx": 47213
+      },
+      {
+        "input": 296,
+        "output": 580,
+        "cache_read": 47210,
+        "effective_ctx": 47506
+      },
+      {
+        "input": 852,
+        "output": 396,
+        "cache_read": 47503,
+        "effective_ctx": 48355
+      },
+      {
+        "input": 2325,
+        "output": 309,
+        "cache_read": 48354,
+        "effective_ctx": 50679
+      },
+      {
+        "input": 8729,
+        "output": 183,
+        "cache_read": 50678,
+        "effective_ctx": 59407
+      },
+      {
+        "input": 9359,
+        "output": 271,
+        "cache_read": 59406,
+        "effective_ctx": 68765
+      },
+      {
+        "input": 422,
+        "output": 339,
+        "cache_read": 68764,
+        "effective_ctx": 69186
+      },
+      {
+        "input": 522,
+        "output": 271,
+        "cache_read": 69183,
+        "effective_ctx": 69705
+      },
+      {
+        "input": 459,
+        "output": 309,
+        "cache_read": 69704,
+        "effective_ctx": 70163
+      },
+      {
+        "input": 500,
+        "output": 263,
+        "cache_read": 70162,
+        "effective_ctx": 70662
+      },
+      {
+        "input": 5841,
+        "output": 319,
+        "cache_read": 70661,
+        "effective_ctx": 76502
+      },
+      {
+        "input": 1842,
+        "output": 109,
+        "cache_read": 76501,
+        "effective_ctx": 78343
+      },
+      {
+        "input": 4855,
+        "output": 177,
+        "cache_read": 78342,
+        "effective_ctx": 83197
+      },
+      {
+        "input": 423,
+        "output": 332,
+        "cache_read": 83196,
+        "effective_ctx": 83619
+      },
+      {
+        "input": 395,
+        "output": 243,
+        "cache_read": 83618,
+        "effective_ctx": 84013
+      },
+      {
+        "input": 9674,
+        "output": 448,
+        "cache_read": 84010,
+        "effective_ctx": 93684
+      },
+      {
+        "input": 528,
+        "output": 250,
+        "cache_read": 93683,
+        "effective_ctx": 94211
+      },
+      {
+        "input": 7977,
+        "output": 254,
+        "cache_read": 94208,
+        "effective_ctx": 102185
+      },
+      {
+        "input": 3821,
+        "output": 186,
+        "cache_read": 102184,
+        "effective_ctx": 106005
+      },
+      {
+        "input": 1965,
+        "output": 171,
+        "cache_read": 106004,
+        "effective_ctx": 107969
+      },
+      {
+        "input": 4893,
+        "output": 403,
+        "cache_read": 107968,
+        "effective_ctx": 112861
+      },
+      {
+        "input": 440,
+        "output": 114,
+        "cache_read": 112860,
+        "effective_ctx": 113300
+      },
+      {
+        "input": 2705,
+        "output": 2058,
+        "cache_read": 113297,
+        "effective_ctx": 116002
+      },
+      {
+        "input": 2187,
+        "output": 104,
+        "cache_read": 116001,
+        "effective_ctx": 118188
+      },
+      {
+        "input": 216,
+        "output": 291,
+        "cache_read": 118185,
+        "effective_ctx": 118401
+      },
+      {
+        "input": 6715,
+        "output": 4036,
+        "cache_read": 118400,
+        "effective_ctx": 125115
+      },
+      {
+        "input": 4163,
+        "output": 382,
+        "cache_read": 125114,
+        "effective_ctx": 129277
+      },
+      {
+        "input": 4096,
+        "output": 501,
+        "cache_read": 129274,
+        "effective_ctx": 133370
+      },
+      {
+        "input": 4266,
+        "output": 508,
+        "cache_read": 133369,
+        "effective_ctx": 137635
+      },
+      {
+        "input": 7408,
+        "output": 500,
+        "cache_read": 137634,
+        "effective_ctx": 145042
+      },
+      {
+        "input": 7949,
+        "output": 412,
+        "cache_read": 145041,
+        "effective_ctx": 152990
+      },
+      {
+        "input": 112200,
+        "output": 4092,
+        "cache_read": 0,
+        "effective_ctx": 112200
+      },
+      {
+        "input": 4447,
+        "output": 257,
+        "cache_read": 44487,
+        "effective_ctx": 48934
+      },
+      {
+        "input": 393,
+        "output": 241,
+        "cache_read": 48931,
+        "effective_ctx": 49324
+      },
+      {
+        "input": 1518,
+        "output": 134,
+        "cache_read": 49323,
+        "effective_ctx": 50841
+      },
+      {
+        "input": 588,
+        "output": 129,
+        "cache_read": 50840,
+        "effective_ctx": 51428
+      },
+      {
+        "input": 975,
+        "output": 207,
+        "cache_read": 51427,
+        "effective_ctx": 52402
+      },
+      {
+        "input": 514,
+        "output": 241,
+        "cache_read": 52401,
+        "effective_ctx": 52915
+      },
+      {
+        "input": 911,
+        "output": 148,
+        "cache_read": 52914,
+        "effective_ctx": 53825
+      },
+      {
+        "input": 438,
+        "output": 129,
+        "cache_read": 53824,
+        "effective_ctx": 54262
+      },
+      {
+        "input": 311,
+        "output": 200,
+        "cache_read": 54261,
+        "effective_ctx": 54572
+      },
+      {
+        "input": 342,
+        "output": 346,
+        "cache_read": 54571,
+        "effective_ctx": 54913
+      },
+      {
+        "input": 362,
+        "output": 161,
+        "cache_read": 54912,
+        "effective_ctx": 55274
+      },
+      {
+        "input": 452,
+        "output": 129,
+        "cache_read": 55273,
+        "effective_ctx": 55725
+      },
+      {
+        "input": 322,
+        "output": 256,
+        "cache_read": 55724,
+        "effective_ctx": 56046
+      },
+      {
+        "input": 272,
+        "output": 157,
+        "cache_read": 56045,
+        "effective_ctx": 56317
+      },
+      {
+        "input": 299,
+        "output": 344,
+        "cache_read": 56316,
+        "effective_ctx": 56615
+      },
+      {
+        "input": 2135,
+        "output": 308,
+        "cache_read": 56614,
+        "effective_ctx": 58749
+      },
+      {
+        "input": 1389,
+        "output": 176,
+        "cache_read": 58748,
+        "effective_ctx": 60137
+      },
+      {
+        "input": 486,
+        "output": 131,
+        "cache_read": 60136,
+        "effective_ctx": 60622
+      },
+      {
+        "input": 819,
+        "output": 1887,
+        "cache_read": 60621,
+        "effective_ctx": 61440
+      },
+      {
+        "input": 4973,
+        "output": 384,
+        "cache_read": 61439,
+        "effective_ctx": 66412
+      },
+      {
+        "input": 2392,
+        "output": 311,
+        "cache_read": 66411,
+        "effective_ctx": 68803
+      },
+      {
+        "input": 2319,
+        "output": 155,
+        "cache_read": 68802,
+        "effective_ctx": 71121
+      },
+      {
+        "input": 295,
+        "output": 273,
+        "cache_read": 71120,
+        "effective_ctx": 71415
+      },
+      {
+        "input": 392,
+        "output": 134,
+        "cache_read": 71414,
+        "effective_ctx": 71806
+      },
+      {
+        "input": 356,
+        "output": 242,
+        "cache_read": 71803,
+        "effective_ctx": 72159
+      },
+      {
+        "input": 267,
+        "output": 729,
+        "cache_read": 72158,
+        "effective_ctx": 72425
+      },
+      {
+        "input": 751,
+        "output": 504,
+        "cache_read": 72422,
+        "effective_ctx": 73173
+      }
+    ]
+  },
+  "plugin": {
+    "tokens": {
+      "input": 327834,
+      "output": 147205,
+      "reasoning": 0,
+      "cache_read": 6082194,
+      "cache_write": 0,
+      "total": 475039
+    },
+    "messages": 87,
+    "compactions": 1,
+    "wall_time_s": 2382.9,
+    "errors": [],
+    "recall": {
+      "python-setup": "\n\nThe `pyproject.toml` exists only in session history, not on disk. Here's the complete dependency list as written:\n\n### Runtime Dependencies\n\n| Package | Purpose |\n|---|---|\n| `psycopg[binary,pool]` ≥ 3.1 | PostgreSQL async driver with connection pooling (psycopg3) |\n| `pydantic-settings` ≥ 2.0 | Configuration management with env var parsing and validators |\n| `structlog` ≥ 24.0 | Structured logging with JSON/console renderers |\n| `click` ≥ 8.1 | CLI framework for `run`, `validate`, `status` co",
+      "database": "### Tables\n\n| Table | PK | Key Columns |\n|---|---|---|\n| `tenants` | `id UUID` | `name`, `slug` (unique), `plan`, `is_active`, `settings JSONB` |\n| `users` | `(tenant_id, id)` | `email`, `display_name`, `role` (owner/admin/member/viewer), `password_hash`, `is_active` |\n| `projects` | `(tenant_id, id)` | `name`, `status` (draft/active/paused/completed/archived), `owner_id`, `config JSONB`, `completed_at` |\n| `tasks` | `(tenant_id, id)` | `project_id`, `title`, `status` (pending/queued/running/com",
+      "cicd": "\n\n### `.github/workflows/ci.yml`\n\n**Triggers**: Push to `main`/`develop`, PRs to `main`\n\n| Stage | Depends On | What It Does |\n|---|---|---|\n| **lint** | — | `ruff check`, `ruff format --check`, `mypy --strict` |\n| **test** | lint | `pytest --cov` against PostgreSQL service container, fails if coverage < 80% |\n| **build** | test | Multi-stage Docker build, pushes image with SHA + branch tags |\n| **deploy-staging** | build | `helm upgrade --install` to staging, waits for `rollout status` |\n| **de"
+    },
+    "session_id": "ses_1e3ec29e2ffeuSW6yiLLfK4dVI",
+    "peak_context_window": 145530,
+    "per_message_tokens": [
+      {
+        "input": 45041,
+        "output": 984,
+        "cache_read": 0,
+        "effective_ctx": 45041
+      },
+      {
+        "input": 1072,
+        "output": 4013,
+        "cache_read": 45038,
+        "effective_ctx": 46110
+      },
+      {
+        "input": 4132,
+        "output": 5120,
+        "cache_read": 46107,
+        "effective_ctx": 50239
+      },
+      {
+        "input": 5213,
+        "output": 4948,
+        "cache_read": 50236,
+        "effective_ctx": 55449
+      },
+      {
+        "input": 5040,
+        "output": 6688,
+        "cache_read": 55446,
+        "effective_ctx": 60486
+      },
+      {
+        "input": 6782,
+        "output": 3529,
+        "cache_read": 60483,
+        "effective_ctx": 67265
+      },
+      {
+        "input": 3601,
+        "output": 10840,
+        "cache_read": 67262,
+        "effective_ctx": 70863
+      },
+      {
+        "input": 10910,
+        "output": 13127,
+        "cache_read": 70860,
+        "effective_ctx": 81770
+      },
+      {
+        "input": 13207,
+        "output": 7552,
+        "cache_read": 81767,
+        "effective_ctx": 94974
+      },
+      {
+        "input": 7660,
+        "output": 7860,
+        "cache_read": 94971,
+        "effective_ctx": 102631
+      },
+      {
+        "input": 7936,
+        "output": 12826,
+        "cache_read": 102628,
+        "effective_ctx": 110564
+      },
+      {
+        "input": 12904,
+        "output": 12628,
+        "cache_read": 110561,
+        "effective_ctx": 123465
+      },
+      {
+        "input": 12717,
+        "output": 9003,
+        "cache_read": 123462,
+        "effective_ctx": 136179
+      },
+      {
+        "input": 9354,
+        "output": 10167,
+        "cache_read": 136176,
+        "effective_ctx": 145530
+      },
+      {
+        "input": 126069,
+        "output": 2308,
+        "cache_read": 0,
+        "effective_ctx": 126069
+      },
+      {
+        "input": 2664,
+        "output": 250,
+        "cache_read": 44506,
+        "effective_ctx": 47170
+      },
+      {
+        "input": 323,
+        "output": 587,
+        "cache_read": 47167,
+        "effective_ctx": 47490
+      },
+      {
+        "input": 729,
+        "output": 445,
+        "cache_read": 47487,
+        "effective_ctx": 48216
+      },
+      {
+        "input": 642,
+        "output": 305,
+        "cache_read": 48213,
+        "effective_ctx": 48855
+      },
+      {
+        "input": 494,
+        "output": 352,
+        "cache_read": 48854,
+        "effective_ctx": 49348
+      },
+      {
+        "input": 549,
+        "output": 353,
+        "cache_read": 49347,
+        "effective_ctx": 49896
+      },
+      {
+        "input": 546,
+        "output": 112,
+        "cache_read": 49895,
+        "effective_ctx": 50441
+      },
+      {
+        "input": 2709,
+        "output": 107,
+        "cache_read": 50440,
+        "effective_ctx": 53149
+      },
+      {
+        "input": 3182,
+        "output": 114,
+        "cache_read": 53148,
+        "effective_ctx": 56330
+      },
+      {
+        "input": 174,
+        "output": 54,
+        "cache_read": 56329,
+        "effective_ctx": 56503
+      },
+      {
+        "input": 70,
+        "output": 53,
+        "cache_read": 56502,
+        "effective_ctx": 56572
+      },
+      {
+        "input": 69,
+        "output": 84,
+        "cache_read": 56571,
+        "effective_ctx": 56640
+      },
+      {
+        "input": 174,
+        "output": 239,
+        "cache_read": 56639,
+        "effective_ctx": 56813
+      },
+      {
+        "input": 518,
+        "output": 61,
+        "cache_read": 56812,
+        "effective_ctx": 57330
+      },
+      {
+        "input": 334,
+        "output": 62,
+        "cache_read": 57329,
+        "effective_ctx": 57663
+      },
+      {
+        "input": 330,
+        "output": 113,
+        "cache_read": 57662,
+        "effective_ctx": 57992
+      },
+      {
+        "input": 398,
+        "output": 195,
+        "cache_read": 57991,
+        "effective_ctx": 58389
+      },
+      {
+        "input": 367,
+        "output": 14,
+        "cache_read": 58388,
+        "effective_ctx": 58755
+      },
+      {
+        "input": 77,
+        "output": 275,
+        "cache_read": 58754,
+        "effective_ctx": 58831
+      },
+      {
+        "input": 343,
+        "output": 60,
+        "cache_read": 58828,
+        "effective_ctx": 59171
+      },
+      {
+        "input": 126,
+        "output": 61,
+        "cache_read": 59170,
+        "effective_ctx": 59296
+      },
+      {
+        "input": 129,
+        "output": 60,
+        "cache_read": 59295,
+        "effective_ctx": 59424
+      },
+      {
+        "input": 129,
+        "output": 411,
+        "cache_read": 59423,
+        "effective_ctx": 59552
+      },
+      {
+        "input": 601,
+        "output": 350,
+        "cache_read": 59551,
+        "effective_ctx": 60152
+      },
+      {
+        "input": 549,
+        "output": 109,
+        "cache_read": 60151,
+        "effective_ctx": 60700
+      },
+      {
+        "input": 128,
+        "output": 111,
+        "cache_read": 60699,
+        "effective_ctx": 60827
+      },
+      {
+        "input": 1624,
+        "output": 106,
+        "cache_read": 60826,
+        "effective_ctx": 62450
+      },
+      {
+        "input": 136,
+        "output": 114,
+        "cache_read": 62449,
+        "effective_ctx": 62585
+      },
+      {
+        "input": 144,
+        "output": 81,
+        "cache_read": 62584,
+        "effective_ctx": 62728
+      },
+      {
+        "input": 111,
+        "output": 89,
+        "cache_read": 62727,
+        "effective_ctx": 62838
+      },
+      {
+        "input": 367,
+        "output": 62,
+        "cache_read": 62837,
+        "effective_ctx": 63204
+      },
+      {
+        "input": 344,
+        "output": 233,
+        "cache_read": 63203,
+        "effective_ctx": 63547
+      },
+      {
+        "input": 454,
+        "output": 10,
+        "cache_read": 63546,
+        "effective_ctx": 64000
+      },
+      {
+        "input": 90,
+        "output": 302,
+        "cache_read": 63999,
+        "effective_ctx": 64089
+      },
+      {
+        "input": 365,
+        "output": 61,
+        "cache_read": 64086,
+        "effective_ctx": 64451
+      },
+      {
+        "input": 134,
+        "output": 245,
+        "cache_read": 64450,
+        "effective_ctx": 64584
+      },
+      {
+        "input": 620,
+        "output": 80,
+        "cache_read": 64583,
+        "effective_ctx": 65203
+      },
+      {
+        "input": 107,
+        "output": 288,
+        "cache_read": 65202,
+        "effective_ctx": 65309
+      },
+      {
+        "input": 624,
+        "output": 1015,
+        "cache_read": 65308,
+        "effective_ctx": 65932
+      },
+      {
+        "input": 2012,
+        "output": 931,
+        "cache_read": 65931,
+        "effective_ctx": 67943
+      },
+      {
+        "input": 1663,
+        "output": 1154,
+        "cache_read": 67942,
+        "effective_ctx": 69605
+      },
+      {
+        "input": 1862,
+        "output": 1034,
+        "cache_read": 69604,
+        "effective_ctx": 71466
+      },
+      {
+        "input": 1697,
+        "output": 259,
+        "cache_read": 71465,
+        "effective_ctx": 73162
+      },
+      {
+        "input": 276,
+        "output": 4975,
+        "cache_read": 73161,
+        "effective_ctx": 73437
+      },
+      {
+        "input": 5942,
+        "output": 243,
+        "cache_read": 73436,
+        "effective_ctx": 79378
+      },
+      {
+        "input": 408,
+        "output": 152,
+        "cache_read": 79377,
+        "effective_ctx": 79785
+      },
+      {
+        "input": 168,
+        "output": 155,
+        "cache_read": 79784,
+        "effective_ctx": 79952
+      },
+      {
+        "input": 171,
+        "output": 155,
+        "cache_read": 79951,
+        "effective_ctx": 80122
+      },
+      {
+        "input": 171,
+        "output": 143,
+        "cache_read": 80121,
+        "effective_ctx": 80292
+      },
+      {
+        "input": 159,
+        "output": 142,
+        "cache_read": 80291,
+        "effective_ctx": 80450
+      },
+      {
+        "input": 158,
+        "output": 144,
+        "cache_read": 80449,
+        "effective_ctx": 80607
+      },
+      {
+        "input": 160,
+        "output": 141,
+        "cache_read": 80606,
+        "effective_ctx": 80766
+      },
+      {
+        "input": 157,
+        "output": 4926,
+        "cache_read": 80765,
+        "effective_ctx": 80922
+      },
+      {
+        "input": 4943,
+        "output": 320,
+        "cache_read": 80921,
+        "effective_ctx": 85864
+      },
+      {
+        "input": 692,
+        "output": 99,
+        "cache_read": 85863,
+        "effective_ctx": 86555
+      },
+      {
+        "input": 116,
+        "output": 108,
+        "cache_read": 86554,
+        "effective_ctx": 86670
+      },
+      {
+        "input": 127,
+        "output": 319,
+        "cache_read": 86669,
+        "effective_ctx": 86796
+      },
+      {
+        "input": 681,
+        "output": 572,
+        "cache_read": 86795,
+        "effective_ctx": 87476
+      },
+      {
+        "input": 609,
+        "output": 2085,
+        "cache_read": 87475,
+        "effective_ctx": 88084
+      },
+      {
+        "input": 2217,
+        "output": 374,
+        "cache_read": 88081,
+        "effective_ctx": 90298
+      },
+      {
+        "input": 561,
+        "output": 284,
+        "cache_read": 90295,
+        "effective_ctx": 90856
+      },
+      {
+        "input": 465,
+        "output": 117,
+        "cache_read": 90855,
+        "effective_ctx": 91320
+      },
+      {
+        "input": 133,
+        "output": 106,
+        "cache_read": 91319,
+        "effective_ctx": 91452
+      },
+      {
+        "input": 122,
+        "output": 53,
+        "cache_read": 91451,
+        "effective_ctx": 91573
+      },
+      {
+        "input": 69,
+        "output": 53,
+        "cache_read": 91572,
+        "effective_ctx": 91641
+      },
+      {
+        "input": 119,
+        "output": 120,
+        "cache_read": 91640,
+        "effective_ctx": 91759
+      },
+      {
+        "input": 184,
+        "output": 59,
+        "cache_read": 91758,
+        "effective_ctx": 91942
+      },
+      {
+        "input": 122,
+        "output": 3021,
+        "cache_read": 91941,
+        "effective_ctx": 92063
+      },
+      {
+        "input": 3148,
+        "output": 3646,
+        "cache_read": 92062,
+        "effective_ctx": 95210
+      },
+      {
+        "input": 3768,
+        "output": 937,
+        "cache_read": 95207,
+        "effective_ctx": 98975
+      },
+      {
+        "input": 964,
+        "output": 658,
+        "cache_read": 98972,
+        "effective_ctx": 99936
+      },
+      {
+        "input": 678,
+        "output": 504,
+        "cache_read": 99933,
+        "effective_ctx": 100611
+      }
+    ]
+  }
+}

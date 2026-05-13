@@ -31,9 +31,7 @@
         "评判维度",
         "权重设计",
         "must-have",
-        "deal-breaker",
-        "筛选条件",
-        "帮我列出选择标准"
+        "筛选条件"
       ],
       "should_not_trigger": [
         "学习目标",

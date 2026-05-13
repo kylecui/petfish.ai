@@ -1,6 +1,6 @@
 ---
 name: decision-criteria-builder
-description: 构建带权重的决策标准与比较口径，明确must-have/nice-to-have/deal-breaker并定义评分与证据规则。Use when the user says "决策标准", "decision criteria", "比较口径", "权重", "weighting", "must-have", "nice-to-have", "一票否决", "团队分歧", "what matters most", or "criteria baseline".
+description: 构建带权重的决策标准与比较口径，明确must-have/nice-to-have/deal-breaker并定义评分与证据规则。Use when the user says "决策标准", "decision criteria", "评判维度", "筛选条件", "比较口径", "权重", "weighting", "must-have", "nice-to-have", "一票否决", "团队分歧", "what matters most", or "criteria baseline".
 compatibility: opencode
 license: Apache-2.0
 ---

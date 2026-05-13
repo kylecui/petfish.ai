@@ -1,6 +1,6 @@
 ---
 name: scientific-review-rebuttal
-description: 论文投稿前自查与审稿回复(rebuttal)：执行novelty/soundness/evaluation/presentation/reproducibility/ethics六维检查，分类reviewer comments并生成point-by-point回复与revision plan。Use when users ask “审稿自查/self-review/rebuttal/审稿意见/回复审稿人/pre-submission check/paper review”.
+description: 论文投稿前自查与审稿回复(rebuttal)：执行novelty/soundness/evaluation/presentation/reproducibility/ethics六维检查，分类reviewer comments并生成point-by-point回复与revision plan。Use when users ask “审稿自查/self-review/reviewer comments/rebuttal/审稿意见/回复审稿人/pre-submission check/paper review”.
 compatibility: opencode
 license: Apache-2.0
 ---

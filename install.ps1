@@ -358,6 +358,72 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
     Write-Host "    + .opencode/agents-rules/$l1Name" -ForegroundColor DarkGreen
 }
 
+# Install system-prompt-rules plugin file to .opencode/plugin/ (v0.11.0+)
+# Only for OpenCode platform when L1 packs are present.
+function Install-PluginFile([string]$sourceRoot, [string]$targetDir) {
+    $srcPlugin = Join-Path $sourceRoot "lib" "plugin" "system-prompt-rules.ts"
+    if (-not (Test-Path $srcPlugin)) { return }
+
+    $pluginDir = Join-Path $targetDir ".opencode" "plugin"
+    if (-not (Test-Path $pluginDir)) {
+        New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
+    }
+
+    $dstPlugin = Join-Path $pluginDir "system-prompt-rules.ts"
+    Copy-Item -Path $srcPlugin -Destination $dstPlugin -Force
+    Write-Host "    + .opencode/plugin/system-prompt-rules.ts" -ForegroundColor DarkGreen
+}
+
+# Register plugin tuple in opencode.json (idempotent)
+function Register-PluginInConfig([string]$configFile) {
+    if (-not (Test-Path $configFile)) { return }
+
+    $raw = Get-Content $configFile -Raw -Encoding UTF8
+    $json = $raw | ConvertFrom-Json
+
+    $pluginPath = ".opencode/plugin/system-prompt-rules.ts"
+    $pluginTuple = @($pluginPath, @{ mode = "all" })
+
+    # Check if plugin array exists and already contains this plugin
+    if ($json.PSObject.Properties["plugin"]) {
+        $existing = $json.plugin
+        foreach ($entry in $existing) {
+            if ($entry -is [System.Collections.IEnumerable] -and $entry.Count -ge 1) {
+                if ($entry[0] -eq $pluginPath) {
+                    # Already registered
+                    return
+                }
+            }
+        }
+        # Append to existing plugin array
+        $json.plugin = @($existing) + ,@(,$pluginTuple)
+    } else {
+        # Create plugin array with single tuple
+        $json | Add-Member -NotePropertyName "plugin" -NotePropertyValue @(,@($pluginTuple))
+    }
+
+    $json | ConvertTo-Json -Depth 10 | Set-Content $configFile -Encoding UTF8
+    Write-Host "    + opencode.json (plugin registered)" -ForegroundColor DarkGreen
+}
+
+# v0.10.x→v0.11.x migration: remove inline pack section from AGENTS.md
+# when it has been migrated to L1 standalone rules file
+function Remove-InlinePackSection([string]$agentsFile, [string]$packName) {
+    if (-not (Test-Path $agentsFile)) { return }
+    $content = Get-Content $agentsFile -Raw -Encoding UTF8
+    $beginMarker = "<!-- BEGIN pack: $packName -->"
+    $endMarker = "<!-- END pack: $packName -->"
+    if ($content -notmatch [regex]::Escape($beginMarker)) { return }
+
+    # Remove everything between BEGIN and END markers (inclusive), plus surrounding blank lines
+    $pattern = "(?ms)\r?\n?\s*$([regex]::Escape($beginMarker)).*?$([regex]::Escape($endMarker))\s*\r?\n?"
+    $newContent = $content -replace $pattern, "`n"
+    # Collapse triple+ newlines to double
+    $newContent = $newContent -replace "(\r?\n){3,}", "`n`n"
+    Set-Content -Path $agentsFile -Value $newContent.TrimEnd() -NoNewline -Encoding UTF8
+    Write-Host "    - AGENTS.md (removed inline section for $packName → migrated to L1)" -ForegroundColor DarkYellow
+}
+
 function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOverwrite, [string]$SkillsDir = ".opencode/skills") {
     $src = Get-Content $srcFile -Raw -Encoding UTF8 | ConvertFrom-Json
     $normalizedSkillsDir = if ([string]::IsNullOrWhiteSpace($SkillsDir)) { ".opencode/skills" } else { ($SkillsDir -replace '[\\/]+$','') }
@@ -877,6 +943,11 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             if ($hasL1) {
                 # L1-only: write standalone rules file, skip inline merge
                 Write-PackRulesFile $agentsMd $targetPath $packName
+                # Deliver system-prompt-rules plugin (idempotent, runs for each L1 pack)
+                Install-PluginFile $PSScriptRoot $targetPath
+                Register-PluginInConfig (Join-Path $targetPath "opencode.json")
+                # v0.10.x → v0.11.x migration: remove old inline section from AGENTS.md
+                Remove-InlinePackSection (Join-Path $targetPath "AGENTS.md") $packName
             } else {
                 # Non-opencode or packs without L1: merge inline as before
                 $dstAgents = Join-Path $targetPath "AGENTS.md"

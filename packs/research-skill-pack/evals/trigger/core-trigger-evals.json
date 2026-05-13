@@ -45,7 +45,6 @@
       "type": "trigger",
       "should_trigger": [
         "帮我读这篇论文并摘录重点",
-        "extract key passages from this document",
         "不要总结太快，先摘录材料",
         "take reading notes on this paper"
       ],
@@ -61,9 +60,7 @@
       "type": "trigger",
       "should_trigger": [
         "我突然想到一个类比",
-        "record this hypothesis",
-        "记一下这个想法",
-        "I just realized X might connect to Y"
+        "记一下这个想法"
       ],
       "should_not_trigger": [
         "extract quotes from this paper",

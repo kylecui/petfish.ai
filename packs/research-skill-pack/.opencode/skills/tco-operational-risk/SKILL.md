@@ -1,6 +1,6 @@
 ---
 name: tco-operational-risk
-description: 评估候选方案的TCO与运维风险，覆盖直接/隐性成本、买建混合路径、锁定风险、退出可行性与情景敏感因子。Use when the user says "TCO评估", "total cost of ownership", "运维风险", "operational risk", "cost-risk analysis", "buy vs build", "lock-in risk", "exit plan", "1-3年可持续", or "scenario analysis".
+description: 评估候选方案的TCO与运维风险，覆盖直接/隐性成本、买建混合路径、锁定风险、退出可行性与情景敏感因子。Use when the user says "TCO", "TCO评估", "total cost of ownership", "总拥有成本", "运维风险", "运营风险", "operational risk", "cost-risk analysis", "buy vs build", "lock-in risk", "exit plan", "1-3年可持续", or "scenario analysis".
 compatibility: opencode
 license: Apache-2.0
 ---

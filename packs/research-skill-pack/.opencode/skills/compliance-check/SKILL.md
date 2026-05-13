@@ -1,6 +1,6 @@
 ---
 name: compliance-check
-description: 对候选方案开展合规风险研究，覆盖隐私、数据驻留/跨境传输、许可证与合同条款、政策匹配与法务待确认项。Use when the user says "合规评估", "compliance check", "法规风险评估", "隐私风险", "data residency", "cross-border transfer", "license compliance", "DPA", "合同条款", or "policy fit".
+description: 对候选方案开展合规风险研究，覆盖隐私、数据驻留/跨境传输、许可证与合同条款、政策匹配与法务待确认项。Use when the user says "合规评估", "合规检查", "compliance check", "compliance risk", "法规风险评估", "隐私风险", "data residency", "cross-border transfer", "license compliance", "license review", "DPA", "合同条款", or "policy fit".
 compatibility: opencode
 license: Apache-2.0
 ---

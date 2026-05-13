@@ -133,7 +133,7 @@ def test_detect_bridge_signals(detector, text, expected_confidence):
 
 
 def test_detect_continue_defaults_to_current_topic_context(detector):
-    current = topic("current", "API Retries")
+    current = topic("current", "API Retries", scope="retry backoff and error handling")
 
     result = detector.detect("Please explain the retry backoff strategy.", current, [])
 

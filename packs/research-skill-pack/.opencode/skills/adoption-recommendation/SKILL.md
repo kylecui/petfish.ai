@@ -1,6 +1,6 @@
 ---
 name: adoption-recommendation
-description: 基于风险采购证据链给出最终采用建议，区分evidence sufficiency与verdict，并定义Adopt/Control/Pilot/Defer/Reject路径、缓解措施、复审与回滚。Use when the user says "采用建议", "adoption recommendation", "go/no-go", "should we proceed", "final decision", "pilot only", "need more evidence", "是否上线", or "最终裁决".
+description: 基于风险采购证据链给出最终采用建议，区分evidence sufficiency与verdict，并定义Adopt/Control/Pilot/Defer/Reject路径、缓解措施、复审与回滚。Use when the user says "采用建议", "引入建议", "adoption recommendation", "adopt or reject", "go/no-go", "should we proceed", "final decision", "pilot only", "need more evidence", "是否上线", or "最终裁决".
 compatibility: opencode
 license: Apache-2.0
 ---

@@ -175,6 +175,85 @@ write_pack_rules_file() {
     echo "    + .opencode/agents-rules/$l1_name" >&2
 }
 
+# Install system-prompt-rules plugin file to .opencode/plugin/ (v0.11.0+)
+# Only for OpenCode platform when L1 packs are present.
+install_plugin_file() {
+    local source_root="$1" target_dir="$2"
+    local src_plugin="$source_root/lib/plugin/system-prompt-rules.ts"
+    [[ -f "$src_plugin" ]] || return 0
+
+    local plugin_dir="$target_dir/.opencode/plugin"
+    mkdir -p "$plugin_dir"
+    cp "$src_plugin" "$plugin_dir/system-prompt-rules.ts"
+    echo "    + .opencode/plugin/system-prompt-rules.ts" >&2
+}
+
+# Register plugin tuple in opencode.json (idempotent)
+register_plugin_in_config() {
+    local config_file="$1"
+    [[ -f "$config_file" ]] || return 0
+
+    python3 -c "
+import json, sys
+
+config_file = sys.argv[1]
+plugin_path = '.opencode/plugin/system-prompt-rules.ts'
+plugin_tuple = [plugin_path, {'mode': 'all'}]
+
+with open(config_file, 'r', encoding='utf-8') as f:
+    data = json.load(f)
+
+if 'plugin' in data:
+    # Check if already registered
+    for entry in data['plugin']:
+        if isinstance(entry, list) and len(entry) >= 1 and entry[0] == plugin_path:
+            sys.exit(0)
+    data['plugin'].append(plugin_tuple)
+else:
+    data['plugin'] = [plugin_tuple]
+
+with open(config_file, 'w', encoding='utf-8') as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write('\n')
+print('    + opencode.json (plugin registered)')
+" "$config_file" >&2
+}
+
+# v0.10.x → v0.11.x migration: remove old inline pack section from AGENTS.md
+remove_inline_pack_section() {
+    local agents_file="$1" pack_name="$2"
+    [[ -f "$agents_file" ]] || return 0
+
+    local begin_marker="<!-- BEGIN pack: $pack_name -->"
+    local end_marker="<!-- END pack: $pack_name -->"
+
+    # Check if marker exists
+    grep -qF "$begin_marker" "$agents_file" || return 0
+
+    python3 -c "
+import re, sys
+
+agents_file = sys.argv[1]
+begin_marker = sys.argv[2]
+end_marker = sys.argv[3]
+pack_name = sys.argv[4]
+
+with open(agents_file, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Remove everything between BEGIN and END markers (inclusive)
+pattern = r'\n?\s*' + re.escape(begin_marker) + r'.*?' + re.escape(end_marker) + r'\s*\n?'
+new_content = re.sub(pattern, '\n', content, flags=re.DOTALL)
+# Collapse triple+ newlines to double
+new_content = re.sub(r'\n{3,}', '\n\n', new_content)
+
+with open(agents_file, 'w', encoding='utf-8') as f:
+    f.write(new_content.rstrip() + '\n')
+
+print(f'    - AGENTS.md (removed inline section for {pack_name} → migrated to L1)')
+" "$agents_file" "$begin_marker" "$end_marker" "$pack_name" >&2
+}
+
 merge_opencode_json() {
     local src_file="$1" dst_file="$2" force="$3" skills_dir="${4:-.opencode/skills}"
 
@@ -1074,6 +1153,11 @@ install_for_platform() {
             if $has_l1; then
                 # L1-only: write standalone rules file, skip inline merge
                 write_pack_rules_file "$pack_root/AGENTS.md" "$TARGET" "$pack_name"
+                # Deliver system-prompt-rules plugin (idempotent, runs for each L1 pack)
+                install_plugin_file "$EXTRACT_DIR" "$TARGET"
+                register_plugin_in_config "$TARGET/opencode.json"
+                # v0.10.x → v0.11.x migration: remove old inline section from AGENTS.md
+                remove_inline_pack_section "$TARGET/AGENTS.md" "$pack_name"
             else
                 # Non-opencode or packs without L1: merge inline as before
                 local dst_instructions="$TARGET/$instructions_file"

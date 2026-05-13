@@ -54,11 +54,31 @@ def _load_skill_triggers(skill_path: Path) -> dict[str, list[str]] | None:
     return {"description": [description], "skill_name": [skill_path.name]}
 
 
+def _extract_trigger_phrases(description: str) -> list[str]:
+    """Extract quoted trigger phrases from a skill description.
+
+    Looks for phrases in double quotes like "研究目标", "research brief", etc.
+    These are the canonical trigger phrases the skill declares.
+    Handles slash-separated lists like "研究/research/调研" by splitting.
+    """
+    # Match both ASCII quotes and smart quotes (U+201C/U+201D, U+FF02)
+    raw = re.findall(r'["\u201c\uff02]([^"\u201d\uff02]+)["\u201d\uff02]', description)
+    phrases: list[str] = []
+    for item in raw:
+        # Split on "/" which is used to list alternative trigger phrases
+        if "/" in item:
+            phrases.extend(part.strip() for part in item.split("/") if part.strip())
+        else:
+            phrases.append(item)
+    return phrases
+
+
 def _simple_keyword_match(prompt: str, skill_name: str, skill_path: Path) -> bool:
     """Simple deterministic trigger matching based on skill description keywords.
 
     This does NOT replicate the full LLM-based skill matching. It checks whether
-    the prompt contains keywords that a reasonable skill matcher would use.
+    the prompt contains trigger phrases or domain keywords declared in the skill's
+    description.
     """
     skill_md = skill_path / "SKILL.md"
     if not skill_md.exists():
@@ -79,68 +99,106 @@ def _simple_keyword_match(prompt: str, skill_name: str, skill_path: Path) -> boo
         r"description:\s*['\"]?(.*?)['\"]?\s*$", frontmatter, re.MULTILINE
     )
     if desc_match:
-        description = desc_match.group(1).strip().lower()
+        description = desc_match.group(1).strip()
     else:
         desc_match = re.search(r"description:\s*>\s*\n((?:\s+.*\n)*)", frontmatter)
         if desc_match:
             description = " ".join(
                 line.strip() for line in desc_match.group(1).strip().splitlines()
-            ).lower()
+            )
         else:
             description = ""
 
-    # Extract trigger phrases from description (quoted phrases and key terms)
-    # Simple heuristic: check if prompt contains the skill name or key domain words
-    skill_words = skill_name.replace("research-", "").replace("-", " ").split()
+    description_lower = description.lower()
 
     # Check direct skill name reference
     if skill_name in prompt_lower:
         return True
 
-    # Check domain keywords from description
-    domain_keywords = set()
-    for word in description.split():
-        cleaned = word.strip(".,;:\"'()[]")
-        if len(cleaned) > 3:
-            domain_keywords.add(cleaned)
+    # Strategy 1: Check if prompt contains any quoted trigger phrase from description
+    trigger_phrases = _extract_trigger_phrases(description_lower)
+    for phrase in trigger_phrases:
+        if phrase in prompt_lower:
+            return True
 
-    # A match requires at least one skill-specific keyword
-    skill_specific = {
-        "research",
-        "brief",
-        "source",
-        "note",
-        "evidence",
-        "synthesis",
-        "report",
-        "quality",
-        "review",
-        "literature",
-        "insight",
-        "router",
-        "研究",
-        "调研",
-        "文献",
-        "综述",
-        "证据",
-        "摘录",
-        "笔记",
-        "报告",
-        "竞品",
-        "分析",
-        "论文",
-        "routing",
+    # Strategy 2: Check keyword overlap between prompt and description
+    # Extract meaningful words (len > 1 for CJK, len > 3 for latin)
+    prompt_tokens = set(re.findall(r"[\w\u4e00-\u9fff]+", prompt_lower))
+    desc_tokens = set(re.findall(r"[\w\u4e00-\u9fff]+", description_lower))
+
+    # Filter to meaningful words
+    meaningful_prompt = {
+        w
+        for w in prompt_tokens
+        if (len(w) > 1 and re.search(r"[\u4e00-\u9fff]", w)) or len(w) > 3
+    }
+    meaningful_desc = {
+        w
+        for w in desc_tokens
+        if (len(w) > 1 and re.search(r"[\u4e00-\u9fff]", w)) or len(w) > 3
     }
 
-    prompt_words = set(re.findall(r"[\w\u4e00-\u9fff]+", prompt_lower))
-    matches = prompt_words & skill_specific
+    # Exclude generic stop words that appear in many descriptions
+    stop_words = {
+        "this",
+        "skill",
+        "when",
+        "user",
+        "says",
+        "that",
+        "with",
+        "from",
+        "have",
+        "will",
+        "been",
+        "also",
+        "into",
+        "what",
+        "about",
+        "your",
+        "need",
+        "want",
+        "help",
+        "like",
+        "make",
+        "just",
+        "should",
+        "would",
+        "could",
+        "does",
+        "asks",
+        "uses",
+        "used",
+        "using",
+        "provides",
+        "triggers",
+        "trigger",
+        "based",
+    }
+    meaningful_prompt -= stop_words
+    meaningful_desc -= stop_words
 
-    if not matches:
-        return False
+    overlap = meaningful_prompt & meaningful_desc
 
-    # Check if the matching keywords are relevant to THIS skill
-    for kw in skill_words:
-        if kw in prompt_lower:
+    # Require at least 2 overlapping meaningful keywords for a match
+    if len(overlap) >= 2:
+        return True
+
+    # Strategy 3: CJK bigram overlap
+    # CJK compound words share characters but aren't identical tokens.
+    # E.g., "合规检查" and "合规评估" share the bigram "合规".
+    cjk_pat = re.compile(r"[\u4e00-\u9fff]")
+    prompt_cjk = "".join(cjk_pat.findall(prompt_lower))
+    desc_cjk = "".join(cjk_pat.findall(description_lower))
+
+    if len(prompt_cjk) >= 2 and len(desc_cjk) >= 2:
+        prompt_bigrams = {prompt_cjk[i : i + 2] for i in range(len(prompt_cjk) - 1)}
+        desc_bigrams = {desc_cjk[i : i + 2] for i in range(len(desc_cjk) - 1)}
+        cjk_overlap = prompt_bigrams & desc_bigrams
+        # Require 2+ bigram matches to avoid false positives from common
+        # CJK bigrams like "分析", "研究", "设计" that appear everywhere.
+        threshold = 2
+        if len(cjk_overlap) >= threshold:
             return True
 
     return False

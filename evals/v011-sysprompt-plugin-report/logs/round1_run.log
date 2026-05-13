@@ -1,0 +1,152 @@
+Topic-Aware Compaction A/B Test Harness
+Baseline: localhost:3100
+Plugin:   localhost:3200
+Model:    github-copilot/claude-sonnet-4
+
+============================================================
+  Running BASELINE test
+============================================================
+  Session: ses_1e40b54daffetxhsx6jPpBLtio
+  [1/21] Topic: python-setup... ✓
+  [2/21] Topic: database... ✓
+  [3/21] Topic: cicd... ✓
+  [4/21] Topic: python-setup... ✓
+  [5/21] Topic: database... ✓
+  [6/21] Topic: cicd... ✓
+  [7/21] Topic: python-setup... ✓
+  [8/21] Topic: database... ✓
+  [9/21] Topic: cicd... ✓
+  [10/21] Topic: python-setup... ✓
+  [11/21] Topic: database... ✓
+  [12/21] Topic: cicd... ✓
+  [13/21] Topic: python-setup... ✓
+  [14/21] Topic: database... ✓
+  [15/21] Topic: cicd... ✓
+  [16/21] Topic: python-setup... ✓
+  [17/21] Topic: database... ✓
+  [18/21] Topic: cicd... ✓
+  [19/21] Topic: python-setup... ✓
+  [20/21] Topic: database... ✓
+  [21/21] Topic: cicd... ✓
+
+  Recall questions:
+  [Q1] Topic: python-setup... ✓
+  [Q2] Topic: database... ✓
+  [Q3] Topic: cicd... ✓
+  Session preserved: ses_1e40b54daffetxhsx6jPpBLtio
+
+============================================================
+  Running PLUGIN test
+============================================================
+  Session: ses_1e3ec29e2ffeuSW6yiLLfK4dVI
+  [1/21] Topic: python-setup... ✓
+  [2/21] Topic: database... ✓
+  [3/21] Topic: cicd... ✓
+  [4/21] Topic: python-setup... ✓
+  [5/21] Topic: database... ✓
+  [6/21] Topic: cicd... ✓
+  [7/21] Topic: python-setup... ✓
+  [8/21] Topic: database... ✓
+  [9/21] Topic: cicd... ✓
+  [10/21] Topic: python-setup... ✓
+  [11/21] Topic: database... ✓
+  [12/21] Topic: cicd... ✓
+  [13/21] Topic: python-setup... ✓
+  [14/21] Topic: database... ✓
+  [15/21] Topic: cicd... ✓
+  [16/21] Topic: python-setup... ✓
+  [17/21] Topic: database... ✓
+  [18/21] Topic: cicd... ✓
+  [19/21] Topic: python-setup... ✓
+  [20/21] Topic: database... ✓
+  [21/21] Topic: cicd... ✓
+
+  Recall questions:
+  [Q1] Topic: python-setup... ✓
+  [Q2] Topic: database... ✓
+  [Q3] Topic: cicd... ✓
+  Session preserved: ses_1e3ec29e2ffeuSW6yiLLfK4dVI
+
+============================================================
+  A/B TEST REPORT
+============================================================
+
+Token Usage Comparison:
+Metric                        Baseline       Plugin        Delta        %
+-----------------------------------------------------------------------
+Input Tokens                   455,533      327,834    -127,699  -28.0%
+Output Tokens                  131,384      147,205 +     15,821 +  12.0%
+Reasoning Tokens                     0            0           0    0.0%
+Cache Read                   5,692,657    6,082,194 +    389,537 +   6.8%
+Cache Write                          0            0           0    0.0%
+TOTAL                          586,917      475,039    -111,878  -19.1%
+
+Metric                        Baseline       Plugin
+-------------------------------------------------
+Messages                            76           87
+Peak Context Window            152,990      145,530
+Compactions                          2            1
+Wall Time (s)                   2040.9       2382.9
+Errors                               0            0
+
+
+Recall Responses (truncated to 500 chars):
+
+--- Topic: python-setup ---
+  BASELINE: No `pyproject.toml` exists on disk. It was discussed/generated in conversation but never written to a file.
+
+From the session history, the intended dependencies were:
+
+**Runtime:**
+- `httpx >= 0.27`
+-...
+  PLUGIN:   
+
+The `pyproject.toml` exists only in session history, not on disk. Here's the complete dependency list as written:
+
+### Runtime Dependencies
+
+| Package | Purpose |
+|---|---|
+| `psycopg[binary,pool]` ...
+
+--- Topic: database ---
+  BASELINE: 
+
+From the three migration files on disk:
+
+## Tables (migration 001)
+
+| Table | Key Columns | Notes |
+|---|---|---|
+| **tenants** | id (UUID PK), name, slug (unique), is_active, created_at, updated_at...
+  PLUGIN:   ### Tables
+
+| Table | PK | Key Columns |
+|---|---|---|
+| `tenants` | `id UUID` | `name`, `slug` (unique), `plan`, `is_active`, `settings JSONB` |
+| `users` | `(tenant_id, id)` | `email`, `display_name...
+
+--- Topic: cicd ---
+  BASELINE: 
+
+From `.github/workflows/ci.yml`:
+
+## Pipeline Stages
+
+| Stage | Trigger | What It Does |
+|---|---|---|
+| **lint** | Every push & PR to main | Runs `ruff check` and `ruff format --check` |
+| **unit-t...
+  PLUGIN:   
+
+### `.github/workflows/ci.yml`
+
+**Triggers**: Push to `main`/`develop`, PRs to `main`
+
+| Stage | Depends On | What It Does |
+|---|---|---|
+| **lint** | — | `ruff check`, `ruff format --check`, `mypy...
+
+
+Full results saved to: /home/kylecui/dev/petfish_tester/experiments/compact-test-round2/ab_test_results.json
