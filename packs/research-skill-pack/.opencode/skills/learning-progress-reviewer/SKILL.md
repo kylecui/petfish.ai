@@ -3,6 +3,9 @@ name: learning-progress-reviewer
 description: 对学习执行结果进行阶段化成效复盘，评估概念理解、操作能力、迁移表现与下一步纠偏方向。Use when the user says "学习进度", "learning progress", "阶段检查", "学习效果", "掌握程度", "复盘", "里程碑达成", "milestone review", "Concept/Procedure/Transfer", "Next Step", "学习评估", "能力诊断", "薄弱点", "纠偏", "学习成效", "阶段复盘", "学习决策", or "达标判断".
 compatibility: opencode
 license: Apache-2.0
+metadata:
+  version: "0.11.1"
+  author: "petfish-team"
 ---
 
 ## 作用/Purpose
