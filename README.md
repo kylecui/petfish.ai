@@ -11,7 +11,7 @@
 **Your AI Companion**
 From first commit to final delivery, PEtFiSh is always there.
 ```text
-><(((^>  PEtFiSh v0.8
+><(((^>  PEtFiSh v0.11
 
 Always Present   Companion Gateway in every interaction
 Guarding         Sense gaps, guard context, block pollution
@@ -49,9 +49,12 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 
 ## Companion Gateway
 Companion Gateway runs before every message:
-1. **Topic Check** — detect drift and assess context risk.
-2. **Skill Sense** — detect capability gaps before they hurt.
-3. **Proceed** — continue with the right context in place.
+1. **Mode Read** — load project depth/rigor settings.
+2. **Topic Check** — detect drift and assess context risk.
+3. **Failure Signal Detection** — catch previous-turn errors and recommend fixes.
+4. **Skill Sense** — detect capability gaps before they hurt.
+5. **Anti-Sycophancy Check** — pause before agreeing with evaluative questions.
+6. **Proceed** — continue with the right context in place.
 See [docs/companion-gateway.md](docs/companion-gateway.md) for the full flow.
 
 ---
@@ -282,6 +285,16 @@ petfish.ai/
 ---
 
 ## Version History
+### v0.11 — Companion Gateway Enhancement: Proactive Intelligence
+
+- **v0.11.6**: Documentation catchup — update companion-gateway docs (EN+ZH), README, website to reflect 6-step Gateway flow.
+- **v0.11.5**: Rigor threshold refinement — only Momus plan+review for 3+ step or 3+ file tasks; simpler tasks get assumption-stating and post-verification without formal plan files.
+- **v0.11.4**: Anti-Sycophancy Check (Step 2.5) — rubric-first evaluation, mandatory counter-argument search before agreeing; proactivity level linked to Rigor mode (off=explicit only, on=implicit+assertions).
+- **v0.11.3**: Rigor Mode — `rigor: true` in project-mode.yaml adds plan-then-review discipline: formal plan files for complex tasks, Momus review before implementation, explicit assumption-stating. Forced on when `depth: thorough`.
+- **v0.11.2**: Project Mode (Step 0) — `depth` (urgent/balanced/thorough) and `rigor` (on/off) axes in `.opencode/project-mode.yaml`; session-only verbal overrides without file writes.
+- **v0.11.1**: Failure Signal Detection (Step 1.5) — scan previous assistant turn for known failure patterns (PDF/deploy/test/research/context), recommend matching pack if uninstalled. Implemented via `catalog_query.py --check-failures`.
+- **v0.11.0**: Gateway expansion from 3 steps to 6 steps — add Mode Read, Failure Signal Detection, and Anti-Sycophancy Check to the always-on Companion Gateway flow.
+
 ### v0.10 — Research Pack Expansion: 7 Domains
 
 - **v0.10.10**: Auto-update capability — `check_installed.py --check-updates` queries GitHub latest release and compares installed pack versions; `catalog_query.py --upgrade` shows OS-appropriate upgrade command; Companion Gateway now checks for updates on session start; `/petfish upgrade` command added. Also fixes missing `research` alias in `KNOWN_PACKS`.

@@ -8,10 +8,36 @@ PEtFiSh's Companion Gateway runs automatically before every user message. It doe
 User message
     → [Companion Gateway]
           │
+          ├─ Step 0: Mode Read (project-mode.yaml)
           ├─ Step 1: Topic Check (topic_detect MCP)
+          ├─ Step 1.5: Failure Signal Detection (previous turn errors)
           ├─ Step 2: Skill Sense (capability gap detection)
+          ├─ Step 2.5: Anti-Sycophancy Check (evaluation questions)
           └─ Step 3: Proceed (normal processing)
 ```
+
+### Step 0: Mode Read
+
+Reads `.opencode/project-mode.yaml` (if present) on the first message of each session:
+
+```yaml
+depth: balanced       # urgent | balanced | thorough
+rigor: false          # true | false (forced true when depth=thorough)
+```
+
+**Depth** controls how aggressively to debug, search, and respond to failures:
+
+| Depth | Bug Handling | Dependency Issues | Search Strategy | Failure Response |
+|---|---|---|---|---|
+| urgent | Workaround first, log TODO | Use alternatives | First credible result | Quick fix → continue |
+| balanced | Normal debug flow | Understand then fix | 2-3 sources | Standard flow |
+| thorough | Must find root cause | Full impact analysis | Multi-source cross-check | Evidence-driven fix |
+
+**Rigor** (when true or forced by `depth: thorough`) adds plan-then-review discipline: formal plan files for 3+ step tasks, Momus review before implementation, explicit assumption-stating.
+
+**Session-only overrides**: Users can say "urgent" / "thorough" / "rigor" etc. to switch mode within a session without modifying the file. Reverts next session.
+
+If the file doesn't exist, defaults to `depth: balanced, rigor: false`.
 
 ### Step 1: Topic Check
 
@@ -24,6 +50,31 @@ Three risk levels:
 
 If MCP is down, degrades silently — won't block your work.
 
+### Step 1.5: Failure Signal Detection
+
+Scans the **previous assistant turn** and tool error output for known failure patterns. When a match is found and a known skill/pack can solve it, recommends installation.
+
+**Trigger conditions (all must be met):**
+1. Previous turn explicitly acknowledged inability or tool returned a known error pattern.
+2. A known skill/pack exists that can solve this failure class.
+3. This signal hasn't been recommended this session (dedup).
+4. The corresponding skill/pack is not already installed.
+
+**Signal → Pack mapping:**
+
+| Failure Pattern | Recommended Pack |
+|---|---|
+| Cannot read/parse PDF/PPTX | `ppt` |
+| Deploy/Docker failure | `deploy` |
+| Test case generation difficulty | `testdocs` |
+| Research depth insufficient | `research` |
+| Context contamination/drift | `context` |
+
+Output format:
+```
+💡 Detected previous-turn failure signal — <pack> skill can handle this. Install: /petfish install <pack>
+```
+
 ### Step 2: Skill Sense
 
 Three-tier detection to spot capability gaps.
@@ -35,6 +86,25 @@ Three-tier detection to spot capability gaps.
 **Tier 3 — No gap**: Nothing detected, stay silent.
 
 Recommendations appear at the end of the reply, never interrupting. Each domain is mentioned at most once per session.
+
+### Step 2.5: Anti-Sycophancy Check
+
+Before answering evaluative questions ("is this good?", "is this right?", "what do you think?"):
+
+1. **Pause**. Don't agree immediately.
+2. Define what "good" means in this context (rubric-first).
+3. Find at least **one** reason the proposal might be wrong.
+4. Then form a conclusion.
+
+If no counter-argument can be found after genuine effort → agreement is justified.
+If this step is skipped → sycophancy is occurring.
+
+**Proactivity linked to Rigor:**
+
+| Rigor | Anti-Sycophancy Level |
+|---|---|
+| off | Only for explicit evaluative questions ("好吗?", "对吗?") |
+| on | Also for implicit approval-seeking + technical assertions |
 
 ### Step 3: Proceed
 
@@ -107,6 +177,12 @@ Test keyword matching:
 ```bash
 uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --search "Docker"
 # Should return: deploy pack
+```
+
+Test failure signal detection:
+```bash
+uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --check-failures "无法读取PDF文件"
+# Should return: ppt pack recommendation
 ```
 
 Test MCP connectivity:

@@ -207,15 +207,23 @@ The biggest risk is agent non-compliance (forgetting to read the file). Mitigati
 
 ## 6. Implementation Checklist & QA Scenarios
 
-### v0.11.0 (Dual-Write)
+### v0.11.0 (L1-Only — Originally "Dual-Write", Skipped to Direct L1)
+
+**Status: ✅ COMPLETE (v0.11.0 + v0.11.1)**
+
+**What actually happened:** Skipped dual-write entirely. Went straight to L1-only for OpenCode:
+- OpenCode + L1 pack → `Write-PackRulesFile` + `Install-PluginFile` + `Register-PluginInConfig` + `Remove-InlinePackSection`
+- Non-OpenCode → `Merge-AgentsMd` (unchanged)
+- System-prompt-rules plugin delivers L1 files via cached system prompt prefix (-19.1% token savings)
+- AGENTS.md is already L0-only (~400 lines)
 
 **Implementation:**
-- [ ] Create `.opencode/agents-rules/` directory structure
-- [ ] Extract pack content from AGENTS.md into individual files
-- [ ] Add route table section to AGENTS.md Base
-- [ ] Modify `Merge-AgentsMd` (PS1) to dual-write
-- [ ] Modify `merge_agents_md` (bash) to dual-write
-- [ ] Same for remote-install variants
+- [x] Create `.opencode/agents-rules/` directory structure
+- [x] Extract pack content from AGENTS.md into individual files
+- [x] Add route table section to AGENTS.md Base
+- [x] L1 branch in all 4 installers: skip `Merge-AgentsMd`, call L1 helpers instead
+- [x] Plugin delivery: `system-prompt-rules.ts` with mode=all
+- [x] v0.10.x migration: `Remove-InlinePackSection` strips old inline markers
 
 **QA Scenario 1 — Fresh install produces both formats (PS1):**
 ```
@@ -262,12 +270,14 @@ Negative test: Prompt "fix the type error in auth.ts"
   → Agent should NOT read any agents-rules/ file (no pack domain match)
 ```
 
-### v0.12.0 (Slim-Down)
+### v0.12.0 → Collapsed into v0.11.x (Slim-Down)
+
+**Status: ✅ COMPLETE — AGENTS.md was already L0-only after v0.11.0 implementation**
 
 **Implementation:**
-- [ ] Remove pack content injection into AGENTS.md body for OpenCode platform
-- [ ] AGENTS.md shrinks to L0 (~400-450 lines)
-- [ ] Non-OpenCode platforms continue full injection
+- [x] Remove pack content injection into AGENTS.md body for OpenCode platform
+- [x] AGENTS.md shrinks to L0 (~400 lines)
+- [x] Non-OpenCode platforms continue full injection
 
 **QA Scenario 5 — AGENTS.md is L0-only after slim-down:**
 ```
@@ -299,13 +309,15 @@ Method: In OpenCode, start a new conversation. Before sending any message, check
 Target: L0 AGENTS.md ≤ 1,800 tokens (vs current ~4,136)
 ```
 
-### v0.13.0 (Cleanup)
+### v0.13.0 → Collapsed into v0.11.x (Cleanup)
+
+**Status: ✅ COMPLETE — No dual-write code was ever created; nothing to remove**
 
 **Implementation:**
-- [ ] Remove dual-write code: OpenCode path stops injecting pack bodies into AGENTS.md
-- [ ] Retain BEGIN/END marker merge for non-OpenCode platforms (unchanged)
-- [ ] Implement in-memory full-content assembly for non-OpenCode translations (decouple from AGENTS.md file)
-- [ ] Update all documentation references
+- [x] Remove dual-write code: N/A — skipped dual-write, went straight to L1-only
+- [x] Retain BEGIN/END marker merge for non-OpenCode platforms (unchanged — `else` branch in all 4 installers)
+- [x] Non-OpenCode translations continue via `Merge-AgentsMd` inline injection
+- [x] All 4 installers verified: identical L1 branching logic, no dead code
 
 **QA Scenario 8 — Phase 3 cleanup verified:**
 ```
