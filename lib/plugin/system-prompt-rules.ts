@@ -26,8 +26,20 @@ type Mode = "all" | "smart" | "auto"
 const RULES_DIR = ".opencode/agents-rules"
 const FISH_TRAIL_DIR = ".petfish/fish-trail"
 const AUTO_THRESHOLD_TOKENS = 30_000
-// Rough estimate: 1 token ≈ 4 chars for English/mixed content
-const CHARS_PER_TOKEN = 4
+
+// CJK regex: CJK Unified Ideographs, Extension A, Hangul, Hiragana/Katakana
+const CJK_RE = /[\u4e00-\u9fff\u3400-\u4dbf\uac00-\ud7af\u3040-\u30ff]/g
+
+/**
+ * Estimate chars-per-token based on CJK content ratio.
+ * Pure English ≈ 4 chars/token; pure CJK ≈ 1 char/token.
+ */
+function estimateCharsPerToken(text: string): number {
+  if (text.length === 0) return 4
+  const cjkCount = (text.match(CJK_RE) ?? []).length
+  const ratio = cjkCount / text.length
+  return Math.max(1, Math.min(4, 4 - 3 * ratio))
+}
 
 interface TopicRegistry {
   active_topic: string | null
@@ -79,8 +91,44 @@ async function readJSON<T>(path: string): Promise<T | null> {
   }
 }
 
+async function injectSmartRules(
+  directory: string,
+  rulesCache: Map<string, string>,
+  output: { system: string[] },
+): Promise<void> {
+  const registryPath = join(directory, FISH_TRAIL_DIR, "topic-registry.json")
+  const registry = await readJSON<TopicRegistry>(registryPath)
+  if (!registry?.active_topic) return
+
+  const topicPath = join(
+    directory,
+    FISH_TRAIL_DIR,
+    "topics",
+    `${registry.active_topic}.json`,
+  )
+  const topic = await readJSON<TopicData>(topicPath)
+  if (!topic?.title) return
+
+  const matched = matchRuleFiles(topic)
+  if (matched.size === 0) return
+
+  const sections: string[] = [
+    `## Pack-Specific Rules (Smart-injected for topic: ${topic.title})`,
+    "",
+  ]
+
+  for (const file of matched) {
+    const content = rulesCache.get(file)
+    if (content) sections.push(content)
+  }
+
+  output.system.push(sections.join("\n"))
+}
+
 const plugin: Plugin = async ({ directory }, options) => {
-  const mode: Mode = (options as Record<string, unknown>)?.mode as Mode ?? "all"
+  const opts = (options as Record<string, unknown>) ?? {}
+  const mode: Mode = (opts.mode as Mode) ?? "all"
+  const autoFallback: boolean = (opts.autoFallback as boolean) ?? false
 
   // Pre-load and cache all rule files at init (they don't change during session)
   const rulesCache = new Map<string, string>()
@@ -116,9 +164,10 @@ const plugin: Plugin = async ({ directory }, options) => {
     ...[...rulesCache.values()],
   ].join("\n")
 
-  // Estimate total token count for auto mode advisory
+  // Estimate total token count (CJK-aware) for auto mode advisory
   const totalChars = allRulesContent.length
-  const estimatedTokens = Math.ceil(totalChars / CHARS_PER_TOKEN)
+  const charsPerToken = estimateCharsPerToken(allRulesContent)
+  const estimatedTokens = Math.ceil(totalChars / charsPerToken)
   let autoAdvisoryLogged = false
 
   return {
@@ -127,42 +176,24 @@ const plugin: Plugin = async ({ directory }, options) => {
     "experimental.chat.system.transform": async (_input, output) => {
       if (mode === "smart") {
         // Smart mode: inject only rules matching active topic
-        const registryPath = join(
-          directory,
-          FISH_TRAIL_DIR,
-          "topic-registry.json",
-        )
-        const registry = await readJSON<TopicRegistry>(registryPath)
-
-        if (!registry?.active_topic) return
-
-        const topicPath = join(
-          directory,
-          FISH_TRAIL_DIR,
-          "topics",
-          `${registry.active_topic}.json`,
-        )
-        const topic = await readJSON<TopicData>(topicPath)
-        if (!topic?.title) return
-
-        const matched = matchRuleFiles(topic)
-        if (matched.size === 0) return
-
-        const sections: string[] = [
-          `## Pack-Specific Rules (Smart-injected for topic: ${topic.title})`,
-          "",
-        ]
-
-        for (const file of matched) {
-          const content = rulesCache.get(file)
-          if (content) sections.push(content)
-        }
-
-        output.system.push(sections.join("\n"))
+        await injectSmartRules(directory, rulesCache, output)
         return
       }
 
-      // "all" and "auto" modes: inject everything
+      // Auto mode with fallback: switch to smart when threshold exceeded
+      if (mode === "auto" && autoFallback && estimatedTokens > AUTO_THRESHOLD_TOKENS) {
+        if (!autoAdvisoryLogged) {
+          autoAdvisoryLogged = true
+          console.warn(
+            `[system-prompt-rules] Auto fallback: rules total ~${estimatedTokens} tokens ` +
+            `(threshold: ${AUTO_THRESHOLD_TOKENS}). Switching to smart mode.`,
+          )
+        }
+        await injectSmartRules(directory, rulesCache, output)
+        return
+      }
+
+      // "all" and "auto" (no fallback) modes: inject everything
       output.system.push(allRulesContent)
 
       // Auto mode advisory: warn once when rules exceed threshold

@@ -171,6 +171,10 @@ write_pack_rules_file() {
     # Trim leading/trailing whitespace and ensure trailing newline
     content="$(echo "$content" | sed -e 's/^[[:space:]]*//' -e '/./,$!d' | sed -e :a -e '/^[[:space:]]*$/{ $d; N; ba; }')"
 
+    # Backup existing rules file before overwriting
+    if [ -f "$rules_dir/$l1_name" ]; then
+        cp "$rules_dir/$l1_name" "$rules_dir/$l1_name.bak"
+    fi
     printf '%s\n' "$content" > "$rules_dir/$l1_name"
     echo "    + .opencode/agents-rules/$l1_name" >&2
 }
