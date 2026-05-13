@@ -406,21 +406,41 @@ function Register-PluginInConfig([string]$configFile) {
     Write-Host "    + opencode.json (plugin registered)" -ForegroundColor DarkGreen
 }
 
-# v0.10.x → v0.11.x migration: remove old inline pack section from AGENTS.md
-function Remove-InlinePackSection([string]$agentsFile, [string]$packName) {
+# v0.10.x→v0.11.x migration: remove inline pack section from AGENTS.md
+# when it has been migrated to L1 standalone rules file
+function Remove-InlinePackSection([string]$agentsFile, [string]$packName, [string]$manifestFile = "") {
     if (-not (Test-Path $agentsFile)) { return }
     $content = Get-Content $agentsFile -Raw -Encoding UTF8
-    $beginMarker = "<!-- BEGIN pack: $packName -->"
-    $endMarker = "<!-- END pack: $packName -->"
-    if ($content -notmatch [regex]::Escape($beginMarker)) { return }
 
-    # Remove everything between BEGIN and END markers (inclusive), plus surrounding blank lines
-    $pattern = "(?ms)\r?\n?\s*$([regex]::Escape($beginMarker)).*?$([regex]::Escape($endMarker))\s*\r?\n?"
-    $newContent = $content -replace $pattern, "`n"
-    # Collapse triple+ newlines to double
-    $newContent = $newContent -replace "(\r?\n){3,}", "`n`n"
-    Set-Content -Path $agentsFile -Value $newContent.TrimEnd() -NoNewline -Encoding UTF8
-    Write-Host "    - AGENTS.md (removed inline section for $packName → migrated to L1)" -ForegroundColor DarkYellow
+    # Collect all names to remove: current + legacy names from manifest
+    $namesToTry = @($packName)
+    if ($manifestFile -and (Test-Path $manifestFile)) {
+        try {
+            $manifest = Get-Content $manifestFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($manifest.legacy_names) {
+                $namesToTry += @($manifest.legacy_names)
+            }
+        } catch {}
+    }
+
+    $removed = $false
+    foreach ($name in $namesToTry) {
+        $beginMarker = "<!-- BEGIN pack: $name -->"
+        $endMarker = "<!-- END pack: $name -->"
+        if ($content -notmatch [regex]::Escape($beginMarker)) { continue }
+
+        # Remove everything between BEGIN and END markers (inclusive), plus surrounding blank lines
+        $pattern = "(?ms)\r?\n?\s*$([regex]::Escape($beginMarker)).*?$([regex]::Escape($endMarker))\s*\r?\n?"
+        $content = $content -replace $pattern, "`n"
+        $removed = $true
+        Write-Host "    - AGENTS.md (removed inline section for $name)" -ForegroundColor DarkYellow
+    }
+
+    if ($removed) {
+        # Collapse triple+ newlines to double
+        $content = $content -replace "(\r?\n){3,}", "`n`n"
+        Set-Content -Path $agentsFile -Value $content.TrimEnd() -NoNewline -Encoding UTF8
+    }
 }
 
 function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOverwrite, [string]$SkillsDir = ".opencode/skills") {
@@ -929,7 +949,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 Install-PluginFile $extractDir.FullName $targetPath
                 Register-PluginInConfig (Join-Path $targetPath "opencode.json")
                 # v0.10.x → v0.11.x migration: remove old inline section from AGENTS.md
-                Remove-InlinePackSection (Join-Path $targetPath "AGENTS.md") $packName
+                Remove-InlinePackSection (Join-Path $targetPath "AGENTS.md") $packName $manifestFile
             } else {
                 $result = Merge-AgentsMd $agentsMd $dstAgents $packName -ForceOverwrite:$forceThisPack -ManifestFile $manifestFile
                 switch ($result) {
