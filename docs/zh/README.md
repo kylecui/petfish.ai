@@ -20,7 +20,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v0.8                        │
+│  ><(((^>  胖鱼 PEtFiSh v0.11                       │
 │                                                     │
 │  常伴  每一轮交互都在                                │
 │  守护  感知缺口、守护上下文、阻断污染                │
@@ -164,6 +164,39 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v0.11 — Companion Gateway增强：主动智能
+
+- **v0.11.6**: 文档补齐——更新companion-gateway文档（中英文）、README、网站以反映6步Gateway流程。
+- **v0.11.5**: Rigor阈值细化——仅3+步骤或3+文件的任务需要Momus计划+评审；简单任务保留假设声明和事后验证，跳过正式计划文件。
+- **v0.11.4**: 反迎合检查（Step 2.5）——rubric-first评估，同意前强制寻找反论；主动性等级与Rigor绑定（off=仅显式提问，on=隐式+技术断言）。
+- **v0.11.3**: Rigor模式——project-mode.yaml中`rigor: true`增加计划-评审纪律：复杂任务需正式计划文件、Momus评审后才实施、显式声明假设。`depth: thorough`时强制开启。
+- **v0.11.2**: 项目模式（Step 0）——`.opencode/project-mode.yaml`中的`depth`（urgent/balanced/thorough）和`rigor`（on/off）两轴；session内口头切换不写文件。
+- **v0.11.1**: 失败信号检测（Step 1.5）——扫描上轮assistant回复匹配已知失败模式（PDF/部署/测试/研究/上下文），未安装时推荐对应pack。通过`catalog_query.py --check-failures`实现。
+- **v0.11.0**: Gateway从3步扩展到6步——在always-on Companion Gateway流程中新增Mode Read、Failure Signal Detection和Anti-Sycophancy Check。
+
+### v0.10 — Research Pack扩展：7个领域
+
+- **v0.10.10**: 自动更新能力——`check_installed.py --check-updates`查询GitHub最新release并比对已装pack版本；`catalog_query.py --upgrade`显示当前OS的升级命令；Gateway在session启动时检查更新；新增`/petfish upgrade`命令。同时修复`KNOWN_PACKS`中缺失的`research`别名。
+- **v0.10.9**: 系统性触发词覆盖修复——全部11个pack约74个skill的description与body触发词对齐；`lint_skill.py`新增`check_trigger_coverage()`规则；`run_gate.py`集成trigger-coverage到决策逻辑；根AGENTS.md新增Description-Body对齐纪律；`catalog_query.py`扩展research触发词。关闭 #91, #89, #88。
+- **v0.10.7–v0.10.8**: 修复research pack集成——完成9触点检查清单（远程安装器、companion catalog、README、文档、网站）。沉淀"一次全审一次全修"开发经验。
+- **v0.10.6**: 修复4个积压issue——qa_scan.py替换重复QA脚本(#80)、suggest添加`--target`(#73)、JSONL/Markdown设计文档化(#79)、混合语义+关键词触发评分`--semantic`(#77)。关闭 #80, #73, #79, #77。
+- **v0.10.5**: Adapter skills——4个轻量领域适配器（travel/conference/training/content-selection），通过领域特定字段和清单增强主研究链。Pack达到50个skill。
+- **v0.10.4**: 风险采购与活动体验研究领域——11个新skill，trigger eval，smoke test覆盖。Pack达到46个skill。
+- **v0.10.3**: 学习与决策研究领域——7个新skill，trigger eval，smoke test覆盖。Pack达到35个skill。
+- **v0.10.2**: 规划研究领域——6个新skill，trigger eval，smoke test覆盖。Pack达到28个skill。
+- **v0.10.1**: SKILL_builder残留清理——6个文件中修复10处过时引用；catalog_query.py fallback返回实际计数。关闭 #87, #86。
+- **v0.10.0**: 产品研究领域——5个新skill，trigger eval，smoke test覆盖。Pack达到22个skill。
+
+### v0.9 — Research Skill Pack
+
+- **v0.9.6**: 修复smoke fixture缺失adr/目录(#85)；修复trigger eval runner glob路径(#84)。
+- **v0.9.5**: 修复4个research skill的SKILL.md schema不匹配(#83, #82, #78)；修复repo_inventory.py包含node_modules(#81)；修复全部4个安装器写入零计数(#71)。关闭5个issue。
+- **v0.9.4**: Research pack科学研究领域——7个新skill（citation-auditor到review-rebuttal），trigger eval，smoke test。Pack达到17个skill。
+- **v0.9.3**: Research pack可安装——pack-manifest、安装器注册、companion catalog集成、README和CHANGELOG。
+- **v0.9.2**: Research pack QA基础设施——seed fixtures、E2E smoke tests（15个pytest）、trigger-eval harness、本地smoke runner、CI gates。关闭 #74, #75, #76。
+- **v0.9.1**: Research别名注册到全部4个安装器和companion catalog。
+- **v0.9.0**: Research skill pack MVP——10个核心skill、7个JSON schema、9个Python脚本、pack基础设施。
 
 ### v0.8 — 多平台生成 & Agent纪律
 

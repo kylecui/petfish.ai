@@ -193,12 +193,15 @@
 
     <h3><span class="copy-zh">执行流程</span><span class="copy-en">Execution Flow</span></h3>
     <pre>
-用户消息 → Step 1: Topic Check → Step 2: Skill Sense → Step 3: 正常处理
-                  ↓                        ↓
-          risk_level判定             三层缺口检测
-          low: 静默                  Tier 1: 白名单
-          medium: 一行说明           Tier 2: 意图感知
-          high: 暂停+建议            Tier 3: 静默通过</pre>
+用户消息 → Step 0: Mode Read → Step 1: Topic Check → Step 1.5: Failure Signal → Step 2: Skill Sense → Step 2.5: Anti-Sycophancy → Step 3: 正常处理
+                ↓                      ↓                       ↓                       ↓                        ↓
+        depth/rigor读取          risk_level判定          上轮错误匹配            三层缺口检测            评价性问题拦截
+        urgent/balanced/thorough  low: 静默              命中→推荐pack           Tier 1: 白名单          rubric-first
+        rigor: on/off             medium: 一行说明       未命中→静默             Tier 2: 意图感知        反论先行
+                                  high: 暂停+建议                                Tier 3: 静默通过</pre>
+
+    <h3>Step 0: Mode Read</h3>
+    <p><span class="copy-zh">每次session首条消息时读取 <code>.opencode/project-mode.yaml</code>，加载 <code>depth</code>（urgent/balanced/thorough）和 <code>rigor</code>（on/off）设置。<code>depth: thorough</code> 强制 <code>rigor: true</code>。用户可通过口头切换在session内覆盖，不写文件。</span><span class="copy-en">On first message of each session, reads <code>.opencode/project-mode.yaml</code> to load <code>depth</code> (urgent/balanced/thorough) and <code>rigor</code> (on/off) settings. <code>depth: thorough</code> forces <code>rigor: true</code>. Users can override verbally within a session without writing files.</span></p>
 
     <h3>Step 1: Topic Check</h3>
     <p><span class="copy-zh">调用MCP tool <code>topic_detect</code>，传入用户消息和当前session。根据返回的<code>risk_level</code>执行对应行为：</span><span class="copy-en">Calls MCP tool <code>topic_detect</code> with user message and current session. Executes behavior based on returned <code>risk_level</code>:</span></p>
@@ -220,6 +223,9 @@
         <td><span class="copy-zh">暂停正常处理，说明话题变更风险，建议fork/switch/reset</span><span class="copy-en">Pause normal processing, explain topic-change risk, suggest fork/switch/reset</span></td>
       </tr>
     </table>
+
+    <h3>Step 1.5: Failure Signal Detection</h3>
+    <p><span class="copy-zh">扫描上一轮assistant回复和工具错误输出，匹配已知失败模式。命中且对应pack未安装时推荐安装。信号→Pack映射覆盖PDF/PPTX读取失败→ppt、部署/Docker失败→deploy、测试生成困难→testdocs、研究深度不足→research、上下文污染→context。每种信号每session最多推荐一次。</span><span class="copy-en">Scans previous assistant turn and tool error output for known failure patterns. When matched and corresponding pack is not installed, recommends installation. Signal→Pack mapping covers PDF/PPTX failure→ppt, Deploy/Docker failure→deploy, Test generation difficulty→testdocs, Research depth insufficient→research, Context contamination→context. Each signal recommended at most once per session.</span></p>
 
     <h3><span class="copy-zh">Step 2: Skill Sense（三层检测模型）</span><span class="copy-en">Step 2: Skill Sense (Three-Tier Detection)</span></h3>
 
@@ -256,6 +262,9 @@
 
 🐟 [gateway] topic: relation=continue, risk=5 (low), confidence=0.95 → silent
 🐟 [gateway] skill: tier2 gap detected (intent="发邮件通知", need="邮件服务集成") → suggest search</pre>
+
+    <h3>Step 2.5: Anti-Sycophancy Check</h3>
+    <p><span class="copy-zh">在回答评价性问题（"好吗?"、"对吗?"）之前：暂停→定义"好"的rubric→找至少一个反论→再形成结论。主动性等级与Rigor绑定：rigor off时仅对显式评价问题触发，rigor on时扩展到隐式寻求认可和技术断言。</span><span class="copy-en">Before answering evaluative questions ("is this good?", "is this right?"): pause → define "good" rubric → find at least one counter-argument → then form conclusion. Proactivity linked to Rigor: rigor off triggers only for explicit evaluative questions, rigor on extends to implicit approval-seeking and technical assertions.</span></p>
 
     <h2 id="context"><span class="copy-zh">D. 上下文治理（守护层）</span><span class="copy-en">D. Context Governance (Guarding Layer)</span></h2>
 
