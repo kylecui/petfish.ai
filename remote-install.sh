@@ -546,10 +546,12 @@ DETECT=false
 FORCE=false
 LIST=false
 GLOBAL=false
+UNINSTALL=false
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --uninstall) UNINSTALL=true; shift ;;
         --pack)
             [[ $# -ge 2 ]] || { echo "Error: --pack requires a value." >&2; exit 1; }
             PACK="$2"; shift 2 ;;
@@ -578,6 +580,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --detect                Auto-detect platform from target project markers"
             echo "  --force                 Overwrite existing skills"
             echo "  --global                Install skills to the global platform skills directory"
+            echo "  --uninstall             Not supported remotely — use the local installer"
             echo "  --list                  List available packs"
             echo "  --repo <owner/repo>     Override GitHub repo (default: $REPO)"
             echo "  --branch <branch>       Override branch (default: $BRANCH)"
@@ -616,6 +619,19 @@ if ! $LIST; then
     echo "  [胖鱼 PEtFiSh] AI Worker's Companion — Self-adaptive Skill Installer (remote)"
     echo "  Initialize -> Auto-install -> Work immediately"
     echo ""
+fi
+
+# --- Uninstall rejection ---
+if $UNINSTALL; then
+    echo "[胖鱼 PEtFiSh] ❌ Uninstall is not supported via the remote installer." >&2
+    echo ""
+    echo "  Uninstall requires the local installer which has access to your project files."
+    echo "  Clone the repo and run:"
+    echo ""
+    echo "    git clone https://github.com/$REPO.git"
+    echo "    ./install.sh --pack <alias> --uninstall [--target <path>]"
+    echo ""
+    exit 1
 fi
 
 # --- List mode ---

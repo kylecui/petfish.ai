@@ -89,6 +89,7 @@
 - `/petfish eval <path>` — 测试skill触发准确率
 - `/petfish stats` — 查看skill使用统计
 - `/petfish upgrade` — 显示升级命令
+- `/petfish uninstall <alias>` — 显示卸载命令（需本地安装器）
 
 ## 行为边界
 

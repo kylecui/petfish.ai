@@ -3,8 +3,8 @@ name: petfish-companion
 description: >
   胖鱼PEtFiSh常驻伙伴：感知需求与能力缺口（Tier1领域映射+Tier2意图检测）、
   查询已装pack状态、自动检查更新、推荐安装/升级并提供/petfish命令入口。Use when
-  users ask /petfish, /petfish upgrade, "what skills do I have", "what else can
-  you do", "check for updates", need deploy/course/ppt/testdocs/petfish/calibrate/
+  users ask /petfish, /petfish upgrade, /petfish uninstall, "what skills do I have",
+  "what else can you do", "check for updates", "uninstall pack", need deploy/course/ppt/testdocs/petfish/calibrate/
   context/research capabilities, or need cross-marketplace skill/MCP discovery
   and skill ecosystem governance.
 metadata:
@@ -363,6 +363,32 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
 ```
 
 也可搭配`--json`输出JSON格式。
+
+### 4.15 /petfish uninstall \<alias\>
+
+卸载指定pack。**仅支持本地安装器**（remote installer不支持）。
+
+```bash
+# 查看卸载命令
+uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --uninstall <alias>
+```
+
+输出适合当前OS的卸载命令：
+
+**Windows PowerShell:**
+```powershell
+.\install.ps1 -Pack <alias> -Uninstall [-Target <path>]
+```
+
+**macOS / Linux / WSL:**
+```bash
+./install.sh --pack <alias> --uninstall [--target <path>]
+```
+
+**注意事项：**
+- `--pack all`被拒绝——必须逐个指定要卸载的pack
+- 卸载会移除skills、commands、agents、AGENTS.md条目、opencode.json配置项和registry记录
+- 共享的opencode.json配置项（被其他已装pack也使用的）会被保留
 
 ## 5. 治理规则
 

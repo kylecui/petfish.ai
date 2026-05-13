@@ -1,6 +1,6 @@
 {
   "name": "project-initializer-skill",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "legacy_names": [],
   "description": "项目初始化器 — 创建标准目录结构、自动安装推荐skill、运行post-init wizard",
   "compatibility": "opencode",

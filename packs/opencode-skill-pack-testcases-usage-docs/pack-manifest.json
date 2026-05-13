@@ -1,6 +1,6 @@
 {
   "name": "opencode-skill-pack-testcases-usage-docs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "legacy_names": [],
   "description": "测试用例与使用文档生成 — test case、覆盖率矩阵、README、API docs",
   "compatibility": "opencode",

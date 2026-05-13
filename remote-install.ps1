@@ -10,6 +10,7 @@ param(
     [switch]$Force,
     [switch]$List,
     [switch]$Global,
+    [switch]$Uninstall,
     [string]$Repo = "kylecui/petfish.ai",
     [string]$Branch = "master",
     [string]$GitHubToken
@@ -39,7 +40,18 @@ if (-not $List) {
     Write-Host ""
 }
 
-# --- uv availability check & auto-install ---
+# --- Uninstall rejection ---
+if ($Uninstall) {
+    Write-Host "[胖鱼 PEtFiSh] ❌ Uninstall is not supported via the remote installer." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "  Uninstall requires the local installer which has access to your project files." -ForegroundColor Yellow
+    Write-Host "  Clone the repo and run:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "    git clone https://github.com/$Repo.git" -ForegroundColor Cyan
+    Write-Host "    .\install.ps1 -Pack <alias> -Uninstall [-Target <path>]" -ForegroundColor Cyan
+    Write-Host ""
+    exit 1
+}
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Write-Host "[胖鱼 PEtFiSh] uv not found. Installing uv (required for Python-based skills)..." -ForegroundColor Yellow
     try {

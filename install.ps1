@@ -52,7 +52,8 @@ param(
     [switch]$Detect,
     [switch]$Global,
     [switch]$Force,
-    [switch]$List
+    [switch]$List,
+    [switch]$Uninstall
 )
 
 $ErrorActionPreference = "Stop"
@@ -441,6 +442,311 @@ function Remove-InlinePackSection([string]$agentsFile, [string]$packName, [strin
         $content = $content -replace "(\r?\n){3,}", "`n`n"
         Set-Content -Path $agentsFile -Value $content.TrimEnd() -NoNewline -Encoding UTF8
     }
+}
+
+# --- Uninstall function ---
+
+function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
+    $packName = Get-PackFullName $packAlias
+
+    Write-Host "`n  Uninstalling pack: $packName (alias: $packAlias)" -ForegroundColor Yellow
+
+    # Step 1: Read pack-manifest.json from source
+    $packRoot = Join-Path $PacksDir $packName
+    $manifestFile = Join-Path $packRoot "pack-manifest.json"
+    if (-not (Test-Path $manifestFile)) {
+        Write-Error "Pack manifest not found: $manifestFile"
+        exit 1
+    }
+    $manifest = Get-Content $manifestFile -Raw -Encoding UTF8 | ConvertFrom-Json
+
+    # Determine platform config
+    $cfg = Get-PlatformConfig $Platform
+    $targetSkills = if ($cfg.SkillsDir) { Join-Path $targetPath $cfg.SkillsDir } else { $null }
+    $targetCommands = if ($cfg.CommandsDir) { Join-Path $targetPath $cfg.CommandsDir } else { $null }
+    $targetAgents = if ($cfg.AgentsDir) { Join-Path $targetPath $cfg.AgentsDir } else { $null }
+    $targetRegistry = if ($cfg.RegistryDir) { Join-Path $targetPath $cfg.RegistryDir } else { $null }
+
+    # Step 2: Validate pack is installed
+    if ($targetRegistry) {
+        $regFile = Join-Path $targetRegistry "installed-packs.json"
+        if (Test-Path $regFile) {
+            $registry = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            $isInstalled = $registry.packs.PSObject.Properties[$packName]
+            if (-not $isInstalled) {
+                # Check legacy names
+                $found = $false
+                if ($manifest.PSObject.Properties['legacy_names']) {
+                    foreach ($legacy in $manifest.legacy_names) {
+                        if ($registry.packs.PSObject.Properties[$legacy]) {
+                            $found = $true
+                            break
+                        }
+                    }
+                }
+                if (-not $found) {
+                    Write-Error "Pack '$packAlias' ($packName) is not installed. Nothing to uninstall."
+                    exit 1
+                }
+            }
+        } else {
+            Write-Error "No installed-packs.json found at $regFile. Nothing to uninstall."
+            exit 1
+        }
+    }
+
+    $removed = 0
+
+    # Step 3: Remove skill directories
+    if ($targetSkills -and $manifest.PSObject.Properties['skills']) {
+        foreach ($skill in $manifest.skills) {
+            $skillDir = Join-Path $targetSkills $skill
+            if (Test-Path $skillDir) {
+                Remove-Item -Path $skillDir -Recurse -Force
+                Write-Host "    - skills/$skill" -ForegroundColor DarkYellow
+                $removed++
+            }
+        }
+    }
+
+    # Step 4: Remove command directories
+    if ($targetCommands -and $manifest.PSObject.Properties['commands']) {
+        foreach ($cmd in $manifest.commands) {
+            # Commands can be directories or files (e.g., petfish.md)
+            $cmdDir = Join-Path $targetCommands $cmd
+            $cmdFile = Join-Path $targetCommands "$cmd.md"
+            if (Test-Path $cmdDir) {
+                Remove-Item -Path $cmdDir -Recurse -Force
+                Write-Host "    - commands/$cmd" -ForegroundColor DarkYellow
+                $removed++
+            } elseif (Test-Path $cmdFile) {
+                Remove-Item -Path $cmdFile -Force
+                Write-Host "    - commands/$cmd.md" -ForegroundColor DarkYellow
+                $removed++
+            }
+        }
+    }
+
+    # Step 5: Remove agent directories
+    if ($targetAgents -and $manifest.PSObject.Properties['agents']) {
+        foreach ($agent in $manifest.agents) {
+            $agentDir = Join-Path $targetAgents $agent
+            if (Test-Path $agentDir) {
+                Remove-Item -Path $agentDir -Recurse -Force
+                Write-Host "    - agents/$agent" -ForegroundColor DarkYellow
+                $removed++
+            }
+        }
+    }
+
+    # Step 6: Remove AGENTS.md section (inline markers)
+    $agentsFile = Join-Path $targetPath "AGENTS.md"
+    Remove-InlinePackSection $agentsFile $packName $manifestFile
+
+    # Step 6b: Remove L1 rules file (opencode platform)
+    $L1Map = @{
+        "opencode-course-skills-pack"        = "course-skills.md"
+        "repo-deploy-ops-skill-pack"         = "deploy-ops.md"
+        "petfish-style-skill"                = "petfish-style.md"
+        "petfish-companion-skill"            = "petfish-companion.md"
+        "anti-sycophancy-calibration-pack"   = "anti-sycophancy.md"
+        "fish-trail"                         = "fish-trail.md"
+        "research-skill-pack"                = "research.md"
+    }
+    if ($L1Map.ContainsKey($packName)) {
+        $rulesFile = Join-Path $targetPath ".opencode" "agents-rules" $L1Map[$packName]
+        if (Test-Path $rulesFile) {
+            Remove-Item -Path $rulesFile -Force
+            Write-Host "    - .opencode/agents-rules/$($L1Map[$packName])" -ForegroundColor DarkYellow
+            $removed++
+        }
+    }
+
+    # Step 6c: Remove Pack-Specific Rules reference from AGENTS.md
+    if ($L1Map.ContainsKey($packName)) {
+        $l1FileName = $L1Map[$packName]
+        if (Test-Path $agentsFile) {
+            $agentsContent = Get-Content $agentsFile -Raw -Encoding UTF8
+            # Remove the table row referencing this pack's rules file
+            $escapedFileName = [regex]::Escape($l1FileName)
+            $rowPattern = "(?m)^\|[^|]*\|[^|]*\|[^|]*$escapedFileName[^|]*\|\s*\r?\n"
+            if ($agentsContent -match $rowPattern) {
+                $agentsContent = $agentsContent -replace $rowPattern, ""
+                Set-Content -Path $agentsFile -Value $agentsContent.TrimEnd() -NoNewline -Encoding UTF8
+                Write-Host "    - AGENTS.md (removed rules-file reference for $l1FileName)" -ForegroundColor DarkYellow
+            }
+        }
+    }
+
+    # Step 7: Remove opencode.json entries (only keys unique to this pack)
+    if ($cfg.ConfigFile) {
+        $ocExample = Join-Path $packRoot "opencode.example.json"
+        $dstOc = Join-Path $targetPath $cfg.ConfigFile
+        if ((Test-Path $ocExample) -and (Test-Path $dstOc)) {
+            $packKeys = Get-Content $ocExample -Raw -Encoding UTF8 | ConvertFrom-Json
+            $dstJson = Get-Content $dstOc -Raw -Encoding UTF8 | ConvertFrom-Json
+
+            # Collect keys from ALL OTHER installed packs' opencode.example.json
+            $otherPackKeys = @{}
+            if ($targetRegistry -and (Test-Path $regFile)) {
+                foreach ($otherPack in $registry.packs.PSObject.Properties) {
+                    if ($otherPack.Name -eq $packName) { continue }
+                    $otherRoot = Join-Path $PacksDir $otherPack.Name
+                    $otherExample = Join-Path $otherRoot "opencode.example.json"
+                    if (Test-Path $otherExample) {
+                        $otherJson = Get-Content $otherExample -Raw -Encoding UTF8 | ConvertFrom-Json
+                        # Track L1 keys (e.g., "mcp", "permission")
+                        foreach ($p1 in $otherJson.PSObject.Properties) {
+                            if (-not $otherPackKeys.ContainsKey($p1.Name)) {
+                                $otherPackKeys[$p1.Name] = @{}
+                            }
+                            if ($p1.Value -is [PSCustomObject]) {
+                                foreach ($p2 in $p1.Value.PSObject.Properties) {
+                                    $otherPackKeys[$p1.Name][$p2.Name] = $true
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            # Remove keys from this pack that no other installed pack uses
+            $ocChanged = $false
+            foreach ($p1 in $packKeys.PSObject.Properties) {
+                if ($p1.Value -is [PSCustomObject] -and $dstJson.PSObject.Properties[$p1.Name]) {
+                    $dstLevel1 = $dstJson.($p1.Name)
+                    if ($dstLevel1 -is [PSCustomObject]) {
+                        foreach ($p2 in $p1.Value.PSObject.Properties) {
+                            # Only remove if no other pack claims this key
+                            $otherClaims = $otherPackKeys.ContainsKey($p1.Name) -and $otherPackKeys[$p1.Name].ContainsKey($p2.Name)
+                            if (-not $otherClaims -and $dstLevel1.PSObject.Properties[$p2.Name]) {
+                                $dstLevel1.PSObject.Properties.Remove($p2.Name)
+                                Write-Host "    - $($cfg.ConfigFile) ($($p1.Name).$($p2.Name))" -ForegroundColor DarkYellow
+                                $ocChanged = $true
+                            }
+                        }
+                    }
+                }
+            }
+            if ($ocChanged) {
+                $dstJson | ConvertTo-Json -Depth 10 | Set-Content $dstOc -Encoding UTF8
+            }
+        }
+    }
+
+    # Step 8: Remove from installed-packs.json (last — enables re-run recovery)
+    if ($targetRegistry -and (Test-Path $regFile)) {
+        $registry = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        $removedFromRegistry = $false
+
+        if ($registry.packs.PSObject.Properties[$packName]) {
+            $registry.packs.PSObject.Properties.Remove($packName)
+            $removedFromRegistry = $true
+        }
+
+        # Also remove legacy names
+        if ($manifest.PSObject.Properties['legacy_names']) {
+            foreach ($legacy in $manifest.legacy_names) {
+                if ($registry.packs.PSObject.Properties[$legacy]) {
+                    $registry.packs.PSObject.Properties.Remove($legacy)
+                    $removedFromRegistry = $true
+                }
+            }
+        }
+
+        if ($removedFromRegistry) {
+            $registry | ConvertTo-Json -Depth 10 | Set-Content $regFile -Encoding UTF8
+            Write-Host "    - installed-packs.json (registry updated)" -ForegroundColor DarkYellow
+            $removed++
+        }
+    }
+
+    Write-Host "`n  Uninstall complete: $removed items removed." -ForegroundColor Cyan
+    $restartHint = Get-RestartHint $Platform
+    if ($restartHint) {
+        Write-Host $restartHint -ForegroundColor Yellow
+    }
+}
+
+function Uninstall-GlobalPack([string]$packAlias) {
+    $packName = Get-PackFullName $packAlias
+
+    Write-Host "`n  Uninstalling pack (global): $packName (alias: $packAlias)" -ForegroundColor Yellow
+
+    $packRoot = Join-Path $PacksDir $packName
+    $manifestFile = Join-Path $packRoot "pack-manifest.json"
+    if (-not (Test-Path $manifestFile)) {
+        Write-Error "Pack manifest not found: $manifestFile"
+        exit 1
+    }
+    $manifest = Get-Content $manifestFile -Raw -Encoding UTF8 | ConvertFrom-Json
+
+    $cfg = Get-GlobalPlatformConfig $Platform
+    $targetSkills = $cfg.SkillsDir
+    $targetRegistry = $cfg.RegistryDir
+
+    if (-not $targetSkills) {
+        Write-Warning "$Platform does not support global skill installation. Nothing to uninstall."
+        return
+    }
+
+    # Validate installed
+    if ($targetRegistry) {
+        $regFile = Join-Path $targetRegistry "installed-packs.json"
+        if (-not (Test-Path $regFile)) {
+            Write-Error "No installed-packs.json found. Nothing to uninstall."
+            exit 1
+        }
+        $registry = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        if (-not $registry.packs.PSObject.Properties[$packName]) {
+            Write-Error "Pack '$packAlias' ($packName) is not installed globally. Nothing to uninstall."
+            exit 1
+        }
+    }
+
+    $removed = 0
+
+    # Remove skill directories
+    if ($manifest.PSObject.Properties['skills']) {
+        foreach ($skill in $manifest.skills) {
+            $skillDir = Join-Path $targetSkills $skill
+            if (Test-Path $skillDir) {
+                Remove-Item -Path $skillDir -Recurse -Force
+                Write-Host "    - skills/$skill" -ForegroundColor DarkYellow
+                $removed++
+            }
+        }
+    }
+
+    # Remove command files/dirs
+    if ($cfg.CommandsDir -and $manifest.PSObject.Properties['commands']) {
+        foreach ($cmd in $manifest.commands) {
+            $cmdDir = Join-Path $cfg.CommandsDir $cmd
+            $cmdFile = Join-Path $cfg.CommandsDir "$cmd.md"
+            if (Test-Path $cmdDir) {
+                Remove-Item -Path $cmdDir -Recurse -Force
+                Write-Host "    - commands/$cmd" -ForegroundColor DarkYellow
+                $removed++
+            } elseif (Test-Path $cmdFile) {
+                Remove-Item -Path $cmdFile -Force
+                Write-Host "    - commands/$cmd.md" -ForegroundColor DarkYellow
+                $removed++
+            }
+        }
+    }
+
+    # Remove from registry (last)
+    if ($targetRegistry -and (Test-Path $regFile)) {
+        $registry = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($registry.packs.PSObject.Properties[$packName]) {
+            $registry.packs.PSObject.Properties.Remove($packName)
+            $registry | ConvertTo-Json -Depth 10 | Set-Content $regFile -Encoding UTF8
+            Write-Host "    - installed-packs.json (registry updated)" -ForegroundColor DarkYellow
+            $removed++
+        }
+    }
+
+    Write-Host "`n  Global uninstall complete: $removed items removed." -ForegroundColor Cyan
 }
 
 function Merge-OpencodeJson([string]$srcFile, [string]$dstFile, [switch]$ForceOverwrite, [string]$SkillsDir = ".opencode/skills") {
@@ -1283,6 +1589,29 @@ if ($List) {
 if (-not $Pack) {
     Write-Error "Missing -Pack parameter. Use -List to see available packs, or -Pack all."
     exit 1
+}
+
+# --- Uninstall mode ---
+if ($Uninstall) {
+    if ($Pack -eq "all") {
+        Write-Error "Uninstall does not support -Pack all. Specify packs individually: -Pack course,deploy"
+        exit 1
+    }
+
+    $packItems = ($Pack -split ',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+
+    if (-not $Global) {
+        $Target = (Resolve-Path $Target -ErrorAction Stop).Path
+    }
+
+    foreach ($alias in $packItems) {
+        if ($Global) {
+            Uninstall-GlobalPack $alias
+        } else {
+            Uninstall-Pack $alias $Target
+        }
+    }
+    exit 0
 }
 
 # --- Resolve packs to install ---

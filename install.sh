@@ -546,6 +546,7 @@ DETECT=false
 FORCE=false
 LIST=false
 GLOBAL=false
+UNINSTALL=false
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do
@@ -561,10 +562,11 @@ while [[ $# -gt 0 ]]; do
             PLATFORM="$2"; PLATFORM_EXPLICIT=true; shift 2 ;;
         --detect)   DETECT=true; shift ;;
         --global)   GLOBAL=true; shift ;;
+        --uninstall) UNINSTALL=true; shift ;;
         --force)    FORCE=true; shift ;;
         --list)     LIST=true; shift ;;
         -h|--help)
-            echo "Usage: $0 --pack <name|all> [--target <path>] [--platform <opencode|claude|codex|cursor|copilot|windsurf|antigravity|universal|all|primary|ide|cli>] [--detect] [--global] [--force] [--list]"
+            echo "Usage: $0 --pack <name|all> [--target <path>] [--platform <opencode|claude|codex|cursor|copilot|windsurf|antigravity|universal|all|primary|ide|cli>] [--detect] [--global] [--uninstall] [--force] [--list]"
             echo "胖鱼 PEtFiSh AI Worker's Companion — Self-adaptive Skill Installer"
             echo "Aliases: course, testdocs, deploy, petfish, companion, ppt, init, trust, research"
             exit 0 ;;
@@ -1544,6 +1546,437 @@ install_global_for_platform() {
     fi
 }
 
+uninstall_pack() {
+    local pack_alias="$1"
+    local target_path="$2"
+    local pack_name
+    pack_name="$(resolve_pack "$pack_alias")"
+
+    local pack_root="$PACKS_DIR/$pack_name"
+    local manifest_file="$pack_root/pack-manifest.json"
+    if [[ ! -f "$manifest_file" ]]; then
+        echo "Error: Pack manifest not found: $manifest_file" >&2
+        exit 1
+    fi
+
+    local target_skills_rel target_commands_rel target_agents_rel target_registry_rel
+    target_skills_rel="$(get_platform_field "$PLATFORM" "project.skills_dir")"
+    target_commands_rel="$(get_platform_field "$PLATFORM" "project.commands_dir")"
+    target_agents_rel="$(get_platform_field "$PLATFORM" "project.agents_dir")"
+    target_registry_rel="$(get_platform_field "$PLATFORM" "project.registry_dir")"
+
+    local target_skills="" target_commands="" target_agents="" target_registry=""
+    [[ -n "$target_skills_rel" ]] && target_skills="$target_path/$target_skills_rel"
+    [[ -n "$target_commands_rel" ]] && target_commands="$target_path/$target_commands_rel"
+    [[ -n "$target_agents_rel" ]] && target_agents="$target_path/$target_agents_rel"
+    [[ -n "$target_registry_rel" ]] && target_registry="$target_path/$target_registry_rel"
+
+    local reg_file=""
+    if [[ -n "$target_registry" ]]; then
+        reg_file="$target_registry/installed-packs.json"
+        if [[ ! -f "$reg_file" ]]; then
+            echo "Error: No installed-packs.json found at $reg_file. Nothing to uninstall." >&2
+            exit 1
+        fi
+
+        local is_installed
+        is_installed="$(python3 - "$reg_file" "$manifest_file" "$pack_name" <<'PY'
+import json
+import sys
+
+reg_file, manifest_file, pack_name = sys.argv[1:4]
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+packs = reg.get('packs') or {}
+
+if pack_name in packs:
+    print('yes')
+    sys.exit(0)
+
+with open(manifest_file, 'r', encoding='utf-8') as f:
+    manifest = json.load(f)
+
+for legacy in manifest.get('legacy_names', []) or []:
+    if legacy in packs:
+        print('yes')
+        sys.exit(0)
+
+print('no')
+PY
+)"
+        if [[ "$is_installed" != "yes" ]]; then
+            echo "Error: Pack '$pack_alias' ($pack_name) is not installed. Nothing to uninstall." >&2
+            exit 1
+        fi
+    fi
+
+    echo ""
+    echo "  Uninstalling pack: $pack_name (alias: $pack_alias)"
+
+    local removed=0
+
+    local skills
+    skills="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for s in m.get('skills', []):
+    print(s)
+" "$manifest_file")"
+    if [[ -n "$target_skills" ]]; then
+        while IFS= read -r skill; do
+            [[ -n "$skill" ]] || continue
+            local skill_dir="$target_skills/$skill"
+            if [[ -d "$skill_dir" ]]; then
+                rm -rf "$skill_dir"
+                echo "    - skills/$skill"
+                ((removed++)) || true
+            fi
+        done <<< "$skills"
+    fi
+
+    local commands
+    commands="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for c in m.get('commands', []):
+    print(c)
+" "$manifest_file")"
+    if [[ -n "$target_commands" ]]; then
+        while IFS= read -r cmd; do
+            [[ -n "$cmd" ]] || continue
+            local cmd_dir="$target_commands/$cmd"
+            local cmd_file="$target_commands/$cmd.md"
+            if [[ -d "$cmd_dir" ]]; then
+                rm -rf "$cmd_dir"
+                echo "    - commands/$cmd"
+                ((removed++)) || true
+            elif [[ -f "$cmd_file" ]]; then
+                rm -f "$cmd_file"
+                echo "    - commands/$cmd.md"
+                ((removed++)) || true
+            fi
+        done <<< "$commands"
+    fi
+
+    local agents
+    agents="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for a in m.get('agents', []):
+    print(a)
+" "$manifest_file")"
+    if [[ -n "$target_agents" ]]; then
+        while IFS= read -r agent; do
+            [[ -n "$agent" ]] || continue
+            local agent_dir="$target_agents/$agent"
+            if [[ -d "$agent_dir" ]]; then
+                rm -rf "$agent_dir"
+                echo "    - agents/$agent"
+                ((removed++)) || true
+            fi
+        done <<< "$agents"
+    fi
+
+    local agents_file="$target_path/AGENTS.md"
+    remove_inline_pack_section "$agents_file" "$pack_name" "$manifest_file"
+
+    local l1_name=""
+    case "$pack_name" in
+        opencode-course-skills-pack)       l1_name="course-skills.md" ;;
+        repo-deploy-ops-skill-pack)        l1_name="deploy-ops.md" ;;
+        petfish-style-skill)               l1_name="petfish-style.md" ;;
+        petfish-companion-skill)           l1_name="petfish-companion.md" ;;
+        anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
+        fish-trail)                        l1_name="fish-trail.md" ;;
+        research-skill-pack)               l1_name="research.md" ;;
+    esac
+
+    if [[ -n "$l1_name" ]]; then
+        local rules_file="$target_path/.opencode/agents-rules/$l1_name"
+        if [[ -f "$rules_file" ]]; then
+            rm -f "$rules_file"
+            echo "    - .opencode/agents-rules/$l1_name"
+            ((removed++)) || true
+        fi
+
+        if [[ -f "$agents_file" ]]; then
+            python3 - "$agents_file" "$l1_name" <<'PY'
+import re
+import sys
+
+agents_file, l1_name = sys.argv[1:3]
+with open(agents_file, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+pattern = re.compile(rf"^\|[^\n]*{re.escape(l1_name)}[^\n]*\|\s*\n?", re.MULTILINE)
+new_content = pattern.sub('', content)
+if new_content != content:
+    new_content = re.sub(r'\n{3,}', '\n\n', new_content).rstrip() + '\n'
+    with open(agents_file, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+PY
+            echo "    - AGENTS.md (removed rules-file reference for $l1_name)"
+        fi
+    fi
+
+    if [[ -n "$target_registry" ]]; then
+        local config_file_rel dst_oc
+        config_file_rel="$(get_platform_field "$PLATFORM" "project.config_file")"
+        dst_oc=""
+        [[ -n "$config_file_rel" ]] && dst_oc="$target_path/$config_file_rel"
+
+        if [[ -f "$pack_root/opencode.example.json" && -n "$dst_oc" && -f "$dst_oc" && -f "$reg_file" ]]; then
+            python3 - "$PACKS_DIR" "$reg_file" "$pack_name" "$pack_root/opencode.example.json" "$dst_oc" <<'PY'
+import json
+import os
+import sys
+
+packs_dir, reg_file, pack_name, pack_example, target_config = sys.argv[1:6]
+
+with open(pack_example, 'r', encoding='utf-8') as f:
+    pack_cfg = json.load(f)
+
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+
+installed = list((reg.get('packs') or {}).keys())
+
+other_claims = {}
+for other in installed:
+    if other == pack_name:
+        continue
+    other_example = os.path.join(packs_dir, other, 'opencode.example.json')
+    if not os.path.isfile(other_example):
+        continue
+    try:
+        with open(other_example, 'r', encoding='utf-8') as f:
+            other_cfg = json.load(f)
+    except Exception:
+        continue
+    for p1, v1 in (other_cfg or {}).items():
+        if isinstance(v1, dict):
+            s = other_claims.setdefault(p1, set())
+            for p2 in v1.keys():
+                s.add(p2)
+
+with open(target_config, 'r', encoding='utf-8') as f:
+    dst = json.load(f)
+
+changed = False
+for p1, v1 in (pack_cfg or {}).items():
+    if not isinstance(v1, dict):
+        continue
+    if not isinstance(dst.get(p1), dict):
+        continue
+    claimed = other_claims.get(p1, set())
+    for p2 in v1.keys():
+        if p2 in claimed:
+            continue
+        if p2 in dst[p1]:
+            del dst[p1][p2]
+            changed = True
+
+if changed:
+    with open(target_config, 'w', encoding='utf-8') as f:
+        json.dump(dst, f, indent=2, ensure_ascii=False)
+        f.write('\n')
+PY
+            echo "    - $config_file_rel (removed unique entries from this pack)"
+        fi
+
+        python3 - "$reg_file" "$pack_name" "$manifest_file" <<'PY'
+import json
+import sys
+
+reg_file, pack_name, manifest_file = sys.argv[1:4]
+
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+
+packs = reg.get('packs') or {}
+changed = False
+
+if pack_name in packs:
+    del packs[pack_name]
+    changed = True
+
+with open(manifest_file, 'r', encoding='utf-8') as f:
+    manifest = json.load(f)
+
+for legacy in manifest.get('legacy_names', []) or []:
+    if legacy in packs:
+        del packs[legacy]
+        changed = True
+
+if changed:
+    reg['packs'] = packs
+    with open(reg_file, 'w', encoding='utf-8') as f:
+        json.dump(reg, f, indent=2, ensure_ascii=False)
+        f.write('\n')
+PY
+        echo "    - installed-packs.json (registry updated)"
+        ((removed++)) || true
+    fi
+
+    echo ""
+    echo "  Uninstall complete: $removed items removed."
+    local restart_hint
+    restart_hint="$(get_restart_hint "$PLATFORM")"
+    if [[ -n "$restart_hint" ]]; then
+        echo "$restart_hint"
+    fi
+}
+
+uninstall_global_pack() {
+    local pack_alias="$1"
+    local pack_name
+    pack_name="$(resolve_pack "$pack_alias")"
+
+    local pack_root="$PACKS_DIR/$pack_name"
+    local manifest_file="$pack_root/pack-manifest.json"
+    if [[ ! -f "$manifest_file" ]]; then
+        echo "Error: Pack manifest not found: $manifest_file" >&2
+        exit 1
+    fi
+
+    local skills_dir
+    skills_dir="$(get_platform_field "$PLATFORM" "global.skills_dir")"
+    skills_dir="${skills_dir/#\~/$HOME}"
+    local commands_dir
+    commands_dir="$(get_platform_field "$PLATFORM" "global.commands_dir")"
+    commands_dir="${commands_dir/#\~/$HOME}"
+
+    if [[ -z "$skills_dir" ]]; then
+        echo "WARN: $PLATFORM does not support global skill installation. Nothing to uninstall."
+        return
+    fi
+
+    local target_registry
+    target_registry="$(get_platform_registry_dir "$skills_dir")"
+    local reg_file="$target_registry/installed-packs.json"
+    if [[ ! -f "$reg_file" ]]; then
+        echo "Error: No installed-packs.json found. Nothing to uninstall." >&2
+        exit 1
+    fi
+
+    local is_installed
+    is_installed="$(python3 - "$reg_file" "$manifest_file" "$pack_name" <<'PY'
+import json
+import sys
+
+reg_file, manifest_file, pack_name = sys.argv[1:4]
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+packs = reg.get('packs') or {}
+
+if pack_name in packs:
+    print('yes')
+    sys.exit(0)
+
+with open(manifest_file, 'r', encoding='utf-8') as f:
+    manifest = json.load(f)
+
+for legacy in manifest.get('legacy_names', []) or []:
+    if legacy in packs:
+        print('yes')
+        sys.exit(0)
+
+print('no')
+PY
+)"
+    if [[ "$is_installed" != "yes" ]]; then
+        echo "Error: Pack '$pack_alias' ($pack_name) is not installed globally. Nothing to uninstall." >&2
+        exit 1
+    fi
+
+    echo ""
+    echo "  Uninstalling pack (global): $pack_name (alias: $pack_alias)"
+
+    local removed=0
+
+    local skills
+    skills="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for s in m.get('skills', []):
+    print(s)
+" "$manifest_file")"
+    while IFS= read -r skill; do
+        [[ -n "$skill" ]] || continue
+        local skill_dir="$skills_dir/$skill"
+        if [[ -d "$skill_dir" ]]; then
+            rm -rf "$skill_dir"
+            echo "    - skills/$skill"
+            ((removed++)) || true
+        fi
+    done <<< "$skills"
+
+    local commands
+    commands="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for c in m.get('commands', []):
+    print(c)
+" "$manifest_file")"
+    if [[ -n "$commands_dir" ]]; then
+        while IFS= read -r cmd; do
+            [[ -n "$cmd" ]] || continue
+            local cmd_dir="$commands_dir/$cmd"
+            local cmd_file="$commands_dir/$cmd.md"
+            if [[ -d "$cmd_dir" ]]; then
+                rm -rf "$cmd_dir"
+                echo "    - commands/$cmd"
+                ((removed++)) || true
+            elif [[ -f "$cmd_file" ]]; then
+                rm -f "$cmd_file"
+                echo "    - commands/$cmd.md"
+                ((removed++)) || true
+            fi
+        done <<< "$commands"
+    fi
+
+    python3 - "$reg_file" "$pack_name" "$manifest_file" <<'PY'
+import json
+import sys
+
+reg_file, pack_name, manifest_file = sys.argv[1:4]
+
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+
+packs = reg.get('packs') or {}
+changed = False
+
+if pack_name in packs:
+    del packs[pack_name]
+    changed = True
+
+with open(manifest_file, 'r', encoding='utf-8') as f:
+    manifest = json.load(f)
+
+for legacy in manifest.get('legacy_names', []) or []:
+    if legacy in packs:
+        del packs[legacy]
+        changed = True
+
+if changed:
+    reg['packs'] = packs
+    with open(reg_file, 'w', encoding='utf-8') as f:
+        json.dump(reg, f, indent=2, ensure_ascii=False)
+        f.write('\n')
+PY
+    echo "    - installed-packs.json (registry updated)"
+    ((removed++)) || true
+
+    echo ""
+    echo "  Global uninstall complete: $removed items removed."
+}
+
 # --- List mode ---
 if $LIST; then
     show_list
@@ -1553,6 +1986,29 @@ fi
 if [[ -z "$PACK" ]]; then
     echo "Error: --pack required. Use --list to see available packs." >&2
     exit 1
+fi
+
+# --- Uninstall mode ---
+if $UNINSTALL; then
+    if [[ "$PACK" == "all" ]]; then
+        echo "Error: Uninstall does not support --pack all. Specify packs individually: --pack course,deploy" >&2
+        exit 1
+    fi
+
+    if ! $GLOBAL; then
+        TARGET="$(cd "$TARGET" && pwd)"
+    fi
+
+    IFS=',' read -ra _UNINSTALL_ITEMS <<< "$PACK"
+    for _item in "${_UNINSTALL_ITEMS[@]}"; do
+        _item="$(echo "$_item" | xargs)"
+        if $GLOBAL; then
+            uninstall_global_pack "$_item"
+        else
+            uninstall_pack "$_item" "$TARGET"
+        fi
+    done
+    exit 0
 fi
 
 # --- Resolve packs ---
