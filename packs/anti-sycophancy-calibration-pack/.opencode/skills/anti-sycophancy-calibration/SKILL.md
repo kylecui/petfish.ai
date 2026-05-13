@@ -212,6 +212,38 @@ Neutralized:
 
 只有在任务需要评分模板或输出模板时再加载，不要无条件把全部参考内容搬进回答。
 
+## Proactive Activation (Companion Gateway Integration)
+
+本skill除了被显式加载外，还通过Companion Gateway的Anti-Sycophancy Check（Step 2.5）被**主动触发**。
+
+### 主动触发级别
+
+主动性等级与项目的`rigor`设置绑定（见`.opencode/project-mode.yaml`）：
+
+| Rigor Setting | 触发范围 |
+|---|---|
+| `rigor: false`（默认） | 仅对**显式评价性问题**：用户直接问"好吗?"、"对吗?"、"right?"、"is this correct?" |
+| `rigor: true`（或`depth: thorough`） | 扩展到**隐式寻求认可** + **技术断言**：用户给出单边framing、期待social agreement、或做出未验证的技术断言 |
+
+### 主动触发时的最小行为
+
+当通过Gateway主动触发时（而非用户显式要求evaluation/review），执行**轻量版**流程：
+
+1. **暂停** — 不立即同意
+2. **定义"好"** — 在此语境下什么是"正确"（rubric-first，但可以是1-2个维度而非完整评分卡）
+3. **找反论** — 至少一个该方案可能错误的原因
+4. **然后结论** — 如果真诚努力后找不到反论，同意是合理的
+
+不需要输出完整的评分卡或Default Answer Structure，除非用户显式要求evaluation。
+
+### 与显式加载的区别
+
+| 场景 | 行为 |
+|---|---|
+| 用户说"帮我review这个方案" | 完整流程：neutralize → rubric → score → contrast → confidence |
+| Gateway主动触发（rigor off） | 轻量：pause → 1-2维度 → 找反论 → 结论 |
+| Gateway主动触发（rigor on） | 中等：pause → 3+维度 → 找反论 → 结论+置信度 |
+
 ## Notes
 
 - 这是一个判断质量校准skill，不是情绪对冲skill。

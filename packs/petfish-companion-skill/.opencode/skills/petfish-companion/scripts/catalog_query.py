@@ -6,10 +6,11 @@ Dynamically reads pack-manifest.json from each pack directory, with embedded
 fallback data for offline/remote operation.
 
 Supports:
-  --list          List all packs with aliases and descriptions
-  --search TERM   Search packs by keyword (matches name, triggers, capabilities)
-  --profile NAME  Show packs auto-installed for a given profile
-  --json          Output as JSON instead of plain text
+  --list              List all packs with aliases and descriptions
+  --search TERM       Search packs by keyword (matches name, triggers, capabilities)
+  --profile NAME      Show packs auto-installed for a given profile
+  --check-failures T  Scan text for failure signals, recommend uninstalled packs
+  --json              Output as JSON instead of plain text
 
 Usage:
   uv run catalog_query.py --list
@@ -20,6 +21,7 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 import platform as platform_mod
 from pathlib import Path
@@ -167,6 +169,56 @@ TRIGGERS = {
         "contamination",
     ],
 }
+
+# ---------------------------------------------------------------------------
+# Failure Signal Detection (Tier 0)
+# Maps regex patterns (applied to previous assistant output) → recommended pack
+# ---------------------------------------------------------------------------
+
+FAILURE_SIGNALS = {
+    "ppt": re.compile(r"无法(打开|读取|解析).*(PDF|PPTX|PPT|幻灯片)", re.IGNORECASE),
+    "deploy": re.compile(
+        r"(deploy|部署|Docker).*(fail|失败|error|错误)", re.IGNORECASE
+    ),
+    "testdocs": re.compile(
+        r"(测试用例|test case).*(无法|不确定|需要).*生成", re.IGNORECASE
+    ),
+    "research": re.compile(
+        r"(需要更多|证据不足|无法确认).*(来源|evidence|文献)", re.IGNORECASE
+    ),
+    "context": re.compile(r"(上下文|context).*(混乱|污染|冲突|drift)", re.IGNORECASE),
+}
+
+
+def check_failures(text: str, target: Path, as_json: bool = False) -> None:
+    """Scan text for failure signals; report packs that can help (skip installed)."""
+    installed_path = target / ".opencode" / "installed-packs.json"
+    installed_aliases: set[str] = set()
+    if installed_path.exists():
+        try:
+            data = json.loads(installed_path.read_text(encoding="utf-8"))
+            installed_aliases = set(data.get("packs", {}).keys())
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    matches: list[dict] = []
+    for alias, pattern in FAILURE_SIGNALS.items():
+        if alias in installed_aliases:
+            continue
+        if pattern.search(text):
+            matches.append({"pack": alias, "pattern": pattern.pattern})
+
+    if as_json:
+        print(json.dumps({"failures": matches}, ensure_ascii=False, indent=2))
+    else:
+        for m in matches:
+            print(
+                f"💡 检测到上轮失败信号 — {m['pack']}-skill 可以处理此类问题。"
+                f"安装: /petfish install {m['pack']}"
+            )
+        if not matches:
+            pass  # silent when no failures detected
+
 
 PROFILES = {
     "minimal": ["petfish"],
@@ -535,6 +587,12 @@ def main():
     group.add_argument(
         "--upgrade", action="store_true", help="Show command to upgrade packs"
     )
+    group.add_argument(
+        "--check-failures",
+        type=str,
+        metavar="TEXT",
+        help="Scan text for failure signals and recommend packs",
+    )
     parser.add_argument(
         "--target",
         type=str,
@@ -559,9 +617,13 @@ def main():
             show_counts(as_json=args.json, target=target)
         return
 
-    if not (args.list or args.search or args.profile or args.upgrade):
+    check_failures_text = getattr(args, "check_failures", None)
+
+    if not (
+        args.list or args.search or args.profile or args.upgrade or check_failures_text
+    ):
         parser.error(
-            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade"
+            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade/--check-failures"
         )
 
     if args.list:
@@ -572,6 +634,8 @@ def main():
         show_profile(args.profile, as_json=args.json, target=target)
     elif args.upgrade:
         show_upgrade_command(as_json=args.json)
+    elif check_failures_text:
+        check_failures(check_failures_text, target=target, as_json=args.json)
 
 
 if __name__ == "__main__":

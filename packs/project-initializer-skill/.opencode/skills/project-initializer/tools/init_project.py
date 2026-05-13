@@ -1071,6 +1071,18 @@ def main(argv: List[str]) -> int:
     git_notes = git_result["notes"]
     assert isinstance(git_notes, list)
 
+    # Generate .opencode/project-mode.yaml (default project mode configuration)
+    mode_yaml_path = target / ".opencode" / "project-mode.yaml"
+    if not mode_yaml_path.exists():
+        mode_content = "# PEtFiSh Project Mode\n# depth: urgent | balanced | thorough\n# rigor: true | false (forced true when depth=thorough)\ndepth: balanced\nrigor: false\n"
+        status, written = write_file(
+            mode_yaml_path, mode_content, overwrite=False, dry_run=args.dry_run
+        )
+        if status == "conflict_new":
+            conflict_files.append(str(written.relative_to(target)))
+        else:
+            created_files.append(str(written.relative_to(target)))
+
     report = f"""# Initialization Report
 
 ## Summary

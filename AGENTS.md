@@ -10,6 +10,36 @@
 
 **以下流程在处理用户消息之前强制执行，无例外。**
 
+### Step 0: Mode Read（项目模式）
+
+每次session首条消息时，读取 `.opencode/project-mode.yaml`（如存在）：
+
+```yaml
+# .opencode/project-mode.yaml
+depth: balanced       # urgent | balanced | thorough
+rigor: false          # true | false (forced true when depth=thorough)
+```
+
+**Depth行为修改：**
+
+| Depth | Bug处理 | 依赖问题 | 搜索策略 | 失败响应 |
+|---|---|---|---|---|
+| urgent | 先绕过，记TODO | 用替代方案 | 第一个可信结果 | 快速修→继续 |
+| balanced | 正常调试流程 | 理解基础后修复 | 2-3来源 | 标准流程 |
+| thorough | 必须找根因 | 全影响分析 | 多源交叉验证 | 证据驱动修复 |
+
+**Session内切换（不写文件）：**
+
+用户说以下关键词时，在当前session内切换模式（下次session自动恢复文件配置）：
+
+- urgent: "紧急", "urgent", "快速", "先凑合", "workaround", "临时方案"
+- balanced: "正常", "balanced", "标准流程"
+- thorough: "仔细", "thorough", "root cause", "根因", "彻底"
+- rigor on: "严谨", "rigor", "严格", "先计划", "plan first", "谨慎"
+- rigor off: "快做", "直接做", "skip plan", "不用计划"
+
+**文件不存在时**：默认 `depth: balanced, rigor: false`，不阻塞。
+
 ### Step 1: Topic Check（话题归属）
 
 调用MCP tool `topic_detect`，传入用户消息文本和当前session_id。
@@ -31,6 +61,34 @@ input:
 | high (61-100) | 暂停正常处理，向用户说明话题变更风险，建议fork/switch/reset |
 
 **MCP不可用时**：不阻塞，静默跳过。每次会话最多提示一次"⚠ fish-trail MCP未连接"。
+
+### Step 1.5: Failure Signal Detection (Tier 0)
+
+扫描**上一轮assistant回复**和工具错误输出，检测已知失败模式。命中时推荐可解决该问题的skill/MCP。
+
+**触发条件（全部满足）：**
+
+1. 上一轮assistant明确承认无法完成（"无法"、"cannot"、"I don't have access"）或工具返回已知错误模式
+2. 存在一个已知skill/MCP可以解决该类失败
+3. 该信号本session未推荐过（去重）
+4. 对应skill/pack未安装
+
+**信号 → Skill 映射：**
+
+| 失败模式 | 匹配正则 | 推荐Pack |
+|---------|---------|---------|
+| PDF/PPTX读取失败 | `无法(打开\|读取\|解析).*(PDF\|PPTX\|PPT\|幻灯片)` | ppt |
+| 部署/Docker失败 | `(deploy\|部署\|Docker).*(fail\|失败\|error\|错误)` | deploy |
+| 测试生成困难 | `(测试用例\|test case).*(无法\|不确定\|需要).*生成` | testdocs |
+| 研究深度不足 | `(需要更多\|证据不足\|无法确认).*(来源\|evidence\|文献)` | research |
+| 上下文污染 | `(上下文\|context).*(混乱\|污染\|冲突\|drift)` | context |
+
+**输出格式：**
+```
+💡 检测到上轮失败信号 — <pack>-skill 可以处理此类问题。安装: /petfish install <pack>
+```
+
+**实现位置：** `catalog_query.py --check-failures "<上轮assistant文本片段>"`
 
 ### Step 2: Skill Sense（能力缺口检测）
 
@@ -96,6 +154,25 @@ Tier 1和Tier 2均未命中 → 不输出任何推荐。
 
 完成 Step 1-2 后，进入正常任务处理流程。
 
+### Step 2.5: Anti-Sycophancy Check（反迎合检查）
+
+在回答评价性问题（"好吗?", "对吗?", "is this right?", "what do you think?"）之前：
+
+1. **暂停**。不要立即同意。
+2. 定义"好"在此语境下的含义（rubric-first）。
+3. 找到至少**一个**提案可能错误的原因。
+4. 然后再形成结论。
+
+如果真诚努力后找不到反论 → 同意是合理的。
+如果跳过此步骤 → 你在迎合用户。
+
+**主动性等级（与Rigor绑定）：**
+
+| Rigor | Anti-Sycophancy Level |
+|---|---|
+| off | 仅对显式评价性问题（"好吗?", "对吗?"） |
+| on | 也对隐式寻求认可 + 技术断言进行检查 |
+
 ### 交互后更新
 
 当本次交互产生实质性成果时，调用 `topic_update` 更新topic状态。
@@ -133,6 +210,38 @@ Debug模式输出格式（置于回复最前）：
 - `debug: true`（默认）：always显示，开发者可观察每轮决策
 - `debug: false`：仅medium/high risk或有推荐时才输出
 - 配置文件不存在时：默认 `debug: false`
+
+---
+
+## Rigor Mode（严谨模式）
+
+当 `.opencode/project-mode.yaml` 设置 `rigor: true`（或 `depth: thorough` 自动强制 rigor）时，以下规则生效：
+
+### Before Implementation
+
+- 对3+步骤或涉及3+文件的任务，写一份简要计划到 `.sisyphus/plans/` 说明：做什么、为什么、涉及哪些文件、可能出什么问题
+- 对上述任务：invoke Momus on the plan file（`task(subagent_type="Momus - Plan Critic", load_skills=[], run_in_background=true, prompt=".sisyphus/plans/<plan-filename>.md")`）
+- **Blocking** — MUST wait for Momus result before implementing. No exceptions.
+- On [ACCEPT]: proceed
+- On [REJECT]: fix blocking issues in plan, re-submit
+- On [CONDITIONAL]: proceed but address noted concerns
+
+### During Implementation
+
+- State assumptions explicitly before acting on them
+- If an assumption is unverified, verify it (read file, check docs) before proceeding
+- Never batch multiple uncertain changes — one verified step at a time
+
+### After Implementation
+
+- Run verification beyond just lsp_diagnostics:
+  - Does the change actually solve the stated problem?
+  - Are there edge cases the implementation misses?
+  - Would a skeptical reviewer approve this?
+
+### Rigor Threshold
+
+Only the full plan+Momus flow applies to tasks with **3+ steps or 3+ files**. Simpler tasks still get the "state assumptions" and "verify after" discipline but skip the formal plan file.
 
 ---
 

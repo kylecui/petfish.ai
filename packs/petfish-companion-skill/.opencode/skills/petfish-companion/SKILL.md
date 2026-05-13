@@ -30,6 +30,41 @@ metadata:
 
 ## 2. 感知规则
 
+### 2.0 失败信号检测（Tier 0：上轮输出扫描）
+
+在处理当前消息之前，扫描**上一轮assistant回复**（或工具错误输出），检测已知失败模式。
+
+**触发条件（全部满足）：**
+1. 上一轮assistant明确承认无法完成，或工具返回已知错误模式
+2. 存在已知skill/pack可解决该类失败
+3. 该信号本session未推荐过（去重）
+4. 对应pack未安装
+
+**信号→Pack映射：**
+
+| 失败模式 | 匹配正则 | 推荐Pack |
+|---------|---------|---------|
+| PDF/PPTX读取失败 | `无法(打开\|读取\|解析).*(PDF\|PPTX\|PPT\|幻灯片)` | ppt |
+| 部署/Docker失败 | `(deploy\|部署\|Docker).*(fail\|失败\|error\|错误)` | deploy |
+| 测试生成困难 | `(测试用例\|test case).*(无法\|不确定\|需要).*生成` | testdocs |
+| 研究深度不足 | `(需要更多\|证据不足\|无法确认).*(来源\|evidence\|文献)` | research |
+| 上下文污染 | `(上下文\|context).*(混乱\|污染\|冲突\|drift)` | context |
+
+**脚本调用：**
+```bash
+uv run catalog_query.py --check-failures "<上轮assistant文本片段>" [--target <path>] [--json]
+```
+
+**输出格式：**
+```
+💡 检测到上轮失败信号 — <pack>-skill 可以处理此类问题。安装: /petfish install <pack>
+```
+
+**行为约束：**
+- 每类信号每session最多推荐1次
+- 已安装pack自动跳过
+- 无匹配时静默通过
+
 ### 2.1 需求→Skill映射（Tier 1：白名单匹配）
 
 当用户的对话内容涉及以下领域，检查对应skill pack是否已安装：
@@ -356,13 +391,58 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
 
 如果两个已装skill的description有高度重叠（可能导致误触发），发出警告。
 
-## 6. 语言适配
+## 6. 项目模式感知
+
+### 6.1 Project Mode（深度与严谨度）
+
+Companion Gateway的Step 0会读取`.opencode/project-mode.yaml`，确定当前项目的工作模式：
+
+```yaml
+depth: balanced       # urgent | balanced | thorough
+rigor: false          # true | false (forced true when depth=thorough)
+```
+
+**Depth影响行为：**
+
+| Depth | Bug处理 | 依赖问题 | 搜索策略 | 失败响应 |
+|---|---|---|---|---|
+| urgent | 先绕过，记TODO | 用替代方案 | 第一个可信结果 | 快速修→继续 |
+| balanced | 正常调试流程 | 理解基础后修复 | 2-3来源 | 标准流程 |
+| thorough | 必须找根因 | 全影响分析 | 多源交叉验证 | 证据驱动修复 |
+
+**Session内模式切换关键词（不写文件）：**
+- urgent: "紧急", "urgent", "快速", "先凑合", "workaround"
+- balanced: "正常", "balanced", "标准流程"
+- thorough: "仔细", "thorough", "root cause", "根因"
+- rigor on: "严谨", "rigor", "严格", "先计划", "plan first"
+- rigor off: "快做", "直接做", "skip plan"
+
+文件不存在时默认`depth: balanced, rigor: false`，不阻塞。
+
+### 6.2 Rigor Mode（严谨模式）
+
+当`rigor: true`（或`depth: thorough`自动强制rigor）时：
+
+- 3+步骤或3+文件的任务 → 先写计划到`.sisyphus/plans/`，经Momus审核后再实施
+- 实施中 → 明确声明假设，逐步验证
+- 实施后 → 超出lsp_diagnostics的深度验证
+
+### 6.3 Anti-Sycophancy Check（反迎合检查）
+
+Gateway的Step 2.5在回答评价性问题前自动执行反迎合检查：
+
+- `rigor: false` → 仅对显式"好吗?/对吗?"
+- `rigor: true` → 扩展到隐式认可寻求和技术断言
+
+详见`anti-sycophancy-calibration` skill的Proactive Activation章节。
+
+## 7. 语言适配
 
 - 如果用户使用中文对话，胖鱼用中文回复
 - 如果用户使用英文对话，胖鱼用英文回复
 - 技术术语保持中英文紧凑混排（如`Docker部署`而非`Docker 部署`）
 
-## 7. 行为边界
+## 8. 行为边界
 
 ### 必须做：
 - 在感知到skill缺口时主动提示（但不强制）
