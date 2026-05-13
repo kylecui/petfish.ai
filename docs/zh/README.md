@@ -167,7 +167,8 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 
 ### v0.11 — Companion Gateway增强：主动智能
 
-- **v0.11.6**: 文档补齐——更新companion-gateway文档（中英文）、README、网站以反映6步Gateway流程。
+- **v0.11.7**: 文档补齐——更新companion-gateway文档（中英文）、README、网站以反映6步Gateway流程；发布Token Cost Engineering博客文章。
+- **v0.11.6**: Companion Gateway 6步实现完成——全部六步（Mode Read、Topic Check、Failure Signal Detection、Skill Sense、Anti-Sycophancy Check、Proceed）集成并运行。
 - **v0.11.5**: Rigor阈值细化——仅3+步骤或3+文件的任务需要Momus计划+评审；简单任务保留假设声明和事后验证，跳过正式计划文件。
 - **v0.11.4**: 反迎合检查（Step 2.5）——rubric-first评估，同意前强制寻找反论；主动性等级与Rigor绑定（off=仅显式提问，on=隐式+技术断言）。
 - **v0.11.3**: Rigor模式——project-mode.yaml中`rigor: true`增加计划-评审纪律：复杂任务需正式计划文件、Momus评审后才实施、显式声明假设。`depth: thorough`时强制开启。

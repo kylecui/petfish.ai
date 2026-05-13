@@ -287,7 +287,8 @@ petfish.ai/
 ## Version History
 ### v0.11 — Companion Gateway Enhancement: Proactive Intelligence
 
-- **v0.11.6**: Documentation catchup — update companion-gateway docs (EN+ZH), README, website to reflect 6-step Gateway flow.
+- **v0.11.7**: Documentation catchup — companion-gateway docs (EN+ZH), README, website updated to reflect 6-step Gateway flow; Token Cost Engineering blog post published.
+- **v0.11.6**: Companion Gateway 6-step implementation complete — all six steps (Mode Read, Topic Check, Failure Signal Detection, Skill Sense, Anti-Sycophancy Check, Proceed) integrated and operational.
 - **v0.11.5**: Rigor threshold refinement — only Momus plan+review for 3+ step or 3+ file tasks; simpler tasks get assumption-stating and post-verification without formal plan files.
 - **v0.11.4**: Anti-Sycophancy Check (Step 2.5) — rubric-first evaluation, mandatory counter-argument search before agreeing; proactivity level linked to Rigor mode (off=explicit only, on=implicit+assertions).
 - **v0.11.3**: Rigor Mode — `rigor: true` in project-mode.yaml adds plan-then-review discipline: formal plan files for complex tasks, Momus review before implementation, explicit assumption-stating. Forced on when `depth: thorough`.
