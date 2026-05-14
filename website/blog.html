@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>Blog — 胖鱼 PEtFiSh</title>
+  <meta name="description" content="PEtFiSh blog — companion philosophy, token economics, and engineering insights." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0d1117; --bg-card: #161b22; --border: #30363d;
+      --text: #e6edf3; --text-muted: #8b949e;
+      --accent: #39d353; --accent2: #58a6ff; --accent3: #f0883e;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'Noto Serif SC', serif;
+      --radius: 8px; --max-w: 700px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.85; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,17,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .nav .container { display: flex; align-items: center; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); font-size: 14px; }
+    .nav-logo img { width: 24px; height: 24px; }
+    .nav-links { margin-left: auto; display: flex; gap: 16px; font-size: 13px; }
+    .nav-links a { color: var(--text-muted); }
+
+    .content { padding: 64px 0 96px; }
+
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+    .page-subtitle { font-size: 15px; color: var(--text-muted); margin-bottom: 48px; }
+
+    .post-list { display: flex; flex-direction: column; gap: 24px; }
+    .post-card {
+      display: block;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      transition: border-color 0.15s;
+    }
+    .post-card:hover { border-color: var(--accent); text-decoration: none; }
+    .post-card .post-date { font-size: 13px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 8px; }
+    .post-card .post-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .post-card .post-desc { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+    .post-card .post-lang { display: inline-block; font-size: 11px; color: var(--accent3); border: 1px solid var(--accent3); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
+
+    .lang-toggle { display: flex; gap: 4px; margin-left: 12px; }
+    .lang-option { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 3px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .lang-option:hover, .lang-option:focus-visible { color: var(--text); border-color: var(--text-muted); }
+    .lang-option.is-active { color: var(--accent); border-color: var(--accent); }
+
+    body.lang-zh .copy-en, body.lang-en .copy-zh { display: none; }
+
+    footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+    footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 12px; opacity: 0.5; }
+    footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
+    footer .links a { color: var(--text-muted); }
+  </style>
+</head>
+<body class="lang-zh">
+
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-logo"><img src="assets/petfish-icon-256.png" alt="" /><span>><(((^> 胖鱼 PEtFiSh</span></a>
+    <div class="nav-links">
+      <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-option is-active" data-lang="zh">中</button>
+      <button class="lang-option" data-lang="en">EN</button>
+    </div>
+  </div>
+</nav>
+
+<main class="content">
+  <div class="container">
+
+    <h1>Blog</h1>
+    <p class="page-subtitle">
+      <span class="copy-zh">胖鱼的思考与实践。</span>
+      <span class="copy-en">Thoughts and practice from PEtFiSh.</span>
+    </p>
+
+    <div class="post-list">
+
+      <a href="/blog-token-economics.html" class="post-card">
+        <div class="post-date">May 2026 · v0.11.7</div>
+        <div class="post-title">Token Cost Engineering<span class="post-lang">EN</span></div>
+        <div class="post-desc">
+          <span class="copy-zh">两组对照实验表明，PEtFiSh 插件通过降低压缩频率和改变agent行为，将AI agent token成本降低了19-20%。</span>
+          <span class="copy-en">Two controlled experiments show how PEtFiSh plugins reduce AI agent token costs by 19-20% through compaction frequency reduction and behavioral change.</span>
+        </div>
+      </a>
+
+      <a href="/blog-why-companion.html" class="post-card">
+        <div class="post-date"><span class="copy-zh">2026年5月 · v0.11.6</span><span class="copy-en">May 2026 · v0.11.6</span></div>
+        <div class="post-title">
+          <span class="copy-zh">为什么我给AI找了个伙伴</span>
+          <span class="copy-en">Why I Got My AI a Companion</span>
+          <span class="post-lang">ZH/EN</span>
+        </div>
+        <div class="post-desc">
+          <span class="copy-zh">AI越能干，管理AI行为越累。我想要的不是更多工具，是一个伙伴。</span>
+          <span class="copy-en">The more capable AI gets, the harder it is to manage. What I wanted wasn't more tools — it was a companion.</span>
+        </div>
+      </a>
+
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
+    <strong>胖鱼 PEtFiSh</strong> — <span class="copy-zh">你的AI伙伴</span><span class="copy-en">Your AI Companion</span><br/>
+    <span class="copy-zh">常伴 · 守护 · 可信 · 秉正</span><span class="copy-en">Always Present · Guarding · Verified Trust · No Compromise</span>
+    <div class="links">
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
+      <a href="/pitch.html"><span class="copy-zh">产品介绍</span><span class="copy-en">Product</span></a>
+      <a href="/whitepaper.html"><span class="copy-zh">技术白皮书</span><span class="copy-en">Whitepaper</span></a>
+    </div>
+    <div class="license" style="margin-top:12px;font-size:12px;color:var(--text-muted);">Apache-2.0 · <a href="https://github.com/kylecui/petfish.ai/blob/master/TRADEMARKS.md">Trademarks</a></div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  const body = document.body;
+  const buttons = document.querySelectorAll('.lang-option');
+  const setLanguage = (lang) => {
+    const normalized = lang === 'en' ? 'en' : 'zh';
+    body.classList.remove('lang-zh', 'lang-en');
+    body.classList.add('lang-' + normalized);
+    document.documentElement.lang = normalized === 'en' ? 'en' : 'zh-CN';
+    buttons.forEach((btn) => {
+      const active = btn.dataset.lang === normalized;
+      btn.classList.toggle('is-active', active);
+    });
+    localStorage.setItem('petfish-lang', normalized);
+  };
+  buttons.forEach((btn) => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
+  const saved = localStorage.getItem('petfish-lang');
+  if (saved) setLanguage(saved);
+})();
+</script>
+</body>
+</html>
