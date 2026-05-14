@@ -1,6 +1,6 @@
 {
   "name": "petfish-companion-skill",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "legacy_names": [],
   "description": "PEtFiSh常驻伙伴 — 感知/搜索/创建/审计/门禁/挖掘/优化/评测/追踪skill的全生命周期管理",
   "compatibility": "opencode",

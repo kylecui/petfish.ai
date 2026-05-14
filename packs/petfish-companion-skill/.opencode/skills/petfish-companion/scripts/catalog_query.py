@@ -572,6 +572,53 @@ def show_upgrade_command(as_json: bool = False):
     )
 
 
+def show_uninstall_command(alias: str, as_json: bool = False):
+    """Show command to uninstall a pack via local installer."""
+    os_name = platform_mod.system()
+    is_windows = os_name == "Windows"
+
+    if alias == "all":
+        msg = "Cannot uninstall all packs at once. Specify individual pack aliases."
+        if as_json:
+            print(json.dumps({"error": msg}, ensure_ascii=False, indent=2))
+        else:
+            print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(1)
+
+    # Resolve alias to pack name to validate
+    pack_name = ALIAS_MAP.get(alias, alias)
+    known = pack_name in PACK_TO_ALIAS or alias in ALIAS_MAP
+    if not known:
+        msg = f"Unknown pack alias: '{alias}'. Use --list to see available packs."
+        if as_json:
+            print(json.dumps({"error": msg}, ensure_ascii=False, indent=2))
+        else:
+            print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(1)
+
+    if is_windows:
+        command = f".\\install.ps1 -Pack {alias} -Uninstall"
+    else:
+        command = f"./install.sh --pack {alias} --uninstall"
+
+    if as_json:
+        print(
+            json.dumps(
+                {"os": os_name, "alias": alias, "pack": pack_name, "command": command},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+
+    print("Uninstall is only available via the local installer.")
+    print("Clone the repo first, then run:")
+    print()
+    print(f"  {command}")
+    print()
+    print("Add --target <path> if the project is not in the current directory.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="PEtFiSh Skill Catalog Query")
     parser.add_argument(
@@ -592,6 +639,12 @@ def main():
         type=str,
         metavar="TEXT",
         help="Scan text for failure signals and recommend packs",
+    )
+    group.add_argument(
+        "--uninstall",
+        type=str,
+        metavar="ALIAS",
+        help="Show command to uninstall a pack via local installer",
     )
     parser.add_argument(
         "--target",
@@ -620,10 +673,15 @@ def main():
     check_failures_text = getattr(args, "check_failures", None)
 
     if not (
-        args.list or args.search or args.profile or args.upgrade or check_failures_text
+        args.list
+        or args.search
+        or args.profile
+        or args.upgrade
+        or check_failures_text
+        or args.uninstall
     ):
         parser.error(
-            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade/--check-failures"
+            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade/--check-failures/--uninstall"
         )
 
     if args.list:
@@ -636,6 +694,8 @@ def main():
         show_upgrade_command(as_json=args.json)
     elif check_failures_text:
         check_failures(check_failures_text, target=target, as_json=args.json)
+    elif args.uninstall:
+        show_uninstall_command(args.uninstall, as_json=args.json)
 
 
 if __name__ == "__main__":

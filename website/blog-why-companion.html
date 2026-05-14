@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>为什么我给AI找了个伙伴 — 胖鱼 PEtFiSh</title>
+  <meta name="description" content="胖鱼不是工具集。它是你AI工作流里的伙伴——从init到交付，始终相伴。" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0d1117; --bg-card: #161b22; --border: #30363d;
+      --text: #e6edf3; --text-muted: #8b949e;
+      --accent: #39d353; --accent2: #58a6ff; --accent3: #f0883e;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-serif: 'Noto Serif SC', serif;
+      --radius: 8px; --max-w: 700px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.85; -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+
+    .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,17,23,0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 0; }
+    .nav .container { display: flex; align-items: center; gap: 16px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); font-size: 14px; }
+    .nav-logo img { width: 24px; height: 24px; }
+    .nav-links { margin-left: auto; display: flex; gap: 16px; font-size: 13px; }
+    .nav-links a { color: var(--text-muted); }
+
+    .content { padding: 64px 0 96px; }
+    .back-link { display: inline-block; color: var(--text-muted); font-size: 13px; margin-bottom: 32px; }
+    .date { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+    h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+    h2 { font-size: 20px; margin-top: 48px; margin-bottom: 16px; }
+    h3 { font-size: 17px; margin-top: 32px; margin-bottom: 10px; }
+    p { margin-bottom: 16px; }
+    ul, ol { padding-left: 20px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; }
+    code { font-family: var(--font-mono); font-size: 13px; background: var(--bg-card); padding: 2px 6px; border-radius: 4px; }
+    pre { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; overflow-x: auto; margin: 16px 0; font-family: var(--font-mono); font-size: 13px; line-height: 1.6; }
+    .pullquote { border-left: 3px solid var(--accent); padding: 12px 0 12px 20px; margin: 32px 0; font-size: 16px; color: var(--text); font-style: italic; }
+    .divider { text-align: center; color: var(--accent); font-family: var(--font-mono); margin: 40px 0; opacity: 0.5; }
+
+    footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+    footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 12px; opacity: 0.5; }
+    footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
+    footer .links a { color: var(--text-muted); }
+
+    body.lang-zh .copy-en, body.lang-en .copy-zh { display: none; }
+    .lang-toggle { display: flex; gap: 4px; margin-left: 12px; }
+    .lang-option { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 3px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
+    .lang-option:hover, .lang-option:focus-visible { color: var(--text); border-color: var(--text-muted); }
+    .lang-option.is-active { color: var(--accent); border-color: var(--accent); }
+  </style>
+</head>
+<body class="lang-zh">
+
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-logo"><img src="assets/petfish-icon-256.png" alt="" /><span>><(((^> 胖鱼 PEtFiSh</span></a>
+    <div class="nav-links">
+      <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
+      <a href="/blog.html">Blog</a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-option is-active" data-lang="zh">中</button>
+      <button class="lang-option" data-lang="en">EN</button>
+    </div>
+  </div>
+</nav>
+
+<main class="content">
+  <div class="container">
+    <a href="/blog.html" class="back-link"><span class="copy-zh">← 返回博客</span><span class="copy-en">← Back to Blog</span></a>
+
+    <h1><span class="copy-zh">为什么我给AI找了个伙伴</span><span class="copy-en">Why I Got My AI a Companion</span></h1>
+    <p class="date"><span class="copy-zh">2026年5月 · v0.11.6</span><span class="copy-en">May 2026 · v0.11.6</span></p>
+
+    <p><span class="copy-zh">我每天花大量时间和AI一起写代码。AI很能干，但有个问题——它是个工具。</span><span class="copy-en">I spend a lot of time every day writing code with AI. AI is very capable, but there's a problem — it's a tool.</span></p>
+
+    <p><span class="copy-zh">工具的特点是：你调用它，它干活，干完走人。下次再调用，它不记得上次发生了什么。它不会主动告诉你"你现在方向偏了"，不会在你缺某个能力的时候说一句"要不装个这个"，也不会在你写出一个有问题的方案时拦住你。</span><span class="copy-en">Tools have a defining trait: you call them, they work, they leave. Next time you call, they don't remember what happened. They won't tell you 'you're drifting off track', won't say 'maybe install this capability' when you're missing something, won't stop you when your plan has a flaw.</span></p>
+
+    <p><span class="copy-zh">你得自己记住上下文，自己发现能力缺口，自己守住质量底线。AI越能干，这些负担反而越重——因为它干得快，你追得累。</span><span class="copy-en">You have to remember context yourself, discover capability gaps yourself, hold quality standards yourself. The more capable AI gets, the heavier this burden — because it moves fast, and you struggle to keep up.</span></p>
+
+    <p><span class="copy-zh">我想要的不是更多工具，是一个伙伴。</span><span class="copy-en">What I wanted wasn't more tools. It was a companion.</span></p>
+
+    <div class="pullquote">
+      <span class="copy-zh">伙伴和工具的区别很简单：工具被调用，伙伴始终在场。</span><span class="copy-en">The difference between a companion and a tool is simple: tools get called, companions are always there.</span>
+    </div>
+
+    <h2><span class="copy-zh">胖鱼是什么</span><span class="copy-en">What is PEtFiSh</span></h2>
+
+    <p><span class="copy-zh">胖鱼是我给AI工作流找的伙伴。从你输入<code>/initproject</code>的那一刻起，它就在了。不是在后台沉睡等你想起来调用——而是每一轮对话都参与，沉默地做两件事：</span><span class="copy-en">PEtFiSh is the companion I found for my AI workflow. From the moment you type <code>/initproject</code>, it's there. Not sleeping in the background waiting for you to remember to call it — but participating in every conversation, silently doing two things:</span></p>
+
+    <ol>
+      <li><strong><span class="copy-zh">看看你在聊什么</span><span class="copy-en">Watching what you're discussing</span></strong><span class="copy-zh">——话题漂了吗？上下文被污染了吗？需要提醒你吗？</span><span class="copy-en"> — has the topic drifted? Is context contaminated? Should it alert you?</span></li>
+      <li><strong><span class="copy-zh">看看你缺什么</span><span class="copy-en">Watching what you're missing</span></strong><span class="copy-zh">——你在聊部署但没装部署能力包？你需要发邮件但环境里没有邮件集成？</span><span class="copy-en"> — discussing deployment but don't have the deploy pack? Need to send emails but no email integration?</span></li>
+    </ol>
+
+    <p><span class="copy-zh">这两件事做完，才进入正常的工作处理。你感觉不到它在——直到它该出现的时候出现。</span><span class="copy-en">These two checks complete, then normal work begins. You don't feel it — until the moment it needs to appear.</span></p>
+
+    <h2><span class="copy-zh">四个字</span><span class="copy-en">Four Words</span></h2>
+
+    <p><span class="copy-zh">我给胖鱼定了四个字：<strong>常伴、守护、可信、秉正</strong>。</span><span class="copy-en">I gave PEtFiSh four words: <strong>Always Present, Guarding, Verified Trust, No Compromise</strong>.</span></p>
+
+    <p><strong><span class="copy-zh">常伴</span><span class="copy-en">Always Present</span></strong><span class="copy-zh">——每一轮交互都在。不是"你可以调用/petfish命令"，而是"不管你调不调用，胖鱼始终相伴"。Companion Gateway在每条消息前自动执行，你不需要做任何额外操作。</span><span class="copy-en"> — every interaction, it's there. Not "you can run /petfish" but "whether you call it or not, PEtFiSh is watching". Companion Gateway runs automatically before every message. You don't have to do anything extra.</span></p>
+
+    <p><strong><span class="copy-zh">守护</span><span class="copy-en">Guarding</span></strong><span class="copy-zh">——在你掉坑之前拦住。上下文污染到60分了？拦住，告诉你话题漂了。你需要某个能力但没装？提醒一次，不多不少。质量不过关？挡在发布前面。</span><span class="copy-en"> — pulls you back before you fall in. Context contamination hits 60? It stops you, tells you the topic drifted. Missing a capability? One reminder, no more. Quality doesn't pass? Blocked before publish.</span></p>
+
+    <p><strong><span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></strong><span class="copy-zh">——胖鱼推荐给你的每一个能力包，都经过了lint打分（100分制）、安全审计（风险评分0.0-1.0）、红线检测（命中即拒绝，不商量）。信任不是嘴上说说的，是验证出来的。</span><span class="copy-en"> — every pack PEtFiSh recommends has gone through lint scoring (100-point scale), security audit (risk score 0.0-1.0), and red-line checks (hit one, rejected, no negotiation). Trust isn't a claim. It's verified.</span></p>
+
+    <p><strong><span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></strong><span class="copy-zh">——胖鱼不顺着你说。你问"这方案行不行"，它先中性化问题再给结论，至少给你一个反方向的思考。质量门禁80分以下不过就是不过，不会因为"这次赶工"就放水。</span><span class="copy-en"> — PEtFiSh doesn't just agree with you. Ask "is this plan okay?" and it neutralizes the question before giving a verdict, always offering at least one counterpoint. Quality gate below 80? It doesn't pass. "We're rushing this time" doesn't change that.</span></p>
+
+    <div class="divider">><(((^></div>
+
+    <h2><span class="copy-zh">它具体做了什么</span><span class="copy-en">What it actually does</span></h2>
+
+    <p><span class="copy-zh">说点实在的。</span><span class="copy-en">Let me be concrete.</span></p>
+
+    <p><strong>Companion Gateway</strong><span class="copy-zh">——注入到你的AI指令文件里（AGENTS.md / CLAUDE.md / 等等），在AI处理你每条消息之前强制执行话题检测和能力感知。不需要你记得去调用它。</span><span class="copy-en"> — injected into your AI instructions file (AGENTS.md / CLAUDE.md / etc.), it enforces topic detection and capability sensing before the AI processes every single message. You don't need to remember to call it.</span></p>
+
+    <p><strong><span class="copy-zh">三层能力感知</span><span class="copy-en">Three-tier sensing</span></strong><span class="copy-zh">——第一层，关键词匹配已知领域（你说"部署"它知道推荐deploy pack）。第二层，意图级分析（你说"帮我发个邮件通知团队"，它检测到这需要邮件集成，你没有）。第三层，什么都没检测到，闭嘴。每个领域每次会话最多提醒一次。</span><span class="copy-en"> — tier one, keyword match against known domains (say "deploy" and it knows to recommend the deploy pack). Tier two, intent-level analysis (say "send an email to the team" and it detects you need email integration but don't have it). Tier three, nothing detected, stays quiet. Each domain, at most one reminder per session.</span></p>
+
+    <p><strong>鱼迹Fish-trail<span class="copy-zh">话题治理</span><span class="copy-en"> topic governance</span></strong><span class="copy-zh">——追踪你的话题关系（继续？分叉？切换？合并？），给上下文污染打分（0-100），在风险高的时候主动建议你处理。31个MCP工具支撑底层状态管理。</span><span class="copy-en"> — Fish Trail (鱼迹) topic governance tracks your topic relationships (continue? fork? switch? merge?), scores context contamination (0-100), and proactively suggests you deal with it when risk is high. 31 MCP tools handle the underlying state management.</span></p>
+
+    <p><strong><span class="copy-zh">质量门禁</span><span class="copy-en">Quality gates</span></strong><span class="copy-zh">——Lint 40+条规则打分，安全审计检测shell注入/硬编码凭证/危险网络调用，四条红线（subprocess+network组合、敏感路径读写、无审批sudo、subprocess+os组合）命中即deny。像代码CI一样管理AI能力。</span><span class="copy-en"> — lint scores against 40+ rules, security audit catches shell injection / hardcoded credentials / dangerous network calls, four red lines (subprocess+network combo, sensitive path read/write, unapproved sudo, subprocess+os combo) trigger an instant deny. Managing AI capabilities like code CI.</span></p>
+
+    <p><strong><span class="copy-zh">反迎合校准</span><span class="copy-en">Anti-sycophancy</span></strong><span class="copy-zh">——可以叠加到任何评审类任务上。code review + calibrate，方案评估 + calibrate。先中性化再给结论，结论和置信度分开表达。</span><span class="copy-en"> — stacks onto any review task. Code review + calibrate. Strategy evaluation + calibrate. Neutralize first, then conclude. Conclusion and confidence expressed separately.</span></p>
+
+    <h2><span class="copy-zh">不只是我自己的能力包</span><span class="copy-en">Not just my own packs</span></h2>
+
+    <p><span class="copy-zh">胖鱼自带四个核心包（companion/胖鱼、context/鱼迹、trust/鱼鳞、calibrate/鱼刺）和七个领域包（init、course、deploy、petfish/鱼话、testdocs、ppt、research/鱼渊）。但它不是一个封闭的11个包的集合。</span><span class="copy-en">PEtFiSh ships with four core packs (companion, context/Fish Trail, trust/Fish Scale, calibrate/Fishbone) and seven domain packs (init, course, deploy, petfish/Fish Talk, testdocs, ppt, research/Fish Depth). But it's not a closed collection of 11 packs.</span></p>
+
+    <p><code>/petfish search</code><span class="copy-zh"> 可以跨6个来源搜索第三方skill。</span><span class="copy-en"> searches third-party skills across 6 sources. </span><code>/petfish mine</code><span class="copy-zh"> 可以从任意GitHub仓库挖掘可skill化的模块。</span><span class="copy-en"> mines any GitHub repo for extractable skill patterns. </span><code>/petfish create</code><span class="copy-zh"> 可以帮你从零构造新的能力包。</span><span class="copy-en"> scaffolds new packs from scratch. </span><code>/petfish gate</code><span class="copy-zh"> 确保你构造出来的东西质量过关。</span><span class="copy-en"> makes sure what you build actually passes muster.</span></p>
+
+    <p><span class="copy-zh">胖鱼管的不只是"我做的这些包"，而是你整个AI能力体系的质量和扩展。</span><span class="copy-en">PEtFiSh isn't just managing "the packs I made" — it's managing the quality and growth of your entire AI capability system.</span></p>
+
+    <h2><span class="copy-zh">8个平台，一只胖鱼</span><span class="copy-en">8 platforms, one PEtFiSh</span></h2>
+
+    <p><span class="copy-zh">OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——不管你用哪个，胖鱼都能装上去。一套skill写一次，自动翻译成各平台的格式。</span><span class="copy-en">OpenCode, Claude Code, Cursor, Copilot, Windsurf, Codex, Antigravity — whichever you use, PEtFiSh installs. Write skills once, auto-translated to each platform's format.</span></p>
+
+    <p><span class="copy-zh">你不用操心"Cursor的规则放哪个目录""Claude Code的指令文件叫什么名字"。胖鱼知道。</span><span class="copy-en">You don't need to worry about 'which directory do Cursor rules go in' or 'what's Claude Code's instructions file called'. PEtFiSh knows.</span></p>
+
+    <h2><span class="copy-zh">30秒装上</span><span class="copy-en">30-second install</span></h2>
+
+    <pre>
+# macOS / Linux / WSL
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack init,companion --detect
+
+# Windows PowerShell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect</pre>
+
+    <p><span class="copy-zh">装完输入<code>/initproject</code>。胖鱼问你项目类型，帮你装好匹配的能力包。从这一刻起，它就在了。</span><span class="copy-en">After install, type <code>/initproject</code>. PEtFiSh asks your project type, installs matching packs. From this moment, it's there.</span></p>
+
+    <div class="divider">><(((^></div>
+
+    <h2><span class="copy-zh">为什么叫"伙伴"</span><span class="copy-en">Why "companion"</span></h2>
+
+    <p><span class="copy-zh">因为它确实像一个。</span><span class="copy-en">Because it genuinely is one.</span></p>
+
+    <ul>
+      <li><span class="copy-zh">伙伴不需要你记得"去调用"它——它就在那儿</span><span class="copy-en">A companion doesn't need you to remember to 'call' it — it's just there</span></li>
+      <li><span class="copy-zh">伙伴在你要犯错的时候拉一把——不是事后说"早知道"</span><span class="copy-en">A companion pulls you back before you make a mistake — not 'I told you so' after the fact</span></li>
+      <li><span class="copy-zh">伙伴推荐给你的东西是经过验证的——不是随手丢个链接</span><span class="copy-en">A companion recommends things that are verified — not just tossing you a random link</span></li>
+      <li><span class="copy-zh">伙伴不顺着你说——该说不行的时候说不行</span><span class="copy-en">A companion doesn't just agree — says 'no' when it should</span></li>
+    </ul>
+
+    <p><span class="copy-zh">工具用完就走。伙伴从头到尾都在。</span><span class="copy-en">Tools leave when done. Companions stay from start to finish.</span></p>
+
+    <p><span class="copy-zh">如果你也觉得AI写代码越来越快、但管理AI行为越来越累——试试给它找个伙伴。</span><span class="copy-en">If you also feel that AI writes code faster and faster, but managing AI behavior gets more exhausting — try getting it a companion.</span></p>
+
+    <p><strong>GitHub</strong>：<a href="https://github.com/kylecui/petfish.ai">github.com/kylecui/petfish.ai</a></p>
+
+    <p><span class="copy-zh">开源，免费，欢迎PR。</span><span class="copy-en">Open source, free, PRs welcome.</span></p>
+
+    <p style="font-family: var(--font-mono); color: var(--accent); margin-top: 40px;">><(((^></p>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="fish-row">><(((^>  ><(((^>  ><(((^></div>
+    <strong>胖鱼 PEtFiSh</strong> — <span class="copy-zh">你的AI伙伴</span><span class="copy-en">Your AI Companion</span><br/>
+    <span class="copy-zh">常伴 · 守护 · 可信 · 秉正</span><span class="copy-en">Always Present · Guarding · Verified Trust · No Compromise</span>
+    <div class="links">
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
+      <a href="/blog.html">Blog</a>
+      <a href="/pitch.html"><span class="copy-zh">产品介绍</span><span class="copy-en">Product</span></a>
+      <a href="/whitepaper.html"><span class="copy-zh">技术白皮书</span><span class="copy-en">Whitepaper</span></a>
+    </div>
+    <div class="license" style="margin-top:12px;font-size:12px;color:var(--text-muted);">Apache-2.0 · <a href="https://github.com/kylecui/petfish.ai/blob/master/TRADEMARKS.md">Trademarks</a></div>
+  </div>
+</footer>
+
+<script>
+(function() {
+  const body = document.body;
+  const buttons = document.querySelectorAll('.lang-option');
+  const setLanguage = (lang) => {
+    const normalized = lang === 'en' ? 'en' : 'zh';
+    body.classList.remove('lang-zh', 'lang-en');
+    body.classList.add('lang-' + normalized);
+    document.documentElement.lang = normalized === 'en' ? 'en' : 'zh-CN';
+    buttons.forEach((btn) => {
+      const active = btn.dataset.lang === normalized;
+      btn.classList.toggle('is-active', active);
+    });
+    localStorage.setItem('petfish-lang', normalized);
+  };
+  buttons.forEach((btn) => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
+  const saved = localStorage.getItem('petfish-lang');
+  if (saved) setLanguage(saved);
+})();
+</script>
+</body>
+</html>

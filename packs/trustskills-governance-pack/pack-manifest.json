@@ -1,6 +1,6 @@
 {
   "name": "trustskills-governance-pack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "legacy_names": [],
   "description": "Skill安全治理引擎 — 基于行为分析的skill可信度评估、风险评分与治理决策",
   "compatibility": "opencode",

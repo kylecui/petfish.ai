@@ -77,6 +77,7 @@ See [docs/companion-gateway.md](docs/companion-gateway.md) for the full flow.
 | `/petfish eval <path>` | Test trigger accuracy |
 | `/petfish stats` | View usage analytics |
 | `/petfish upgrade` | Show upgrade command for installed packs |
+| `/petfish uninstall <alias>` | Show uninstall command (local installer only) |
 
 ---
 
