@@ -292,7 +292,7 @@ skills_dir = sys.argv[4] if len(sys.argv) > 4 else '.opencode/skills'
 with open(sys.argv[1], 'r', encoding='utf-8') as f:
     src = json.load(f)
 
-normalized_skills_dir = skills_dir.rstrip('/\\') or '.opencode/skills'
+normalized_skills_dir = skills_dir.rstrip('/\\\\') or '.opencode/skills'
 src_str = json.dumps(src, ensure_ascii=False)
 src_str = src_str.replace('.opencode/skills/', normalized_skills_dir + '/')
 src = json.loads(src_str)
