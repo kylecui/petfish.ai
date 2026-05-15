@@ -68,8 +68,12 @@ nav:
   - Home: index.md
   - Getting Started:
       - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - First Run: getting-started/first-run.md
   - Guides:
       - guides/index.md
+      - Companion Gateway: guides/companion-gateway/index.md
+      - /petfish Commands: guides/petfish-commands/index.md
   - Reference:
       - reference/index.md
       - Packs: reference/packs/index.md

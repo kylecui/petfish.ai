@@ -412,7 +412,7 @@ wheels = [
 [[package]]
 name = "petfish-docs"
 version = "0.1.0"
-source = { editable = "." }
+source = { virtual = "." }
 dependencies = [
     { name = "jieba" },
     { name = "mkdocs" },
