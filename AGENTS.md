@@ -483,6 +483,24 @@ v0.10.7遗漏了9个触点中的4个，v0.10.8通过并行审计一次性补齐�
 
 当同一份输出需要同时服务于后续pipeline处理和人类阅读时，不要试图用一种格式兼顾。JSONL用于结构化数据传递，Markdown用于人类可读的报告和文档。
 
+### bash内嵌Python用`chr()`代替转义字面量
+
+当Python代码运行在bash双引号字符串内（`python3 -c "..."`）时，反斜杠转义会跨层叠加：源文件 → bash双引号解释 → Python解释。每一层将反斜杠数量减半，而SSH或PowerShell代理还会引入额外的转义层。使用`chr(92)`表示反斜杠、`chr(47)`表示正斜杠，而不是字面转义序列。`chr()`在Python运行时求值，对所有shell转义层免疫。
+
+这个教训花了两个patch release（v0.11.10、v0.11.11）才解决issue #123。
+
+### 通过用户的实际通道测试
+
+v0.11.10的修复通过PowerShell SSH会话测试，看起来正确，但PowerShell自身的转义层掩盖了bash的真实行为。用户在原生Linux bash上运行时仍然报错。
+
+规则：bash脚本必须在真实bash环境中测试，PowerShell脚本在真实PowerShell中测试。不要通过代理shell测试另一种shell的行为——中间层会吞掉或改变转义字符，产生误导性的"通过"结果。
+
+### 4个安装器同步变更
+
+项目有4个安装器：`install.sh`、`install.ps1`、`remote-install.sh`、`remote-install.ps1`。任何逻辑变更必须评估是否需要同步到全部4个文件。本地和远程安装器架构不同（动态扫描 vs 静态数组），同一个修复在不同安装器中的实现方式可能不同，但功能语义必须一致。
+
+v0.11.9（uninstall功能）和v0.11.10/v0.11.11（rstrip修复）都涉及4个安装器的同步变更。遗漏任何一个会导致用户通过不同安装方式得到不一致的行为。
+
 ---
 
 ## Pack-Specific Rules (On-Demand Loading)
