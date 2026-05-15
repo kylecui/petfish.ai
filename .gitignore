@@ -45,3 +45,7 @@ connector.yaml
 # A/B test ephemeral directories
 test-baseline/
 test-plugin/
+
+# Docs site build output
+docs-site/site/
+docs-site/.venv/
