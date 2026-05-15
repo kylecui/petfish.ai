@@ -159,6 +159,7 @@ write_pack_rules_file() {
         anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;
+        fish-reflection-pack)              l1_name="fish-reflection.md" ;;
         *) return ;;
     esac
 
@@ -524,6 +525,7 @@ declare -A ALIASES=(
     [calibrate]="anti-sycophancy-calibration-pack"
     [context]="fish-trail"
     [research]="research-skill-pack"
+    [reflect]="fish-reflection-pack"
     [fish-init]="project-initializer-skill"
     [fish-core]="petfish-companion-skill"
     [fish-course]="opencode-course-skills-pack"
@@ -534,6 +536,7 @@ declare -A ALIASES=(
     [fish-calibrate]="anti-sycophancy-calibration-pack"
     [fish-trail]="fish-trail"
     [fish-research]="research-skill-pack"
+    [fish-reflect]="fish-reflection-pack"
 )
 
 # --- Defaults ---
@@ -1170,7 +1173,7 @@ install_for_platform() {
             local has_l1=false
             if [[ "$platform_name" == "opencode" ]]; then
                 case "$pack_name" in
-                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack)
+                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack)
                         has_l1=true ;;
                 esac
             fi
@@ -1692,6 +1695,7 @@ for a in m.get('agents', []):
         anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;
+        fish-reflection-pack)              l1_name="fish-reflection.md" ;;
     esac
 
     if [[ -n "$l1_name" ]]; then

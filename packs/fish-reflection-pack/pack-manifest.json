@@ -1,0 +1,22 @@
+{
+  "name": "fish-reflection-pack",
+  "version": "0.1.0",
+  "legacy_names": [],
+  "description": "结构化反思与经验沉淀 — 在用户纠正、连续失败或显式请求时触发反思，将一次性修正转化为可复用的预防规则和项目知识资产",
+  "compatibility": "opencode",
+  "skill_count": 1,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": ["fish-reflection"],
+  "commands": [],
+  "agents": [],
+  "contents": [
+    "AGENTS.md",
+    "agents-rules/fish-reflection.md",
+    ".opencode/skills/fish-reflection/SKILL.md",
+    ".opencode/skills/fish-reflection/references/reflection-card-template.md",
+    ".opencode/skills/fish-reflection/references/anti-patterns.md",
+    ".opencode/skills/fish-reflection/references/trigger-patterns.md",
+    ".opencode/skills/fish-reflection/assets/reflection-levels.md"
+  ]
+}
