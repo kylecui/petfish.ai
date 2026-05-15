@@ -50,7 +50,7 @@ Offer these choices:
 5. **research** — Research project (installs: petfish, research)
 6. **writing** — Writing/documentation (installs: petfish, ppt)
 7. **minimal** — Just the basics (installs: petfish only)
-8. **comprehensive** — Everything (installs: course, deploy, petfish, ppt, testdocs, trust, context, research)
+8. **comprehensive** — Everything (installs: course, deploy, petfish, ppt, testdocs, trust, context, research, reflect)
 9. **custom** — Let me choose specific packs
 
 If user chooses **research** or any profile that includes the research pack, ask a follow-up question:
@@ -80,6 +80,7 @@ If user chooses **custom**, show available packs:
 - `context` — Topic governance and context isolation (1 skill)
 - `trust` — Skill trust governance engine (1 skill)
 - `research` — Research workbench — 50 skills across 8 domains (scientific, product, planning, learning, decision, risk-procurement, experience-event, adapters)
+- `reflect` — Structured reflection — capture what went wrong, why, and corrective actions (1 skill)
 
 Ask which packs they want. If they include `research`, ask the research domain follow-up question above.
 

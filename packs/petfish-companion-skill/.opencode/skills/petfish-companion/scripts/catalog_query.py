@@ -168,6 +168,16 @@ TRIGGERS = {
         "topic detect",
         "contamination",
     ],
+    "reflect": [
+        "反思",
+        "reflect",
+        "复盘",
+        "what went wrong",
+        "lessons learned",
+        "纠正",
+        "返工",
+        "rework",
+    ],
 }
 
 # ---------------------------------------------------------------------------
@@ -238,6 +248,7 @@ PROFILES = {
         "trust",
         "context",
         "research",
+        "reflect",
     ],
 }
 

@@ -117,6 +117,7 @@ $Aliases = @{
     "calibrate" = "anti-sycophancy-calibration-pack"
     "context"  = "fish-trail"
     "research" = "research-skill-pack"
+    "reflect"  = "fish-reflection-pack"
     "fish-init"      = "project-initializer-skill"
     "fish-core"      = "petfish-companion-skill"
     "fish-course"    = "opencode-course-skills-pack"
@@ -127,6 +128,7 @@ $Aliases = @{
     "fish-calibrate" = "anti-sycophancy-calibration-pack"
     "fish-trail"     = "fish-trail"
     "fish-research"  = "research-skill-pack"
+    "fish-reflect"   = "fish-reflection-pack"
 }
 
 # --- Platform path configuration ---

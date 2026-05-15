@@ -107,7 +107,7 @@ mine → author → lint → audit → gate → optimize → eval
 
 ---
 
-## 11 Skill Packs
+## 12 Skill Packs
 | Alias | Purpose | Scale |
 |---|---|---|
 | `init` | Project initializer and `/initproject` wizard | Global default |
@@ -121,6 +121,7 @@ mine → author → lint → audit → gate → optimize → eval
 | `context` | Topic governance, context isolation, and contamination scoring | Project |
 | `trust` | Skill trust governance and policy checks | Project |
 | `research` | Research workbench — evidence-backed scientific, product, and planning research | Project |
+| `reflect` | Structured reflection — capture what went wrong, why, and corrective actions | Project |
 
 ## Profile → Auto-Install Mapping
 | Profile | Auto-installed Packs |
@@ -133,7 +134,7 @@ mine → author → lint → audit → gate → optimize → eval
 | `research` | `petfish`, `research` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect` |
 
 ---
 
@@ -274,7 +275,8 @@ petfish.ai/
 │   ├── repo-deploy-ops-skill-pack/               # deploy
 │   ├── petfish-style-skill/                      # petfish
 │   ├── opencode-ppt-skills/                      # ppt
-│   └── research-skill-pack/                      # research
+│   ├── research-skill-pack/                      # research
+│   └── fish-reflection-pack/                     # reflect
 ├── platforms.json                                # platform registry
 ├── install.ps1                                   # local PowerShell installer
 ├── install.sh                                    # local shell installer

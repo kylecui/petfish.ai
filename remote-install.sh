@@ -523,6 +523,7 @@ declare -A ALIASES=(
     [calibrate]="anti-sycophancy-calibration-pack"
     [context]="fish-trail"
     [research]="research-skill-pack"
+    [reflect]="fish-reflection-pack"
     [fish-init]="project-initializer-skill"
     [fish-core]="petfish-companion-skill"
     [fish-course]="opencode-course-skills-pack"
@@ -533,8 +534,9 @@ declare -A ALIASES=(
     [fish-calibrate]="anti-sycophancy-calibration-pack"
     [fish-trail]="fish-trail"
     [fish-research]="research-skill-pack"
+    [fish-reflect]="fish-reflection-pack"
 )
-ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack")
+ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack")
 
 # --- Defaults ---
 PACK=""
