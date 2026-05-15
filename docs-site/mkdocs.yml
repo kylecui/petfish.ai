@@ -74,10 +74,28 @@ nav:
       - guides/index.md
       - Companion Gateway: guides/companion-gateway/index.md
       - /petfish Commands: guides/petfish-commands/index.md
+      - Deploy & Ops: guides/deploy/index.md
+      - Research Workbench: guides/research/index.md
+      - Course Development: guides/course/index.md
+      - Other Packs: guides/other-packs/index.md
   - Reference:
       - reference/index.md
-      - Packs: reference/packs/index.md
-      - Skills: reference/skills/index.md
+      - Packs:
+          - reference/packs/index.md
+          - Init: reference/packs/init.md
+          - Companion: reference/packs/companion.md
+          - Deploy: reference/packs/deploy.md
+          - Course: reference/packs/course.md
+          - Research: reference/packs/research.md
+          - PPT: reference/packs/ppt.md
+          - Petfish Style: reference/packs/petfish.md
+          - Calibrate: reference/packs/calibrate.md
+          - Context: reference/packs/context.md
+          - TestDocs: reference/packs/testdocs.md
+          - Trust: reference/packs/trust.md
+          - Reflect: reference/packs/reflect.md
+      - Skills:
+          - reference/skills/index.md
   - Developer:
       - developer/index.md
   - Technical:
