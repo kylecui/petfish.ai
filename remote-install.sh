@@ -158,6 +158,7 @@ write_pack_rules_file() {
         anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;
+        fish-reflection-pack)              l1_name="fish-reflection.md" ;;
         *) return ;;
     esac
 
@@ -1189,7 +1190,7 @@ install_for_platform() {
             local has_l1=false
             if [[ "$platform_name" == "opencode" ]]; then
                 case "$pack_name" in
-                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack)
+                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack)
                         has_l1=true ;;
                 esac
             fi

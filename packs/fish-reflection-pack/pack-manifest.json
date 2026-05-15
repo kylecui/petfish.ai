@@ -12,6 +12,7 @@
   "agents": [],
   "contents": [
     "AGENTS.md",
+    "agents-rules/fish-reflection.md",
     ".opencode/skills/fish-reflection/SKILL.md",
     ".opencode/skills/fish-reflection/references/reflection-card-template.md",
     ".opencode/skills/fish-reflection/references/anti-patterns.md",

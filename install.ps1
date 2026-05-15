@@ -340,6 +340,7 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
         "anti-sycophancy-calibration-pack"   = "anti-sycophancy.md"
         "fish-trail"                         = "fish-trail.md"
         "research-skill-pack"                = "research.md"
+        "fish-reflection-pack"               = "fish-reflection.md"
     }
     $l1Name = $L1Map[$packName]
     if (-not $l1Name) { return }
@@ -554,6 +555,7 @@ function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
         "anti-sycophancy-calibration-pack"   = "anti-sycophancy.md"
         "fish-trail"                         = "fish-trail.md"
         "research-skill-pack"                = "research.md"
+        "fish-reflection-pack"               = "fish-reflection.md"
     }
     if ($L1Map.ContainsKey($packName)) {
         $rulesFile = Join-Path $targetPath ".opencode" "agents-rules" $L1Map[$packName]
@@ -1263,7 +1265,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
             $hasL1 = $false
             if ($platformName -eq "opencode") {
-                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack")
+                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
                 $hasL1 = $L1Packs -contains $packName
             }
 
