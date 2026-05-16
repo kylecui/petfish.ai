@@ -98,8 +98,14 @@ nav:
           - reference/skills/index.md
   - Developer:
       - developer/index.md
+      - Skill Authoring: developer/skill-authoring.md
+      - Quality Gate: developer/quality-gate.md
+      - Contributing: developer/contributing.md
   - Technical:
       - technical/index.md
+      - System Prompt Architecture: technical/sysprompt-design.md
+      - Token Cost Engineering: technical/compaction.md
+      - Companion Gateway Architecture: technical/companion-gateway.md
   - Changelog: changelog.md
 
 markdown_extensions:
