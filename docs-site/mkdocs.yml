@@ -63,6 +63,9 @@ plugins:
             Developer: 开发者
             Technical: 技术文档
             Changelog: 更新日志
+            FAQ: 常见问题
+            Upgrade: 升级指南
+            Platform Support: 平台支持
 
 nav:
   - Home: index.md
@@ -70,6 +73,8 @@ nav:
       - getting-started/index.md
       - Installation: getting-started/installation.md
       - First Run: getting-started/first-run.md
+      - Upgrade: getting-started/upgrade.md
+      - FAQ: getting-started/faq.md
   - Guides:
       - guides/index.md
       - Companion Gateway: guides/companion-gateway/index.md
@@ -96,6 +101,7 @@ nav:
           - Reflect: reference/packs/reflect.md
       - Skills:
           - reference/skills/index.md
+      - Platform Support: reference/platform-support.md
   - Developer:
       - developer/index.md
       - Skill Authoring: developer/skill-authoring.md
