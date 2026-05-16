@@ -1,0 +1,11 @@
+[project]
+name = "petfish-docs"
+version = "0.1.0"
+description = "PEtFiSh documentation site"
+requires-python = ">=3.10"
+dependencies = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocs-static-i18n>=1.2.0",
+    "jieba>=0.42.1",
+]

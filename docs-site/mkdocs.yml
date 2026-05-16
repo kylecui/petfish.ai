@@ -1,0 +1,131 @@
+site_name: PEtFiSh Docs
+site_url: https://kylecui.github.io/petfish.ai/
+site_description: "PEtFiSh — Your AI Companion. From first commit to final delivery."
+repo_url: https://github.com/kylecui/petfish.ai
+repo_name: kylecui/petfish.ai
+
+docs_dir: docs/
+site_dir: site/
+
+theme:
+  name: material
+  language: en
+  logo: assets/petfish-icon-256.png
+  favicon: assets/petfish-icon-256.png
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - navigation.top
+    - navigation.sections
+    - search.highlight
+    - search.suggest
+    - content.tabs.link
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search:
+      separator: '[\s\u200b\-]'
+  - i18n:
+      docs_structure: folder
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+          site_name: "PEtFiSh Docs"
+        - locale: zh
+          name: 中文
+          build: true
+          site_name: "PEtFiSh 文档"
+          nav_translations:
+            Home: 首页
+            Getting Started: 快速开始
+            Guides: 使用指南
+            Reference: 参考文档
+            Packs: 技能包
+            Skills: 技能
+            Developer: 开发者
+            Technical: 技术文档
+            Changelog: 更新日志
+            FAQ: 常见问题
+            Upgrade: 升级指南
+            Platform Support: 平台支持
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - First Run: getting-started/first-run.md
+      - Upgrade: getting-started/upgrade.md
+      - FAQ: getting-started/faq.md
+  - Guides:
+      - guides/index.md
+      - Companion Gateway: guides/companion-gateway/index.md
+      - /petfish Commands: guides/petfish-commands/index.md
+      - Deploy & Ops: guides/deploy/index.md
+      - Research Workbench: guides/research/index.md
+      - Course Development: guides/course/index.md
+      - Other Packs: guides/other-packs/index.md
+  - Reference:
+      - reference/index.md
+      - Packs:
+          - reference/packs/index.md
+          - Init: reference/packs/init.md
+          - Companion: reference/packs/companion.md
+          - Deploy: reference/packs/deploy.md
+          - Course: reference/packs/course.md
+          - Research: reference/packs/research.md
+          - PPT: reference/packs/ppt.md
+          - Petfish Style: reference/packs/petfish.md
+          - Calibrate: reference/packs/calibrate.md
+          - Context: reference/packs/context.md
+          - TestDocs: reference/packs/testdocs.md
+          - Trust: reference/packs/trust.md
+          - Reflect: reference/packs/reflect.md
+      - Skills:
+          - reference/skills/index.md
+      - Platform Support: reference/platform-support.md
+  - Developer:
+      - developer/index.md
+      - Skill Authoring: developer/skill-authoring.md
+      - Quality Gate: developer/quality-gate.md
+      - Contributing: developer/contributing.md
+  - Technical:
+      - technical/index.md
+      - System Prompt Architecture: technical/sysprompt-design.md
+      - Token Cost Engineering: technical/compaction.md
+      - Companion Gateway Architecture: technical/companion-gateway.md
+  - Changelog: changelog.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
