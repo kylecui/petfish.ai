@@ -23,6 +23,8 @@ No Compromise    No sycophancy, standards don't bend
 
 Not a toolbox. A companion. Tools get called. PEtFiSh is always there.
 
+📖 **[Documentation](https://docs.petfish.ai)** — Getting Started, Guides, Pack Reference, Developer Docs
+
 ---
 
 ## Quick Start
