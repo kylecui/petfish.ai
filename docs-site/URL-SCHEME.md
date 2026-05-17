@@ -2,8 +2,8 @@
 
 ## Base URL
 
-- GitHub Pages: `https://kylecui.github.io/petfish.ai/`
-- Future custom domain: `https://docs.petfish.ai/` (Phase 4)
+- Custom domain: `https://docs.petfish.ai/`
+- Legacy URL: `https://kylecui.github.io/petfish.ai/` (auto-redirects to custom domain)
 
 ## Language Routing
 
