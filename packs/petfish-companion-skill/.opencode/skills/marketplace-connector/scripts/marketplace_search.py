@@ -2,7 +2,7 @@
 """
 PEtFiSh Marketplace Connector — Unified skill/MCP search across multiple sources.
 
-Searches: PEtFiSh local catalog → Glama → Smithery → SkillKit → anthropics/skills → GitHub
+Searches: PEtFiSh local catalog → PEtFiSh Market (community) → Glama → Smithery → SkillKit → anthropics/skills → GitHub
 
 Usage:
   uv run marketplace_search.py --query "pdf processing"
@@ -107,6 +107,48 @@ def search_local(query: str, limit: int) -> list[dict]:
                     "type": "skill",
                     "install": f"./install.ps1 -Pack {item['name']}  |  ./install.sh --pack {item['name']}",
                     "url": "",
+                }
+            )
+    return results[:limit]
+
+
+# ---------------------------------------------------------------------------
+# Source: PEtFiSh Market (community skills)
+# ---------------------------------------------------------------------------
+
+PETFISH_MARKET_INDEX_URL = (
+    "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+)
+
+
+def search_petfish_market(query: str, limit: int) -> list[dict]:
+    """Search the PEtFiSh Market community skill index."""
+    data = _http_get(PETFISH_MARKET_INDEX_URL)
+    if not data or "skills" not in data:
+        return []
+
+    q = query.lower()
+    results = []
+    for skill in data["skills"]:
+        searchable = " ".join(
+            str(skill.get(f, ""))
+            for f in ("name", "display_name", "description", "author")
+        ).lower()
+        if q in searchable:
+            repo = skill.get("repo", "")
+            ref = skill.get("ref", "")
+            results.append(
+                {
+                    "source": "petfish-market",
+                    "name": skill.get("display_name", skill.get("name", "")),
+                    "description": skill.get("description", ""),
+                    "type": "skill",
+                    "author": skill.get("author", ""),
+                    "version": skill.get("version", ""),
+                    "license": skill.get("license", ""),
+                    "platforms": skill.get("platforms", []),
+                    "url": f"https://github.com/{repo}" if repo else "",
+                    "install": f"community/{skill.get('name', '')}",
                 }
             )
     return results[:limit]
@@ -277,6 +319,7 @@ def search_github(query: str, limit: int) -> list[dict]:
 
 ALL_SOURCES = {
     "petfish": search_local,
+    "petfish-market": search_petfish_market,
     "glama": search_glama,
     "smithery": search_smithery,
     "skillkit": search_skillkit,
@@ -286,6 +329,7 @@ ALL_SOURCES = {
 
 SOURCE_LABELS = {
     "petfish": "🐟 PEtFiSh (本地)",
+    "petfish-market": "🐟 PEtFiSh Market (社区)",
     "glama": "🌐 Glama (MCP)",
     "smithery": "🔧 Smithery (MCP)",
     "skillkit": "📦 SkillKit",
@@ -371,7 +415,7 @@ def main():
         "-s",
         type=str,
         default="",
-        help="Comma-separated sources: petfish,glama,smithery,skillkit,anthropics,github (default: all)",
+        help="Comma-separated sources: petfish,petfish-market,glama,smithery,skillkit,anthropics,github (default: all)",
     )
     parser.add_argument(
         "--limit", "-l", type=int, default=5, help="Max results per source (default: 5)"

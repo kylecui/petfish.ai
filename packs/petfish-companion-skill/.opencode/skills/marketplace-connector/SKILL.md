@@ -1,8 +1,8 @@
 ---
 name: marketplace-connector
 description: >
-  Search/discover skills and MCP servers across PEtFiSh, Glama, Smithery,
-  SkillKit, anthropics/skills, and GitHub. Use for /petfish search, “find a
+  Search/discover skills and MCP servers across PEtFiSh, PEtFiSh Market (community),
+  Glama, Smithery, SkillKit, anthropics/skills, and GitHub. Use for /petfish search, “find a
   skill for…”, “search marketplace”, “is there a skill that…”, “MCP server
   for…”, “discover tools for…”, or when local capabilities are missing. Returns
   ranked cross-source results plus install/config guidance.
@@ -26,11 +26,12 @@ metadata:
 | 优先级 | 来源 | 类型 | 认证 |
 |--------|------|------|------|
 | 1 | PEtFiSh自有仓库 | Skill pack | 无需 |
-| 2 | Glama (glama.ai) | MCP server | 无需 |
-| 3 | Smithery (smithery.ai) | MCP server | 需API key |
-| 4 | SkillKit (localhost:3737) | Aggregated skills | 无需（本地） |
-| 5 | anthropics/skills | Official Claude skills | 无需 |
-| 6 | GitHub搜索 | SKILL.md repos | 无需（有限速） |
+| 2 | PEtFiSh Market (社区) | Community skill | 无需 |
+| 3 | Glama (glama.ai) | MCP server | 无需 |
+| 4 | Smithery (smithery.ai) | MCP server | 需API key |
+| 5 | SkillKit (localhost:3737) | Aggregated skills | 无需（本地） |
+| 6 | anthropics/skills | Official Claude skills | 无需 |
+| 7 | GitHub搜索 | SKILL.md repos | 无需（有限速） |
 
 ## 3. 搜索流程
 
@@ -93,6 +94,7 @@ uv run .opencode/skills/marketplace-connector/scripts/marketplace_search.py --qu
 | 来源 | 安装方法 |
 |------|---------|
 | PEtFiSh | `./install.ps1 -Pack <alias>` 或 `/petfish install <alias>` |
+| PEtFiSh Market | `community/<skill-name>`（社区技能，手动安装或通过install脚本） |
 | Glama MCP | 配置MCP server连接（提供config snippet） |
 | Smithery MCP | `smithery mcp add <name> --client <platform>` |
 | SkillKit | `skillkit install <source> --agent <platform>` |
