@@ -57,6 +57,8 @@ description: >-
 | `version` | Yes | Semver format (`1.0.0`). |
 | `description` | Yes | Under 500 chars. Must cover ≥80% of body trigger words. |
 
+<a id="activation"></a>
+
 !!! warning "Description is the match surface"
     The agent only reads `description` to decide whether to activate a skill. Trigger phrases in the body are invisible to the matcher. If a keyword isn't in the description, the skill won't fire for that keyword.
 

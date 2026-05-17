@@ -56,6 +56,8 @@ description: >-
 | `version` | 是 | 语义化版本 (Semver) 格式 (`1.0.0`)。 |
 | `description` | 是 | 500 个字符以内。必须覆盖主体中 ≥80% 的触发词。 |
 
+<a id="activation"></a>
+
 !!! warning "Description 是匹配面"
     代理仅读取 `description` 来决定是否激活一个 skill。主体 (body) 中的触发短语对匹配器是不可见的。如果一个关键词不在 description 中，该 skill 将不会因为该关键词而触发。
 
