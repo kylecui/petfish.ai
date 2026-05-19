@@ -1,0 +1,8 @@
+{
+  "active_topic": "topic_database_migration",
+  "topics": {
+    "topic_database_migration": { "title": "Database Migration", "status": "active" },
+    "topic_auth_flow": { "title": "Auth Flow Redesign", "status": "paused" },
+    "topic_ui_redesign": { "title": "UI Component Redesign", "status": "paused" }
+  }
+}

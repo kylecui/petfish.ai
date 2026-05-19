@@ -1,0 +1,6 @@
+{
+  "title": "Database Migration",
+  "scope": "Migrate from MySQL to PostgreSQL, update schema, run data migration scripts",
+  "tags": ["database", "postgres", "migration", "schema"],
+  "summary": "Working on database migration from MySQL to PostgreSQL with zero downtime."
+}
