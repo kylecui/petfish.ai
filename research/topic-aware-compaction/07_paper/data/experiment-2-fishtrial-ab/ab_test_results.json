@@ -1,0 +1,1426 @@
+{
+  "timestamp": "2026-05-11T07:14:44+0800",
+  "model": "github-copilot/claude-sonnet-4",
+  "baseline": {
+    "tokens": {
+      "input": 726474,
+      "output": 130641,
+      "reasoning": 0,
+      "cache_read": 10631340,
+      "cache_write": 0,
+      "total": 857115
+    },
+    "messages": 140,
+    "compactions": 2,
+    "wall_time_s": 2938.2,
+    "errors": [
+      "Message 15 failed: timed out"
+    ],
+    "recall": {
+      "python-setup": "## All Dependencies\n\n### Runtime Dependencies (`[project.dependencies]`)\n\n| Package | Version | Purpose |\n|---|---|---|\n| `click` | >=8.1 | CLI framework (`run`, `validate`, `status` commands) |\n| `httpx` | >=0.27 | Async HTTP client (used in pipeline, health checks) |\n| `prometheus-client` | >=0.21 | Metrics exposition (histograms, counters, gauges, custom collectors) |\n| `pydantic` | >=2.0 | Data validation for config and models |\n| `pydantic-settings` | >=2.0 | Settings management from env va",
+      "database": "\n\n## Tables (7)\n\n| Table | PK | Tenant-scoped | Purpose |\n|---|---|---|---|\n| `tenants` | `id uuid` | No (root table) | Tenant registry with name, slug, plan (free/pro/enterprise), active flag |\n| `users` | `id uuid` | Yes (`tenant_id` FK) | Users with email, display_name, role (admin/member/viewer), unique `(tenant_id, email)` |\n| `projects` | `id uuid` | Yes (`tenant_id` FK) | Projects with owner (`users.id`, ON DELETE RESTRICT), status (active/paused/archived) |\n| `tasks` | `id uuid` | Yes (`",
+      "cicd": "\n\n## Workflow 1: `ci.yml` — CI/CD Pipeline\n\nTriggers: push to `main`, `v*` tags, PRs against `main`.\n\n```\nlint ──→ test ──→ integration-test ──→ build-and-push ──┬──→ deploy-staging\n                                                        │     (main only)\n                                                        └──→ approve-production ──→ deploy-production\n                                                              (v* tags only)         (v* tags only)\n\n                         notify-failure ("
+    },
+    "session_id": "ses_1ec1c0c67ffedFkOcb7x0kjHp2",
+    "peak_context_window": 151285,
+    "per_message_tokens": [
+      {
+        "input": 30336,
+        "output": 925,
+        "cache_read": 0,
+        "effective_ctx": 30336
+      },
+      {
+        "input": 4951,
+        "output": 111,
+        "cache_read": 30333,
+        "effective_ctx": 35284
+      },
+      {
+        "input": 798,
+        "output": 336,
+        "cache_read": 35283,
+        "effective_ctx": 36081
+      },
+      {
+        "input": 1143,
+        "output": 1320,
+        "cache_read": 36080,
+        "effective_ctx": 37223
+      },
+      {
+        "input": 1407,
+        "output": 828,
+        "cache_read": 37222,
+        "effective_ctx": 38629
+      },
+      {
+        "input": 1928,
+        "output": 139,
+        "cache_read": 38626,
+        "effective_ctx": 40554
+      },
+      {
+        "input": 847,
+        "output": 177,
+        "cache_read": 40398,
+        "effective_ctx": 41245
+      },
+      {
+        "input": 757,
+        "output": 14,
+        "cache_read": 41244,
+        "effective_ctx": 42001
+      },
+      {
+        "input": 132,
+        "output": 932,
+        "cache_read": 42000,
+        "effective_ctx": 42132
+      },
+      {
+        "input": 10830,
+        "output": 141,
+        "cache_read": 42129,
+        "effective_ctx": 52959
+      },
+      {
+        "input": 870,
+        "output": 4066,
+        "cache_read": 52799,
+        "effective_ctx": 53669
+      },
+      {
+        "input": 4158,
+        "output": 608,
+        "cache_read": 53668,
+        "effective_ctx": 57826
+      },
+      {
+        "input": 6384,
+        "output": 4153,
+        "cache_read": 57823,
+        "effective_ctx": 64207
+      },
+      {
+        "input": 4305,
+        "output": 303,
+        "cache_read": 64206,
+        "effective_ctx": 68511
+      },
+      {
+        "input": 5151,
+        "output": 49,
+        "cache_read": 64206,
+        "effective_ctx": 69357
+      },
+      {
+        "input": 260,
+        "output": 681,
+        "cache_read": 69204,
+        "effective_ctx": 69464
+      },
+      {
+        "input": 5830,
+        "output": 126,
+        "cache_read": 69461,
+        "effective_ctx": 75291
+      },
+      {
+        "input": 195,
+        "output": 6059,
+        "cache_read": 75290,
+        "effective_ctx": 75485
+      },
+      {
+        "input": 6152,
+        "output": 375,
+        "cache_read": 75484,
+        "effective_ctx": 81636
+      },
+      {
+        "input": 8030,
+        "output": 3633,
+        "cache_read": 81633,
+        "effective_ctx": 89663
+      },
+      {
+        "input": 3702,
+        "output": 369,
+        "cache_read": 89662,
+        "effective_ctx": 93364
+      },
+      {
+        "input": 9876,
+        "output": 8494,
+        "cache_read": 93361,
+        "effective_ctx": 103237
+      },
+      {
+        "input": 8561,
+        "output": 331,
+        "cache_read": 103236,
+        "effective_ctx": 111797
+      },
+      {
+        "input": 5592,
+        "output": 10425,
+        "cache_read": 111794,
+        "effective_ctx": 117386
+      },
+      {
+        "input": 10502,
+        "output": 376,
+        "cache_read": 117385,
+        "effective_ctx": 127887
+      },
+      {
+        "input": 9324,
+        "output": 8177,
+        "cache_read": 127884,
+        "effective_ctx": 137208
+      },
+      {
+        "input": 8282,
+        "output": 216,
+        "cache_read": 137207,
+        "effective_ctx": 145489
+      },
+      {
+        "input": 5799,
+        "output": 5063,
+        "cache_read": 145486,
+        "effective_ctx": 151285
+      },
+      {
+        "input": 127619,
+        "output": 2918,
+        "cache_read": 0,
+        "effective_ctx": 127619
+      },
+      {
+        "input": 3274,
+        "output": 215,
+        "cache_read": 29801,
+        "effective_ctx": 33075
+      },
+      {
+        "input": 288,
+        "output": 331,
+        "cache_read": 33072,
+        "effective_ctx": 33360
+      },
+      {
+        "input": 525,
+        "output": 259,
+        "cache_read": 33357,
+        "effective_ctx": 33882
+      },
+      {
+        "input": 442,
+        "output": 47,
+        "cache_read": 33881,
+        "effective_ctx": 34323
+      },
+      {
+        "input": 122,
+        "output": 409,
+        "cache_read": 34322,
+        "effective_ctx": 34444
+      },
+      {
+        "input": 640,
+        "output": 696,
+        "cache_read": 34441,
+        "effective_ctx": 35081
+      },
+      {
+        "input": 1681,
+        "output": 283,
+        "cache_read": 35080,
+        "effective_ctx": 36761
+      },
+      {
+        "input": 495,
+        "output": 83,
+        "cache_read": 36760,
+        "effective_ctx": 37255
+      },
+      {
+        "input": 132,
+        "output": 79,
+        "cache_read": 37254,
+        "effective_ctx": 37386
+      },
+      {
+        "input": 198,
+        "output": 145,
+        "cache_read": 37385,
+        "effective_ctx": 37583
+      },
+      {
+        "input": 326,
+        "output": 217,
+        "cache_read": 37582,
+        "effective_ctx": 37908
+      },
+      {
+        "input": 525,
+        "output": 473,
+        "cache_read": 37907,
+        "effective_ctx": 38432
+      },
+      {
+        "input": 15771,
+        "output": 562,
+        "cache_read": 38431,
+        "effective_ctx": 54202
+      },
+      {
+        "input": 8556,
+        "output": 138,
+        "cache_read": 54201,
+        "effective_ctx": 62757
+      },
+      {
+        "input": 239,
+        "output": 162,
+        "cache_read": 62756,
+        "effective_ctx": 62995
+      },
+      {
+        "input": 416,
+        "output": 331,
+        "cache_read": 62994,
+        "effective_ctx": 63410
+      },
+      {
+        "input": 6382,
+        "output": 202,
+        "cache_read": 63409,
+        "effective_ctx": 69791
+      },
+      {
+        "input": 527,
+        "output": 219,
+        "cache_read": 69790,
+        "effective_ctx": 70317
+      },
+      {
+        "input": 456,
+        "output": 758,
+        "cache_read": 70316,
+        "effective_ctx": 70772
+      },
+      {
+        "input": 844,
+        "output": 234,
+        "cache_read": 70771,
+        "effective_ctx": 71615
+      },
+      {
+        "input": 5529,
+        "output": 403,
+        "cache_read": 71612,
+        "effective_ctx": 77141
+      },
+      {
+        "input": 751,
+        "output": 862,
+        "cache_read": 77140,
+        "effective_ctx": 77891
+      },
+      {
+        "input": 1488,
+        "output": 152,
+        "cache_read": 77888,
+        "effective_ctx": 79376
+      },
+      {
+        "input": 179,
+        "output": 164,
+        "cache_read": 79375,
+        "effective_ctx": 79554
+      },
+      {
+        "input": 191,
+        "output": 116,
+        "cache_read": 79553,
+        "effective_ctx": 79744
+      },
+      {
+        "input": 143,
+        "output": 101,
+        "cache_read": 79743,
+        "effective_ctx": 79886
+      },
+      {
+        "input": 580,
+        "output": 132,
+        "cache_read": 79885,
+        "effective_ctx": 80465
+      },
+      {
+        "input": 206,
+        "output": 203,
+        "cache_read": 80464,
+        "effective_ctx": 80670
+      },
+      {
+        "input": 1062,
+        "output": 68,
+        "cache_read": 80669,
+        "effective_ctx": 81731
+      },
+      {
+        "input": 141,
+        "output": 152,
+        "cache_read": 81730,
+        "effective_ctx": 81871
+      },
+      {
+        "input": 1013,
+        "output": 184,
+        "cache_read": 81868,
+        "effective_ctx": 82881
+      },
+      {
+        "input": 897,
+        "output": 83,
+        "cache_read": 82880,
+        "effective_ctx": 83777
+      },
+      {
+        "input": 157,
+        "output": 153,
+        "cache_read": 83776,
+        "effective_ctx": 83933
+      },
+      {
+        "input": 2495,
+        "output": 151,
+        "cache_read": 83932,
+        "effective_ctx": 86427
+      },
+      {
+        "input": 8157,
+        "output": 194,
+        "cache_read": 86426,
+        "effective_ctx": 94583
+      },
+      {
+        "input": 448,
+        "output": 234,
+        "cache_read": 94582,
+        "effective_ctx": 95030
+      },
+      {
+        "input": 472,
+        "output": 2576,
+        "cache_read": 95029,
+        "effective_ctx": 95501
+      },
+      {
+        "input": 98815,
+        "output": 239,
+        "cache_read": 0,
+        "effective_ctx": 98815
+      },
+      {
+        "input": 6727,
+        "output": 193,
+        "cache_read": 98814,
+        "effective_ctx": 105541
+      },
+      {
+        "input": 6898,
+        "output": 180,
+        "cache_read": 105540,
+        "effective_ctx": 112438
+      },
+      {
+        "input": 2140,
+        "output": 6164,
+        "cache_read": 112437,
+        "effective_ctx": 114577
+      },
+      {
+        "input": 9331,
+        "output": 500,
+        "cache_read": 114576,
+        "effective_ctx": 123907
+      },
+      {
+        "input": 1730,
+        "output": 177,
+        "cache_read": 123723,
+        "effective_ctx": 125453
+      },
+      {
+        "input": 785,
+        "output": 155,
+        "cache_read": 125452,
+        "effective_ctx": 126237
+      },
+      {
+        "input": 1339,
+        "output": 138,
+        "cache_read": 126236,
+        "effective_ctx": 127575
+      },
+      {
+        "input": 209,
+        "output": 152,
+        "cache_read": 127574,
+        "effective_ctx": 127783
+      },
+      {
+        "input": 357,
+        "output": 5061,
+        "cache_read": 127782,
+        "effective_ctx": 128139
+      },
+      {
+        "input": 9102,
+        "output": 372,
+        "cache_read": 128138,
+        "effective_ctx": 137240
+      },
+      {
+        "input": 554,
+        "output": 332,
+        "cache_read": 137239,
+        "effective_ctx": 137793
+      },
+      {
+        "input": 348,
+        "output": 382,
+        "cache_read": 137792,
+        "effective_ctx": 138140
+      },
+      {
+        "input": 398,
+        "output": 431,
+        "cache_read": 138139,
+        "effective_ctx": 138537
+      },
+      {
+        "input": 447,
+        "output": 173,
+        "cache_read": 138536,
+        "effective_ctx": 138983
+      },
+      {
+        "input": 353,
+        "output": 215,
+        "cache_read": 138982,
+        "effective_ctx": 139335
+      },
+      {
+        "input": 476,
+        "output": 419,
+        "cache_read": 139334,
+        "effective_ctx": 139810
+      },
+      {
+        "input": 482,
+        "output": 547,
+        "cache_read": 139809,
+        "effective_ctx": 140291
+      },
+      {
+        "input": 2794,
+        "output": 295,
+        "cache_read": 140288,
+        "effective_ctx": 143082
+      },
+      {
+        "input": 2924,
+        "output": 99,
+        "cache_read": 143081,
+        "effective_ctx": 146005
+      },
+      {
+        "input": 383,
+        "output": 189,
+        "cache_read": 146004,
+        "effective_ctx": 146387
+      },
+      {
+        "input": 355,
+        "output": 1780,
+        "cache_read": 146386,
+        "effective_ctx": 146741
+      },
+      {
+        "input": 122255,
+        "output": 3564,
+        "cache_read": 0,
+        "effective_ctx": 122255
+      },
+      {
+        "input": 3920,
+        "output": 349,
+        "cache_read": 29801,
+        "effective_ctx": 33721
+      },
+      {
+        "input": 3737,
+        "output": 140,
+        "cache_read": 33718,
+        "effective_ctx": 37455
+      },
+      {
+        "input": 265,
+        "output": 4759,
+        "cache_read": 37454,
+        "effective_ctx": 37719
+      },
+      {
+        "input": 8746,
+        "output": 513,
+        "cache_read": 37718,
+        "effective_ctx": 46464
+      },
+      {
+        "input": 644,
+        "output": 147,
+        "cache_read": 46463,
+        "effective_ctx": 47107
+      },
+      {
+        "input": 247,
+        "output": 166,
+        "cache_read": 46991,
+        "effective_ctx": 47238
+      },
+      {
+        "input": 182,
+        "output": 414,
+        "cache_read": 47237,
+        "effective_ctx": 47419
+      },
+      {
+        "input": 430,
+        "output": 173,
+        "cache_read": 47418,
+        "effective_ctx": 47848
+      },
+      {
+        "input": 478,
+        "output": 159,
+        "cache_read": 47847,
+        "effective_ctx": 48325
+      },
+      {
+        "input": 390,
+        "output": 213,
+        "cache_read": 48324,
+        "effective_ctx": 48714
+      },
+      {
+        "input": 229,
+        "output": 112,
+        "cache_read": 48713,
+        "effective_ctx": 48942
+      },
+      {
+        "input": 252,
+        "output": 152,
+        "cache_read": 48941,
+        "effective_ctx": 49193
+      },
+      {
+        "input": 279,
+        "output": 262,
+        "cache_read": 49192,
+        "effective_ctx": 49471
+      },
+      {
+        "input": 342,
+        "output": 606,
+        "cache_read": 49470,
+        "effective_ctx": 49812
+      },
+      {
+        "input": 798,
+        "output": 396,
+        "cache_read": 49809,
+        "effective_ctx": 50607
+      },
+      {
+        "input": 588,
+        "output": 145,
+        "cache_read": 50606,
+        "effective_ctx": 51194
+      },
+      {
+        "input": 343,
+        "output": 258,
+        "cache_read": 51193,
+        "effective_ctx": 51536
+      },
+      {
+        "input": 3764,
+        "output": 108,
+        "cache_read": 51535,
+        "effective_ctx": 55299
+      },
+      {
+        "input": 1219,
+        "output": 137,
+        "cache_read": 55298,
+        "effective_ctx": 56517
+      },
+      {
+        "input": 964,
+        "output": 123,
+        "cache_read": 56516,
+        "effective_ctx": 57480
+      },
+      {
+        "input": 845,
+        "output": 221,
+        "cache_read": 57479,
+        "effective_ctx": 58324
+      },
+      {
+        "input": 305,
+        "output": 26,
+        "cache_read": 58323,
+        "effective_ctx": 58628
+      },
+      {
+        "input": 63,
+        "output": 1469,
+        "cache_read": 58627,
+        "effective_ctx": 58690
+      },
+      {
+        "input": 1599,
+        "output": 308,
+        "cache_read": 58687,
+        "effective_ctx": 60286
+      },
+      {
+        "input": 509,
+        "output": 265,
+        "cache_read": 60283,
+        "effective_ctx": 60792
+      },
+      {
+        "input": 461,
+        "output": 245,
+        "cache_read": 60791,
+        "effective_ctx": 61252
+      },
+      {
+        "input": 424,
+        "output": 269,
+        "cache_read": 61251,
+        "effective_ctx": 61675
+      },
+      {
+        "input": 7294,
+        "output": 99,
+        "cache_read": 61674,
+        "effective_ctx": 68968
+      },
+      {
+        "input": 168,
+        "output": 62,
+        "cache_read": 68967,
+        "effective_ctx": 69135
+      },
+      {
+        "input": 130,
+        "output": 59,
+        "cache_read": 69134,
+        "effective_ctx": 69264
+      },
+      {
+        "input": 121,
+        "output": 3437,
+        "cache_read": 69263,
+        "effective_ctx": 69384
+      },
+      {
+        "input": 3724,
+        "output": 161,
+        "cache_read": 69383,
+        "effective_ctx": 73107
+      },
+      {
+        "input": 14071,
+        "output": 167,
+        "cache_read": 69383,
+        "effective_ctx": 83454
+      },
+      {
+        "input": 367,
+        "output": 121,
+        "cache_read": 83453,
+        "effective_ctx": 83820
+      },
+      {
+        "input": 148,
+        "output": 640,
+        "cache_read": 83819,
+        "effective_ctx": 83967
+      },
+      {
+        "input": 2115,
+        "output": 2194,
+        "cache_read": 83966,
+        "effective_ctx": 86081
+      },
+      {
+        "input": 6663,
+        "output": 195,
+        "cache_read": 86080,
+        "effective_ctx": 92743
+      },
+      {
+        "input": 374,
+        "output": 5876,
+        "cache_read": 92742,
+        "effective_ctx": 93116
+      },
+      {
+        "input": 9444,
+        "output": 248,
+        "cache_read": 93115,
+        "effective_ctx": 102559
+      },
+      {
+        "input": 264,
+        "output": 299,
+        "cache_read": 102558,
+        "effective_ctx": 102822
+      },
+      {
+        "input": 462,
+        "output": 182,
+        "cache_read": 102821,
+        "effective_ctx": 103283
+      },
+      {
+        "input": 357,
+        "output": 816,
+        "cache_read": 103282,
+        "effective_ctx": 103639
+      },
+      {
+        "input": 943,
+        "output": 376,
+        "cache_read": 103638,
+        "effective_ctx": 104581
+      },
+      {
+        "input": 1545,
+        "output": 464,
+        "cache_read": 104578,
+        "effective_ctx": 106123
+      },
+      {
+        "input": 4799,
+        "output": 495,
+        "cache_read": 106122,
+        "effective_ctx": 110921
+      },
+      {
+        "input": 4481,
+        "output": 356,
+        "cache_read": 110920,
+        "effective_ctx": 115401
+      },
+      {
+        "input": 11131,
+        "output": 4552,
+        "cache_read": 115400,
+        "effective_ctx": 126531
+      },
+      {
+        "input": 4671,
+        "output": 86,
+        "cache_read": 126530,
+        "effective_ctx": 131201
+      },
+      {
+        "input": 725,
+        "output": 735,
+        "cache_read": 131198,
+        "effective_ctx": 131923
+      },
+      {
+        "input": 760,
+        "output": 1001,
+        "cache_read": 131922,
+        "effective_ctx": 132682
+      },
+      {
+        "input": 1023,
+        "output": 1012,
+        "cache_read": 132679,
+        "effective_ctx": 133702
+      }
+    ]
+  },
+  "plugin": {
+    "tokens": {
+      "input": 576050,
+      "output": 107472,
+      "reasoning": 0,
+      "cache_read": 5330527,
+      "cache_write": 0,
+      "total": 683522
+    },
+    "messages": 89,
+    "compactions": 2,
+    "wall_time_s": 1780.9,
+    "errors": [],
+    "recall": {
+      "python-setup": "### Production Dependencies (11)\n\n| Package | Version Constraint | Purpose |\n|---------|-------------------|---------|\n| `click` | >=8.1 | CLI framework (`cli.py` run/validate/status commands) |\n| `fastapi` | >=0.115 | Web framework (app factory, routers, middleware) |\n| `httpx` | >=0.27 | Async HTTP client (used by tests/health checks) |\n| `psycopg[binary,pool]` | >=3.2 | PostgreSQL driver with `AsyncConnectionPool` — extras: `binary` (C bindings), `pool` (connection pooling) |\n| `pydantic` | >",
+      "database": "### Tables (7)\n\n| Table | PK | Key Columns |\n|-------|-----|------------|\n| **tenants** | `id` UUID | `name`, `slug` (UNIQUE), `created_at` |\n| **users** | `id` UUID | `tenant_id` FK→tenants, `email`, `name`, `role` CHECK(owner/admin/member), UNIQUE(tenant_id, email) |\n| **projects** | `id` UUID | `tenant_id` FK→tenants, `name`, `created_by` FK→users, `created_at` |\n| **tasks** | `id` UUID | `tenant_id` FK→tenants, `project_id` FK→projects, `title`, `status` CHECK(todo/in_progress/done), `assign",
+      "cicd": "\n\n### CI/CD Pipeline (`.github/workflows/ci.yml`)\n\n**Triggers**: push to `main`, push of `v*` tags, PRs to `main`\n\n| Stage | Depends On | Trigger Condition | What It Does |\n|-------|-----------|-------------------|--------------|\n| **lint** | — | always | `ruff check` + `ruff format --check` |\n| **test** | lint | always | `pytest --tb=short -q` |\n| **build-and-push** | test | push only (not PRs) | Docker build → push to GHCR with sha/semver/latest tags |\n| **deploy-staging** | build-and-push | `"
+    },
+    "session_id": "ses_1ebef373effep40l3j3QyKBx7q",
+    "peak_context_window": 148017,
+    "per_message_tokens": [
+      {
+        "input": 30336,
+        "output": 345,
+        "cache_read": 0,
+        "effective_ctx": 30336
+      },
+      {
+        "input": 533,
+        "output": 221,
+        "cache_read": 30333,
+        "effective_ctx": 30866
+      },
+      {
+        "input": 1941,
+        "output": 115,
+        "cache_read": 30865,
+        "effective_ctx": 32806
+      },
+      {
+        "input": 431,
+        "output": 944,
+        "cache_read": 32805,
+        "effective_ctx": 33236
+      },
+      {
+        "input": 1031,
+        "output": 331,
+        "cache_read": 33235,
+        "effective_ctx": 34266
+      },
+      {
+        "input": 525,
+        "output": 212,
+        "cache_read": 34263,
+        "effective_ctx": 34788
+      },
+      {
+        "input": 298,
+        "output": 148,
+        "cache_read": 34787,
+        "effective_ctx": 35085
+      },
+      {
+        "input": 3103,
+        "output": 2956,
+        "cache_read": 35084,
+        "effective_ctx": 38187
+      },
+      {
+        "input": 3116,
+        "output": 45,
+        "cache_read": 38186,
+        "effective_ctx": 41302
+      },
+      {
+        "input": 3248,
+        "output": 411,
+        "cache_read": 38186,
+        "effective_ctx": 41434
+      },
+      {
+        "input": 7207,
+        "output": 3779,
+        "cache_read": 41431,
+        "effective_ctx": 48638
+      },
+      {
+        "input": 3871,
+        "output": 3711,
+        "cache_read": 48637,
+        "effective_ctx": 52508
+      },
+      {
+        "input": 3801,
+        "output": 270,
+        "cache_read": 52505,
+        "effective_ctx": 56306
+      },
+      {
+        "input": 357,
+        "output": 152,
+        "cache_read": 56303,
+        "effective_ctx": 56660
+      },
+      {
+        "input": 2274,
+        "output": 4832,
+        "cache_read": 56659,
+        "effective_ctx": 58933
+      },
+      {
+        "input": 4925,
+        "output": 229,
+        "cache_read": 58932,
+        "effective_ctx": 63857
+      },
+      {
+        "input": 6792,
+        "output": 2856,
+        "cache_read": 63854,
+        "effective_ctx": 70646
+      },
+      {
+        "input": 2989,
+        "output": 26,
+        "cache_read": 70645,
+        "effective_ctx": 73634
+      },
+      {
+        "input": 3052,
+        "output": 121,
+        "cache_read": 70645,
+        "effective_ctx": 73697
+      },
+      {
+        "input": 3082,
+        "output": 7735,
+        "cache_read": 73694,
+        "effective_ctx": 76776
+      },
+      {
+        "input": 7802,
+        "output": 232,
+        "cache_read": 76775,
+        "effective_ctx": 84577
+      },
+      {
+        "input": 4978,
+        "output": 9092,
+        "cache_read": 84574,
+        "effective_ctx": 89552
+      },
+      {
+        "input": 9169,
+        "output": 150,
+        "cache_read": 89551,
+        "effective_ctx": 98720
+      },
+      {
+        "input": 2720,
+        "output": 6581,
+        "cache_read": 98717,
+        "effective_ctx": 101437
+      },
+      {
+        "input": 6686,
+        "output": 3882,
+        "cache_read": 101436,
+        "effective_ctx": 108122
+      },
+      {
+        "input": 3958,
+        "output": 119,
+        "cache_read": 108119,
+        "effective_ctx": 112077
+      },
+      {
+        "input": 371,
+        "output": 11337,
+        "cache_read": 112074,
+        "effective_ctx": 112445
+      },
+      {
+        "input": 11412,
+        "output": 239,
+        "cache_read": 112444,
+        "effective_ctx": 123856
+      },
+      {
+        "input": 5445,
+        "output": 12592,
+        "cache_read": 123853,
+        "effective_ctx": 129298
+      },
+      {
+        "input": 12678,
+        "output": 212,
+        "cache_read": 129297,
+        "effective_ctx": 141975
+      },
+      {
+        "input": 2850,
+        "output": 7552,
+        "cache_read": 141972,
+        "effective_ctx": 144822
+      },
+      {
+        "input": 122899,
+        "output": 2962,
+        "cache_read": 0,
+        "effective_ctx": 122899
+      },
+      {
+        "input": 3318,
+        "output": 206,
+        "cache_read": 29801,
+        "effective_ctx": 33119
+      },
+      {
+        "input": 555,
+        "output": 357,
+        "cache_read": 33116,
+        "effective_ctx": 33671
+      },
+      {
+        "input": 540,
+        "output": 350,
+        "cache_read": 33668,
+        "effective_ctx": 34208
+      },
+      {
+        "input": 535,
+        "output": 277,
+        "cache_read": 34207,
+        "effective_ctx": 34742
+      },
+      {
+        "input": 469,
+        "output": 15,
+        "cache_read": 34741,
+        "effective_ctx": 35210
+      },
+      {
+        "input": 88,
+        "output": 374,
+        "cache_read": 35209,
+        "effective_ctx": 35297
+      },
+      {
+        "input": 555,
+        "output": 273,
+        "cache_read": 35294,
+        "effective_ctx": 35849
+      },
+      {
+        "input": 462,
+        "output": 14,
+        "cache_read": 35848,
+        "effective_ctx": 36310
+      },
+      {
+        "input": 165,
+        "output": 433,
+        "cache_read": 36309,
+        "effective_ctx": 36474
+      },
+      {
+        "input": 619,
+        "output": 352,
+        "cache_read": 36471,
+        "effective_ctx": 37090
+      },
+      {
+        "input": 543,
+        "output": 83,
+        "cache_read": 37089,
+        "effective_ctx": 37632
+      },
+      {
+        "input": 2194,
+        "output": 118,
+        "cache_read": 37631,
+        "effective_ctx": 39825
+      },
+      {
+        "input": 3258,
+        "output": 109,
+        "cache_read": 39824,
+        "effective_ctx": 43082
+      },
+      {
+        "input": 856,
+        "output": 89,
+        "cache_read": 43081,
+        "effective_ctx": 43937
+      },
+      {
+        "input": 1099,
+        "output": 233,
+        "cache_read": 43936,
+        "effective_ctx": 45035
+      },
+      {
+        "input": 1736,
+        "output": 140,
+        "cache_read": 45034,
+        "effective_ctx": 46770
+      },
+      {
+        "input": 809,
+        "output": 89,
+        "cache_read": 46769,
+        "effective_ctx": 47578
+      },
+      {
+        "input": 5406,
+        "output": 135,
+        "cache_read": 47577,
+        "effective_ctx": 52983
+      },
+      {
+        "input": 304,
+        "output": 356,
+        "cache_read": 52982,
+        "effective_ctx": 53286
+      },
+      {
+        "input": 510,
+        "output": 61,
+        "cache_read": 53285,
+        "effective_ctx": 53795
+      },
+      {
+        "input": 6109,
+        "output": 84,
+        "cache_read": 53285,
+        "effective_ctx": 59394
+      },
+      {
+        "input": 147,
+        "output": 267,
+        "cache_read": 59393,
+        "effective_ctx": 59540
+      },
+      {
+        "input": 4188,
+        "output": 202,
+        "cache_read": 59537,
+        "effective_ctx": 63725
+      },
+      {
+        "input": 1763,
+        "output": 127,
+        "cache_read": 63724,
+        "effective_ctx": 65487
+      },
+      {
+        "input": 252,
+        "output": 87,
+        "cache_read": 65486,
+        "effective_ctx": 65738
+      },
+      {
+        "input": 186,
+        "output": 314,
+        "cache_read": 65737,
+        "effective_ctx": 65923
+      },
+      {
+        "input": 9396,
+        "output": 416,
+        "cache_read": 65922,
+        "effective_ctx": 75318
+      },
+      {
+        "input": 496,
+        "output": 195,
+        "cache_read": 75317,
+        "effective_ctx": 75813
+      },
+      {
+        "input": 449,
+        "output": 198,
+        "cache_read": 75810,
+        "effective_ctx": 76259
+      },
+      {
+        "input": 8536,
+        "output": 196,
+        "cache_read": 76258,
+        "effective_ctx": 84794
+      },
+      {
+        "input": 366,
+        "output": 127,
+        "cache_read": 84793,
+        "effective_ctx": 85159
+      },
+      {
+        "input": 8193,
+        "output": 320,
+        "cache_read": 85003,
+        "effective_ctx": 93196
+      },
+      {
+        "input": 3720,
+        "output": 431,
+        "cache_read": 93195,
+        "effective_ctx": 96915
+      },
+      {
+        "input": 468,
+        "output": 125,
+        "cache_read": 96914,
+        "effective_ctx": 97382
+      },
+      {
+        "input": 5506,
+        "output": 96,
+        "cache_read": 97379,
+        "effective_ctx": 102885
+      },
+      {
+        "input": 5476,
+        "output": 281,
+        "cache_read": 102884,
+        "effective_ctx": 108360
+      },
+      {
+        "input": 19719,
+        "output": 180,
+        "cache_read": 108359,
+        "effective_ctx": 128078
+      },
+      {
+        "input": 2167,
+        "output": 1531,
+        "cache_read": 128077,
+        "effective_ctx": 130244
+      },
+      {
+        "input": 1686,
+        "output": 61,
+        "cache_read": 130243,
+        "effective_ctx": 131929
+      },
+      {
+        "input": 17774,
+        "output": 145,
+        "cache_read": 130243,
+        "effective_ctx": 148017
+      },
+      {
+        "input": 118687,
+        "output": 2747,
+        "cache_read": 0,
+        "effective_ctx": 118687
+      },
+      {
+        "input": 3425,
+        "output": 348,
+        "cache_read": 29801,
+        "effective_ctx": 33226
+      },
+      {
+        "input": 3838,
+        "output": 305,
+        "cache_read": 29801,
+        "effective_ctx": 33639
+      },
+      {
+        "input": 491,
+        "output": 227,
+        "cache_read": 33636,
+        "effective_ctx": 34127
+      },
+      {
+        "input": 407,
+        "output": 235,
+        "cache_read": 34126,
+        "effective_ctx": 34533
+      },
+      {
+        "input": 427,
+        "output": 352,
+        "cache_read": 34532,
+        "effective_ctx": 34959
+      },
+      {
+        "input": 9671,
+        "output": 228,
+        "cache_read": 34958,
+        "effective_ctx": 44629
+      },
+      {
+        "input": 937,
+        "output": 164,
+        "cache_read": 44628,
+        "effective_ctx": 45565
+      },
+      {
+        "input": 407,
+        "output": 2557,
+        "cache_read": 45564,
+        "effective_ctx": 45971
+      },
+      {
+        "input": 2684,
+        "output": 220,
+        "cache_read": 45970,
+        "effective_ctx": 48654
+      },
+      {
+        "input": 1332,
+        "output": 956,
+        "cache_read": 48651,
+        "effective_ctx": 49983
+      },
+      {
+        "input": 33308,
+        "output": 151,
+        "cache_read": 29801,
+        "effective_ctx": 63109
+      },
+      {
+        "input": 629,
+        "output": 3150,
+        "cache_read": 63108,
+        "effective_ctx": 63737
+      },
+      {
+        "input": 3269,
+        "output": 86,
+        "cache_read": 63736,
+        "effective_ctx": 67005
+      },
+      {
+        "input": 663,
+        "output": 571,
+        "cache_read": 67002,
+        "effective_ctx": 67665
+      },
+      {
+        "input": 596,
+        "output": 761,
+        "cache_read": 67664,
+        "effective_ctx": 68260
+      },
+      {
+        "input": 781,
+        "output": 578,
+        "cache_read": 68257,
+        "effective_ctx": 69038
+      }
+    ]
+  }
+}
