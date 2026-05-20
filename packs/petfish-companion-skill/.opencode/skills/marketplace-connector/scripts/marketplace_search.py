@@ -113,6 +113,45 @@ def search_local(query: str, limit: int) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Source: PEtFiSh Community Registry (curated packs in main repo)
+# ---------------------------------------------------------------------------
+
+COMMUNITY_REGISTRY_URL = (
+    "https://raw.githubusercontent.com/kylecui/petfish.ai/master/community-packs.json"
+)
+
+
+def search_community_registry(query: str, limit: int) -> list[dict]:
+    """Search the curated community-packs.json registry in the main repo."""
+    data = _http_get(COMMUNITY_REGISTRY_URL)
+    if not data or "packs" not in data:
+        return []
+
+    q = query.lower()
+    results = []
+    for pack in data["packs"]:
+        searchable = " ".join(
+            str(pack.get(f, "")) for f in ("name", "description", "author", "repo")
+        ).lower()
+        if q in searchable:
+            repo = pack.get("repo", "")
+            results.append(
+                {
+                    "source": "community",
+                    "name": pack.get("name", ""),
+                    "description": pack.get("description", ""),
+                    "type": "skill",
+                    "author": pack.get("author", ""),
+                    "verified": pack.get("verified", False),
+                    "min_version": pack.get("min_version", ""),
+                    "url": f"https://github.com/{repo}" if repo else "",
+                    "install": f"remote-install.sh --community {repo}" if repo else "",
+                }
+            )
+    return results[:limit]
+
+
+# ---------------------------------------------------------------------------
 # Source: PEtFiSh Market (community skills)
 # ---------------------------------------------------------------------------
 
@@ -319,6 +358,7 @@ def search_github(query: str, limit: int) -> list[dict]:
 
 ALL_SOURCES = {
     "petfish": search_local,
+    "community": search_community_registry,
     "petfish-market": search_petfish_market,
     "glama": search_glama,
     "smithery": search_smithery,
@@ -329,6 +369,7 @@ ALL_SOURCES = {
 
 SOURCE_LABELS = {
     "petfish": "🐟 PEtFiSh (本地)",
+    "community": "🐟 PEtFiSh Community (注册表)",
     "petfish-market": "🐟 PEtFiSh Market (社区)",
     "glama": "🌐 Glama (MCP)",
     "smithery": "🔧 Smithery (MCP)",
@@ -415,7 +456,7 @@ def main():
         "-s",
         type=str,
         default="",
-        help="Comma-separated sources: petfish,petfish-market,glama,smithery,skillkit,anthropics,github (default: all)",
+        help="Comma-separated sources: petfish,community,petfish-market,glama,smithery,skillkit,anthropics,github (default: all)",
     )
     parser.add_argument(
         "--limit", "-l", type=int, default=5, help="Max results per source (default: 5)"
