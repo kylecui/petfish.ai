@@ -11,6 +11,7 @@ param(
     [switch]$List,
     [switch]$Global,
     [switch]$Uninstall,
+    [switch]$TrustScan,
     [string]$Repo = "kylecui/petfish.ai",
     [string]$Branch = "master",
     [string]$GitHubToken
@@ -893,7 +894,250 @@ function Convert-OpencodeExampleToClaudeSettings([string]$srcFile, [string]$dstF
     return "created"
 }
 
+# --- Community pack support ---
+$script:CommunityStagingDir = ""
+
+function Test-CommunityPack([string]$name) {
+    return $name -like "community/*"
+}
+
+function Parse-CommunitySpec([string]$spec) {
+    # Strip leading "community/"
+    $remainder = $spec.Substring("community/".Length)
+    $parts = $remainder -split '/', 3
+    $owner = $parts[0]
+    $repo = if ($parts.Length -ge 2) { $parts[1] } else { "" }
+    $ref = if ($parts.Length -ge 3) { $parts[2] } else { "" }
+    return @{ Owner = $owner; Repo = $repo; Ref = $ref }
+}
+
+function Download-CommunityPack([string]$spec) {
+    $parsed = Parse-CommunitySpec $spec
+    $owner = $parsed.Owner
+    $repo = $parsed.Repo
+    $ref = $parsed.Ref
+
+    if (-not $owner -or -not $repo) {
+        Write-Error "Invalid community pack spec '$spec'. Expected: community/<owner>/<repo>[/<ref>]"
+        exit 1
+    }
+
+    $packDirName = "community--${owner}--${repo}"
+
+    # Create staging dir (once per install run)
+    if (-not $script:CommunityStagingDir -or -not (Test-Path $script:CommunityStagingDir)) {
+        $script:CommunityStagingDir = Join-Path ([System.IO.Path]::GetTempPath()) "petfish-community-$([System.IO.Path]::GetRandomFileName())"
+        New-Item -ItemType Directory -Path $script:CommunityStagingDir -Force | Out-Null
+    }
+
+    $stagedPack = Join-Path $script:CommunityStagingDir $packDirName
+    if (Test-Path $stagedPack) {
+        # Already downloaded in this run
+        return $packDirName
+    }
+
+    $githubRef = if ($ref) { $ref } else { "main" }
+    $tarballUrl = "https://github.com/${owner}/${repo}/archive/refs/heads/${githubRef}.tar.gz"
+
+    Write-Host "  [community] Downloading ${owner}/${repo} (ref: ${githubRef})..." -ForegroundColor Cyan
+
+    $dlTmp = Join-Path ([System.IO.Path]::GetTempPath()) "petfish-dl-$([System.IO.Path]::GetRandomFileName())"
+    New-Item -ItemType Directory -Path $dlTmp -Force | Out-Null
+
+    $dlOk = $false
+    $archivePath = Join-Path $dlTmp "archive.tar.gz"
+
+    # Try tarball download with Invoke-WebRequest (retry up to 3 times for rate limits)
+    $headers = @{}
+    $token = if ($GitHubToken) { $GitHubToken } elseif ($env:GITHUB_TOKEN) { $env:GITHUB_TOKEN } else { $null }
+    if ($token) { $headers["Authorization"] = "token $token" }
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        try {
+            Invoke-WebRequest -Uri $tarballUrl -OutFile $archivePath -Headers $headers -UseBasicParsing -ErrorAction Stop
+            $dlOk = $true
+            break
+        } catch {
+            $statusCode = $null
+            if ($_.Exception.Response) { $statusCode = [int]$_.Exception.Response.StatusCode }
+            if ($statusCode -in @(429, 403) -and $attempt -lt 3) {
+                $wait = [math]::Pow(2, $attempt)
+                Write-Host "  [community] Rate limited (HTTP $statusCode), retrying in ${wait}s... (attempt $attempt/3)" -ForegroundColor Yellow
+                Start-Sleep -Seconds $wait
+            } else {
+                break
+            }
+        }
+    }
+
+    if ($dlOk) {
+        # Extract tarball using tar (available on Windows 10+)
+        try {
+            tar -xzf $archivePath -C $dlTmp 2>$null
+            $extracted = Get-ChildItem -Path $dlTmp -Directory | Where-Object { $_.Name -ne "archive.tar.gz" } | Select-Object -First 1
+            if (-not $extracted) {
+                Write-Error "Failed to extract community pack tarball for ${owner}/${repo}"
+                Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+                exit 1
+            }
+            Move-Item -Path $extracted.FullName -Destination $stagedPack -Force
+        } catch {
+            $dlOk = $false
+        }
+    }
+
+    if (-not $dlOk) {
+        # Fall back to git clone
+        $gitCmd = Get-Command git -ErrorAction SilentlyContinue
+        if (-not $gitCmd) {
+            Write-Error "Cannot download community pack ${owner}/${repo}. Neither tarball download nor git clone available."
+            Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+            exit 1
+        }
+        Write-Host "  [community] Tarball download failed, falling back to git clone..." -ForegroundColor Yellow
+        $cloneUrl = "https://github.com/${owner}/${repo}.git"
+        $token = if ($GitHubToken) { $GitHubToken } elseif ($env:GITHUB_TOKEN) { $env:GITHUB_TOKEN } else { $null }
+        if ($token) { $cloneUrl = "https://${token}@github.com/${owner}/${repo}.git" }
+        $cloneArgs = @("clone", "--depth", "1")
+        if ($ref) { $cloneArgs += @("--branch", $ref) }
+        $cloneArgs += @($cloneUrl, $stagedPack)
+        $cloneOk = $false
+        for ($attempt = 1; $attempt -le 3; $attempt++) {
+            & git @cloneArgs 2>$null
+            if ($LASTEXITCODE -eq 0) { $cloneOk = $true; break }
+            if ($attempt -lt 3) {
+                $wait = [math]::Pow(2, $attempt)
+                Write-Host "  [community] git clone failed, retrying in ${wait}s... (attempt $attempt/3)" -ForegroundColor Yellow
+                Start-Sleep -Seconds $wait
+                Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+        if (-not $cloneOk) {
+            Write-Error "Failed to clone community pack ${owner}/${repo}"
+            Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+            exit 1
+        }
+    }
+    Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+
+    # Validate: must have .opencode/ with at least skills/ or commands/ or agents/
+    $stagedOpencode = Join-Path $stagedPack ".opencode"
+    if (-not (Test-Path $stagedOpencode)) {
+        Write-Error "Community pack ${owner}/${repo} has no .opencode/ directory. Not a valid skill pack."
+        Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+        exit 1
+    }
+
+    $hasContent = $false
+    if (Test-Path (Join-Path $stagedOpencode "skills")) { $hasContent = $true }
+    if (Test-Path (Join-Path $stagedOpencode "commands")) { $hasContent = $true }
+    if (Test-Path (Join-Path $stagedOpencode "agents")) { $hasContent = $true }
+    if (-not $hasContent) {
+        Write-Error "Community pack ${owner}/${repo} .opencode/ has no skills/, commands/, or agents/. Not a valid skill pack."
+        Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+        exit 1
+    }
+
+    # Generate a minimal pack-manifest.json if missing
+    $manifestPath = Join-Path $stagedPack "pack-manifest.json"
+    if (-not (Test-Path $manifestPath)) {
+        python3 -c "
+import json, os, sys
+
+pack_dir = sys.argv[1]
+owner = sys.argv[2]
+repo = sys.argv[3]
+opencode_dir = os.path.join(pack_dir, '.opencode')
+skills = []
+commands = []
+agents = []
+skills_dir = os.path.join(opencode_dir, 'skills')
+if os.path.isdir(skills_dir):
+    skills = [d for d in os.listdir(skills_dir) if os.path.isdir(os.path.join(skills_dir, d))]
+commands_dir = os.path.join(opencode_dir, 'commands')
+if os.path.isdir(commands_dir):
+    commands = [d for d in os.listdir(commands_dir)]
+agents_dir = os.path.join(opencode_dir, 'agents')
+if os.path.isdir(agents_dir):
+    agents = [d for d in os.listdir(agents_dir) if os.path.isdir(os.path.join(agents_dir, d))]
+
+manifest = {
+    'name': f'community/{owner}/{repo}',
+    'version': '0.0.0',
+    'description': f'Community skill pack from {owner}/{repo}',
+    'skills': sorted(skills),
+    'commands': sorted(commands),
+    'agents': sorted(agents)
+}
+with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+    f.write(chr(10))
+" "$stagedPack" "$owner" "$repo"
+        Write-Host "  [community] Generated pack-manifest.json" -ForegroundColor DarkCyan
+    }
+
+    # Trust scan (if requested)
+    if ($TrustScan) {
+        $skillsDir = Join-Path $stagedPack ".opencode" "skills"
+        if (Test-Path $skillsDir) {
+            $trustScript = $null
+            $candidates = @(
+                (Join-Path $env:USERPROFILE ".opencode" "skills" "skill-trust-governance" "scripts" "trust_scan.py"),
+                (Join-Path "." ".opencode" "skills" "skill-trust-governance" "scripts" "trust_scan.py")
+            )
+            foreach ($c in $candidates) {
+                if (Test-Path $c) { $trustScript = $c; break }
+            }
+            if ($trustScript) {
+                Write-Host "  [trust] Running trust scan on $owner/$repo ..." -ForegroundColor DarkCyan
+                try {
+                    $scanOutput = & uv run python $trustScript --root $skillsDir --json 2>&1
+                    $scanJson = $scanOutput | Where-Object { $_ -is [string] } | Out-String
+                    $maxRisk = python3 -c "
+import json, sys
+try:
+    data = json.loads(sys.argv[1])
+    scores = []
+    if isinstance(data, list):
+        for item in data:
+            if 'risk_score' in item:
+                scores.append(float(item['risk_score']))
+    elif isinstance(data, dict):
+        for v in data.values():
+            if isinstance(v, dict) and 'risk_score' in v:
+                scores.append(float(v['risk_score']))
+    print(max(scores) if scores else '0.0')
+except Exception:
+    print('0.0')
+" "$scanJson"
+                    $riskFloat = [double]$maxRisk
+                    if ($riskFloat -gt 0.5) {
+                        Write-Error "[trust] BLOCKED: Community pack $owner/$repo has risk score $maxRisk (threshold: 0.5). Use without -TrustScan to skip check."
+                        Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+                        exit 1
+                    }
+                    Write-Host "  [trust] Passed (max risk: $maxRisk)" -ForegroundColor Green
+                } catch {
+                    Write-Warning "[trust] Trust scan failed: $_. Proceeding without trust verification."
+                }
+            } else {
+                Write-Warning "[trust] trust_scan.py not found. Install the 'trust' pack for trust scanning. Proceeding without verification."
+            }
+        }
+    }
+
+    return $packDirName
+}
+
+function Remove-CommunityStagingDir {
+    if ($script:CommunityStagingDir -and (Test-Path $script:CommunityStagingDir)) {
+        Remove-Item -Path $script:CommunityStagingDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Resolve-PackName([string]$name) {
+    if (Test-CommunityPack $name) {
+        return (Download-CommunityPack $name)
+    }
     if ($Aliases.ContainsKey($name)) { return $Aliases[$name] }
     if ($AllPacks -contains $name) { return $name }
     Write-Error "Unknown pack: '$name'. Use -List to see available packs, or -Pack all."
@@ -906,6 +1150,11 @@ function Show-PackList {
     foreach ($packInfo in $PackDisplayOrder) {
         Write-Host "  $($packInfo.Name) (alias: $($packInfo.Alias))"
     }
+    Write-Host ""
+    Write-Host "Community packs:" -ForegroundColor Cyan
+    Write-Host "  community/<owner>/<repo>[/<ref>]          Install from any GitHub repo"
+    Write-Host "  Example: -Pack community/myorg/my-skills"
+    Write-Host "  Example: -Pack community/myorg/my-skills/v1.0.0"
     Write-Host ""
 }
 
@@ -935,7 +1184,14 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
     $script:skipped = 0
 
     foreach ($packName in $packs) {
-        $packOpencode = Join-Path (Join-Path $packsDir $packName) ".opencode"
+        # Resolve pack root: community packs live in staging dir, official packs in packsDir
+        $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
+            Join-Path $script:CommunityStagingDir $packName
+        } else {
+            Join-Path $packsDir $packName
+        }
+
+        $packOpencode = Join-Path $packRoot ".opencode"
         if (-not (Test-Path $packOpencode)) {
             Write-Warning "Pack '$packName' has no .opencode/ directory. Skipping."
             continue
@@ -943,7 +1199,6 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
 
         Write-Host "`n  Installing pack: $packName" -ForegroundColor Green
 
-        $packRoot = Join-Path $packsDir $packName
         $manifestFile = Join-Path $packRoot "pack-manifest.json"
         $forceThisPack = $ForceInstall
 
@@ -1192,7 +1447,14 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
     $script:skipped = 0
 
     foreach ($packName in $packs) {
-        $packOpencode = Join-Path (Join-Path $packsDir $packName) ".opencode"
+        # Resolve pack root: community packs live in staging dir, official packs in packsDir
+        $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
+            Join-Path $script:CommunityStagingDir $packName
+        } else {
+            Join-Path $packsDir $packName
+        }
+
+        $packOpencode = Join-Path $packRoot ".opencode"
         if (-not (Test-Path $packOpencode)) {
             Write-Warning "Pack '$packName' has no .opencode/ directory. Skipping."
             continue
@@ -1200,7 +1462,6 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
 
         Write-Host "`n  Installing pack: $packName" -ForegroundColor Green
 
-        $packRoot = Join-Path $packsDir $packName
         $manifestFile = Join-Path $packRoot "pack-manifest.json"
         $forceThisPack = $ForceInstall
 
@@ -1381,6 +1642,7 @@ try {
     }
 }
 finally {
+    Remove-CommunityStagingDir
     if (Test-Path $tmpDir) {
         Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
     }

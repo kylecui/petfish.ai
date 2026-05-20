@@ -539,6 +539,246 @@ declare -A ALIASES=(
 )
 ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack")
 
+# --- Community pack support ---
+is_community_pack() {
+    [[ "$1" == community/* ]]
+}
+
+parse_community_spec() {
+    local spec="$1"
+    local remainder="${spec#community/}"
+    local owner="${remainder%%/*}"
+    local repo="${remainder#*/}"
+    local ref=""
+    if [[ "$repo" == */* ]]; then
+        ref="${repo#*/}"
+        repo="${repo%%/*}"
+    fi
+    echo "$owner" "$repo" "$ref"
+}
+
+# Download a community skill from GitHub and stage it under $TMPDIR
+# Usage: download_community_pack "community/owner/repo[/ref]"
+# Echoes the pack_dir_name on success
+download_community_pack() {
+    local spec="$1"
+    local owner repo ref
+    read -r owner repo ref <<< "$(parse_community_spec "$spec")"
+
+    if [[ -z "$owner" || -z "$repo" ]]; then
+        echo "Error: Invalid community pack spec '$spec'. Expected: community/<owner>/<repo>[/<ref>]" >&2
+        exit 1
+    fi
+
+    local pack_dir_name="community--${owner}--${repo}"
+    local staged_pack="$COMMUNITY_STAGING/$pack_dir_name"
+
+    if [[ -d "$staged_pack" ]]; then
+        echo "$pack_dir_name"
+        return 0
+    fi
+
+    local github_ref="${ref:-main}"
+    local tarball_url="https://github.com/${owner}/${repo}/archive/refs/heads/${github_ref}.tar.gz"
+
+    echo "  [community] Downloading ${owner}/${repo} (ref: ${github_ref})..."
+
+    local dl_tmp
+    dl_tmp="$(mktemp -d)"
+
+    # Try tarball download first (retry up to 3 times for rate limits), fall back to git clone
+    local dl_ok=false
+    if command -v curl &>/dev/null; then
+        local http_code
+        for attempt in 1 2 3; do
+            http_code="$(curl -fsSL -w '%{http_code}' -o "$dl_tmp/archive.tar.gz" \
+                ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
+                "$tarball_url" 2>/dev/null)" || true
+            if [[ "$http_code" == "200" && -f "$dl_tmp/archive.tar.gz" ]]; then
+                dl_ok=true
+                break
+            fi
+            if [[ "$http_code" == "429" || "$http_code" == "403" ]] && [[ $attempt -lt 3 ]]; then
+                local wait=$((2 ** attempt))
+                echo "  [community] Rate limited (HTTP $http_code), retrying in ${wait}s... (attempt $attempt/3)"
+                sleep "$wait"
+                rm -f "$dl_tmp/archive.tar.gz"
+            else
+                break
+            fi
+        done
+    fi
+
+    if ! $dl_ok && command -v wget &>/dev/null; then
+        for attempt in 1 2 3; do
+            wget -q ${GITHUB_TOKEN:+--header="Authorization: token $GITHUB_TOKEN"} \
+                -O "$dl_tmp/archive.tar.gz" "$tarball_url" 2>/dev/null && dl_ok=true && break || true
+            if [[ $attempt -lt 3 ]]; then
+                local wait=$((2 ** attempt))
+                echo "  [community] wget download failed, retrying in ${wait}s... (attempt $attempt/3)"
+                sleep "$wait"
+                rm -f "$dl_tmp/archive.tar.gz"
+            fi
+        done
+    fi
+
+    if $dl_ok; then
+        tar -xzf "$dl_tmp/archive.tar.gz" -C "$dl_tmp" 2>/dev/null
+        local extracted
+        extracted="$(find "$dl_tmp" -mindepth 1 -maxdepth 1 -type d ! -name "*.tar.gz" | head -1)"
+        if [[ -z "$extracted" ]]; then
+            echo "Error: Failed to extract community pack tarball for ${owner}/${repo}" >&2
+            rm -rf "$dl_tmp"
+            exit 1
+        fi
+        mv "$extracted" "$staged_pack"
+    else
+        if ! command -v git &>/dev/null; then
+            echo "Error: Cannot download community pack ${owner}/${repo}. Neither curl/wget tarball download nor git clone available." >&2
+            rm -rf "$dl_tmp"
+            exit 1
+        fi
+        echo "  [community] Tarball download failed, falling back to git clone..."
+        local clone_url="https://github.com/${owner}/${repo}.git"
+        if [[ -n "$GITHUB_TOKEN" ]]; then
+            clone_url="https://${GITHUB_TOKEN}@github.com/${owner}/${repo}.git"
+        fi
+        local clone_ok=false
+        for attempt in 1 2 3; do
+            git clone --depth 1 ${ref:+--branch "$ref"} "$clone_url" "$staged_pack" 2>/dev/null && clone_ok=true && break
+            if [[ $attempt -lt 3 ]]; then
+                local wait=$((2 ** attempt))
+                echo "  [community] git clone failed, retrying in ${wait}s... (attempt $attempt/3)"
+                sleep "$wait"
+                rm -rf "$staged_pack"
+            fi
+        done
+        if ! $clone_ok; then
+            echo "Error: Failed to clone community pack ${owner}/${repo}" >&2
+            rm -rf "$dl_tmp"
+            exit 1
+        fi
+    fi
+    rm -rf "$dl_tmp"
+
+    # Validate: must have .opencode/ with at least skills/ or commands/ or agents/
+    if [[ ! -d "$staged_pack/.opencode" ]]; then
+        echo "Error: Community pack ${owner}/${repo} has no .opencode/ directory. Not a valid skill pack." >&2
+        rm -rf "$staged_pack"
+        exit 1
+    fi
+
+    local has_content=false
+    [[ -d "$staged_pack/.opencode/skills" ]] && has_content=true
+    [[ -d "$staged_pack/.opencode/commands" ]] && has_content=true
+    [[ -d "$staged_pack/.opencode/agents" ]] && has_content=true
+    if ! $has_content; then
+        echo "Error: Community pack ${owner}/${repo} .opencode/ has no skills/, commands/, or agents/. Not a valid skill pack." >&2
+        rm -rf "$staged_pack"
+        exit 1
+    fi
+
+    # Generate a minimal pack-manifest.json if missing
+    if [[ ! -f "$staged_pack/pack-manifest.json" ]]; then
+        python3 -c "
+import json, os, sys
+
+pack_dir = sys.argv[1]
+owner = sys.argv[2]
+repo = sys.argv[3]
+opencode_dir = os.path.join(pack_dir, '.opencode')
+skills = []
+commands = []
+agents = []
+skills_dir = os.path.join(opencode_dir, 'skills')
+if os.path.isdir(skills_dir):
+    skills = [d for d in os.listdir(skills_dir) if os.path.isdir(os.path.join(skills_dir, d))]
+commands_dir = os.path.join(opencode_dir, 'commands')
+if os.path.isdir(commands_dir):
+    commands = [d for d in os.listdir(commands_dir)]
+agents_dir = os.path.join(opencode_dir, 'agents')
+if os.path.isdir(agents_dir):
+    agents = [d for d in os.listdir(agents_dir) if os.path.isdir(os.path.join(agents_dir, d))]
+
+manifest = {
+    'name': f'community/{owner}/{repo}',
+    'version': '0.0.0',
+    'description': f'Community skill pack from {owner}/{repo}',
+    'skills': sorted(skills),
+    'commands': sorted(commands),
+    'agents': sorted(agents)
+}
+with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+    f.write(chr(10))
+" "$staged_pack" "$owner" "$repo"
+        echo "  [community] Generated pack-manifest.json"
+    fi
+
+    # --- Trust scan (if --trust-scan flag is set) ---
+    if $TRUST_SCAN; then
+        if [[ -d "$staged_pack/.opencode/skills" ]]; then
+            echo "  [community] Running trust scan on $owner/$repo ..."
+            local trust_script=""
+            # Look for trust_scan.py in the installer's repo cache or known location
+            # The script is bundled with the trustskills-governance-pack
+            local trust_candidates=(
+                "$HOME/.opencode/skills/skill-trust-governance/scripts/trust_scan.py"
+                ".opencode/skills/skill-trust-governance/scripts/trust_scan.py"
+            )
+            for candidate in "${trust_candidates[@]}"; do
+                if [[ -f "$candidate" ]]; then
+                    trust_script="$candidate"
+                    break
+                fi
+            done
+
+            if [[ -z "$trust_script" ]]; then
+                echo "  [community] ⚠ trust_scan.py not found. Install the 'trust' pack for security scanning." >&2
+                echo "  [community] Skipping trust scan (script unavailable)." >&2
+            elif ! command -v uv &>/dev/null; then
+                echo "  [community] ⚠ uv not found. Trust scan requires uv to run." >&2
+                echo "  [community] Skipping trust scan (uv unavailable)." >&2
+            else
+                local scan_output
+                scan_output=$(uv run python "$trust_script" --root "$staged_pack/.opencode/skills" --json 2>&1)
+                local scan_exit=$?
+
+                # Parse JSON output for risk score
+                local max_risk
+                max_risk=$(echo "$scan_output" | python3 -c "
+import sys, json
+try:
+    data = json.loads(sys.stdin.read())
+    if isinstance(data, list):
+        risks = [r.get('risk_score', 0) for r in data]
+        print(max(risks) if risks else 0)
+    elif isinstance(data, dict):
+        print(data.get('risk_score', 0))
+    else:
+        print(0)
+except:
+    print(-1)
+" 2>/dev/null)
+
+                if [[ "$max_risk" == "-1" ]]; then
+                    echo "  [community] ⚠ Trust scan output could not be parsed. Proceeding with caution." >&2
+                elif python3 -c "import sys; sys.exit(0 if float('$max_risk') > 0.5 else 1)" 2>/dev/null; then
+                    echo "  [community] ❌ Trust scan FAILED — risk score $max_risk exceeds threshold (0.5)." >&2
+                    echo "  [community] Pack $owner/$repo is blocked. Review scan output:" >&2
+                    echo "$scan_output" | head -20 >&2
+                    rm -rf "$staged_pack"
+                    exit 1
+                else
+                    echo "  [community] ✅ Trust scan passed (max risk: $max_risk)"
+                fi
+            fi
+        fi
+    fi
+
+    echo "$pack_dir_name"
+}
+
 # --- Defaults ---
 PACK=""
 TARGET="."
@@ -550,6 +790,7 @@ FORCE=false
 LIST=false
 GLOBAL=false
 UNINSTALL=false
+TRUST_SCAN=false
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do
@@ -567,6 +808,7 @@ while [[ $# -gt 0 ]]; do
         --detect)   DETECT=true; shift ;;
         --force)    FORCE=true; shift ;;
         --global)   GLOBAL=true; shift ;;
+        --trust-scan) TRUST_SCAN=true; shift ;;
         --list)     LIST=true; shift ;;
         --repo)     REPO="$2"; shift 2 ;;
         --branch)   BRANCH="$2"; BRANCH_OVERRIDE=true; shift 2 ;;
@@ -577,6 +819,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --pack <name|all>       Pack to install (course, testdocs, deploy, petfish, companion, ppt, init, trust, or all)"
+            echo "                          Community packs: community/<owner>/<repo>[/<ref>]"
             echo "  --target <path>         Target project directory (default: ., ignored with --global)"
             echo "  --platform <platform>   Target platform: opencode, claude, codex, cursor, copilot, windsurf, antigravity, universal"
             echo "                          Or group: all, primary, ide, cli"
@@ -584,6 +827,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --force                 Overwrite existing skills"
             echo "  --global                Install skills to the global platform skills directory"
             echo "  --uninstall             Not supported remotely — use the local installer"
+            echo "  --trust-scan            Run security trust scan on community packs before install (requires uv)"
             echo "  --list                  List available packs"
             echo "  --repo <owner/repo>     Override GitHub repo (default: $REPO)"
             echo "  --branch <branch>       Override branch (default: $BRANCH)"
@@ -654,6 +898,11 @@ if $LIST; then
     echo "  fish-trail                               (aliases: context, fish-trail)"
     echo "  research-skill-pack                      (aliases: research, fish-research)"
     echo ""
+    echo "Community packs:"
+    echo "  community/<owner>/<repo>[/<ref>]          Install from any GitHub repo"
+    echo "  Example: --pack community/myorg/my-skills"
+    echo "  Example: --pack community/myorg/my-skills/v1.0.0"
+    echo ""
     exit 0
 fi
 
@@ -666,6 +915,11 @@ fi
 # --- Resolve pack names ---
 resolve_pack() {
     local name="$1"
+    # Community packs pass through directly
+    if is_community_pack "$name"; then
+        echo "$name"
+        return
+    fi
     if [[ -n "${ALIASES[$name]+x}" ]]; then
         echo "${ALIASES[$name]}"
     else
@@ -675,12 +929,13 @@ resolve_pack() {
                 return
             fi
         done
-        echo "Unknown pack: '$name'. Available: course, testdocs, deploy, petfish, companion, ppt, init, trust, all" >&2
+        echo "Unknown pack: '$name'. Available: course, testdocs, deploy, petfish, companion, ppt, init, trust, all, or community/<owner>/<repo>[/<ref>]" >&2
         exit 1
     fi
 }
 
 INSTALLS_INIT=false
+declare -A COMMUNITY_PACK_DIRS  # Maps community spec -> local dir name
 if [[ "$PACK" == "all" ]]; then
     PACKS=("${ALL_PACKS[@]}")
 else
@@ -691,7 +946,17 @@ else
         if [[ "$_item" == "init" || "$_item" == "project-initializer-skill" ]]; then
             INSTALLS_INIT=true
         fi
-        PACKS+=("$(resolve_pack "$_item")")
+        local_resolved="$(resolve_pack "$_item")"
+        # Download community packs during resolution
+        if is_community_pack "$local_resolved"; then
+            local_dir_name="$(download_community_pack "$local_resolved" "$COMMUNITY_STAGING")"
+            if [[ -z "$local_dir_name" ]]; then
+                echo "Error: failed to download community pack '$local_resolved'" >&2
+                exit 1
+            fi
+            COMMUNITY_PACK_DIRS["$local_resolved"]="$local_dir_name"
+        fi
+        PACKS+=("$local_resolved")
     done
 fi
 
@@ -709,6 +974,8 @@ fi
 # --- Download tarball ---
 TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
+COMMUNITY_STAGING="$TMPDIR/community-staging"
+mkdir -p "$COMMUNITY_STAGING"
 
 TARBALL_URL="https://github.com/$REPO/tarball/$BRANCH"
 AUTH_HEADER=""
@@ -717,11 +984,30 @@ if [[ -n "${GITHUB_TOKEN:-}" ]]; then
 fi
 
 echo "Downloading $REPO@$BRANCH..."
-if [[ -n "$AUTH_HEADER" ]]; then
-    curl -fsSL -H "$AUTH_HEADER" "$TARBALL_URL" | tar xz -C "$TMPDIR"
-else
-    curl -fsSL "$TARBALL_URL" | tar xz -C "$TMPDIR"
+local dl_success=false
+for attempt in 1 2 3; do
+    if [[ -n "$AUTH_HEADER" ]]; then
+        http_code="$(curl -fsSL -w '%{http_code}' -H "$AUTH_HEADER" -o "$TMPDIR/repo.tar.gz" "$TARBALL_URL" 2>/dev/null)" || true
+    else
+        http_code="$(curl -fsSL -w '%{http_code}' -o "$TMPDIR/repo.tar.gz" "$TARBALL_URL" 2>/dev/null)" || true
+    fi
+    if [[ "$http_code" == "200" && -f "$TMPDIR/repo.tar.gz" ]]; then
+        tar xz -C "$TMPDIR" < "$TMPDIR/repo.tar.gz" && dl_success=true && break
+    fi
+    if [[ "$http_code" == "429" || "$http_code" == "403" ]] && [[ $attempt -lt 3 ]]; then
+        local wait=$((2 ** attempt))
+        echo "Rate limited (HTTP $http_code), retrying in ${wait}s... (attempt $attempt/3)"
+        sleep "$wait"
+        rm -f "$TMPDIR/repo.tar.gz"
+    else
+        break
+    fi
+done
+if ! $dl_success; then
+    echo "Error: Failed to download $REPO tarball (HTTP $http_code)" >&2
+    exit 1
 fi
+rm -f "$TMPDIR/repo.tar.gz"
 
 # GitHub tarballs extract into <owner>-<repo>-<sha>/
 EXTRACT_DIR="$(find "$TMPDIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
@@ -1140,7 +1426,12 @@ install_for_platform() {
     local skipped=0
 
     for pack_name in "${pack_list[@]}"; do
-        local pack_root="$PACKS_DIR/$pack_name"
+        local pack_root
+        if is_community_pack "$pack_name" && [[ -n "${COMMUNITY_PACK_DIRS[$pack_name]+x}" ]]; then
+            pack_root="$COMMUNITY_STAGING/${COMMUNITY_PACK_DIRS[$pack_name]}"
+        else
+            pack_root="$PACKS_DIR/$pack_name"
+        fi
         local pack_opencode="$pack_root/.opencode"
         if [[ ! -d "$pack_opencode" ]]; then
             echo "    WARN: Pack '$pack_name' has no .opencode/ directory. Skipping."
@@ -1434,8 +1725,13 @@ install_global_for_platform() {
     local skipped=0
 
     for pack_name in "${pack_list[@]}"; do
-        local pack_opencode="$PACKS_DIR/$pack_name/.opencode"
-        local pack_root="$PACKS_DIR/$pack_name"
+        local pack_root
+        if is_community_pack "$pack_name" && [[ -n "${COMMUNITY_PACK_DIRS[$pack_name]+x}" ]]; then
+            pack_root="$COMMUNITY_STAGING/${COMMUNITY_PACK_DIRS[$pack_name]}"
+        else
+            pack_root="$PACKS_DIR/$pack_name"
+        fi
+        local pack_opencode="$pack_root/.opencode"
         local manifest_file="$pack_root/pack-manifest.json"
         if [[ ! -d "$pack_opencode" ]]; then
             echo "    WARN: Pack '$pack_name' has no .opencode/ directory. Skipping."
