@@ -48,6 +48,16 @@ try:
 except ImportError:
     _HAS_SCRIPTS = False
 
+# Optional: Tiered Memory v2 modules
+try:
+    from topic_registry_v2 import TopicRegistryV2  # noqa: E402
+    from memory_pressure_monitor import MemoryPressureMonitor  # noqa: E402
+    from memory_context import MemoryContextProvider  # noqa: E402
+
+    _HAS_MEMORY_V2 = True
+except ImportError:
+    _HAS_MEMORY_V2 = False
+
 
 # ---------------------------------------------------------------------------
 # Minimal MCP server over stdio (LSP base protocol framing)
@@ -634,6 +644,31 @@ TOOLS = [
             "properties": {},
         },
     },
+    {
+        "name": "get_memory_context",
+        "description": "Get tiered memory context for the current conversation. Returns hot/warm/cold topic summaries with budget-aware token allocation.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "current_topic_id": {
+                    "description": "Active topic ID to prioritize (optional, uses most recent if omitted)",
+                    "type": "string",
+                },
+                "include_warm": {
+                    "description": "Include warm-tier topic summaries (default: true)",
+                    "type": "boolean",
+                },
+                "include_cold_summaries": {
+                    "description": "Include cold-tier one-line summaries (default: true)",
+                    "type": "boolean",
+                },
+                "budget_tokens": {
+                    "description": "Max tokens for memory context (default: uses pressure monitor allocation)",
+                    "type": "integer",
+                },
+            },
+        },
+    },
 ]
 
 
@@ -664,6 +699,18 @@ class ContextStateServer:
         self.scorer = ContaminationScorer()
         self.builder = ContextBuilder(base_dir)
         self.sessions = SessionStore(base_dir)
+
+        # Optional: Tiered Memory v2
+        self._memory_context: Optional["MemoryContextProvider"] = None
+        if _HAS_MEMORY_V2:
+            try:
+                registry_v2 = TopicRegistryV2(base_dir)
+                pressure_monitor = MemoryPressureMonitor()
+                self._memory_context = MemoryContextProvider(
+                    registry=registry_v2, pressure_monitor=pressure_monitor
+                )
+            except Exception:
+                pass  # Graceful degradation if v2 init fails
 
         self._handlers = {}  # type: Dict[str, Callable]
         self._register_handlers()
@@ -725,6 +772,9 @@ class ContextStateServer:
             h["topic_route"] = self._handle_topic_route
             h["topic_report"] = self._handle_topic_report
             h["topic_validate"] = self._handle_topic_validate
+        # Tiered Memory v2
+        if self._memory_context is not None:
+            h["get_memory_context"] = self._handle_get_memory_context
 
     # -- JSON-RPC dispatch --------------------------------------------------
 
@@ -1111,6 +1161,19 @@ class ContextStateServer:
     def _handle_topic_validate(self, args: Dict[str, Any]) -> Dict[str, Any]:
         validator = TopicValidator(self.store.base_dir)
         return validator.validate()
+
+    # -- Tiered Memory v2 ---------------------------------------------------
+
+    def _handle_get_memory_context(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Return tiered memory context with budget-aware allocation."""
+        assert self._memory_context is not None
+        result = self._memory_context.get_memory_context(
+            current_topic_id=args.get("current_topic_id"),
+            include_warm=args.get("include_warm", True),
+            include_cold_summaries=args.get("include_cold_summaries", True),
+            budget_tokens=args.get("budget_tokens"),
+        )
+        return result.to_dict()
 
     # -- Helpers ------------------------------------------------------------
 
