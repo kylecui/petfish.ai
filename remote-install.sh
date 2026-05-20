@@ -715,6 +715,39 @@ with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') a
         echo "  [community] Generated pack-manifest.json"
     fi
 
+    # --- Version compatibility check ---
+    local manifest_file="$staged_pack/pack-manifest.json"
+    if [[ -f "$manifest_file" ]]; then
+        local min_version
+        min_version=$(python3 -c "
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        m = json.load(f)
+    print(m.get('min_petfish_version', ''))
+except Exception:
+    print('')
+" "$manifest_file" 2>/dev/null)
+        if [[ -n "$min_version" && -n "$BRANCH" ]]; then
+            local current_ver="${BRANCH#v}"
+            local required_ver="${min_version#v}"
+            local is_compatible
+            is_compatible=$(python3 -c "
+import sys
+def parse_ver(s):
+    parts = s.split('.')
+    return tuple(int(x) for x in parts[:3] if x.isdigit())
+cur = parse_ver(sys.argv[1])
+req = parse_ver(sys.argv[2])
+print('yes' if cur >= req else 'no')
+" "$current_ver" "$required_ver" 2>/dev/null)
+            if [[ "$is_compatible" == "no" ]]; then
+                echo "  [community] ⚠ WARNING: Pack $owner/$repo requires PEtFiSh >= $min_version but you have $BRANCH" >&2
+                echo "  [community]   Run '/petfish upgrade' to update. Proceeding anyway..." >&2
+            fi
+        fi
+    fi
+
     # --- Trust scan (if --trust-scan flag is set) ---
     if $TRUST_SCAN; then
         if [[ -d "$staged_pack/.opencode/skills" ]]; then

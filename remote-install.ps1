@@ -1075,6 +1075,39 @@ with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') a
         Write-Host "  [community] Generated pack-manifest.json" -ForegroundColor DarkCyan
     }
 
+    # Version compatibility check
+    $manifestPath = Join-Path $stagedPack "pack-manifest.json"
+    if (Test-Path $manifestPath) {
+        try {
+            $minVer = python3 -c "
+import json, sys
+try:
+    with open(sys.argv[1]) as f: m = json.load(f)
+    print(m.get('min_petfish_version', ''))
+except: print('')
+" "$manifestPath"
+            $minVer = ($minVer | Out-String).Trim()
+            if ($minVer -and $Branch) {
+                $currentVer = $Branch -replace '^v', ''
+                $requiredVer = $minVer -replace '^v', ''
+                $compatible = python3 -c "
+import sys
+def pv(s):
+    parts = s.split('.')[:3]
+    return tuple(int(x) for x in parts if x.isdigit())
+try: print('yes' if pv(sys.argv[1]) >= pv(sys.argv[2]) else 'no')
+except: print('yes')
+" "$currentVer" "$requiredVer"
+                $compatible = ($compatible | Out-String).Trim()
+                if ($compatible -eq "no") {
+                    Write-Warning "[community] Pack $owner/$repo requires PEtFiSh >= $minVer but you have $Branch. Run '/petfish upgrade' to update."
+                }
+            }
+        } catch {
+            # Version check is non-blocking
+        }
+    }
+
     # Trust scan (if requested)
     if ($TrustScan) {
         $skillsDir = Join-Path $stagedPack ".opencode" "skills"
