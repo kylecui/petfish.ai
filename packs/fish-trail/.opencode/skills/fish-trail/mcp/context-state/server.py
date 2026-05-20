@@ -53,6 +53,7 @@ try:
     from topic_registry_v2 import TopicRegistryV2  # noqa: E402
     from memory_pressure_monitor import MemoryPressureMonitor  # noqa: E402
     from memory_context import MemoryContextProvider  # noqa: E402
+    from feature_flags import FeatureFlags, load_feature_flags  # noqa: E402
 
     _HAS_MEMORY_V2 = True
 except ImportError:
@@ -700,15 +701,29 @@ class ContextStateServer:
         self.builder = ContextBuilder(base_dir)
         self.sessions = SessionStore(base_dir)
 
-        # Optional: Tiered Memory v2
+        # Optional: Tiered Memory v2 (flag-controlled)
         self._memory_context: Optional["MemoryContextProvider"] = None
+        self._feature_flags: Optional["FeatureFlags"] = None
         if _HAS_MEMORY_V2:
             try:
-                registry_v2 = TopicRegistryV2(base_dir)
-                pressure_monitor = MemoryPressureMonitor()
-                self._memory_context = MemoryContextProvider(
-                    registry=registry_v2, pressure_monitor=pressure_monitor
+                self._feature_flags = load_feature_flags(
+                    base_dir=base_dir, config_data=config
                 )
+                if self._feature_flags.memory_context_enabled:
+                    registry_v2 = (
+                        TopicRegistryV2(base_dir)
+                        if self._feature_flags.registry_enabled
+                        else None
+                    )
+                    pressure_monitor = (
+                        MemoryPressureMonitor()
+                        if self._feature_flags.pressure_monitor_enabled
+                        else None
+                    )
+                    self._memory_context = MemoryContextProvider(
+                        registry=registry_v2,
+                        pressure_monitor=pressure_monitor,
+                    )
             except Exception:
                 pass  # Graceful degradation if v2 init fails
 
