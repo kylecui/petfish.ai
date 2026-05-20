@@ -16,6 +16,7 @@ from memory_pressure_monitor import (
     MemoryPressureMonitor,
     PressureLevel,
 )
+from output_formatter import OutputFormatter, FormattedOutput
 
 
 # ---------------------------------------------------------------------------
@@ -221,10 +222,12 @@ class MemoryContextProvider:
         registry: TopicRegistryV2,
         pressure_monitor: MemoryPressureMonitor,
         cache_ttl: float = 30.0,
+        output_formatter: Optional[OutputFormatter] = None,
     ):
         self._registry = registry
         self._monitor = pressure_monitor
         self._cache = MemoryContextCache(ttl_seconds=cache_ttl)
+        self._formatter = output_formatter or OutputFormatter()
 
     def get_memory_context(
         self,
@@ -246,6 +249,22 @@ class MemoryContextProvider:
             MemoryContextResult with context_block, tokens_used, metadata, cache_hit.
         """
         all_topics = self._registry.list_topics()
+
+        # Early return for empty registry — no topics means no context
+        if not all_topics:
+            metadata = MemoryContextMetadata(
+                topics_active=0,
+                topics_warm=0,
+                topics_cold=0,
+                topics_archived=0,
+                pressure_level=PressureLevel.NORMAL.name,
+            )
+            return MemoryContextResult(
+                context_block="",
+                tokens_used=0,
+                metadata=metadata,
+                cache_hit=False,
+            )
 
         # Resolve active topic
         active_topic_id = current_topic_id
@@ -282,90 +301,30 @@ class MemoryContextProvider:
                 PressureLevel.L1,
             )
 
-        # Determine effective budget
-        if budget_tokens is None:
-            # Default budget based on pressure level
-            config = self._monitor.budget_allocator.config
-            total_window = config.total_context_window
-            reserve = config.reserve_ratio
-            available = int(total_window * (1.0 - reserve))
-            # Scale by pressure
-            budget_map = {
-                PressureLevel.NORMAL: 0.6,  # 60% of available for context
-                PressureLevel.L1: 0.4,
-                PressureLevel.L2: 0.25,
-                PressureLevel.L3: 0.15,
-            }
-            budget_tokens = int(available * budget_map.get(pressure_level, 0.4))
+        # Use OutputFormatter for spec-compliant context assembly (§3.6)
+        # The formatter respects BudgetAllocation tiers and produces structured
+        # Markdown with topic index, NCI, key decisions, and raw exchanges.
+        formatted: FormattedOutput = self._formatter.format(
+            assessment.allocation, all_topics
+        )
 
-        # Categorize topics by state
-        active_topics: List[TopicEntry] = []
-        warm_topics: List[TopicEntry] = []
-        cold_topics: List[TopicEntry] = []
-        archived_topics: List[TopicEntry] = []
+        context_block = formatted.text
+        tokens_used = formatted.total_tokens
 
-        for t in all_topics:
-            if t.state == TopicState.ACTIVE.value:
-                active_topics.append(t)
-            elif t.state == TopicState.WARM.value:
-                warm_topics.append(t)
-            elif t.state == TopicState.COLD.value:
-                cold_topics.append(t)
-            elif t.state == TopicState.ARCHIVED.value:
-                archived_topics.append(t)
-
-        # Build context block respecting budget
-        blocks: List[str] = []
-        tokens_remaining = budget_tokens
-
-        # 1. Active topics (full)
-        for t in active_topics:
-            block = _build_topic_block_full(t)
-            block_tokens = _estimate_tokens(block)
-            if block_tokens <= tokens_remaining:
-                blocks.append(block)
-                tokens_remaining -= block_tokens
-            else:
-                # Fallback to summary for active if budget is tight
-                fallback = _build_topic_block_summary_plus_key(t)
-                fb_tokens = _estimate_tokens(fallback)
-                if fb_tokens <= tokens_remaining:
-                    blocks.append(fallback)
-                    tokens_remaining -= fb_tokens
-
-        # 2. Warm topics (summary + key decisions)
-        if include_warm:
-            for t in warm_topics:
-                block = _build_topic_block_summary_plus_key(t)
-                block_tokens = _estimate_tokens(block)
-                if block_tokens <= tokens_remaining:
-                    blocks.append(block)
-                    tokens_remaining -= block_tokens
-                else:
-                    break  # Budget exhausted
-
-        # 3. Cold topics (summary only)
-        if include_cold_summaries:
-            for t in cold_topics:
-                block = _build_topic_block_summary_only(t)
-                block_tokens = _estimate_tokens(block)
-                if block_tokens <= tokens_remaining:
-                    blocks.append(block)
-                    tokens_remaining -= block_tokens
-                else:
-                    break
-
-        # Assemble final context block
-        header = "# Memory Context (Fish Trail v2)\n\n"
-        context_block = header + "\n".join(blocks) if blocks else ""
-        tokens_used = budget_tokens - tokens_remaining
+        # Categorize topics for metadata counts
+        active_count = sum(1 for t in all_topics if t.state == TopicState.ACTIVE.value)
+        warm_count = sum(1 for t in all_topics if t.state == TopicState.WARM.value)
+        cold_count = sum(1 for t in all_topics if t.state == TopicState.COLD.value)
+        archived_count = sum(
+            1 for t in all_topics if t.state == TopicState.ARCHIVED.value
+        )
 
         # Build metadata
         metadata = MemoryContextMetadata(
-            topics_active=len(active_topics),
-            topics_warm=len(warm_topics),
-            topics_cold=len(cold_topics),
-            topics_archived=len(archived_topics),
+            topics_active=active_count,
+            topics_warm=warm_count,
+            topics_cold=cold_count,
+            topics_archived=archived_count,
             pressure_level=pressure_level.name,
         )
 

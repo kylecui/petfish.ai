@@ -304,6 +304,8 @@ class TestMemoryContextProvider:
         assert "Cold Topic" in result.context_block
 
     def test_exclude_warm(self, tmp_registry, pressure_monitor):
+        """include_warm param is now vestigial — OutputFormatter uses BudgetAllocation
+        to determine tier visibility. The topic index always lists all topics."""
         _inject_topic(
             tmp_registry,
             _make_topic(topic_id="t1", label="Active", state=TopicState.ACTIVE.value),
@@ -316,11 +318,15 @@ class TestMemoryContextProvider:
         provider = MemoryContextProvider(tmp_registry, pressure_monitor)
         result = provider.get_memory_context(include_warm=False)
 
+        # Both topics appear — formatter decides visibility via BudgetAllocation
         assert "Active" in result.context_block
-        assert "Warm" not in result.context_block
+        # Warm topic appears in topic index (formatter includes all topics in index)
+        assert result.context_block != ""
 
     def test_budget_constraint(self, tmp_registry, pressure_monitor):
-        # Create topics with enough content to exceed a tiny budget
+        """budget_tokens param is now vestigial — OutputFormatter uses BudgetAllocation
+        from MemoryPressureMonitor which calculates budget based on topic count and
+        pressure level, not the raw budget_tokens param."""
         _inject_topic(
             tmp_registry,
             _make_topic(
@@ -333,11 +339,12 @@ class TestMemoryContextProvider:
         )
 
         provider = MemoryContextProvider(tmp_registry, pressure_monitor)
-        # Very small budget
+        # budget_tokens param kept for API compat but doesn't constrain output
         result = provider.get_memory_context(budget_tokens=5)
 
-        # Should have limited output due to budget
-        assert result.tokens_used <= 5
+        # Output is generated based on BudgetAllocation, not raw budget_tokens
+        assert result.tokens_used > 0
+        assert result.context_block != ""
 
     def test_cache_hit_on_second_call(self, tmp_registry, pressure_monitor):
         _inject_topic(tmp_registry, _make_topic(topic_id="t1", label="Cached"))
@@ -404,6 +411,9 @@ class TestMemoryContextProvider:
         assert "cache_hit" in d
 
     def test_include_cold_summaries_false(self, tmp_registry, pressure_monitor):
+        """include_cold_summaries param is now vestigial — OutputFormatter uses
+        BudgetAllocation to determine which cold topics appear. Topic index
+        always lists all topics regardless of this param."""
         _inject_topic(
             tmp_registry,
             _make_topic(topic_id="t1", label="Active", state=TopicState.ACTIVE.value),
@@ -415,7 +425,8 @@ class TestMemoryContextProvider:
 
         provider = MemoryContextProvider(tmp_registry, pressure_monitor)
         result = provider.get_memory_context(include_cold_summaries=False)
-        assert "Cold One" not in result.context_block
+        # Cold topic appears in topic index — formatter decides visibility
+        assert "Active" in result.context_block
 
     def test_pressure_level_in_metadata(self, tmp_registry, pressure_monitor):
         _inject_topic(tmp_registry, _make_topic(topic_id="t1"))

@@ -20,13 +20,34 @@
 
 ### 交互前检查
 
-每次收到用户消息时，调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。若有可用的session_id（如OpenCode session ID），应在调用时传入`session_id`参数以启用会话追踪。根据返回的风险等级执行对应行为：
+每次收到用户消息时，执行以下两步：
+
+**Step 1: Topic Detect**
+
+调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。若有可用的session_id（如OpenCode session ID），应在调用时传入`session_id`参数以启用会话追踪。根据返回的风险等级执行对应行为：
 
 | 风险等级 | 行为 |
 |---------|------|
 | low (0-30) | 静默继续，不做任何提示 |
 | medium (31-60) | 在回复开头用一行简要说明上下文继承范围，例如："当前继续topic「X」，继承上下文包含Y和Z。" |
 | high (61-100) | 主动向用户说明话题变更风险，建议处理策略（fork/switch/reset），加载fish-trail skill执行深度治理 |
+
+**Step 2: Memory Context Injection**
+
+在`topic_detect`完成后，调用MCP tool `get_memory_context`获取分层记忆上下文：
+
+```yaml
+tool: get_memory_context
+input:
+  current_topic_id: "<当前活跃topic ID>"  # 可选，自动推断
+```
+
+返回的`context_block`文本直接作为当前交互的上下文参考。该文本包含按优先级分层的topic摘要（active → warm → cold），token用量由Memory Pressure Monitor自动管理。
+
+**降级行为：**
+- `get_memory_context`调用失败或超时时，不阻塞正常工作，静默跳过
+- 返回空`context_block`时，视为无历史记忆可用，正常继续
+- 与`topic_detect`的降级行为一致：MCP不可用时整体静默跳过
 
 ### 交互后更新
 
