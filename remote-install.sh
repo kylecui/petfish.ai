@@ -995,8 +995,6 @@ fi
 # --- Download tarball ---
 TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
-COMMUNITY_STAGING="$TMPDIR/community-staging"
-mkdir -p "$COMMUNITY_STAGING"
 
 TARBALL_URL="https://github.com/$REPO/tarball/$BRANCH"
 AUTH_HEADER=""
@@ -1036,6 +1034,10 @@ if [[ -z "$EXTRACT_DIR" ]]; then
     echo "Error: failed to extract tarball" >&2
     exit 1
 fi
+
+# Create community staging AFTER extraction so find doesn't pick it up
+COMMUNITY_STAGING="$TMPDIR/community-staging"
+mkdir -p "$COMMUNITY_STAGING"
 
 PACKS_DIR="$EXTRACT_DIR/packs"
 PLATFORMS_JSON="$EXTRACT_DIR/platforms.json"
