@@ -7,6 +7,8 @@
   "skill_count": 10,
   "command_count": 1,
   "agent_count": 0,
+  "mcp_count": 2,
+  "mcps": ["skill-registry", "usage-cost"],
   "skills": [
     "petfish-companion",
     "marketplace-connector",
@@ -58,6 +60,8 @@
     ".opencode/skills/skill-usage-tracker/SKILL.md",
     ".opencode/skills/skill-usage-tracker/references/tracking-guide.md",
     ".opencode/skills/skill-usage-tracker/scripts/track_usage.py",
-    ".opencode/commands/petfish.md"
+    ".opencode/commands/petfish.md",
+    "mcp/skill-registry/server.py",
+    "mcp/usage-cost/server.py"
   ]
 }

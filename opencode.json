@@ -22,6 +22,24 @@
         "python",
         ".opencode/skills/fish-trail/mcp/context-state/server.py"
       ]
+    },
+    "skill-registry": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "packs/petfish-companion-skill/mcp/skill-registry/server.py"
+      ]
+    },
+    "usage-cost": {
+      "type": "local",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "packs/petfish-companion-skill/mcp/usage-cost/server.py"
+      ]
     }
   }
 }
