@@ -60,28 +60,12 @@ jobs:
         working-directory: benchmarks
         run: python scripts/run_eval.py --dataset datasets/cost-routing.jsonl --module cost_routing
 
-  plugin-smoke:
-    name: plugin-smoke
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install plugin dependencies
-        working-directory: .opencode
-        run: npm install
-
-      - name: Run plugin tests
-        run: npx tsx tests/plugin/topic-context-filter.test.ts
+  # plugin-smoke removed: requires OpenCode runtime (@opencode-ai/plugin is built-in, not npm).
+  # Plugin tests are local-only. See tests/plugin/topic-context-filter.test.ts.
 
   eval-report:
     name: eval-report
-    needs: [fish-trail-tests, benchmark-eval, plugin-smoke]
+    needs: [fish-trail-tests, benchmark-eval]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -95,7 +79,7 @@ jobs:
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| fish-trail-tests | ${{ needs.fish-trail-tests.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| benchmark-eval | ${{ needs.benchmark-eval.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| plugin-smoke | ${{ needs.plugin-smoke.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| plugin-smoke | skipped (requires OpenCode runtime) |" >> $GITHUB_STEP_SUMMARY
 
       - name: Comment PR
         if: github.event_name == 'pull_request'
@@ -104,8 +88,7 @@ jobs:
           script: |
             const results = {
               'fish-trail-tests': '${{ needs.fish-trail-tests.result }}',
-              'benchmark-eval': '${{ needs.benchmark-eval.result }}',
-              'plugin-smoke': '${{ needs.plugin-smoke.result }}'
+              'benchmark-eval': '${{ needs.benchmark-eval.result }}'
             };
 
             const summary = [
