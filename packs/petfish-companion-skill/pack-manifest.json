@@ -61,7 +61,7 @@
     ".opencode/skills/skill-usage-tracker/references/tracking-guide.md",
     ".opencode/skills/skill-usage-tracker/scripts/track_usage.py",
     ".opencode/commands/petfish.md",
-    "mcp/skill-registry/server.py",
-    "mcp/usage-cost/server.py"
+    ".opencode/mcp/skill-registry/server.py",
+    ".opencode/mcp/usage-cost/server.py"
   ]
 }

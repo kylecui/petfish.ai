@@ -29,7 +29,7 @@
         "uv",
         "run",
         "python",
-        "packs/petfish-companion-skill/mcp/skill-registry/server.py"
+        "packs/petfish-companion-skill/.opencode/mcp/skill-registry/server.py"
       ]
     },
     "usage-cost": {
@@ -38,7 +38,7 @@
         "uv",
         "run",
         "python",
-        "packs/petfish-companion-skill/mcp/usage-cost/server.py"
+        "packs/petfish-companion-skill/.opencode/mcp/usage-cost/server.py"
       ]
     }
   }
