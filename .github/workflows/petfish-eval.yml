@@ -1,0 +1,134 @@
+name: PEtFiSh Eval
+
+on:
+  push:
+    branches: [dev, 'feat/**']
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: petfish-eval-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  fish-trail-tests:
+    name: fish-trail-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install test dependencies
+        run: uv pip install pytest --system
+
+      - name: Run fish-trail tests
+        run: uv run pytest packs/fish-trail/.opencode/skills/fish-trail/mcp/context-state/ -v --tb=short
+
+  benchmark-eval:
+    name: benchmark-eval
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run gateway topic-drift eval
+        working-directory: benchmarks
+        run: python scripts/run_eval.py --dataset datasets/gateway-topic-drift.jsonl --module gateway
+
+      - name: Run skill-sense eval
+        working-directory: benchmarks
+        run: python scripts/run_eval.py --dataset datasets/skill-sense.jsonl --module skill_sense
+
+      - name: Run failure-signal eval
+        working-directory: benchmarks
+        run: python scripts/run_eval.py --dataset datasets/failure-signal.jsonl --module failure_signal
+
+      - name: Run cost-routing eval
+        working-directory: benchmarks
+        run: python scripts/run_eval.py --dataset datasets/cost-routing.jsonl --module cost_routing
+
+  plugin-smoke:
+    name: plugin-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install plugin dependencies
+        working-directory: .opencode
+        run: npm install
+
+      - name: Run plugin tests
+        run: npx tsx tests/plugin/topic-context-filter.test.ts
+
+  eval-report:
+    name: eval-report
+    needs: [fish-trail-tests, benchmark-eval, plugin-smoke]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate eval summary
+        run: |
+          echo "## PEtFiSh Eval Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| fish-trail-tests | ${{ needs.fish-trail-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| benchmark-eval | ${{ needs.benchmark-eval.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| plugin-smoke | ${{ needs.plugin-smoke.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              'fish-trail-tests': '${{ needs.fish-trail-tests.result }}',
+              'benchmark-eval': '${{ needs.benchmark-eval.result }}',
+              'plugin-smoke': '${{ needs.plugin-smoke.result }}'
+            };
+
+            const summary = [
+              '## PEtFiSh Eval Results',
+              '',
+              '| Job | Result |',
+              '|-----|--------|',
+              ...Object.entries(results).map(([job, result]) => `| ${job} | ${result} |`),
+              '',
+              `Triggered by: ${context.eventName} on ${context.ref}`
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+
+      - name: Upload eval results artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: |
+            benchmarks/results/
+          if-no-files-found: ignore

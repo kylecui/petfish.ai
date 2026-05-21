@@ -1,0 +1,20 @@
+{"user_message": "帮我部署这个服务到Docker", "expected_skill": "deploy", "expected_detect": true}
+{"user_message": "部署到生产环境", "expected_skill": "deploy", "expected_detect": true}
+{"user_message": "docker compose up", "expected_skill": "deploy", "expected_detect": true}
+{"user_message": "CI/CD pipeline配置需要修改", "expected_skill": "deploy", "expected_detect": true}
+{"user_message": "设计课程大纲", "expected_skill": "course", "expected_detect": true}
+{"user_message": "写一个实验指导", "expected_skill": "course", "expected_detect": true}
+{"user_message": "create a course outline for Python beginners", "expected_skill": "course", "expected_detect": true}
+{"user_message": "这个模块的课时分配需要调整", "expected_skill": "course", "expected_detect": true}
+{"user_message": "帮我研究一下React Server Components", "expected_skill": "research", "expected_detect": true}
+{"user_message": "文献综述：深度学习在NLP中的应用", "expected_skill": "research", "expected_detect": true}
+{"user_message": "调研竞品的产品功能矩阵", "expected_skill": "research", "expected_detect": true}
+{"user_message": "帮我做一个市场分析报告", "expected_skill": "research", "expected_detect": true}
+{"user_message": "帮我写一个排序函数", "expected_skill": null, "expected_detect": false}
+{"user_message": "fix this typo in utils.py", "expected_skill": null, "expected_detect": false}
+{"user_message": "add a comment to calculateTotal", "expected_skill": null, "expected_detect": false}
+{"user_message": "rename the variable x to userCount", "expected_skill": null, "expected_detect": false}
+{"user_message": "部署这个变量是什么意思", "expected_skill": null, "expected_detect": false}
+{"user_message": "部署这个词在英文里是什么", "expected_skill": null, "expected_detect": false}
+{"user_message": "帮我翻译一下这段PPT文字", "expected_skill": null, "expected_detect": false}
+{"user_message": "课程表上写着明天有考试", "expected_skill": null, "expected_detect": false}

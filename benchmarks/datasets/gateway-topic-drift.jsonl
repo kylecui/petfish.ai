@@ -1,0 +1,20 @@
+{"user_message": "继续上次的数据库迁移", "expected_relation": "continue", "expected_risk": "low"}
+{"user_message": "OK继续", "expected_relation": "continue", "expected_risk": "low"}
+{"user_message": "接着上面的代码写", "expected_relation": "continue", "expected_risk": "low"}
+{"user_message": "Let's continue with the database migration", "expected_relation": "continue", "expected_risk": "low"}
+{"user_message": "继续改那个bug", "expected_relation": "continue", "expected_risk": "low"}
+{"user_message": "接着刚才的讨论", "expected_relation": "continue", "expected_risk": "low"}
+{"user_message": "在这个数据库迁移的基础上，我们做一个监控dashboard", "expected_relation": "fork", "expected_risk": "medium"}
+{"user_message": "从刚才的API设计延伸出去，加一个rate limiter", "expected_relation": "fork", "expected_risk": "medium"}
+{"user_message": "基于这个认证模块，我想扩展一个RBAC权限系统", "expected_relation": "fork", "expected_risk": "medium"}
+{"user_message": "Let's fork from the current auth work and build an audit log system", "expected_relation": "fork", "expected_risk": "medium"}
+{"user_message": "换个话题，前端那个button组件需要重写", "expected_relation": "switch", "expected_risk": "high"}
+{"user_message": "Let's switch to the auth flow instead", "expected_relation": "switch", "expected_risk": "high"}
+{"user_message": "不说这个了，帮我看看Linux服务器的磁盘空间问题", "expected_relation": "switch", "expected_risk": "high"}
+{"user_message": "话题转到CI/CD pipeline的配置", "expected_relation": "switch", "expected_risk": "high"}
+{"user_message": "先不管数据库，帮我review这个PR", "expected_relation": "switch", "expected_risk": "high"}
+{"user_message": "切换一下，我想讨论新项目的技术选型", "expected_relation": "switch", "expected_risk": "high"}
+{"user_message": "这个话题先归档吧", "expected_relation": "archive", "expected_risk": "low"}
+{"user_message": "清空上下文重新开始", "expected_relation": "reset", "expected_risk": "low"}
+{"user_message": "把当前话题归档，我们开始新的", "expected_relation": "archive", "expected_risk": "low"}
+{"user_message": "reset the context and start fresh", "expected_relation": "reset", "expected_risk": "low"}

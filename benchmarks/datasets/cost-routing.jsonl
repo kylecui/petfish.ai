@@ -1,0 +1,20 @@
+{"user_message": "what does git status do?", "expected_tier": "gateway"}
+{"user_message": "how do I list files in a directory?", "expected_tier": "gateway"}
+{"user_message": "add comment to calculateTotal", "expected_tier": "gateway"}
+{"user_message": "what is the capital of France?", "expected_tier": "gateway"}
+{"user_message": "rename variable x to count", "expected_tier": "gateway"}
+{"user_message": "show me the current date", "expected_tier": "gateway"}
+{"user_message": "fix the typo in auth.ts line 42", "expected_tier": "worker"}
+{"user_message": "add error handling to the login function", "expected_tier": "worker"}
+{"user_message": "update the API endpoint in config.ts", "expected_tier": "worker"}
+{"user_message": "change the button color from blue to green", "expected_tier": "worker"}
+{"user_message": "add a null check to the user object before accessing properties", "expected_tier": "worker"}
+{"user_message": "implement JWT auth across the API", "expected_tier": "deep_coding"}
+{"user_message": "refactor the entire error handling system", "expected_tier": "deep_coding"}
+{"user_message": "Rename getCwd to getCurrentWorkingDirectory across 15 files", "expected_tier": "deep_coding"}
+{"user_message": "add pagination to all list endpoints in every controller", "expected_tier": "deep_coding"}
+{"user_message": "migrate the entire codebase from JavaScript to TypeScript", "expected_tier": "deep_coding"}
+{"user_message": "review this PR for security issues", "expected_tier": "critic"}
+{"user_message": "is this architecture sound for a high-traffic application?", "expected_tier": "critic"}
+{"user_message": "evaluate the performance implications of this database schema", "expected_tier": "critic"}
+{"user_message": "critique my solution for handling concurrent writes", "expected_tier": "critic"}
