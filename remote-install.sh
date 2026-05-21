@@ -34,7 +34,7 @@ fi
 
 REPO="kylecui/petfish.ai"
 BRANCH="master"
-BRANCH_OVERRIDE=false
+BRANCH_OVERRIDE=false  # tracked for --branch; auto-detect removed
 
 # --- Merge helpers ---
 
@@ -869,29 +869,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# --- Auto-detect latest release tag if BRANCH not explicitly set ---
-if ! $BRANCH_OVERRIDE; then
-    latest_tag=""
-    
-    # Construct API URL and optional auth header
-    api_url="https://api.github.com/repos/$REPO/releases/latest"
-    auth_header_api=""
-    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-        auth_header_api="Authorization: token $GITHUB_TOKEN"
-    fi
-    
-    # Fetch latest release tag with error suppression
-    if [[ -n "$auth_header_api" ]]; then
-        latest_tag=$(curl -fsSL -H "$auth_header_api" "$api_url" 2>/dev/null | grep -o '"tag_name"[^,]*' | head -1 | sed 's/"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' 2>/dev/null)
-    else
-        latest_tag=$(curl -fsSL "$api_url" 2>/dev/null | grep -o '"tag_name"[^,]*' | head -1 | sed 's/"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' 2>/dev/null)
-    fi
-    
-    # Use detected tag if valid, otherwise fall back to master
-    if [[ -n "$latest_tag" && "$latest_tag" != "null" ]]; then
-        BRANCH="$latest_tag"
-    fi
-fi
+# --- Version resolution ---
+# The default BRANCH is "master" (set at script top). When users curl the script
+# from a tagged URL (e.g., .../v1.1.0/remote-install.sh), the script cannot detect
+# its own source URL, so BRANCH stays "master". Users who want a specific version
+# must pass --branch <tag> explicitly.
+#
+# Auto-detection of the latest release tag was removed because:
+# 1. Piped scripts cannot detect the source URL — auto-detect overrides tagged URLs
+# 2. The master branch always carries the latest stable code (release discipline)
+# 3. It adds network latency and API rate-limit risk for no reliably correct gain
+# To install a specific version: --branch v1.1.0
 
 if ! $LIST; then
     echo ""
@@ -1017,7 +1005,7 @@ if [[ -n "${GITHUB_TOKEN:-}" ]]; then
 fi
 
 echo "Downloading $REPO@$BRANCH..."
-local dl_success=false
+dl_success=false
 for attempt in 1 2 3; do
     if [[ -n "$AUTH_HEADER" ]]; then
         http_code="$(curl -fsSL -w '%{http_code}' -H "$AUTH_HEADER" -o "$TMPDIR/repo.tar.gz" "$TARBALL_URL" 2>/dev/null)" || true
@@ -1028,7 +1016,7 @@ for attempt in 1 2 3; do
         tar xz -C "$TMPDIR" < "$TMPDIR/repo.tar.gz" && dl_success=true && break
     fi
     if [[ "$http_code" == "429" || "$http_code" == "403" ]] && [[ $attempt -lt 3 ]]; then
-        local wait=$((2 ** attempt))
+        wait=$((2 ** attempt))
         echo "Rate limited (HTTP $http_code), retrying in ${wait}s... (attempt $attempt/3)"
         sleep "$wait"
         rm -f "$TMPDIR/repo.tar.gz"

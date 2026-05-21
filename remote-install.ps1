@@ -19,19 +19,12 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Auto-resolve latest release tag if -Branch not explicitly passed
-if (-not $PSBoundParameters.ContainsKey('Branch')) {
-    try {
-        $apiUrl = "https://api.github.com/repos/$Repo/releases/latest"
-        $headers = if ($GitHubToken) { @{ Authorization = "token $GitHubToken" } } else { @{} }
-        $response = Invoke-RestMethod -Uri $apiUrl -Headers $headers -ErrorAction Stop
-        if ($response -and $response.tag_name) {
-            $Branch = $response.tag_name
-        }
-    } catch {
-        # Silently fall back to "master" on any error
-    }
-}
+# --- Version resolution ---
+# Auto-detection of the latest release tag was removed because:
+# 1. Piped scripts cannot detect the source URL — auto-detect overrides tagged URLs
+# 2. The master branch always carries the latest stable code (release discipline)
+# 3. It adds network latency and API rate-limit risk for no reliably correct gain
+# To install a specific version: -Branch v1.1.0
 
 if (-not $List) {
     Write-Host ""
