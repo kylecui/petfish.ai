@@ -1255,6 +1255,16 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             }
 
             if ($hasL1) {
+                # Also deploy any extra agents-rules files from the pack
+                $extraRulesDir = Join-Path $packOpencode "agents-rules"
+                if (Test-Path $extraRulesDir) {
+                    $targetRulesDir = Join-Path $Target ".opencode" "agents-rules"
+                    New-Item -ItemType Directory -Path $targetRulesDir -Force | Out-Null
+                    Get-ChildItem -Path $extraRulesDir -Filter "*.md" | ForEach-Object {
+                        Copy-Item $_.FullName (Join-Path $targetRulesDir $_.Name) -Force
+                        Write-Host "    + .opencode/agents-rules/$($_.Name)" -ForegroundColor DarkGreen
+                    }
+                }
                 # L1-only: write standalone rules file, skip inline merge
                 Write-PackRulesFile $agentsMd $targetPath $packName
                 # Deliver system-prompt-rules plugin (idempotent, runs for each L1 pack)
@@ -1284,8 +1294,21 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             }
         }
 
-        if ($cfg.ConfigFile) {
-            $ocExample = Join-Path $packRoot "opencode.example.json"
+            # Deploy MCP server files from pack's .opencode/mcp/ to target
+            $mcpSourceDir = Join-Path $packOpenCode "mcp"
+            if (Test-Path $mcpSourceDir) {
+                $targetMcpDir = Join-Path $targetPath ".opencode" "mcp"
+                Get-ChildItem -Path $mcpSourceDir -Directory | ForEach-Object {
+                    $mcpName = $_.Name
+                    $targetMcp = Join-Path $targetMcpDir $mcpName
+                    New-Item -ItemType Directory -Path $targetMcp -Force | Out-Null
+                    Copy-Item -Path "$($_.FullName)/*" -Destination $targetMcp -Recurse -Force
+                    Write-Host "    + .opencode/mcp/$mcpName/" -ForegroundColor DarkGreen
+                }
+            }
+
+            if ($cfg.ConfigFile) {
+                $ocExample = Join-Path $packRoot "opencode.example.json"
             if (Test-Path $ocExample) {
                 switch ($platformName) {
                     "opencode" {

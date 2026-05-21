@@ -65,6 +65,9 @@ const TOPIC_TO_RULES: Record<string, string[]> = {
   calibration: ["anti-sycophancy.md"],
   topic: ["fish-trail.md"],
   context: ["fish-trail.md"],
+  safety: ["safety-guard.md"],
+  guard: ["safety-guard.md"],
+  security: ["safety-guard.md"],
   research: ["research.md"],
 }
 

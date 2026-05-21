@@ -371,7 +371,7 @@ entry = {'installed_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ
 if os.path.isfile(manifest_file):
     with open(manifest_file, 'r') as f:
         m = json.load(f)
-    for key in ('version', 'skills', 'description', 'skill_count', 'command_count', 'agent_count'):
+    for key in ('version', 'skills', 'commands', 'agents', 'description', 'skill_count', 'command_count', 'agent_count'):
         if key in m:
             entry[key] = m[key]
     if 'skill_count' not in entry and 'skills' in m:
@@ -550,6 +550,233 @@ FORCE=false
 LIST=false
 GLOBAL=false
 UNINSTALL=false
+COMMUNITY_STAGING_DIR=""
+
+cleanup_community_staging() {
+    if [[ -n "$COMMUNITY_STAGING_DIR" && -d "$COMMUNITY_STAGING_DIR" ]]; then
+        rm -rf "$COMMUNITY_STAGING_DIR"
+    fi
+}
+trap cleanup_community_staging EXIT
+
+# --- Community pack support ---
+is_community_pack() {
+    [[ "$1" == community/* ]]
+}
+
+# Parse community/owner/repo into components
+parse_community_spec() {
+    local spec="$1"
+    # Strip leading "community/"
+    local remainder="${spec#community/}"
+    local owner="${remainder%%/*}"
+    local repo="${remainder#*/}"
+    # repo may contain /ref (branch/tag)
+    local ref=""
+    if [[ "$repo" == */* ]]; then
+        ref="${repo#*/}"
+        repo="${repo%%/*}"
+    fi
+    echo "$owner" "$repo" "$ref"
+}
+
+# Download a community skill from GitHub and stage it as a pack
+# Usage: download_community_pack "community/owner/repo[/ref]"
+# Sets COMMUNITY_STAGING_DIR and creates $COMMUNITY_STAGING_DIR/community--owner--repo/.opencode/
+download_community_pack() {
+    local spec="$1"
+    local owner repo ref
+    read -r owner repo ref <<< "$(parse_community_spec "$spec")"
+
+    if [[ -z "$owner" || -z "$repo" ]]; then
+        echo "Error: Invalid community pack spec '$spec'. Expected: community/<owner>/<repo>[/<ref>]" >&2
+        exit 1
+    fi
+
+    local pack_dir_name="community--${owner}--${repo}"
+
+    # Create staging dir (once per install run)
+    if [[ -z "$COMMUNITY_STAGING_DIR" ]]; then
+        COMMUNITY_STAGING_DIR="$(mktemp -d)"
+    fi
+
+    local staged_pack="$COMMUNITY_STAGING_DIR/$pack_dir_name"
+    if [[ -d "$staged_pack" ]]; then
+        # Already downloaded in this run
+        echo "$pack_dir_name"
+        return 0
+    fi
+
+    local github_ref="${ref:-main}"
+    local tarball_url="https://github.com/${owner}/${repo}/archive/refs/heads/${github_ref}.tar.gz"
+
+    echo "  [community] Downloading ${owner}/${repo} (ref: ${github_ref})..."
+
+    local dl_tmp
+    dl_tmp="$(mktemp -d)"
+
+    # Try tarball download first (retry up to 3 times for rate limits), fall back to git clone
+    local dl_ok=false
+    if command -v curl &>/dev/null; then
+        local http_code
+        for attempt in 1 2 3; do
+            http_code="$(curl -fsSL -w '%{http_code}' -o "$dl_tmp/archive.tar.gz" \
+                ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
+                "$tarball_url" 2>/dev/null)" || true
+            if [[ "$http_code" == "200" && -f "$dl_tmp/archive.tar.gz" ]]; then
+                dl_ok=true
+                break
+            fi
+            if [[ "$http_code" == "429" || "$http_code" == "403" ]] && [[ $attempt -lt 3 ]]; then
+                local wait=$((2 ** attempt))
+                echo "  [community] Rate limited (HTTP $http_code), retrying in ${wait}s... (attempt $attempt/3)"
+                sleep "$wait"
+                rm -f "$dl_tmp/archive.tar.gz"
+            else
+                break
+            fi
+        done
+    fi
+
+    if ! $dl_ok && command -v wget &>/dev/null; then
+        for attempt in 1 2 3; do
+            wget -q ${GITHUB_TOKEN:+--header="Authorization: token $GITHUB_TOKEN"} \
+                -O "$dl_tmp/archive.tar.gz" "$tarball_url" 2>/dev/null && dl_ok=true && break || true
+            if [[ $attempt -lt 3 ]]; then
+                local wait=$((2 ** attempt))
+                echo "  [community] wget download failed, retrying in ${wait}s... (attempt $attempt/3)"
+                sleep "$wait"
+                rm -f "$dl_tmp/archive.tar.gz"
+            fi
+        done
+    fi
+
+    if $dl_ok; then
+        # Extract tarball
+        tar -xzf "$dl_tmp/archive.tar.gz" -C "$dl_tmp" 2>/dev/null
+        # Find extracted directory (GitHub names it repo-branch/)
+        local extracted
+        extracted="$(find "$dl_tmp" -mindepth 1 -maxdepth 1 -type d ! -name "*.tar.gz" | head -1)"
+        if [[ -z "$extracted" ]]; then
+            echo "Error: Failed to extract community pack tarball for ${owner}/${repo}" >&2
+            rm -rf "$dl_tmp"
+            exit 1
+        fi
+        mv "$extracted" "$staged_pack"
+    else
+        # Fall back to git clone
+        if ! command -v git &>/dev/null; then
+            echo "Error: Cannot download community pack ${owner}/${repo}. Neither curl/wget tarball download nor git clone available." >&2
+            rm -rf "$dl_tmp"
+            exit 1
+        fi
+        echo "  [community] Tarball download failed, falling back to git clone..."
+        local clone_url="https://github.com/${owner}/${repo}.git"
+        if [[ -n "$GITHUB_TOKEN" ]]; then
+            clone_url="https://${GITHUB_TOKEN}@github.com/${owner}/${repo}.git"
+        fi
+        local clone_ok=false
+        for attempt in 1 2 3; do
+            git clone --depth 1 ${ref:+--branch "$ref"} "$clone_url" "$staged_pack" 2>/dev/null && clone_ok=true && break
+            if [[ $attempt -lt 3 ]]; then
+                local wait=$((2 ** attempt))
+                echo "  [community] git clone failed, retrying in ${wait}s... (attempt $attempt/3)"
+                sleep "$wait"
+                rm -rf "$staged_pack"
+            fi
+        done
+        if ! $clone_ok; then
+            echo "Error: Failed to clone community pack ${owner}/${repo}" >&2
+            rm -rf "$dl_tmp"
+            exit 1
+        fi
+    fi
+    rm -rf "$dl_tmp"
+
+    # Validate: must have .opencode/ with at least skills/ or commands/ or agents/
+    if [[ ! -d "$staged_pack/.opencode" ]]; then
+        echo "Error: Community pack ${owner}/${repo} has no .opencode/ directory. Not a valid skill pack." >&2
+        rm -rf "$staged_pack"
+        exit 1
+    fi
+
+    local has_content=false
+    [[ -d "$staged_pack/.opencode/skills" ]] && has_content=true
+    [[ -d "$staged_pack/.opencode/commands" ]] && has_content=true
+    [[ -d "$staged_pack/.opencode/agents" ]] && has_content=true
+    if ! $has_content; then
+        echo "Error: Community pack ${owner}/${repo} .opencode/ has no skills/, commands/, or agents/. Not a valid skill pack." >&2
+        rm -rf "$staged_pack"
+        exit 1
+    fi
+
+    # Generate a minimal pack-manifest.json if missing
+    if [[ ! -f "$staged_pack/pack-manifest.json" ]]; then
+        python3 -c "
+import json, os, sys
+
+pack_dir = sys.argv[1]
+owner = sys.argv[2]
+repo = sys.argv[3]
+opencode_dir = os.path.join(pack_dir, '.opencode')
+skills = []
+commands = []
+agents = []
+skills_dir = os.path.join(opencode_dir, 'skills')
+if os.path.isdir(skills_dir):
+    skills = [d for d in os.listdir(skills_dir) if os.path.isdir(os.path.join(skills_dir, d))]
+commands_dir = os.path.join(opencode_dir, 'commands')
+if os.path.isdir(commands_dir):
+    commands = [d for d in os.listdir(commands_dir)]
+agents_dir = os.path.join(opencode_dir, 'agents')
+if os.path.isdir(agents_dir):
+    agents = [d for d in os.listdir(agents_dir) if os.path.isdir(os.path.join(agents_dir, d))]
+
+manifest = {
+    'name': f'community/{owner}/{repo}',
+    'version': '0.0.0',
+    'description': f'Community skill pack from {owner}/{repo}',
+    'skills': sorted(skills),
+    'commands': sorted(commands),
+    'agents': sorted(agents)
+}
+with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+    f.write(chr(10))
+" "$staged_pack" "$owner" "$repo"
+        echo "  [community] Generated pack-manifest.json"
+    else
+        # Validate existing manifest has required fields
+        python3 -c "
+import json, sys
+
+manifest_path = sys.argv[1]
+try:
+    with open(manifest_path, 'r', encoding='utf-8') as f:
+        m = json.load(f)
+except (json.JSONDecodeError, OSError) as e:
+    print(f'Error: pack-manifest.json is invalid: {e}', file=sys.stderr)
+    sys.exit(1)
+
+required = ['name', 'version', 'description', 'skills']
+missing = [k for k in required if k not in m]
+if missing:
+    print(f'Error: pack-manifest.json missing required fields: {missing}', file=sys.stderr)
+    sys.exit(1)
+
+if not isinstance(m.get('skills'), list):
+    print('Error: pack-manifest.json \"skills\" must be an array', file=sys.stderr)
+    sys.exit(1)
+" "$staged_pack/pack-manifest.json"
+        if [[ $? -ne 0 ]]; then
+            echo "Error: Community pack ${owner}/${repo} has invalid pack-manifest.json" >&2
+            rm -rf "$staged_pack"
+            exit 1
+        fi
+    fi
+
+    echo "$pack_dir_name"
+}
 
 # --- Parse args ---
 while [[ $# -gt 0 ]]; do
@@ -1049,7 +1276,12 @@ PY
 
 resolve_pack() {
     local name="$1"
-    if [[ -n "${ALIASES[$name]+x}" ]]; then
+    if is_community_pack "$name"; then
+        # Community pack: download from GitHub and return staged dir name
+        local pack_dir_name
+        pack_dir_name="$(download_community_pack "$name")"
+        echo "$pack_dir_name"
+    elif [[ -n "${ALIASES[$name]+x}" ]]; then
         echo "${ALIASES[$name]}"
     elif [[ -d "$PACKS_DIR/$name" ]]; then
         echo "$name"
@@ -1082,6 +1314,39 @@ show_list() {
         echo "  $dir$alias"
     done
     echo ""
+
+    # Show installed community packs from target registry
+    local reg_file="$TARGET/.opencode/installed-packs.json"
+    if [[ -f "$reg_file" ]]; then
+        local community_output
+        community_output="$(python3 -c "
+import json, sys
+
+reg_file = sys.argv[1]
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+
+packs = reg.get('packs') or {}
+community = {k: v for k, v in packs.items() if k.startswith('community/')}
+if not community:
+    sys.exit(0)
+
+for name, info in sorted(community.items()):
+    version = info.get('version', 'unknown')
+    desc = info.get('description', '')
+    skills = info.get('skill_count', len(info.get('skills', [])))
+    line = f'  {name}  v{version}  skills={skills}'
+    if desc:
+        line += f'  ({desc})'
+    print(line)
+" "$reg_file" 2>/dev/null)"
+        if [[ -n "$community_output" ]]; then
+            echo "Community packs (installed):"
+            echo "$(printf '%.0s-' {1..60})"
+            echo "$community_output"
+            echo ""
+        fi
+    fi
 }
 
 should_create_gemini() {
@@ -1120,7 +1385,15 @@ install_for_platform() {
     local skipped=0
 
     for pack_name in "${packs[@]}"; do
-        local pack_opencode="$PACKS_DIR/$pack_name/.opencode"
+        # Resolve pack root: community packs live in staging dir, official packs in PACKS_DIR
+        local pack_root
+        if [[ "$pack_name" == community--* && -n "$COMMUNITY_STAGING_DIR" && -d "$COMMUNITY_STAGING_DIR/$pack_name" ]]; then
+            pack_root="$COMMUNITY_STAGING_DIR/$pack_name"
+        else
+            pack_root="$PACKS_DIR/$pack_name"
+        fi
+
+        local pack_opencode="$pack_root/.opencode"
         if [[ ! -d "$pack_opencode" ]]; then
             echo "WARN: Pack '$pack_name' has no .opencode/ directory. Skipping."
             continue
@@ -1128,8 +1401,6 @@ install_for_platform() {
 
         echo ""
         echo "  Installing pack: $pack_name"
-
-        local pack_root="$PACKS_DIR/$pack_name"
         local manifest_file="$pack_root/pack-manifest.json"
         local target_registry=""
         if [[ -n "$registry_dir" ]]; then
@@ -1181,6 +1452,17 @@ install_for_platform() {
             if $has_l1; then
                 # L1-only: write standalone rules file, skip inline merge
                 write_pack_rules_file "$pack_root/AGENTS.md" "$TARGET" "$pack_name"
+                # Also deploy any extra agents-rules files from the pack
+                if [[ -d "$pack_opencode/agents-rules" ]]; then
+                    local extra_rules_dir="$TARGET/.opencode/agents-rules"
+                    mkdir -p "$extra_rules_dir"
+                    for rules_file in "$pack_opencode/agents-rules"/*.md; do
+                        [[ -f "$rules_file" ]] || continue
+                        local rules_basename="$(basename "$rules_file")"
+                        cp "$rules_file" "$extra_rules_dir/$rules_basename"
+                        echo "    + .opencode/agents-rules/$rules_basename" >&2
+                    done
+                fi
                 # Deliver system-prompt-rules plugin (idempotent, runs for each L1 pack)
                 install_plugin_file "$SCRIPT_DIR" "$TARGET"
                 register_plugin_in_config "$TARGET/opencode.json"
@@ -1213,7 +1495,21 @@ install_for_platform() {
         fi
 
         # --- Platform-specific config handling ---
-        if [[ -n "$config_file" && -f "$pack_root/opencode.example.json" ]]; then
+        # Deploy MCP server files from pack's .opencode/mcp/ to target
+if [[ -d "$pack_opencode/mcp" ]]; then
+    local target_mcp_dir="$TARGET/.opencode/mcp"
+    mkdir -p "$target_mcp_dir"
+    for mcp_dir in "$pack_opencode/mcp"/*/; do
+        [[ -d "$mcp_dir" ]] || continue
+        local mcp_name="$(basename "$mcp_dir")"
+        local target_mcp="$target_mcp_dir/$mcp_name"
+        mkdir -p "$target_mcp"
+        cp -r "$mcp_dir"* "$target_mcp/" 2>/dev/null || true
+        echo "    + .opencode/mcp/$mcp_name/" >&2
+    done
+fi
+
+if [[ -n "$config_file" && -f "$pack_root/opencode.example.json" ]]; then
             case "$platform_name" in
                 opencode)
                     local dst_oc="$TARGET/$config_file"
@@ -1445,8 +1741,13 @@ install_global_for_platform() {
     mkdir -p "$global_skills_dir"
 
     for pack_name in "${packs[@]}"; do
-        local pack_opencode="$PACKS_DIR/$pack_name/.opencode"
-        local pack_root="$PACKS_DIR/$pack_name"
+        local pack_root
+        if [[ "$pack_name" == community--* && -n "$COMMUNITY_STAGING_DIR" && -d "$COMMUNITY_STAGING_DIR/$pack_name" ]]; then
+            pack_root="$COMMUNITY_STAGING_DIR/$pack_name"
+        else
+            pack_root="$PACKS_DIR/$pack_name"
+        fi
+        local pack_opencode="$pack_root/.opencode"
         local manifest_file="$pack_root/pack-manifest.json"
         local src_skills="$pack_opencode/skills"
 
@@ -1553,13 +1854,25 @@ uninstall_pack() {
     local pack_alias="$1"
     local target_path="$2"
     local pack_name
-    pack_name="$(resolve_pack "$pack_alias")"
+    local is_community=false
+    local manifest_file=""
 
-    local pack_root="$PACKS_DIR/$pack_name"
-    local manifest_file="$pack_root/pack-manifest.json"
-    if [[ ! -f "$manifest_file" ]]; then
-        echo "Error: Pack manifest not found: $manifest_file" >&2
-        exit 1
+    if is_community_pack "$pack_alias"; then
+        is_community=true
+        local _owner _repo _ref
+        IFS='|' read -r _owner _repo _ref <<< "$(parse_community_spec "$pack_alias")"
+        pack_name="community--${_owner}--${_repo}"
+    else
+        pack_name="$(resolve_pack "$pack_alias")"
+    fi
+
+    if [[ "$is_community" == "false" ]]; then
+        local pack_root="$PACKS_DIR/$pack_name"
+        manifest_file="$pack_root/pack-manifest.json"
+        if [[ ! -f "$manifest_file" ]]; then
+            echo "Error: Pack manifest not found: $manifest_file" >&2
+            exit 1
+        fi
     fi
 
     local target_skills_rel target_commands_rel target_agents_rel target_registry_rel
@@ -1583,7 +1896,16 @@ uninstall_pack() {
         fi
 
         local is_installed
-        is_installed="$(python3 - "$reg_file" "$manifest_file" "$pack_name" <<'PY'
+        if [[ "$is_community" == "true" ]]; then
+            # Community packs: just check registry by pack_name (no legacy names)
+            is_installed="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+print('yes' if sys.argv[2] in (reg.get('packs') or {}) else 'no')
+" "$reg_file" "$pack_name")"
+        else
+            is_installed="$(python3 - "$reg_file" "$manifest_file" "$pack_name" <<'PY'
 import json
 import sys
 
@@ -1607,6 +1929,7 @@ for legacy in manifest.get('legacy_names', []) or []:
 print('no')
 PY
 )"
+        fi
         if [[ "$is_installed" != "yes" ]]; then
             echo "Error: Pack '$pack_alias' ($pack_name) is not installed. Nothing to uninstall." >&2
             exit 1
@@ -1618,14 +1941,48 @@ PY
 
     local removed=0
 
-    local skills
-    skills="$(python3 -c "
+    # Read skills/commands/agents list: community packs use registry, official packs use manifest
+    local skills="" commands="" agents_list=""
+    if [[ "$is_community" == "true" ]]; then
+        # Community packs: read from installed-packs.json registry
+        read -r skills commands agents_list <<< "$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+entry = (reg.get('packs') or {}).get(sys.argv[2]) or {}
+print(' '.join(entry.get('skills', [])))
+print(' '.join(entry.get('commands', [])))
+print(' '.join(entry.get('agents', [])))
+" "$reg_file" "$pack_name")"
+        # Convert space-separated to newline-separated
+        skills="${skills// /$'\n'}"
+        commands="${commands// /$'\n'}"
+        agents_list="${agents_list// /$'\n'}"
+    else
+        # Official packs: read from pack-manifest.json
+        skills="$(python3 -c "
 import json, sys
 with open(sys.argv[1], 'r', encoding='utf-8') as f:
     m = json.load(f)
 for s in m.get('skills', []):
     print(s)
 " "$manifest_file")"
+        commands="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for c in m.get('commands', []):
+    print(c)
+" "$manifest_file")"
+        agents_list="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for a in m.get('agents', []):
+    print(a)
+" "$manifest_file")"
+    fi
+
     if [[ -n "$target_skills" ]]; then
         while IFS= read -r skill; do
             [[ -n "$skill" ]] || continue
@@ -1638,14 +1995,6 @@ for s in m.get('skills', []):
         done <<< "$skills"
     fi
 
-    local commands
-    commands="$(python3 -c "
-import json, sys
-with open(sys.argv[1], 'r', encoding='utf-8') as f:
-    m = json.load(f)
-for c in m.get('commands', []):
-    print(c)
-" "$manifest_file")"
     if [[ -n "$target_commands" ]]; then
         while IFS= read -r cmd; do
             [[ -n "$cmd" ]] || continue
@@ -1663,14 +2012,6 @@ for c in m.get('commands', []):
         done <<< "$commands"
     fi
 
-    local agents
-    agents="$(python3 -c "
-import json, sys
-with open(sys.argv[1], 'r', encoding='utf-8') as f:
-    m = json.load(f)
-for a in m.get('agents', []):
-    print(a)
-" "$manifest_file")"
     if [[ -n "$target_agents" ]]; then
         while IFS= read -r agent; do
             [[ -n "$agent" ]] || continue
@@ -1680,11 +2021,16 @@ for a in m.get('agents', []):
                 echo "    - agents/$agent"
                 ((removed++)) || true
             fi
-        done <<< "$agents"
+        done <<< "$agents_list"
     fi
 
     local agents_file="$target_path/AGENTS.md"
-    remove_inline_pack_section "$agents_file" "$pack_name" "$manifest_file"
+    if [[ "$is_community" == "true" ]]; then
+        # Community packs: no manifest file, pass empty string
+        remove_inline_pack_section "$agents_file" "$pack_name" ""
+    else
+        remove_inline_pack_section "$agents_file" "$pack_name" "$manifest_file"
+    fi
 
     local l1_name=""
     case "$pack_name" in
@@ -1732,7 +2078,7 @@ PY
         dst_oc=""
         [[ -n "$config_file_rel" ]] && dst_oc="$target_path/$config_file_rel"
 
-        if [[ -f "$pack_root/opencode.example.json" && -n "$dst_oc" && -f "$dst_oc" && -f "$reg_file" ]]; then
+        if [[ "$is_community" != "true" && -f "$pack_root/opencode.example.json" && -n "$dst_oc" && -f "$dst_oc" && -f "$reg_file" ]]; then
             python3 - "$PACKS_DIR" "$reg_file" "$pack_name" "$pack_root/opencode.example.json" "$dst_oc" <<'PY'
 import json
 import os
@@ -1791,6 +2137,22 @@ PY
             echo "    - $config_file_rel (removed unique entries from this pack)"
         fi
 
+    if [[ "$is_community" == "true" ]]; then
+        # Community packs: just remove by pack_name, no legacy names
+        python3 -c "
+import json, sys
+reg_file, pack_name = sys.argv[1:3]
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+packs = reg.get('packs') or {}
+if pack_name in packs:
+    del packs[pack_name]
+    reg['packs'] = packs
+    with open(reg_file, 'w', encoding='utf-8') as f:
+        json.dump(reg, f, indent=2, ensure_ascii=False)
+        f.write(chr(10))
+" "$reg_file" "$pack_name"
+    else
         python3 - "$reg_file" "$pack_name" "$manifest_file" <<'PY'
 import json
 import sys
@@ -1821,8 +2183,9 @@ if changed:
         json.dump(reg, f, indent=2, ensure_ascii=False)
         f.write('\n')
 PY
-        echo "    - installed-packs.json (registry updated)"
-        ((removed++)) || true
+    fi
+    echo "    - installed-packs.json (registry updated)"
+    ((removed++)) || true
     fi
 
     echo ""
@@ -1837,13 +2200,25 @@ PY
 uninstall_global_pack() {
     local pack_alias="$1"
     local pack_name
-    pack_name="$(resolve_pack "$pack_alias")"
+    local is_community=false
+    local manifest_file=""
 
-    local pack_root="$PACKS_DIR/$pack_name"
-    local manifest_file="$pack_root/pack-manifest.json"
-    if [[ ! -f "$manifest_file" ]]; then
-        echo "Error: Pack manifest not found: $manifest_file" >&2
-        exit 1
+    if is_community_pack "$pack_alias"; then
+        is_community=true
+        local _owner _repo _ref
+        IFS='|' read -r _owner _repo _ref <<< "$(parse_community_spec "$pack_alias")"
+        pack_name="community--${_owner}--${_repo}"
+    else
+        pack_name="$(resolve_pack "$pack_alias")"
+    fi
+
+    if [[ "$is_community" == "false" ]]; then
+        local pack_root="$PACKS_DIR/$pack_name"
+        manifest_file="$pack_root/pack-manifest.json"
+        if [[ ! -f "$manifest_file" ]]; then
+            echo "Error: Pack manifest not found: $manifest_file" >&2
+            exit 1
+        fi
     fi
 
     local skills_dir
@@ -1867,7 +2242,16 @@ uninstall_global_pack() {
     fi
 
     local is_installed
-    is_installed="$(python3 - "$reg_file" "$manifest_file" "$pack_name" <<'PY'
+    if [[ "$is_community" == "true" ]]; then
+        # Community packs: just check registry by pack_name (no legacy names)
+        is_installed="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+print('yes' if sys.argv[2] in (reg.get('packs') or {}) else 'no')
+" "$reg_file" "$pack_name")"
+    else
+        is_installed="$(python3 - "$reg_file" "$manifest_file" "$pack_name" <<'PY'
 import json
 import sys
 
@@ -1891,6 +2275,7 @@ for legacy in manifest.get('legacy_names', []) or []:
 print('no')
 PY
 )"
+    fi
     if [[ "$is_installed" != "yes" ]]; then
         echo "Error: Pack '$pack_alias' ($pack_name) is not installed globally. Nothing to uninstall." >&2
         exit 1
@@ -1901,14 +2286,39 @@ PY
 
     local removed=0
 
-    local skills
-    skills="$(python3 -c "
+    # Read skills/commands list: community packs use registry, official packs use manifest
+    local skills="" commands=""
+    if [[ "$is_community" == "true" ]]; then
+        # Community packs: read from installed-packs.json registry
+        read -r skills commands <<< "$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+entry = (reg.get('packs') or {}).get(sys.argv[2]) or {}
+print(' '.join(entry.get('skills', [])))
+print(' '.join(entry.get('commands', [])))
+" "$reg_file" "$pack_name")"
+        # Convert space-separated to newline-separated
+        skills="${skills// /$'\n'}"
+        commands="${commands// /$'\n'}"
+    else
+        # Official packs: read from pack-manifest.json
+        skills="$(python3 -c "
 import json, sys
 with open(sys.argv[1], 'r', encoding='utf-8') as f:
     m = json.load(f)
 for s in m.get('skills', []):
     print(s)
 " "$manifest_file")"
+        commands="$(python3 -c "
+import json, sys
+with open(sys.argv[1], 'r', encoding='utf-8') as f:
+    m = json.load(f)
+for c in m.get('commands', []):
+    print(c)
+" "$manifest_file")"
+    fi
+
     while IFS= read -r skill; do
         [[ -n "$skill" ]] || continue
         local skill_dir="$skills_dir/$skill"
@@ -1919,14 +2329,6 @@ for s in m.get('skills', []):
         fi
     done <<< "$skills"
 
-    local commands
-    commands="$(python3 -c "
-import json, sys
-with open(sys.argv[1], 'r', encoding='utf-8') as f:
-    m = json.load(f)
-for c in m.get('commands', []):
-    print(c)
-" "$manifest_file")"
     if [[ -n "$commands_dir" ]]; then
         while IFS= read -r cmd; do
             [[ -n "$cmd" ]] || continue
@@ -1944,7 +2346,23 @@ for c in m.get('commands', []):
         done <<< "$commands"
     fi
 
-    python3 - "$reg_file" "$pack_name" "$manifest_file" <<'PY'
+    if [[ "$is_community" == "true" ]]; then
+        # Community packs: just remove by pack_name, no legacy names
+        python3 -c "
+import json, sys
+reg_file, pack_name = sys.argv[1:3]
+with open(reg_file, 'r', encoding='utf-8') as f:
+    reg = json.load(f)
+packs = reg.get('packs') or {}
+if pack_name in packs:
+    del packs[pack_name]
+    reg['packs'] = packs
+    with open(reg_file, 'w', encoding='utf-8') as f:
+        json.dump(reg, f, indent=2, ensure_ascii=False)
+        f.write(chr(10))
+" "$reg_file" "$pack_name"
+    else
+        python3 - "$reg_file" "$pack_name" "$manifest_file" <<'PY'
 import json
 import sys
 
@@ -1974,6 +2392,7 @@ if changed:
         json.dump(reg, f, indent=2, ensure_ascii=False)
         f.write('\n')
 PY
+    fi
     echo "    - installed-packs.json (registry updated)"
     ((removed++)) || true
 

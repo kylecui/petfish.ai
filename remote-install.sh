@@ -1512,6 +1512,17 @@ install_for_platform() {
             if $has_l1; then
                 # L1-only: write standalone rules file, skip inline merge
                 write_pack_rules_file "$pack_root/AGENTS.md" "$TARGET" "$pack_name"
+                # Also deploy any extra agents-rules files from the pack
+                if [[ -d "$pack_opencode/agents-rules" ]]; then
+                    local extra_rules_dir="$TARGET/.opencode/agents-rules"
+                    mkdir -p "$extra_rules_dir"
+                    for rules_file in "$pack_opencode/agents-rules"/*.md; do
+                        [[ -f "$rules_file" ]] || continue
+                        local rules_basename="$(basename "$rules_file")"
+                        cp "$rules_file" "$extra_rules_dir/$rules_basename"
+                        echo "    + .opencode/agents-rules/$rules_basename" >&2
+                    done
+                fi
                 # Deliver system-prompt-rules plugin (idempotent, runs for each L1 pack)
                 install_plugin_file "$EXTRACT_DIR" "$TARGET"
                 register_plugin_in_config "$TARGET/opencode.json"
@@ -1545,7 +1556,21 @@ install_for_platform() {
         fi
 
         # --- Merge opencode.json (OpenCode only) ---
-        if [[ "$platform_name" == "opencode" && -n "$config_file" && -f "$pack_root/opencode.example.json" ]]; then
+        # Deploy MCP server files from pack's .opencode/mcp/ to target
+if [[ -d "$pack_opencode/mcp" ]]; then
+    local target_mcp_dir="$TARGET/.opencode/mcp"
+    mkdir -p "$target_mcp_dir"
+    for mcp_dir in "$pack_opencode/mcp"/*/; do
+        [[ -d "$mcp_dir" ]] || continue
+        local mcp_name="$(basename "$mcp_dir")"
+        local target_mcp="$target_mcp_dir/$mcp_name"
+        mkdir -p "$target_mcp"
+        cp -r "$mcp_dir"* "$target_mcp/" 2>/dev/null || true
+        echo "    + .opencode/mcp/$mcp_name/" >&2
+    done
+fi
+
+if [[ "$platform_name" == "opencode" && -n "$config_file" && -f "$pack_root/opencode.example.json" ]]; then
             local dst_config="$TARGET/$config_file"
             result="$(merge_opencode_json "$pack_root/opencode.example.json" "$dst_config" "$force_this_pack" "$skills_dir")"
             case "$result" in

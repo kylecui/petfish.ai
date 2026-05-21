@@ -38,10 +38,12 @@ class FeatureFlags:
     enable_continuous_detection: bool = False
 
     # Phase 2: Tiered retention engine (hot/warm/cold/archive states)
-    enable_tiered_retention: bool = False
+    # Default True when v2_enabled — this is the headline v1.1.0 feature.
+    enable_tiered_retention: bool = True
 
     # Phase 2: Budget allocation across topics
-    enable_budget_allocation: bool = False
+    # Default True when v2_enabled — required by get_memory_context.
+    enable_budget_allocation: bool = True
 
     # Phase 3: Never-consolidate items preserved across compactions
     enable_never_consolidate: bool = False

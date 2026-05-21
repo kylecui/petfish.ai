@@ -67,8 +67,8 @@
 
 | 文件 | 类型 | 说明 |
 |------|------|------|
-| `packs/petfish-companion-skill/mcp/skill-registry/server.py` | code | skill-registry MCP（673行, 5 tools） |
-| `packs/petfish-companion-skill/mcp/usage-cost/server.py` | code | usage-cost MCP（761行, 6 tools） |
+| `packs/petfish-companion-skill/.opencode/mcp/skill-registry/server.py` | code | skill-registry MCP（673行, 5 tools） |
+| `packs/petfish-companion-skill/.opencode/mcp/usage-cost/server.py` | code | usage-cost MCP（761行, 6 tools） |
 
 **skill-registry tools**: list_installed_packs, list_available_packs, search_skills, get_pack_info, get_profile_mapping
 
