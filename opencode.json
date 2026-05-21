@@ -8,6 +8,11 @@
       "fish-trail": "allow"
     }
   },
+  "plugin": [
+    [".opencode/plugin/system-prompt-rules.ts", {}],
+    [".opencode/plugin/fish-trail-compaction.ts", {}],
+    [".opencode/plugin/topic-context-filter.ts", { "enabled": true, "safetyWindow": 3, "minMessages": 10 }]
+  ],
   "mcp": {
     "context-state": {
       "type": "local",
