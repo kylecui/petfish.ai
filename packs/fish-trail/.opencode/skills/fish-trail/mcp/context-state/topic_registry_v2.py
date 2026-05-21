@@ -714,6 +714,13 @@ class TopicRegistryV2:
         if not isinstance(data, dict):
             raise ValueError("Invalid registry payload")
 
+        # Detect v1 format and auto-migrate
+        version = data.get("version")
+        if version is None or (isinstance(version, int) and version == 1):
+            from migration_v1_to_v2 import migrate_registry
+
+            data, _state = migrate_registry(self.base_dir)
+
         # Ensure required fields
         data.setdefault("version", self.VERSION)
         data.setdefault("topics", {})

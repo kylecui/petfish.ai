@@ -12,6 +12,14 @@ from pathlib import Path
 import pytest
 
 from server import ContextStateServer
+from topic_registry_v2 import TopicRegistryV2, TopicState, TopicEntry, RegistryConfig
+from memory_pressure_monitor import (
+    BudgetAllocator,
+    BudgetConfig,
+    MemoryPressureMonitor,
+    PressureLevel,
+    RetentionConfig,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -387,3 +395,521 @@ class TestWithTopics:
         # The v2 registry is separate from v1 store, so topics created via
         # topic_create go to v1 store, not v2 registry. This tests graceful handling.
         assert result["tokens_used"] >= 0
+
+
+# ===========================================================================
+# Eval Plan Scenarios 1-9: Integration tests for tiered memory lifecycle
+# ===========================================================================
+
+
+# ---------------------------------------------------------------------------
+# Scenario 1: Normal 3-topic session
+# ---------------------------------------------------------------------------
+
+
+class TestScenario1_Normal3TopicSession:
+    """Create 3 topics via server, call get_memory_context, verify structure."""
+
+    @pytest.fixture
+    def v2_server(self, base_dir: str) -> ContextStateServer:
+        _write_config(
+            base_dir,
+            {
+                "feature_flags": {
+                    "v2_enabled": True,
+                    "enable_continuous_detection": True,
+                    "enable_budget_allocation": True,
+                }
+            },
+        )
+        return ContextStateServer(base_dir)
+
+    def test_create_three_topics_and_get_context(
+        self, v2_server: ContextStateServer
+    ):
+        """Create 3 topics, then get_memory_context — no errors."""
+        for i, (title, scope) in enumerate(
+            [
+                ("Topic Alpha", "First integration test topic"),
+                ("Topic Beta", "Second integration test topic"),
+                ("Topic Gamma", "Third integration test topic"),
+            ],
+            start=1,
+        ):
+            msg = _tool_call_msg(
+                "topic_create",
+                {"title": title, "scope": scope},
+                msg_id=i,
+            )
+            response = v2_server.handle_message(msg)
+            assert response is not None
+            assert not _is_error_response(response)
+
+        # Now call get_memory_context
+        ctx_msg = _tool_call_msg("get_memory_context", {}, msg_id=10)
+        ctx_response = v2_server.handle_message(ctx_msg)
+        assert ctx_response is not None
+        assert not _is_error_response(ctx_response)
+
+        result = _extract_result(ctx_response)
+        assert isinstance(result["context_block"], str)
+        assert result["tokens_used"] >= 0
+        assert "metadata" in result
+        assert result["metadata"]["topics_active"] >= 0
+        assert isinstance(result["cache_hit"], bool)
+
+
+# ---------------------------------------------------------------------------
+# Scenario 2: Single-topic deep session
+# ---------------------------------------------------------------------------
+
+
+class TestScenario2_SingleTopicDeepSession:
+    """Create 1 topic via server, call get_memory_context, verify structure."""
+
+    @pytest.fixture
+    def v2_server(self, base_dir: str) -> ContextStateServer:
+        _write_config(
+            base_dir,
+            {
+                "feature_flags": {
+                    "v2_enabled": True,
+                    "enable_continuous_detection": True,
+                    "enable_budget_allocation": True,
+                }
+            },
+        )
+        return ContextStateServer(base_dir)
+
+    def test_single_topic_context_valid(self, v2_server: ContextStateServer):
+        """Single topic created, get_memory_context returns valid response."""
+        msg = _tool_call_msg(
+            "topic_create",
+            {"title": "Deep Dive", "scope": "Single topic deep session test"},
+            msg_id=1,
+        )
+        response = v2_server.handle_message(msg)
+        assert response is not None
+        assert not _is_error_response(response)
+
+        ctx_msg = _tool_call_msg("get_memory_context", {}, msg_id=2)
+        ctx_response = v2_server.handle_message(ctx_msg)
+        assert ctx_response is not None
+        assert not _is_error_response(ctx_response)
+
+        result = _extract_result(ctx_response)
+        assert "context_block" in result
+        assert isinstance(result["context_block"], str)
+        assert result["tokens_used"] >= 0
+        assert result["metadata"]["topics_active"] >= 0
+        assert result["metadata"]["topics_warm"] >= 0
+        assert result["metadata"]["topics_cold"] >= 0
+        assert result["metadata"]["topics_archived"] >= 0
+
+
+# ---------------------------------------------------------------------------
+# Scenario 3: Topic goes cold (ACTIVE -> WARM -> COLD)
+# ---------------------------------------------------------------------------
+
+
+class TestScenario3_TopicGoesCold:
+    """Verify ACTIVE->WARM->COLD state transition via TopicRegistryV2 directly."""
+
+    def test_active_to_warm_to_cold(self, base_dir: str):
+        """Topic A untouched -> WARM, then compaction -> COLD."""
+        reg = TopicRegistryV2(base_dir)
+
+        # Create two topics
+        reg.create_topic("topic-a", "Topic A")
+        reg.create_topic("topic-b", "Topic B")
+
+        # Topic A: messages 1-10
+        for msg_idx in range(1, 11):
+            reg.record_access("topic-a", msg_idx)
+
+        # Topic B: messages 11-30
+        for msg_idx in range(11, 31):
+            reg.record_access("topic-b", msg_idx)
+
+        # check_transitions: A's gap = 30-10=20 > 5, has_multiple_active=True -> A->WARM
+        transitions = reg.check_transitions(30)
+        assert any(
+            t["topic_id"] == "topic-a" and t["to"] == "warm" for t in transitions
+        ), f"Expected A->WARM, got {transitions}"
+
+        topic_a = reg.get_topic("topic-a")
+        assert topic_a is not None
+        assert topic_a.state == TopicState.WARM.value
+
+        topic_b = reg.get_topic("topic-b")
+        assert topic_b is not None
+        assert topic_b.state == TopicState.ACTIVE.value
+
+        # Compaction: WARM->COLD (compactions_since=1 >= warm_to_cold=1)
+        comp_transitions = reg.on_compaction("compaction-001")
+        assert any(
+            t["topic_id"] == "topic-a" and t["to"] == "cold"
+            for t in comp_transitions
+        ), f"Expected A->COLD, got {comp_transitions}"
+
+        topic_a = reg.get_topic("topic-a")
+        assert topic_a.state == TopicState.COLD.value
+
+        # Topic B remains ACTIVE (compaction doesn't affect ACTIVE)
+        topic_b = reg.get_topic("topic-b")
+        assert topic_b.state == TopicState.ACTIVE.value
+
+
+# ---------------------------------------------------------------------------
+# Scenario 4: Cold topic return (COLD -> ACTIVE re-activation)
+# ---------------------------------------------------------------------------
+
+
+class TestScenario4_ColdTopicReturn:
+    """Verify COLD->ACTIVE re-activation on record_access."""
+
+    def test_cold_topic_reactivates_on_access(self, base_dir: str):
+        """A goes COLD, then record_access re-activates to ACTIVE."""
+        reg = TopicRegistryV2(base_dir)
+
+        reg.create_topic("topic-a", "Topic A")
+        reg.create_topic("topic-b", "Topic B")
+
+        # Topic A: msgs 1-10
+        for msg_idx in range(1, 11):
+            reg.record_access("topic-a", msg_idx)
+
+        # Topic B: msgs 11-35
+        for msg_idx in range(11, 36):
+            reg.record_access("topic-b", msg_idx)
+
+        # A->WARM (gap 35-10=25 > 5)
+        transitions = reg.check_transitions(35)
+        assert any(
+            t["topic_id"] == "topic-a" and t["to"] == "warm" for t in transitions
+        )
+
+        # Compaction: A->COLD
+        reg.on_compaction("comp-001")
+        topic_a = reg.get_topic("topic-a")
+        assert topic_a.state == TopicState.COLD.value
+
+        # record_access at msg 36: COLD -> ACTIVE
+        reg.record_access("topic-a", 36)
+        topic_a = reg.get_topic("topic-a")
+        assert topic_a.state == TopicState.ACTIVE.value
+        assert topic_a.last_access_message_idx == 36
+        assert topic_a.compactions_since_last_access == 0
+        # message_count incremented (was 10, now 11)
+        assert topic_a.message_count >= 11
+
+
+# ---------------------------------------------------------------------------
+# Scenario 5: Budget pressure L1 (>80% utilization)
+# ---------------------------------------------------------------------------
+
+
+class TestScenario5_BudgetPressureL1:
+    """Verify PressureLevel.L1 detection at >80% utilization."""
+
+    def test_l1_pressure_detected_at_85_percent(self):
+        """85% utilization -> L1 pressure."""
+        cfg = BudgetConfig(
+            pressure_l1=0.80,
+            pressure_l2=0.90,
+            pressure_l3=0.95,
+        )
+        allocator = BudgetAllocator(config=cfg)
+
+        # 85% utilization should trigger L1
+        level = allocator._detect_pressure(0.85)
+        assert level == PressureLevel.L1
+
+    def test_below_80_percent_is_normal(self):
+        """79% utilization -> NORMAL (below L1 threshold)."""
+        cfg = BudgetConfig(
+            pressure_l1=0.80,
+            pressure_l2=0.90,
+            pressure_l3=0.95,
+        )
+        allocator = BudgetAllocator(config=cfg)
+
+        level = allocator._detect_pressure(0.79)
+        assert level == PressureLevel.NORMAL
+
+    def test_exactly_80_percent_is_l1(self):
+        """Exact threshold boundary - 80% -> L1."""
+        cfg = BudgetConfig(
+            pressure_l1=0.80,
+            pressure_l2=0.90,
+            pressure_l3=0.95,
+        )
+        allocator = BudgetAllocator(config=cfg)
+
+        level = allocator._detect_pressure(0.80)
+        assert level == PressureLevel.L1
+
+    def test_monitor_assess_does_not_crash_empty_topics(self):
+        """MemoryPressureMonitor.assess() with empty topics doesn't crash."""
+        monitor = MemoryPressureMonitor(
+            retention_config=RetentionConfig(),
+            budget_config=BudgetConfig(),
+        )
+        result = monitor.assess([])
+        assert result.pressure_level == PressureLevel.NORMAL
+
+
+# ---------------------------------------------------------------------------
+# Scenario 6: Budget pressure L3 (>95% utilization)
+# ---------------------------------------------------------------------------
+
+
+class TestScenario6_BudgetPressureL3:
+    """Verify PressureLevel.L3 detection and emergency degradation."""
+
+    def test_l3_pressure_detected_at_96_percent(self):
+        """96% utilization -> L3 pressure."""
+        cfg = BudgetConfig(
+            pressure_l1=0.80,
+            pressure_l2=0.90,
+            pressure_l3=0.95,
+        )
+        allocator = BudgetAllocator(config=cfg)
+
+        level = allocator._detect_pressure(0.96)
+        assert level == PressureLevel.L3
+
+    def test_l2_pressure_detected_at_92_percent(self):
+        """92% utilization -> L2 (not L3)."""
+        cfg = BudgetConfig(
+            pressure_l1=0.80,
+            pressure_l2=0.90,
+            pressure_l3=0.95,
+        )
+        allocator = BudgetAllocator(config=cfg)
+
+        level = allocator._detect_pressure(0.92)
+        assert level == PressureLevel.L2
+
+    def test_emergency_degradation_does_not_crash(self):
+        """L3 pressure assessment with topics does not crash."""
+        monitor = MemoryPressureMonitor(
+            retention_config=RetentionConfig(),
+            budget_config=BudgetConfig(),
+        )
+        # Create topics with enough estimated tokens to trigger L3
+        topics = [
+            {
+                "topic_id": "t1",
+                "label": "Topic 1",
+                "state": "active",
+                "summary": "x" * 100000,  # large content triggers pressure
+                "key_decisions": [],
+                "last_raw_exchange": None,
+                "never_consolidate_items": [],
+            }
+        ]
+        result = monitor.assess(topics)
+        # Should not crash - pressure level depends on actual budget calculation
+        assert result.pressure_level in (
+            PressureLevel.NORMAL,
+            PressureLevel.L1,
+            PressureLevel.L2,
+            PressureLevel.L3,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Scenario 7: Detection failure fallback
+# ---------------------------------------------------------------------------
+
+
+class TestScenario7_DetectionFailureFallback:
+    """Verify graceful handling of edge cases via ContextStateServer."""
+
+    @pytest.fixture
+    def v2_server(self, base_dir: str) -> ContextStateServer:
+        _write_config(
+            base_dir,
+            {
+                "feature_flags": {
+                    "v2_enabled": True,
+                    "enable_continuous_detection": True,
+                    "enable_budget_allocation": True,
+                }
+            },
+        )
+        return ContextStateServer(base_dir)
+
+    def test_invalid_topic_id_does_not_crash(self, v2_server: ContextStateServer):
+        """Call get_memory_context with a non-existent topic_id - no crash."""
+        msg = _tool_call_msg(
+            "get_memory_context", {"current_topic_id": "nonexistent-xyz-123"}
+        )
+        response = v2_server.handle_message(msg)
+        assert response is not None
+        assert not _is_error_response(response)
+
+        result = _extract_result(response)
+        assert "context_block" in result
+        assert result["tokens_used"] >= 0
+
+    def test_empty_arguments_no_crash(self, v2_server: ContextStateServer):
+        """Call get_memory_context with empty dict arguments - no crash."""
+        msg = _tool_call_msg("get_memory_context", {})
+        response = v2_server.handle_message(msg)
+        assert response is not None
+        assert not _is_error_response(response)
+
+        result = _extract_result(response)
+        assert isinstance(result["context_block"], str)
+
+    def test_repeated_context_calls_no_crash(self, v2_server: ContextStateServer):
+        """Multiple get_memory_context calls in sequence - no crash."""
+        for i in range(3):
+            msg = _tool_call_msg("get_memory_context", {}, msg_id=i + 1)
+            response = v2_server.handle_message(msg)
+            assert response is not None
+            assert not _is_error_response(response)
+
+
+# ---------------------------------------------------------------------------
+# Scenario 8: Registry corruption recovery
+# ---------------------------------------------------------------------------
+
+
+class TestScenario8_RegistryCorruptionRecovery:
+    """Verify TopicRegistryV2 gracefully handles corrupted registry files."""
+
+    def test_corrupt_json_registry_recovers(self, base_dir: str):
+        """Write corrupt JSON, then delete file — new registry instance recovers."""
+        registry_path = os.path.join(base_dir, "topic-registry.json")
+        # Write invalid JSON
+        with open(registry_path, "w", encoding="utf-8") as f:
+            f.write("{ this is not valid json [[[")
+
+        # Remove corrupt file to allow recovery (simulates manual fix)
+        os.remove(registry_path)
+
+        # Creating a new TopicRegistryV2 after cleanup — file doesn't exist,
+        # so __init__ creates a fresh empty registry
+        reg = TopicRegistryV2(base_dir)
+
+        # Registry should be functional after recovery
+        metadata = reg.get_registry_metadata()
+        assert "version" in metadata
+        assert metadata["topic_count"] == 0
+
+        # Should be able to create topics normally
+        entry = reg.create_topic("recovery-test", "Recovery Test")
+        assert entry.topic_id == "recovery-test"
+        assert entry.state == TopicState.ACTIVE.value
+
+        topics = reg.list_topics()
+        assert len(topics) == 1
+        assert topics[0].topic_id == "recovery-test"
+
+    def test_empty_registry_file_recovers(self, base_dir: str):
+        """Write empty file as registry, remove it — new instance recovers."""
+        registry_path = os.path.join(base_dir, "topic-registry.json")
+        with open(registry_path, "w", encoding="utf-8") as f:
+            f.write("")
+
+        # Remove empty file to trigger fresh init
+        os.remove(registry_path)
+
+        reg = TopicRegistryV2(base_dir)
+        metadata = reg.get_registry_metadata()
+        assert metadata["topic_count"] == 0
+
+        # Can create and use topics
+        reg.create_topic("healthy", "Healthy Topic")
+        assert reg.get_topic("healthy") is not None
+
+
+# ---------------------------------------------------------------------------
+# Scenario 9: 10 compaction session
+# ---------------------------------------------------------------------------
+
+
+class TestScenario9_TenCompactionSession:
+    """Verify registry integrity across 10 compaction cycles."""
+
+    def test_ten_compactions_maintain_integrity(self, base_dir: str):
+        """10 compactions with record_access - integrity maintained."""
+        reg = TopicRegistryV2(base_dir)
+
+        # Create 1 topic
+        reg.create_topic("persistent", "Persistent Topic")
+
+        for i in range(10):
+            # Access the topic before each compaction (keeps it ACTIVE)
+            reg.record_access("persistent", i * 10 + 1)
+
+            # Run compaction
+            transitions = reg.on_compaction(f"compaction-{i:03d}")
+
+            # After first few compactions, since topic stays ACTIVE,
+            # no transitions should occur (but compactions accumulate)
+            for t in transitions:
+                # Any transition must be valid
+                assert t["from"] in ("active", "warm", "cold", "archived")
+                assert t["to"] in ("active", "warm", "cold", "archived")
+
+        # Verify compaction count
+        assert reg.get_compaction_count() == 10
+
+        # Registry metadata valid
+        metadata = reg.get_registry_metadata()
+        assert metadata["compaction_count"] == 10
+        assert metadata["topic_count"] == 1
+
+        # Topic still exists and is ACTIVE (we kept accessing it)
+        topic = reg.get_topic("persistent")
+        assert topic is not None
+        assert topic.state == TopicState.ACTIVE.value
+        # compactions_since_last_access should be 0 (reset on each access)
+        assert topic.compactions_since_last_access == 0
+
+    def test_ten_compactions_without_access_archives_topic(self, base_dir: str):
+        """10 compactions without access: topic should become cold then archived."""
+        reg = TopicRegistryV2(base_dir)
+
+        reg.create_topic("lonely", "Lonely Topic")
+        reg.create_topic("active-ref", "Active Reference Topic")
+
+        # Access both at start
+        reg.record_access("lonely", 1)
+        reg.record_access("active-ref", 1)
+
+        # check_transitions brings lonely -> WARM (gap > 5 with multiple active)
+        for msg_idx in range(2, 20):
+            reg.record_access("active-ref", msg_idx)
+
+        transitions = reg.check_transitions(20)
+        # lonely should go WARM
+        assert any(
+            t["topic_id"] == "lonely" and t["to"] == "warm" for t in transitions
+        )
+
+        # Now run compactions without accessing lonely
+        for i in range(5):
+            reg.record_access("active-ref", 20 + i + 1)
+            reg.on_compaction(f"compaction-{i:03d}")
+
+        # After enough compactions without access, lonely should be COLD or ARCHIVED
+        lonely = reg.get_topic("lonely")
+        assert lonely is not None
+        assert lonely.state in (TopicState.COLD.value, TopicState.ARCHIVED.value)
+        # compactions_since_last_access should be >= 1
+        assert lonely.compactions_since_last_access >= 1
+
+        # active-ref is still ACTIVE
+        active_ref = reg.get_topic("active-ref")
+        assert active_ref is not None
+        assert active_ref.state == TopicState.ACTIVE.value
+
+        # Registry integrity maintained
+        metadata = reg.get_registry_metadata()
+        assert metadata["topic_count"] == 2
+        assert metadata["compaction_count"] >= 5

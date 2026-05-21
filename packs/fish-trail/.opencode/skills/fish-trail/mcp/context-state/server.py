@@ -1177,19 +1177,6 @@ class ContextStateServer:
         validator = TopicValidator(self.store.base_dir)
         return validator.validate()
 
-    # -- Tiered Memory v2 ---------------------------------------------------
-
-    def _handle_get_memory_context(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        """Return tiered memory context with budget-aware allocation."""
-        assert self._memory_context is not None
-        result = self._memory_context.get_memory_context(
-            current_topic_id=args.get("current_topic_id"),
-            include_warm=args.get("include_warm", True),
-            include_cold_summaries=args.get("include_cold_summaries", True),
-            budget_tokens=args.get("budget_tokens"),
-        )
-        return result.to_dict()
-
     # -- Helpers ------------------------------------------------------------
 
     def _get_related_topic_dicts(self, topic_id: str) -> List[Dict[str, Any]]:
@@ -1216,6 +1203,30 @@ class ContextStateServer:
                         }
                     )
         return related
+
+    # -- Tiered Memory v2 handler -------------------------------------------
+
+    def _handle_get_memory_context(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle get_memory_context tool call with v1 fallback."""
+        if self._memory_context is None:
+            raise ValueError("Memory context provider is not initialized")
+        try:
+            result = self._memory_context.get_memory_context(
+                current_topic_id=args.get("current_topic_id"),
+                budget_tokens=args.get("budget_tokens"),
+                include_warm=args.get("include_warm", True),
+                include_cold_summaries=args.get("include_cold_summaries"),
+            )
+            return result.to_dict()
+        except Exception:
+            if self._feature_flags and self._feature_flags.v1_fallback_on_error:
+                from memory_context import MemoryContextResult
+
+                return MemoryContextResult(
+                    context_block="",
+                    tokens_used=0,
+                ).to_dict()
+            raise
 
 
 # ---------------------------------------------------------------------------
