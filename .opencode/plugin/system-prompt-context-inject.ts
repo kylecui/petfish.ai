@@ -1065,6 +1065,7 @@ async function extractUserMessage(input: unknown): Promise<string> {
 const PLUGIN_FILENAME = "system-prompt-context-inject"
 let _optionsLogged = false
 let _inputShapeLogged = false
+let _clientProbeLogged = false
 
 async function resolvePluginOptions(directory: string, fnOptions: unknown): Promise<Required<PluginOptions>> {
   const defaults: Required<PluginOptions> = {
@@ -1119,7 +1120,7 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
   return defaults
 }
 
-const plugin: Plugin = async ({ directory }, options) => {
+const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
   // Resolve options with full fallback chain (#158)
   const pluginOptsPromise = resolvePluginOptions(directory, options)
 
@@ -1137,7 +1138,9 @@ const plugin: Plugin = async ({ directory }, options) => {
           "[system-prompt-context-inject] options resolved: " +
           "maxTopics=" + pluginOpts.maxTopics +
           ", maxSummaryLen=" + pluginOpts.maxSummaryLen +
-          ", detectionMode=" + pluginOpts.detectionMode,
+          ", detectionMode=" + pluginOpts.detectionMode +
+          ", client.available=" + String(!!client) +
+          ", serverUrl=" + (serverUrl ? serverUrl.toString() : "n/a"),
         )
       }
 
@@ -1152,6 +1155,58 @@ const plugin: Plugin = async ({ directory }, options) => {
           : "n/a"
         console.log(
           "[system-prompt-context-inject] input shape: keys=[" + inputKeys + "] messages.len=" + msgsLen,
+        )
+      }
+
+      // #163: Probe — try client.messages() to fetch latest user message
+      // This tests whether the OpenCode SDK session store has the current user message
+      // available BEFORE system.transform is called. If it does, we can use this for
+      // realtime detection (Scheme D) instead of relying on the hook input.
+      if (!_clientProbeLogged && client && input.sessionID) {
+        _clientProbeLogged = true
+        try {
+          const msgsResult = await client.messages({
+            path: { id: input.sessionID },
+            query: { limit: 3 },
+          })
+          if (msgsResult.status === 200 && Array.isArray(msgsResult.data)) {
+            const msgCount = msgsResult.data.length
+            // Find last user message and extract text from parts
+            let lastUserText = "(none)"
+            for (let i = msgsResult.data.length - 1; i >= 0; i--) {
+              const msgEntry = msgsResult.data[i]
+              if (msgEntry.info && msgEntry.info.role === "user") {
+                const textParts = Array.isArray(msgEntry.parts)
+                  ? msgEntry.parts.filter(function(p: { type: string }) { return p.type === "text" })
+                  : []
+                if (textParts.length > 0) {
+                  const fullText = textParts.map(function(p: { text: string }) { return p.text }).join(" ")
+                  const preview = fullText.length > 60 ? fullText.slice(0, 60) + "..." : fullText
+                  lastUserText = JSON.stringify(preview)
+                }
+                break
+              }
+            }
+            console.log(
+              "[system-prompt-context-inject] #163 client probe: " +
+              "msgs=" + msgCount + ", lastUserText=" + lastUserText,
+            )
+          } else {
+            console.log(
+              "[system-prompt-context-inject] #163 client probe: " +
+              "status=" + msgsResult.status + " (expected 200)",
+            )
+          }
+        } catch (e) {
+          console.log(
+            "[system-prompt-context-inject] #163 client probe FAILED: " + String(e),
+          )
+        }
+      } else if (!_clientProbeLogged) {
+        _clientProbeLogged = true
+        console.log(
+          "[system-prompt-context-inject] #163 client probe SKIPPED: " +
+          "client=" + String(!!client) + ", sessionID=" + String(input.sessionID),
         )
       }
 
@@ -1210,7 +1265,29 @@ const plugin: Plugin = async ({ directory }, options) => {
         // 1. If input.messages exists, find the last user message
         // 2. Else if input.content exists, use it directly
         // 3. Support both string and part-array content formats
-        const userMsg = await extractUserMessage(input)
+        // #163: If hook input has no messages, try client.messages() SDK call
+        let userMsg = await extractUserMessage(input)
+
+        if ((!userMsg || userMsg.length === 0) && client && input.sessionID) {
+          try {
+            const msgsResult = await client.messages({
+              path: { id: input.sessionID },
+              query: { limit: 1 },
+            })
+            if (msgsResult.status === 200 && Array.isArray(msgsResult.data) && msgsResult.data.length > 0) {
+              const lastEntry = msgsResult.data[msgsResult.data.length - 1]
+              if (lastEntry.info && lastEntry.info.role === "user" && Array.isArray(lastEntry.parts)) {
+                const textParts = lastEntry.parts.filter(function(p: { type: string }) { return p.type === "text" })
+                if (textParts.length > 0) {
+                  userMsg = textParts.map(function(p: { text: string }) { return p.text }).join(" ")
+                }
+              }
+            }
+          } catch (e) {
+            // client.messages() failed — continue with empty userMsg
+            console.log("[system-prompt-context-inject] client.messages() failed: " + String(e))
+          }
+        }
 
         // Debug: log extracted message length for troubleshooting (#159)
         console.log(
