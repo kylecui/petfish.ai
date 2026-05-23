@@ -32,7 +32,12 @@
  *
  * Config via opencode.json plugin tuple:
  *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "disk" }]
- *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "realtime" }]
+ *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "experimental.realtime" }]
+ *
+ * "disk" (default): reads previous turn's state from disk only. Zero overhead.
+ * "experimental.realtime": requires patched OpenCode with lastUserMessage support (#163).
+ *   Falls back to disk-mode if patch is absent.
+ * Cold start: when no active topic exists, injects minimal guidance instead of skipping.
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
@@ -756,7 +761,12 @@ const FISH_TRAIL_DIR = ".petfish/fish-trail"
 interface PluginOptions {
   maxTopics?: number
   maxSummaryLen?: number
-  detectionMode?: "disk" | "realtime"  // default: "disk"
+  // "disk" (default): reads previous turn's topic state from disk. Zero overhead, one-turn delay.
+  // "realtime": attempts per-turn detection. REQUIRES patched OpenCode build with lastUserMessage
+  //   support (see #163). Falls back to disk-mode behavior if patch is absent.
+  // "experimental.realtime": same as "realtime" — use this in opencode.json to make the
+  //   experimental status explicit.
+  detectionMode?: "disk" | "realtime" | "experimental.realtime"
 }
 
 interface TopicRegistry {
@@ -1066,6 +1076,8 @@ const PLUGIN_FILENAME = "system-prompt-context-inject"
 let _optionsLogged = false
 let _inputShapeLogged = false
 let _clientProbeLogged = false
+let _noTopicWarned = false
+let _realtimeFallbackWarned = false
 
 async function resolvePluginOptions(directory: string, fnOptions: unknown): Promise<Required<PluginOptions>> {
   const defaults: Required<PluginOptions> = {
@@ -1077,10 +1089,11 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
   // Layer 1: function argument
   if (fnOptions && typeof fnOptions === "object" && Object.keys(fnOptions as Record<string, unknown>).length > 0) {
     const raw = fnOptions as Record<string, unknown>
+    const rawMode = raw.detectionMode as string | undefined
     return {
       maxTopics: (raw.maxTopics as number) ?? defaults.maxTopics,
       maxSummaryLen: (raw.maxSummaryLen as number) ?? defaults.maxSummaryLen,
-      detectionMode: (raw.detectionMode as "disk" | "realtime") ?? defaults.detectionMode,
+      detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
     }
   }
 
@@ -1097,10 +1110,11 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
           const path = String(entry[0])
           const opts = entry[1] as Record<string, unknown>
           if (path.includes(PLUGIN_FILENAME) && opts && typeof opts === "object") {
+            const rawMode = opts.detectionMode as string | undefined
             return {
               maxTopics: (opts.maxTopics as number) ?? defaults.maxTopics,
               maxSummaryLen: (opts.maxSummaryLen as number) ?? defaults.maxSummaryLen,
-              detectionMode: (opts.detectionMode as "disk" | "realtime") ?? defaults.detectionMode,
+              detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
             }
           }
         }
@@ -1112,8 +1126,8 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
 
   // Layer 3: environment variable
   const envMode = process.env.FISH_TRAIL_DETECTION_MODE
-  if (envMode === "realtime" || envMode === "disk") {
-    return { ...defaults, detectionMode: envMode }
+  if (envMode === "realtime" || envMode === "experimental.realtime") {
+    return { ...defaults, detectionMode: "realtime" }
   }
 
   // Layer 4: defaults
@@ -1213,10 +1227,26 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
       // Resolve active topic with fallback chain
       const activeTopicId = await resolveActiveTopic(fishTrailDir)
       if (!activeTopicId) {
-        console.log(
-          "[system-prompt-context-inject] No active topic found in any state file " +
-          "(cold start or no topics created yet). Skipping injection.",
-        )
+        // Cold start: no topics created yet. Log once, then inject minimal guidance.
+        if (!_noTopicWarned) {
+          _noTopicWarned = true
+          console.log(
+            "[system-prompt-context-inject] No active topic found " +
+            "(cold start or no topics created yet). Injecting cold-start guidance.",
+          )
+        }
+        // Inject a minimal cold-start block so the model knows MCP tools exist
+        output.system.push([
+          "## Topic Context (auto-injected by plugin)",
+          "",
+          "- **Status**: No active topic. Topic system is ready but idle.",
+          "- **Available MCP tools**: `topic_create`, `topic_list`, `topic_detect`, `session_bind`.",
+          "  Use `topic_create` when starting a significant new task or discussion thread.",
+          "",
+          "Topic context above is automatically injected by plugin " +
+            "(disk mode). " +
+            "Do NOT call topic_detect or get_memory_context for routine turns.",
+        ].join("\n"))
         return
       }
 
@@ -1260,13 +1290,19 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
       // Realtime detection (if enabled)
       let detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null = null
       if (pluginOpts.detectionMode === "realtime") {
+        // #163: Realtime mode requires either input.lastUserMessage (patched OpenCode)
+        // or client.messages() SDK access. If neither provides user text, fall back
+        // to disk mode for this session and warn once.
+        // Check if OpenCode has been patched to pass lastUserMessage (#163)
+        const patchedUserMsg = (input as Record<string, unknown>).lastUserMessage as string | undefined
+        
         // #157: Extract user message robustly.
         // OpenCode hook exposes messages via input.messages, not input.content.
         // 1. If input.messages exists, find the last user message
         // 2. Else if input.content exists, use it directly
         // 3. Support both string and part-array content formats
         // #163: If hook input has no messages, try client.messages() SDK call
-        let userMsg = await extractUserMessage(input)
+        let userMsg = patchedUserMsg || await extractUserMessage(input)
 
         if ((!userMsg || userMsg.length === 0) && client && input.sessionID) {
           try {
@@ -1286,6 +1322,20 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
           } catch (e) {
             // client.messages() failed — continue with empty userMsg
             console.log("[system-prompt-context-inject] client.messages() failed: " + String(e))
+          }
+        }
+
+        // #163: If still no user message, realtime is not functional.
+        // Fall back silently to disk-mode behavior for this turn.
+        if (!userMsg || userMsg.length === 0) {
+          if (!_realtimeFallbackWarned) {
+            _realtimeFallbackWarned = true
+            console.log(
+              "[system-prompt-context-inject] Realtime mode configured but no user message available. " +
+              "OpenCode system.transform hook does not expose user messages (#163). " +
+              "Falling back to disk-mode behavior. " +
+              "To enable true realtime detection, use a patched OpenCode build with lastUserMessage support.",
+            )
           }
         }
 
