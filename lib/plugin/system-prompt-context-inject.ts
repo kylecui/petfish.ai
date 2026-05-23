@@ -36,7 +36,8 @@
  *
  * "disk" (default): reads previous turn's state from disk only. Zero overhead.
  * "experimental.realtime": requires patched OpenCode with lastUserMessage support (#163).
- *   Falls back to disk-mode if patch is absent.
+ *   Falls back to disk-mode if patch is absent. Not recommended — wait for upstream.
+ *   See: https://github.com/anomalyco/opencode/pull/28993
  * Cold start: when no active topic exists, injects minimal guidance instead of skipping.
  */
 
@@ -162,8 +163,8 @@ async function checkAutoPatch(
     if (prevState.patchedBinaryVersion && !lastUserMessageAvailable) {
       console.log(
         "[system-prompt-context-inject] Patched OpenCode was replaced by upgrade. " +
-        "To re-enable realtime detection, re-apply the patch: " +
-        "uv run scripts/patch_opencode.py",
+        "Disk mode will continue to work. For realtime, see: " +
+        "uv run scripts/patch_opencode.py --check",
       )
     }
   }
@@ -171,9 +172,9 @@ async function checkAutoPatch(
   // Guidance for users who want realtime mode
   if (!lastUserMessageAvailable && (!prevState || !prevState.lastUserMessageAvailable)) {
     console.log(
-      "[system-prompt-context-inject] Tip: Realtime topic detection requires OpenCode " +
-      "with lastUserMessage support (PR: https://github.com/anomalyco/opencode/pull/28993). " +
-      "Disk mode works without it (one-turn delay). To patch: uv run scripts/patch_opencode.py",
+      "[system-prompt-context-inject] Disk mode is active (one-turn delay, zero overhead). " +
+      "Realtime detection requires upstream OpenCode support — " +
+      "follow PR https://github.com/anomalyco/opencode/pull/28993",
     )
   }
 
@@ -875,8 +876,9 @@ interface PluginOptions {
   maxTopics?: number
   maxSummaryLen?: number
   // "disk" (default): reads previous turn's topic state from disk. Zero overhead, one-turn delay.
-  // "realtime": attempts per-turn detection. REQUIRES patched OpenCode build with lastUserMessage
-  //   support (see #163). Falls back to disk-mode behavior if patch is absent.
+  // "realtime": attempts per-turn detection. Requires upstream OpenCode support for
+  //   lastUserMessage (see #163, PR: https://github.com/anomalyco/opencode/pull/28993).
+  //   Falls back to disk-mode behavior if not available.
   // "experimental.realtime": same as "realtime" — use this in opencode.json to make the
   //   experimental status explicit.
   detectionMode?: "disk" | "realtime" | "experimental.realtime"
@@ -1452,7 +1454,7 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
               "[system-prompt-context-inject] Realtime mode configured but no user message available. " +
               "OpenCode system.transform hook does not expose user messages (#163). " +
               "Falling back to disk-mode behavior. " +
-              "To enable true realtime detection, use a patched OpenCode build with lastUserMessage support.",
+              "To enable true realtime detection, follow upstream PR: https://github.com/anomalyco/opencode/pull/28993",
             )
           }
         }

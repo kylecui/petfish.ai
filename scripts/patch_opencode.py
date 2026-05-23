@@ -1,38 +1,37 @@
 #!/usr/bin/env python3
-"""Auto-patch OpenCode to pass lastUserMessage to system.transform hook.
+"""Check OpenCode lastUserMessage support and optionally apply a patched binary.
 
 Background (#163):
   OpenCode's experimental.chat.system.transform hook only receives
-  {sessionID, model} — the user's message text is not exposed, preventing
+  {sessionID, model} -- the user's message text is not exposed, preventing
   real-time topic detection. A 2-file patch (plugin types + request.ts)
   adds lastUserMessage to the hook input.
 
   Upstream PR: https://github.com/anomalyco/opencode/pull/28993
-  Fork: https://github.com/kylecui/opencode/tree/feat/system-transform-lastUserMessage
 
-This script:
-  1. Detects the installed OpenCode binary and its version
-  2. Checks if lastUserMessage is already supported (future upstream merge)
-  3. If not supported, downloads a pre-built patched binary from our fork
-  4. Backs up the original and replaces with the patched version
-  5. Updates .petfish/fish-trail/opencode-patch-state.json
+Default behavior (--check):
+  Reports whether the installed OpenCode binary supports lastUserMessage.
+  No files are modified. This is the safe, recommended mode.
+
+Disk mode (the default) works without any patch -- it reads topic state
+from the previous turn with a one-turn delay. Realtime mode requires
+lastUserMessage support, which is not yet in stock OpenCode.
+
+If you need realtime detection *now*, you have two options:
+  1. Wait for the upstream PR to be merged (recommended)
+  2. Build or download a patched binary (advanced, see --apply-unsigned-binary)
 
 Usage:
-  uv run scripts/patch_opencode.py [--check] [--restore] [--force]
+  uv run scripts/patch_opencode.py                  # check status (default)
+  uv run scripts/patch_opencode.py --check           # same as default
+  uv run scripts/patch_opencode.py --restore         # restore original binary
+  uv run scripts/patch_opencode.py --apply-unsigned-binary  # replace binary (DANGEROUS)
 
-Options:
-  --check    Only check status, do not download or replace
-  --restore  Restore the original binary from backup
-  --force    Re-apply patch even if already patched
-
-Platform support:
-  - Windows (chocolatey, scoop, curl install)
-  - macOS (brew, curl install)
-  - Linux (brew, curl install, pacman)
-
-NOTE: Pre-built patched binaries are provided on the fork's GitHub Releases.
-If no release matches your platform/version, the script will print
-instructions for building from source.
+WARNING: --apply-unsigned-binary downloads an unsigned binary from a
+personal GitHub fork and replaces your system OpenCode installation.
+There is NO code signing, NO attestation, and NO chain of custody.
+This binary will be overwritten on the next OpenCode upgrade.
+Use at your own risk. The recommended path is to wait for upstream merge.
 """
 
 from __future__ import annotations
@@ -52,6 +51,7 @@ FORK_REPO = "kylecui/opencode"
 FORK_BRANCH = "feat/system-transform-lastUserMessage"
 FORK_RELEASE_URL = f"https://github.com/{FORK_REPO}/releases"
 UPSTREAM_PR_URL = "https://github.com/anomalyco/opencode/pull/28993"
+UPSTREAM_ISSUE_URL = "https://github.com/anomalyco/opencode/issues/28992"
 
 # State file location (relative to project root)
 PATCH_STATE_FILENAME = "opencode-patch-state.json"
@@ -133,10 +133,8 @@ def check_binary_has_patch(binary_path: Path) -> bool:
     Searches for the string pattern that indicates the patched trigger call.
     """
     try:
-        # Read binary and search for the patched pattern
-        # In patched builds, the trigger call includes lastUserMessage
         data = binary_path.read_bytes()
-        # Look for the patched pattern: lastUserMessage in the system.transform context
+        # In patched builds, the trigger call includes lastUserMessage
         return b"lastUserMessage" in data and b"experimental.chat.system.transform" in data
     except Exception:
         return False
@@ -144,7 +142,6 @@ def check_binary_has_patch(binary_path: Path) -> bool:
 
 def find_fish_trail_dir() -> Optional[Path]:
     """Find the .petfish/fish-trail directory."""
-    # Check current directory first, then parent directories
     cwd = Path.cwd()
     for _ in range(5):
         candidate = cwd / ".petfish" / "fish-trail"
@@ -155,7 +152,6 @@ def find_fish_trail_dir() -> Optional[Path]:
             break
         cwd = parent
 
-    # Default: create in current directory
     default = Path.cwd() / ".petfish" / "fish-trail"
     default.mkdir(parents=True, exist_ok=True)
     return default
@@ -187,12 +183,9 @@ def download_patched_binary(version: str, system_id: str, target: Path) -> bool:
     import urllib.request
     import urllib.error
 
-    # Try to find a matching release asset
-    # Pattern: opencode-{system_id} (no extension on Unix, .exe on Windows)
     ext = ".exe" if platform.system() == "Windows" else ""
     asset_name = f"opencode-{system_id}{ext}"
 
-    # Query GitHub API for latest release on the fork
     api_url = f"https://api.github.com/repos/{FORK_REPO}/releases/latest"
     try:
         req = urllib.request.Request(api_url, headers={"Accept": "application/vnd.github+json"})
@@ -203,7 +196,6 @@ def download_patched_binary(version: str, system_id: str, target: Path) -> bool:
         print(f"  Check {FORK_RELEASE_URL} for available releases.")
         return False
 
-    # Find matching asset
     assets = release.get("assets", [])
     download_url = None
     for asset in assets:
@@ -216,15 +208,12 @@ def download_patched_binary(version: str, system_id: str, target: Path) -> bool:
         print(f"  Available assets: {[a.get('name') for a in assets]}")
         return False
 
-    # Download with progress
     print(f"  Downloading patched binary from {download_url}...")
     try:
         tmp_path = target.with_suffix(".tmp")
         urllib.request.urlretrieve(download_url, str(tmp_path))
-        # Make executable on Unix
         if platform.system() != "Windows":
             os.chmod(str(tmp_path), 0o755)
-        # Replace target
         tmp_path.rename(target)
         print(f"  Downloaded to {target}")
         return True
@@ -235,23 +224,30 @@ def download_patched_binary(version: str, system_id: str, target: Path) -> bool:
         return False
 
 
-def build_from_source(fish_trail_dir: Path) -> bool:
+def print_build_instructions() -> None:
     """Print instructions for building from source."""
     print()
-    print("  To build a patched OpenCode from source:")
+    print("  === Build from source (advanced) ===")
+    print()
+    print("  If you need realtime detection before upstream merges the PR,")
+    print("  you can build a patched OpenCode from source:")
+    print()
     print(f"  1. git clone https://github.com/{FORK_REPO}.git")
     print(f"  2. cd opencode && git checkout {FORK_BRANCH}")
     print("  3. Install Bun: https://bun.sh")
     print("  4. bun install && bun run build")
     print("  5. Copy the built binary to your OpenCode installation path")
     print()
-    print(f"  Or wait for upstream PR: {UPSTREAM_PR_URL}")
-    return False
+    print("  WARNING: This binary is unsigned and will be overwritten")
+    print("  on the next OpenCode upgrade.")
+    print()
+    print(f"  Upstream PR (recommended): {UPSTREAM_PR_URL}")
+    print(f"  Upstream issue: {UPSTREAM_ISSUE_URL}")
 
 
 def do_check(binary_path: Optional[Path]) -> int:
     """Check mode: report current status without making changes."""
-    print("=== OpenCode Patch Status ===")
+    print("=== OpenCode lastUserMessage Support ===")
     print()
 
     if not binary_path:
@@ -273,24 +269,50 @@ def do_check(binary_path: Optional[Path]) -> int:
     if fish_trail_dir:
         state = read_patch_state(fish_trail_dir)
         if state:
-            print(f"  Previous patch state: v{state.get('opencodeVersion', '?')}, "
-                  f"lastUserMessage={'available' if state.get('lastUserMessageAvailable') else 'not available'}")
+            print(f"  Last checked: v{state.get('opencodeVersion', '?')}, "
+                  f"lastUserMessage={'available' if state.get('lastUserMessageAvailable') else 'absent'}")
             if state.get("patchedBinaryVersion"):
                 print(f"  Patched binary version: {state['patchedBinaryVersion']}")
 
     print()
     if has_patch:
-        print("  Status: Patched — realtime topic detection available.")
+        print("  Status: Realtime topic detection available.")
     else:
-        print("  Status: Stock — disk-mode only (one-turn delay).")
-        print(f"  To enable realtime: uv run scripts/patch_opencode.py")
+        print("  Status: Disk-mode only (one-turn delay). This is the expected default.")
+        print()
+        print("  PEtFiSh topic detection works in disk mode without any patch.")
+        print("  Realtime mode requires OpenCode to pass lastUserMessage to the")
+        print("  system.transform hook, which is not yet in stock OpenCode.")
+        print()
         print(f"  Upstream PR: {UPSTREAM_PR_URL}")
+        print(f"  Upstream issue: {UPSTREAM_ISSUE_URL}")
+        print()
+        print("  To apply an unsigned patched binary (NOT recommended):")
+        print("    uv run scripts/patch_opencode.py --apply-unsigned-binary")
+        print()
+        print("  Or build from source (advanced):")
+        print("    uv run scripts/patch_opencode.py --build-instructions")
 
     return 0
 
 
-def do_patch(binary_path: Optional[Path], force: bool) -> int:
+def do_apply(unsigned: bool, force: bool) -> int:
     """Apply the patch by downloading and replacing the binary."""
+    if not unsigned:
+        print("ERROR: Binary replacement requires --apply-unsigned-binary flag.")
+        print()
+        print("WARNING: This downloads an UNSIGNED binary from a personal GitHub fork")
+        print("and replaces your system OpenCode installation. There is NO code signing,")
+        print("NO attestation, and NO chain of custody. The binary will be overwritten")
+        print("on the next OpenCode upgrade.")
+        print()
+        print("The recommended path is to wait for the upstream PR to be merged:")
+        print(f"  {UPSTREAM_PR_URL}")
+        print()
+        print("If you understand the risks, re-run with --apply-unsigned-binary.")
+        return 1
+
+    binary_path = find_opencode_binary()
     if not binary_path:
         print("ERROR: OpenCode binary not found. Install OpenCode first.")
         return 1
@@ -305,8 +327,7 @@ def do_patch(binary_path: Optional[Path], force: bool) -> int:
     print()
 
     if has_patch and not force:
-        print("Already patched. Use --force to re-apply.")
-        # Update state
+        print("Already patched. Use --force with --apply-unsigned-binary to re-apply.")
         write_patch_state(fish_trail_dir, {
             "opencodeVersion": version,
             "lastUserMessageAvailable": True,
@@ -315,7 +336,18 @@ def do_patch(binary_path: Optional[Path], force: bool) -> int:
         })
         return 0
 
-    # Try to download pre-built binary
+    # Explicit risk acknowledgment
+    print("!!! WARNING !!!")
+    print("You are about to replace your OpenCode binary with an UNSIGNED build")
+    print("from a personal GitHub fork. This binary:")
+    print("  - Has NO code signing or attestation")
+    print("  - Will be OVERWRITTEN on the next OpenCode upgrade")
+    print("  - May not match your current OpenCode version")
+    print("  - Could introduce security risks")
+    print()
+    print(f"Upstream PR (recommended alternative): {UPSTREAM_PR_URL}")
+    print()
+
     system_id = get_system_id()
     print(f"Platform: {system_id}")
     print(f"Looking for patched binary at {FORK_RELEASE_URL}...")
@@ -331,10 +363,9 @@ def do_patch(binary_path: Optional[Path], force: bool) -> int:
     success = download_patched_binary(version, system_id, binary_path)
     if not success:
         print()
-        print("Pre-built binary not available. Falling back to source build instructions.")
-        build_from_source(fish_trail_dir)
+        print("Pre-built binary not available for your platform/version.")
+        print_build_instructions()
 
-        # Update state to indicate we attempted but failed
         write_patch_state(fish_trail_dir, {
             "opencodeVersion": version,
             "lastUserMessageAvailable": False,
@@ -342,7 +373,6 @@ def do_patch(binary_path: Optional[Path], force: bool) -> int:
         })
         return 1
 
-    # Update state
     write_patch_state(fish_trail_dir, {
         "opencodeVersion": version,
         "lastUserMessageAvailable": True,
@@ -350,7 +380,8 @@ def do_patch(binary_path: Optional[Path], force: bool) -> int:
         "patchedBinaryVersion": version,
     })
     print()
-    print("Patch applied successfully. Restart OpenCode to use realtime detection.")
+    print("Patch applied. Restart OpenCode to use realtime detection.")
+    print("NOTE: This will be overwritten on the next OpenCode upgrade.")
     return 0
 
 
@@ -369,7 +400,6 @@ def do_restore(binary_path: Optional[Path]) -> int:
     shutil.copy2(str(backup_path), str(binary_path))
     print("Restored. You may delete the backup file manually.")
 
-    # Update state
     fish_trail_dir = find_fish_trail_dir()
     if fish_trail_dir:
         write_patch_state(fish_trail_dir, {
@@ -389,21 +419,32 @@ def _now_iso() -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Auto-patch OpenCode to enable lastUserMessage in system.transform hook",
+        description="Check OpenCode lastUserMessage support and optionally apply a patched binary",
     )
-    parser.add_argument("--check", action="store_true", help="Only check status, do not modify")
-    parser.add_argument("--restore", action="store_true", help="Restore original binary from backup")
-    parser.add_argument("--force", action="store_true", help="Re-apply patch even if already patched")
+    parser.add_argument("--check", action="store_true",
+                        help="Only check status, do not modify (default behavior)")
+    parser.add_argument("--apply-unsigned-binary", action="store_true",
+                        help="Replace OpenCode binary with unsigned patched build (DANGEROUS)")
+    parser.add_argument("--restore", action="store_true",
+                        help="Restore original binary from backup")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-apply patch even if already patched (use with --apply-unsigned-binary)")
+    parser.add_argument("--build-instructions", action="store_true",
+                        help="Print instructions for building from source")
     args = parser.parse_args()
 
     binary_path = find_opencode_binary()
 
-    if args.check:
-        return do_check(binary_path)
+    if args.build_instructions:
+        print_build_instructions()
+        return 0
     elif args.restore:
         return do_restore(binary_path)
+    elif args.apply_unsigned_binary:
+        return do_apply(unsigned=True, force=args.force)
     else:
-        return do_patch(binary_path, args.force)
+        # Default: check only
+        return do_check(binary_path)
 
 
 if __name__ == "__main__":
