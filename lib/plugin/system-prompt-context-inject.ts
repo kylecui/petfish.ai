@@ -264,6 +264,53 @@ function formatTopicContext(
   return lines.join("\n")
 }
 
+/**
+ * Extract the last user message from the OpenCode hook input.
+ * #157: OpenCode exposes messages via input.messages (array), not input.content.
+ * Falls back to input.content if messages array is not available.
+ * Supports both string content and part-array content formats.
+ */
+async function extractUserMessage(input: unknown): Promise<string> {
+  if (!input || typeof input !== "object") return ""
+
+  const obj = input as Record<string, unknown>
+
+  // Path 1: input.messages array (OpenCode system transform hook)
+  if (Array.isArray(obj.messages)) {
+    // Iterate backward to find the last user message
+    for (let i = obj.messages.length - 1; i >= 0; i--) {
+      const msg = obj.messages[i]
+      if (msg && typeof msg === "object" && (msg as Record<string, unknown>).role === "user") {
+        const content = (msg as Record<string, unknown>).content
+        // String content
+        if (typeof content === "string") return content
+        // Part-array content: [{ type: "text", text: "..." }, ...]
+        if (Array.isArray(content)) {
+          const textParts = content
+            .filter(function(part) { return part && typeof part === "object" && (part as Record<string, unknown>).type === "text" })
+            .map(function(part) { return String((part as Record<string, unknown>).text || "") })
+          return textParts.join("\n")
+        }
+      }
+    }
+    return ""
+  }
+
+  // Path 2: input.content (direct content, some hook implementations)
+  if ("content" in obj) {
+    const content = obj.content
+    if (typeof content === "string") return content
+    if (Array.isArray(content)) {
+      const textParts = content
+        .filter(function(part) { return part && typeof part === "object" && (part as Record<string, unknown>).type === "text" })
+        .map(function(part) { return String((part as Record<string, unknown>).text || "") })
+      return textParts.join("\n")
+    }
+  }
+
+  return ""
+}
+
 const plugin: Plugin = async ({ directory }, options) => {
   const rawOpts = (options as Record<string, unknown>) || {}
   const pluginOpts: Required<PluginOptions> = {
@@ -295,10 +342,23 @@ const plugin: Plugin = async ({ directory }, options) => {
       let activeTopic: TopicData | null = null
       try {
         const topicFiles = await readdir(join(fishTrailDir, "topics"))
-        const prefix = activeTopicId.slice(0, 8)
-        const matchFile = topicFiles.find(function(f) {
-          return f === activeTopicId + ".json" || f.startsWith(prefix)
+        // #156: Only use exact filename match. 8-char prefix is not unique
+        // (e.g. topic_20260523_5dfe and topic_20260523_01f8 both start with "topic_20").
+        // If exact match fails, scan file contents by "id" field as secondary fallback.
+        let matchFile = topicFiles.find(function(f) {
+          return f === activeTopicId + ".json"
         })
+        if (!matchFile) {
+          // Secondary: match by "id" field inside each JSON file
+          for (const f of topicFiles) {
+            if (!f.endsWith(".json")) continue
+            const data = await readJSON<TopicData & { id?: string }>(join(fishTrailDir, "topics", f))
+            if (data && data.id === activeTopicId) {
+              matchFile = f
+              break
+            }
+          }
+        }
         if (matchFile) {
           activeTopic = await readJSON<TopicData>(join(fishTrailDir, "topics", matchFile))
         }
@@ -315,10 +375,12 @@ const plugin: Plugin = async ({ directory }, options) => {
       // Realtime detection (if enabled)
       let detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null = null
       if (pluginOpts.detectionMode === "realtime") {
-        // Get user message text from input
-        const userMsg = input && typeof input === "object" && "content" in input
-          ? String((input as Record<string, unknown>).content || "")
-          : ""
+        // #157: Extract user message robustly.
+        // OpenCode hook exposes messages via input.messages, not input.content.
+        // 1. If input.messages exists, find the last user message
+        // 2. Else if input.content exists, use it directly
+        // 3. Support both string and part-array content formats
+        const userMsg = await extractUserMessage(input)
 
         if (userMsg && userMsg.length > 0) {
           try {
