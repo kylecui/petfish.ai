@@ -4,28 +4,41 @@
  * Reads topic state from .petfish/fish-trail/ and injects it into the
  * cached system prompt prefix, eliminating per-turn MCP tool calls.
  *
+ * Dual-mode detection:
+ *   - "disk" (default): reads previous turn's state from disk only.
+ *     Zero-turn overhead, zero mis-detection risk, one-turn delay.
+ *   - "realtime": also runs Tier 1 detection on the user message.
+ *     Zero-turn delay, ~5-8% token overhead, catches explicit switches.
+ *
  * Active topic resolution (fallback order):
  *   1. topic-registry.json.active_topic  (v1 layout)
  *   2. topic_graph.json.active_topic     (v2 layout)
  *   3. Most recent active topic from topic_graph.json.topics
+ *
+ * Tier 2 (semantic/embedding) detection is NOT included here.
+ * It stays MCP-side as the `topic_detect` tool with embedding support.
+ * See #150 for rationale.
  *
  * Bun transpiler note:
  *   Do NOT use (x || "").method() - Bun/JSC miscompiles method calls on
  *   || fallback expressions. Always assign to variable first.
  *
  * Config via opencode.json plugin tuple:
- *   "plugin": [[ ".opencode/plugin/system-prompt-context-inject.ts", { "maxTopics": 5, "maxSummaryLen": 200 } ]]
+ *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "disk" }]
+ *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "realtime" }]
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
 import { readFile, readdir } from "node:fs/promises"
 import { join } from "node:path"
+import { TopicDetector } from "./topic-detector"
 
 const FISH_TRAIL_DIR = ".petfish/fish-trail"
 
 interface PluginOptions {
   maxTopics?: number
   maxSummaryLen?: number
+  detectionMode?: "disk" | "realtime"  // default: "disk"
 }
 
 interface TopicRegistry {
@@ -57,6 +70,15 @@ interface TopicGraph {
   edges?: Array<{ source: string; target: string; relation: string }>
 }
 
+// Singleton detector for realtime mode (lazy-initialized)
+let _detector: TopicDetector | null = null
+function getDetector(): TopicDetector {
+  if (!_detector) {
+    _detector = new TopicDetector()
+  }
+  return _detector
+}
+
 async function readJSON<T>(path: string): Promise<T | null> {
   try {
     const raw = await readFile(path, "utf-8")
@@ -83,12 +105,10 @@ async function resolveActiveTopic(fishTrailDir: string): Promise<string | null> 
   const graph = await readJSON<TopicGraph>(join(fishTrailDir, "topic_graph.json"))
   if (!graph) return null
 
-  // Check graph-level active_topic
   if (graph.active_topic) {
     return graph.active_topic
   }
 
-  // Find most recent active topic from topics dict
   if (graph.topics) {
     const activeEntries = Object.entries(graph.topics)
       .filter(function(entry) { return entry[1].status === "active" })
@@ -102,7 +122,6 @@ async function resolveActiveTopic(fishTrailDir: string): Promise<string | null> 
     }
   }
 
-  // Try nodes array shape
   if (graph.nodes) {
     const activeNodes = graph.nodes
       .filter(function(n) { return n.status === "active" })
@@ -126,13 +145,11 @@ async function buildRegistryView(
   active_topic: string
   topics: Record<string, { title: string; status: string }>
 }> {
-  // Try v1 registry first
   const registry = await readJSON<TopicRegistry>(join(fishTrailDir, "topic-registry.json"))
   if (registry && registry.topics && Object.keys(registry.topics).length > 0) {
     return { active_topic: activeTopicId, topics: registry.topics }
   }
 
-  // Fall back to graph
   const graph = await readJSON<TopicGraph>(join(fishTrailDir, "topic_graph.json"))
   const topics: Record<string, { title: string; status: string }> = {}
 
@@ -150,10 +167,36 @@ async function buildRegistryView(
   return { active_topic: activeTopicId, topics }
 }
 
+function formatDetectionMeta(result: {
+  relation: string
+  confidence: number
+  risk: number
+  risk_level: string
+  target_topic: string | null
+}): string {
+  const lines: string[] = [
+    "- **Realtime detection**:",
+    "  - Relation: " + result.relation,
+    "  - Confidence: " + result.confidence.toFixed(2),
+    "  - Risk: " + result.risk + " (" + result.risk_level + ")",
+  ]
+  if (result.target_topic) {
+    lines.push("  - Target: " + result.target_topic)
+  }
+  if (result.relation === "switch" || result.relation === "fork") {
+    lines.push(
+      "  - If this is an unintended topic shift, consider using MCP `topic_detect` " +
+      "for deeper analysis or `topic_create`/`topic_link` to formalize the split.",
+    )
+  }
+  return lines.join("\n")
+}
+
 function formatTopicContext(
   registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
   activeTopic: TopicData | null,
   graph: TopicGraph | null,
+  detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null,
   opts: Required<PluginOptions>,
 ): string {
   const lines: string[] = [
@@ -174,6 +217,12 @@ function formatTopicContext(
     }
   } else {
     lines.push("- **Current topic**: " + registryView.active_topic + " (details not found on disk)")
+  }
+
+  // Realtime detection metadata (if enabled and available)
+  if (detectionResult && opts.detectionMode === "realtime") {
+    lines.push("")
+    lines.push(formatDetectionMeta(detectionResult))
   }
 
   // Related topics
@@ -206,10 +255,11 @@ function formatTopicContext(
   }
 
   lines.push("")
-  lines.push("Topic context above is automatically injected by plugin. " +
+  lines.push("Topic context above is automatically injected by plugin " +
+    "(" + opts.detectionMode + " mode). " +
     "Do NOT call topic_detect or get_memory_context for routine turns. " +
-    "MCP tools (topic_list, topic_create, session_bind, etc.) are available " +
-    "ONLY for user-initiated topic management actions.")
+    "MCP tools (topic_list, topic_create, session_bind, topic_detect with semantic=True) " +
+    "are available ONLY for user-initiated topic management or deep analysis.")
 
   return lines.join("\n")
 }
@@ -219,12 +269,13 @@ const plugin: Plugin = async ({ directory }, options) => {
   const pluginOpts: Required<PluginOptions> = {
     maxTopics: (rawOpts.maxTopics as number) ?? 5,
     maxSummaryLen: (rawOpts.maxSummaryLen as number) ?? 200,
+    detectionMode: (rawOpts.detectionMode as "disk" | "realtime") ?? "disk",
   }
 
   return {
     name: "system-prompt-context-inject",
 
-    "experimental.chat.system.transform": async (_input, output) => {
+    "experimental.chat.system.transform": async (input, output) => {
       const fishTrailDir = join(directory, FISH_TRAIL_DIR)
 
       // Resolve active topic with fallback chain
@@ -261,13 +312,41 @@ const plugin: Plugin = async ({ directory }, options) => {
       // Read topic graph
       const graph = await readJSON<TopicGraph>(join(fishTrailDir, "topic_graph.json"))
 
+      // Realtime detection (if enabled)
+      let detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null = null
+      if (pluginOpts.detectionMode === "realtime") {
+        // Get user message text from input
+        const userMsg = input && typeof input === "object" && "content" in input
+          ? String((input as Record<string, unknown>).content || "")
+          : ""
+
+        if (userMsg && userMsg.length > 0) {
+          try {
+            // Build currentTopic and allTopics for detector
+            const currentTopicForDetect = activeTopic
+              ? { id: activeTopicId, title: activeTopic.title || "", scope: activeTopic.scope || "", tags: activeTopic.tags || [] }
+              : null
+
+            const allTopicsForDetect = Object.entries(registryView.topics).map(function(entry) {
+              return { id: entry[0], title: entry[1].title, scope: "", tags: [] as string[] }
+            })
+
+            detectionResult = getDetector().detect(userMsg, currentTopicForDetect, allTopicsForDetect)
+          } catch (e) {
+            // Detection failure must not break injection
+            console.log("[system-prompt-context-inject] Realtime detection failed: " + String(e))
+          }
+        }
+      }
+
       // Format and inject
-      const contextBlock = formatTopicContext(registryView, activeTopic, graph, pluginOpts)
+      const contextBlock = formatTopicContext(registryView, activeTopic, graph, detectionResult, pluginOpts)
       output.system.push(contextBlock)
 
       const relatedCount = Object.keys(registryView.topics).length - 1
+      const modeTag = pluginOpts.detectionMode === "realtime" ? "realtime" : "disk"
       console.log(
-        "[system-prompt-context-inject] Injected topic context: " +
+        "[system-prompt-context-inject] Injected topic context (" + modeTag + " mode): " +
         "active=" + activeTopicId + ", related=" + relatedCount,
       )
     },
