@@ -193,6 +193,9 @@ install_plugin_file() {
         for src_plugin in "$src_plugin_dir"/*.ts; do
             [[ -f "$src_plugin" ]] || continue
             local plugin_name="$(basename "$src_plugin")"
+            # topic-detector.ts is inlined into system-prompt-context-inject.ts (#160/#161)
+            # and must NOT be deployed as a standalone plugin (causes constructor crash)
+            [[ "$plugin_name" == "topic-detector.ts" ]] && continue
             cp "$src_plugin" "$plugin_dir/$plugin_name"
             echo "    + .opencode/plugin/$plugin_name" >&2
         done

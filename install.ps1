@@ -372,7 +372,11 @@ function Install-PluginFile([string]$sourceRoot, [string]$targetDir) {
     if (-not (Test-Path $pluginDir)) {
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
     }
-    Get-ChildItem -Path $srcPluginDir -Filter "*.ts" | ForEach-Object {
+    Get-ChildItem -Path $srcPluginDir -Filter "*.ts" | Where-Object {
+        # topic-detector.ts is inlined into system-prompt-context-inject.ts (#160/#161)
+        # and must NOT be deployed as a standalone plugin (causes constructor crash)
+        $_.Name -ne "topic-detector.ts"
+    } | ForEach-Object {
         Copy-Item -Path $_.FullName -Destination (Join-Path $pluginDir $_.Name) -Force
         Write-Host "    + .opencode/plugin/$($_.Name)" -ForegroundColor DarkGreen
     }
