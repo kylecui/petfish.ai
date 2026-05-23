@@ -41,8 +41,9 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
-import { readFile, readdir } from "node:fs/promises"
+import { readFile, readdir, writeFile, mkdir } from "node:fs/promises"
 import { join } from "node:path"
+import { execSync } from "node:child_process"
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Types (from lib/plugin/topic-detector.ts — internal, not exported)
@@ -69,6 +70,118 @@ type Relation = DetectResult["relation"]
 interface RiskProfileEntry {
   risk: number
   risk_level: DetectResult["risk_level"]
+}
+
+interface OpenCodePatchState {
+  /** OpenCode version when patch state was last recorded */
+  opencodeVersion: string
+  /** Whether the system.transform hook exposed lastUserMessage at this version */
+  lastUserMessageAvailable: boolean
+  /** ISO timestamp of last check */
+  lastChecked: string
+  /** If a patched binary was installed, which version */
+  patchedBinaryVersion?: string
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OpenCode version tracking & auto-patch detection (#163)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PATCH_STATE_FILENAME = "opencode-patch-state.json"
+let _patchStateLogged = false
+
+/**
+ * Detect the currently installed OpenCode version.
+ * Tries `opencode --version` first, then falls back to reading the binary.
+ */
+function getOpenCodeVersion(): string {
+  try {
+    const ver = execSync("opencode --version", { encoding: "utf-8", timeout: 5000 }).trim()
+    return ver || "unknown"
+  } catch {
+    return "unknown"
+  }
+}
+
+/**
+ * Read previous patch state from disk. Returns null if never written.
+ */
+async function readPatchState(fishTrailDir: string): Promise<OpenCodePatchState | null> {
+  try {
+    const raw = await readFile(join(fishTrailDir, PATCH_STATE_FILENAME), "utf-8")
+    return JSON.parse(raw) as OpenCodePatchState
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Write current patch state to disk.
+ */
+async function writePatchState(fishTrailDir: string, state: OpenCodePatchState): Promise<void> {
+  try {
+    await mkdir(fishTrailDir, { recursive: true })
+    await writeFile(
+      join(fishTrailDir, PATCH_STATE_FILENAME),
+      JSON.stringify(state, null, 2),
+      "utf-8",
+    )
+  } catch (e) {
+    // Non-critical — best effort
+    console.log("[system-prompt-context-inject] Failed to write patch state: " + String(e))
+  }
+}
+
+/**
+ * Check OpenCode version change and auto-patch status.
+ * Called once per session on first system.transform invocation.
+ * Logs version changes and provides guidance for enabling realtime mode.
+ */
+async function checkAutoPatch(
+  fishTrailDir: string,
+  lastUserMessageAvailable: boolean,
+): Promise<void> {
+  if (_patchStateLogged) return
+  _patchStateLogged = true
+
+  const currentVersion = getOpenCodeVersion()
+  const prevState = await readPatchState(fishTrailDir)
+
+  const currentState: OpenCodePatchState = {
+    opencodeVersion: currentVersion,
+    lastUserMessageAvailable,
+    lastChecked: new Date().toISOString(),
+  }
+
+  // Detect version change
+  if (prevState && prevState.opencodeVersion !== currentVersion) {
+    console.log(
+      "[system-prompt-context-inject] OpenCode version changed: " +
+      prevState.opencodeVersion + " -> " + currentVersion,
+    )
+    if (prevState.patchedBinaryVersion && !lastUserMessageAvailable) {
+      console.log(
+        "[system-prompt-context-inject] Patched OpenCode was replaced by upgrade. " +
+        "To re-enable realtime detection, re-apply the patch: " +
+        "uv run scripts/patch_opencode.py",
+      )
+    }
+  }
+
+  // Guidance for users who want realtime mode
+  if (!lastUserMessageAvailable && (!prevState || !prevState.lastUserMessageAvailable)) {
+    console.log(
+      "[system-prompt-context-inject] Tip: Realtime topic detection requires OpenCode " +
+      "with lastUserMessage support (PR: https://github.com/anomalyco/opencode/pull/28993). " +
+      "Disk mode works without it (one-turn delay). To patch: uv run scripts/patch_opencode.py",
+    )
+  }
+
+  // Persist state
+  if (prevState) {
+    currentState.patchedBinaryVersion = prevState.patchedBinaryVersion
+  }
+  await writePatchState(fishTrailDir, currentState)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1171,6 +1284,11 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
           "[system-prompt-context-inject] input shape: keys=[" + inputKeys + "] messages.len=" + msgsLen,
         )
       }
+
+      // #163: Auto-patch detection — check OpenCode version and lastUserMessage availability.
+      // Logs version changes, provides guidance for enabling realtime mode.
+      const hasLastUserMessage = "lastUserMessage" in (input as Record<string, unknown>)
+      await checkAutoPatch(fishTrailDir, hasLastUserMessage)
 
       // #163: Probe — try client.messages() to fetch latest user message
       // This tests whether the OpenCode SDK session store has the current user message
