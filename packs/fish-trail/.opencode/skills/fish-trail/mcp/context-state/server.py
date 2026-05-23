@@ -9,9 +9,13 @@ Usage:
 """
 
 import json
+import logging
 import os
 import sys
+import time
 from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger("fish-trail")
 
 # Add the directory containing this file to sys.path so sibling imports work
 # regardless of how the server is launched (direct script, module, or MCP).
@@ -681,7 +685,24 @@ TOOLS = [
 class ContextStateServer:
     """MCP server that wires the 31 fish-trail tools to TopicStore et al."""
 
+    MUTATION_TOOLS = frozenset(
+        {
+            "topic_create",
+            "topic_update",
+            "topic_archive",
+            "topic_link",
+            "topic_unlink",
+            "session_bind",
+            "session_close",
+        }
+    )
+
     def __init__(self, base_dir: str):
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [fish-trail] %(levelname)s %(message)s",
+            stream=sys.stderr,  # MCP uses stdout for JSON-RPC, so log to stderr
+        )
         self.store = TopicStore(base_dir)
 
         # Load config (stdlib json, no external deps)
@@ -826,18 +847,56 @@ class ContextStateServer:
             return _jsonrpc_error(msg_id, -32601, "Method not found: {}".format(method))
         return None
 
+    def _sanitize_args(self, args: Dict[str, Any]) -> Dict[str, Any]:
+        """Truncate large values in args for safe logging."""
+        sanitized = {}
+        for key, value in args.items():
+            s = str(value)
+            if len(s) > 200:
+                sanitized[key] = s[:200] + "..."
+            else:
+                sanitized[key] = value
+        return sanitized
+
     def _dispatch_tool_call(
         self, msg_id: Any, params: Dict[str, Any]
     ) -> Dict[str, Any]:
         tool_name = params.get("name", "")
         arguments = params.get("arguments", {})
+        start = time.monotonic()
 
         handler = self._handlers.get(tool_name)
         if handler is None:
+            logger.warning("unknown_tool name=%s", tool_name)
             return _jsonrpc_error(msg_id, -32602, "Unknown tool: {}".format(tool_name))
 
+        logger.info("tool_call name=%s", tool_name)
         try:
             result = handler(arguments)
+            duration_ms = (time.monotonic() - start) * 1000
+            logger.info("tool_done name=%s duration=%.1fms", tool_name, duration_ms)
+
+            # Auto-log mutations to decision-log for audit trail
+            if tool_name in self.MUTATION_TOOLS:
+                try:
+                    self.store.log_decision(
+                        {
+                            "action": tool_name,
+                            "source_topic": arguments.get("source")
+                            or arguments.get("topic_id"),
+                            "target_topic": arguments.get("target"),
+                            "risk_level": "info",
+                            "user_confirmed": False,
+                            "payload": {
+                                k: v
+                                for k, v in self._sanitize_args(arguments).items()
+                                if k not in ("topic_id", "source", "target")
+                            },
+                        }
+                    )
+                except Exception:
+                    pass  # Never let audit logging break the response
+
             return _jsonrpc_response(
                 msg_id,
                 {
@@ -850,6 +909,13 @@ class ContextStateServer:
                 },
             )
         except KeyError as exc:
+            duration_ms = (time.monotonic() - start) * 1000
+            logger.error(
+                "tool_error name=%s duration=%.1fms error=%s",
+                tool_name,
+                duration_ms,
+                exc,
+            )
             return _jsonrpc_response(
                 msg_id,
                 {
@@ -863,6 +929,13 @@ class ContextStateServer:
                 },
             )
         except (ValueError, TypeError) as exc:
+            duration_ms = (time.monotonic() - start) * 1000
+            logger.error(
+                "tool_error name=%s duration=%.1fms error=%s",
+                tool_name,
+                duration_ms,
+                exc,
+            )
             return _jsonrpc_response(
                 msg_id,
                 {
@@ -876,6 +949,13 @@ class ContextStateServer:
                 },
             )
         except Exception as exc:
+            duration_ms = (time.monotonic() - start) * 1000
+            logger.error(
+                "tool_error name=%s duration=%.1fms error=%s",
+                tool_name,
+                duration_ms,
+                exc,
+            )
             return _jsonrpc_error(msg_id, -32603, "Internal error: {}".format(exc))
 
     # -- Tool handlers ------------------------------------------------------

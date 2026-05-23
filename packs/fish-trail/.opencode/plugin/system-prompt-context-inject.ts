@@ -150,7 +150,13 @@ const plugin: Plugin = async ({ directory }, options) => {
       const registry = await readJSON<TopicRegistry>(
         join(fishTrailDir, "topic-registry.json"),
       )
-      if (!registry?.active_topic) return
+      if (!registry?.active_topic) {
+        console.log(
+          "[system-prompt-context-inject] No active topic found in registry " +
+          "(cold start or no topics created yet). Skipping injection.",
+        )
+        return
+      }
 
       // Read active topic data
       let activeTopic: TopicData | null = null
@@ -167,6 +173,10 @@ const plugin: Plugin = async ({ directory }, options) => {
         }
       } catch {
         // topics dir doesn't exist yet
+        console.log(
+          "[system-prompt-context-inject] topics/ directory not found. " +
+          "Injection will contain topic ID only.",
+        )
       }
 
       // Read topic graph (optional, for relations)
@@ -177,6 +187,10 @@ const plugin: Plugin = async ({ directory }, options) => {
       // Format and inject
       const contextBlock = formatTopicContext(registry, activeTopic, graph, pluginOpts)
       output.system.push(contextBlock)
+      console.log(
+        `[system-prompt-context-inject] Injected topic context: ` +
+        `active=${registry.active_topic}, related=${Object.keys(registry.topics).length - 1}`,
+      )
     },
   }
 }
