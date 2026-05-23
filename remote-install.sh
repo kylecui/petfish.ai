@@ -180,17 +180,23 @@ write_pack_rules_file() {
     echo "    + .opencode/agents-rules/$l1_name" >&2
 }
 
-# Install system-prompt-rules plugin file to .opencode/plugin/ (v0.11.0+)
+# Install plugin files to .opencode/plugin/ (v0.11.0+)
 # Only for OpenCode platform when L1 packs are present.
 install_plugin_file() {
     local source_root="$1" target_dir="$2"
-    local src_plugin="$source_root/lib/plugin/system-prompt-rules.ts"
-    [[ -f "$src_plugin" ]] || return 0
-
     local plugin_dir="$target_dir/.opencode/plugin"
     mkdir -p "$plugin_dir"
-    cp "$src_plugin" "$plugin_dir/system-prompt-rules.ts"
-    echo "    + .opencode/plugin/system-prompt-rules.ts" >&2
+
+    # Copy all plugin files from lib/plugin/
+    local src_plugin_dir="$source_root/lib/plugin"
+    if [[ -d "$src_plugin_dir" ]]; then
+        for src_plugin in "$src_plugin_dir"/*.ts; do
+            [[ -f "$src_plugin" ]] || continue
+            local plugin_name="$(basename "$src_plugin")"
+            cp "$src_plugin" "$plugin_dir/$plugin_name"
+            echo "    + .opencode/plugin/$plugin_name" >&2
+        done
+    fi
 }
 
 # Register plugin tuple in opencode.json (idempotent)
@@ -202,25 +208,34 @@ register_plugin_in_config() {
 import json, sys
 
 config_file = sys.argv[1]
-plugin_path = '.opencode/plugin/system-prompt-rules.ts'
-plugin_tuple = [plugin_path, {'mode': 'all'}]
+
+plugins_to_register = [
+    ('.opencode/plugin/system-prompt-rules.ts', {'mode': 'all'}),
+    ('.opencode/plugin/system-prompt-context-inject.ts', {'maxTopics': 5, 'maxSummaryLen': 200}),
+]
 
 with open(config_file, 'r', encoding='utf-8') as f:
     data = json.load(f)
 
-if 'plugin' in data:
-    # Check if already registered
-    for entry in data['plugin']:
-        if isinstance(entry, list) and len(entry) >= 1 and entry[0] == plugin_path:
-            sys.exit(0)
-    data['plugin'].append(plugin_tuple)
-else:
-    data['plugin'] = [plugin_tuple]
+if 'plugin' not in data:
+    data['plugin'] = []
 
-with open(config_file, 'w', encoding='utf-8') as f:
-    json.dump(data, f, indent=2, ensure_ascii=False)
-    f.write('\n')
-print('    + opencode.json (plugin registered)')
+changed = False
+for plugin_path, plugin_opts in plugins_to_register:
+    plugin_tuple = [plugin_path, plugin_opts]
+    already_exists = any(
+        isinstance(entry, list) and len(entry) >= 1 and entry[0] == plugin_path
+        for entry in data['plugin']
+    )
+    if not already_exists:
+        data['plugin'].append(plugin_tuple)
+        changed = True
+
+if changed:
+    with open(config_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write(chr(10))
+    print('    + opencode.json (plugins registered)')
 " "$config_file" >&2
 }
 

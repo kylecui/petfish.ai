@@ -386,17 +386,17 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
 # Install system-prompt-rules plugin file to .opencode/plugin/ (v0.11.0+)
 # Only for OpenCode platform when L1 packs are present.
 function Install-PluginFile([string]$sourceRoot, [string]$targetDir) {
-    $srcPlugin = Join-Path $sourceRoot "lib" "plugin" "system-prompt-rules.ts"
-    if (-not (Test-Path $srcPlugin)) { return }
+    $srcPluginDir = Join-Path $sourceRoot "lib" "plugin"
+    if (-not (Test-Path $srcPluginDir)) { return }
 
     $pluginDir = Join-Path $targetDir ".opencode" "plugin"
     if (-not (Test-Path $pluginDir)) {
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
     }
-
-    $dstPlugin = Join-Path $pluginDir "system-prompt-rules.ts"
-    Copy-Item -Path $srcPlugin -Destination $dstPlugin -Force
-    Write-Host "    + .opencode/plugin/system-prompt-rules.ts" -ForegroundColor DarkGreen
+    Get-ChildItem -Path $srcPluginDir -Filter "*.ts" | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination (Join-Path $pluginDir $_.Name) -Force
+        Write-Host "    + .opencode/plugin/$($_.Name)" -ForegroundColor DarkGreen
+    }
 }
 
 # Register plugin tuple in opencode.json (idempotent)
@@ -404,31 +404,39 @@ function Register-PluginInConfig([string]$configFile) {
     if (-not (Test-Path $configFile)) { return }
 
     $raw = Get-Content $configFile -Raw -Encoding UTF8
-    $json = $raw | ConvertFrom-Json
+    $json = ConvertFrom-Json $raw
 
-    $pluginPath = ".opencode/plugin/system-prompt-rules.ts"
-    $pluginTuple = @($pluginPath, @{ mode = "all" })
+    $pluginsToRegister = @(
+        @(".opencode/plugin/system-prompt-rules.ts", @{ mode = "all" }),
+        @(".opencode/plugin/system-prompt-context-inject.ts", @{ maxTopics = 5; maxSummaryLen = 200 })
+    )
 
-    # Check if plugin array exists and already contains this plugin
-    if ($json.PSObject.Properties["plugin"]) {
-        $existing = $json.plugin
-        foreach ($entry in $existing) {
-            if ($entry -is [System.Collections.IEnumerable] -and $entry.Count -ge 1) {
-                if ($entry[0] -eq $pluginPath) {
-                    # Already registered
-                    return
-                }
-            }
-        }
-        # Append to existing plugin array
-        $json.plugin = @($existing) + ,@(,$pluginTuple)
-    } else {
-        # Create plugin array with single tuple
-        $json | Add-Member -NotePropertyName "plugin" -NotePropertyValue @(,@($pluginTuple))
+    if (-not ($json.PSObject.Properties["plugin"])) {
+        $json | Add-Member -NotePropertyName "plugin" -NotePropertyValue @()
     }
 
-    $json | ConvertTo-Json -Depth 10 | Set-Content $configFile -Encoding UTF8
-    Write-Host "    + opencode.json (plugin registered)" -ForegroundColor DarkGreen
+    $changed = $false
+    foreach ($pt in $pluginsToRegister) {
+        $pluginPath = $pt[0]
+        $pluginOpts = $pt[1]
+        $alreadyExists = $false
+        foreach ($entry in $json.plugin) {
+            if ($entry -is [array] -and $entry.Length -ge 1 -and $entry[0] -eq $pluginPath) {
+                $alreadyExists = $true
+                break
+            }
+        }
+        if (-not $alreadyExists) {
+            $tuple = @($pluginPath, $pluginOpts)
+            $json.plugin = @($json.plugin) + ,@(,$tuple)
+            $changed = $true
+        }
+    }
+
+    if ($changed) {
+        $json | ConvertTo-Json -Depth 10 | Set-Content $configFile -Encoding UTF8
+        Write-Host "    + opencode.json (plugins registered)" -ForegroundColor DarkGreen
+    }
 }
 
 # v0.10.x→v0.11.x migration: remove inline pack section from AGENTS.md

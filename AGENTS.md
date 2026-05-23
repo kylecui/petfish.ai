@@ -42,25 +42,17 @@ rigor: false          # true | false (forced true when depth=thorough)
 
 ### Step 1: Topic Check（话题归属）
 
-调用MCP tool `topic_detect`，传入用户消息文本和当前session_id。
+Topic context由 `system-prompt-context-inject` 插件自动注入到system prompt的cached prefix中。每轮交互时，从注入的 `## Active Topic Context` 块读取当前话题状态，无需调用MCP工具。
 
-```yaml
-tool: topic_detect
-input:
-  text: "<用户消息>"
-  session_id: "<当前session ID>"
-  current_topic: "<活跃topic ID>"
-```
+根据注入的topic context判断：
 
-根据返回的 `risk_level` 执行：
+| 话题状态 | 行为 |
+|---------|------|
+| low risk (继续当前话题) | 静默继续 |
+| medium risk (话题偏移) | 回复开头一行说明上下文继承范围 |
+| high risk (跨领域大幅切换) | 暂停正常处理，向用户说明话题变更风险，建议fork/switch/reset |
 
-| risk_level | 行为 |
-|-----------|------|
-| low (0-30) | 静默继续 |
-| medium (31-60) | 回复开头一行说明上下文继承范围 |
-| high (61-100) | 暂停正常处理，向用户说明话题变更风险，建议fork/switch/reset |
-
-**MCP不可用时**：不阻塞，静默跳过。每次会话最多提示一次"⚠ fish-trail MCP未连接"。
+**MCP不可用时**：插件注入仍可用（来自磁盘缓存），仅MCP工具调用不可用。每次会话最多提示一次"⚠ fish-trail MCP未连接"。
 
 ### Step 1.5: Failure Signal Detection (Tier 0)
 
