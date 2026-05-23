@@ -311,19 +311,94 @@ async function extractUserMessage(input: unknown): Promise<string> {
   return ""
 }
 
-const plugin: Plugin = async ({ directory }, options) => {
-  const rawOpts = (options as Record<string, unknown>) || {}
-  const pluginOpts: Required<PluginOptions> = {
-    maxTopics: (rawOpts.maxTopics as number) ?? 5,
-    maxSummaryLen: (rawOpts.maxSummaryLen as number) ?? 200,
-    detectionMode: (rawOpts.detectionMode as "disk" | "realtime") ?? "disk",
+/**
+ * #158: OpenCode does not pass plugin tuple options to the plugin function.
+ * The second argument `options` is undefined at runtime despite opencode.json config.
+ * We must read options ourselves from opencode.json as fallback.
+ *
+ * Resolution order:
+ *   1. Function argument `options` (if OpenCode someday passes it)
+ *   2. opencode.json plugin tuple entry matching this plugin filename
+ *   3. Environment variable FISH_TRAIL_DETECTION_MODE
+ *   4. Hardcoded defaults
+ */
+const PLUGIN_FILENAME = "system-prompt-context-inject"
+let _optionsLogged = false
+
+async function resolvePluginOptions(directory: string, fnOptions: unknown): Promise<Required<PluginOptions>> {
+  const defaults: Required<PluginOptions> = {
+    maxTopics: 5,
+    maxSummaryLen: 200,
+    detectionMode: "disk",
   }
+
+  // Layer 1: function argument
+  if (fnOptions && typeof fnOptions === "object" && Object.keys(fnOptions as Record<string, unknown>).length > 0) {
+    const raw = fnOptions as Record<string, unknown>
+    return {
+      maxTopics: (raw.maxTopics as number) ?? defaults.maxTopics,
+      maxSummaryLen: (raw.maxSummaryLen as number) ?? defaults.maxSummaryLen,
+      detectionMode: (raw.detectionMode as "disk" | "realtime") ?? defaults.detectionMode,
+    }
+  }
+
+  // Layer 2: read from opencode.json
+  try {
+    const configPath = join(directory, "opencode.json")
+    const configRaw = await readFile(configPath, "utf-8")
+    const config = JSON.parse(configRaw) as Record<string, unknown>
+    const plugins = config.plugin
+    if (Array.isArray(plugins)) {
+      for (const entry of plugins) {
+        // Tuple format: ["path/to/plugin.ts", { options }]
+        if (Array.isArray(entry) && entry.length === 2) {
+          const path = String(entry[0])
+          const opts = entry[1] as Record<string, unknown>
+          if (path.includes(PLUGIN_FILENAME) && opts && typeof opts === "object") {
+            return {
+              maxTopics: (opts.maxTopics as number) ?? defaults.maxTopics,
+              maxSummaryLen: (opts.maxSummaryLen as number) ?? defaults.maxSummaryLen,
+              detectionMode: (opts.detectionMode as "disk" | "realtime") ?? defaults.detectionMode,
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // opencode.json not found or parse failed — continue to env fallback
+  }
+
+  // Layer 3: environment variable
+  const envMode = process.env.FISH_TRAIL_DETECTION_MODE
+  if (envMode === "realtime" || envMode === "disk") {
+    return { ...defaults, detectionMode: envMode }
+  }
+
+  // Layer 4: defaults
+  return defaults
+}
+
+const plugin: Plugin = async ({ directory }, options) => {
+  // Resolve options with full fallback chain (#158)
+  const pluginOptsPromise = resolvePluginOptions(directory, options)
 
   return {
     name: "system-prompt-context-inject",
 
     "experimental.chat.system.transform": async (input, output) => {
+      const pluginOpts = await pluginOptsPromise
       const fishTrailDir = join(directory, FISH_TRAIL_DIR)
+
+      // #158: Log resolved options on first call for debugging
+      if (!_optionsLogged) {
+        _optionsLogged = true
+        console.log(
+          "[system-prompt-context-inject] options resolved: " +
+          "maxTopics=" + pluginOpts.maxTopics +
+          ", maxSummaryLen=" + pluginOpts.maxSummaryLen +
+          ", detectionMode=" + pluginOpts.detectionMode,
+        )
+      }
 
       // Resolve active topic with fallback chain
       const activeTopicId = await resolveActiveTopic(fishTrailDir)
