@@ -47,6 +47,44 @@ import { join } from "node:path"
 import { execSync } from "node:child_process"
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// Cache-stable Memory Blocks (#164)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// The plugin now outputs 3 separate blocks to output.system, each with a
+// different change frequency. DeepSeek V4 Pro uses automatic implicit prefix
+// caching — by keeping stable blocks byte-identical across turns, the provider
+// can reuse cached KV entries for the unchanged prefix.
+//
+// Block order (low→high change frequency):
+//   1. Registry Block: topic list + status → changes on create/delete only
+//   2. Warm Brief Block: related topic one-liners → changes on status transition
+//   3. Active Focus Block: current topic + summary + detection → changes every turn
+//
+// Previous turn's block content is persisted to disk. On each turn, we compare
+// current state with previous state and output byte-identical content for
+// unchanged blocks (enabling prefix cache hits).
+
+const INJECTED_STATE_FILENAME = "injected-block-state.json"
+
+interface InjectedBlockState {
+  registryHash: string
+  warmHash: string
+  registryBlock: string
+  warmBlock: string
+  opencodeVersion: string
+}
+
+/** Simple hash for detecting content changes without storing full content. */
+function simpleHash(str: string): string {
+  let h = 0
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i)
+    h = ((h << 5) - h + c) | 0
+  }
+  return h.toString(36)
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // Types (from lib/plugin/topic-detector.ts — internal, not exported)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1035,98 +1073,153 @@ function formatDetectionMeta(result: {
   return lines.join("\n")
 }
 
-function formatTopicContext(
+/**
+ * #164: Format Block 1 — Topic Registry (stable, changes on create/delete only).
+ * Lists all known topics with their status. Ordered deterministically.
+ */
+function formatRegistryBlock(
+  registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
+  opts: Required<PluginOptions>,
+): string {
+  const lines: string[] = [
+    "## Topic Registry (auto-injected, stable)",
+    "",
+    "Active: " + registryView.active_topic,
+  ]
+  // Sort by topic ID for deterministic output
+  const sorted = Object.entries(registryView.topics)
+    .sort(function(a, b) { return a[0].localeCompare(b[0]) })
+  for (const item of sorted) {
+    const marker = item[0] === registryView.active_topic ? "→" : " "
+    lines.push(marker + " " + item[0] + ": " + item[1].title + " (" + item[1].status + ")")
+  }
+  lines.push("")
+  return lines.join("\n")
+}
+
+/**
+ * #164: Format Block 2 — Warm Topics Brief (semi-stable, changes on status transition).
+ * Summarizes non-active topics as one-liners.
+ */
+function formatWarmBriefBlock(
+  registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
+  graph: TopicGraph | null,
+  opts: Required<PluginOptions>,
+): string {
+  const warmTopics = Object.entries(registryView.topics)
+    .filter(function(entry) { return entry[0] !== registryView.active_topic })
+    .filter(function(entry) { const s = entry[1].status; return s === "active" || s === "warm" })
+    .sort(function(a, b) { return a[0].localeCompare(b[0]) })
+    .slice(0, opts.maxTopics)
+
+  if (warmTopics.length === 0) {
+    return "## Related Topics (auto-injected)\n(none)\n"
+  }
+
+  const lines: string[] = [
+    "## Related Topics (auto-injected)",
+    "",
+  ]
+  for (const item of warmTopics) {
+    // Find edge relation if available
+    let relation = ""
+    if (graph && graph.edges) {
+      const edge = graph.edges.find(function(e) {
+        return (e.source === registryView.active_topic && e.target === item[0]) ||
+               (e.target === registryView.active_topic && e.source === item[0])
+      })
+      if (edge) relation = " [" + edge.relation + "]"
+    }
+    lines.push("- " + item[0] + ": " + item[1].title + " (" + item[1].status + ")" + relation)
+  }
+  lines.push("")
+  return lines.join("\n")
+}
+
+/**
+ * #164: Format Block 3 — Active Topic Focus (volatile, changes every turn).
+ * Contains the active topic's scope, summary, and detection metadata.
+ */
+function formatActiveFocusBlock(
   registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
   activeTopic: TopicData | null,
-  graph: TopicGraph | null,
   detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null,
   opts: Required<PluginOptions>,
 ): string {
-  // #159: When reset is detected, inject a minimal block instead of full context.
-  // If we inject the full old topic context alongside "relation: reset", the model
-  // may comply with the "forget" instruction and ignore the detection metadata too.
+  // Reset detection — minimal block
   if (detectionResult && detectionResult.relation === "reset") {
     const lines: string[] = [
-      "## Active Topic Context (auto-injected by plugin)",
+      "## Active Focus (auto-injected, volatile)",
       "",
-      "- **Reset requested**: user indicated a context reset (" + opts.detectionMode + " mode).",
-      "  - Previous topic: " + registryView.active_topic + " (no longer active).",
-      "  - Relation: reset",
-      "  - Confidence: " + detectionResult.confidence.toFixed(2),
-      "  - Risk: " + detectionResult.risk + " (" + detectionResult.risk_level + ")",
-      "  - Action: start fresh without inheriting earlier discussion. " +
-        "Use MCP `topic_create` if a new topic should be created.",
+      "RESET — context cleared (" + opts.detectionMode + " mode).",
+      "Previous: " + registryView.active_topic + ". Start fresh or use topic_create.",
       "",
-      "Topic context above is automatically injected by plugin " +
-        "(" + opts.detectionMode + " mode). " +
-        "Do NOT call topic_detect for routine turns.",
     ]
     return lines.join("\n")
   }
 
   const lines: string[] = [
-    "## Active Topic Context (auto-injected by plugin)",
+    "## Active Focus (auto-injected, volatile)",
     "",
   ]
 
   if (activeTopic) {
     const status = activeTopic.status || "active"
-    lines.push("- **Current topic**: " + registryView.active_topic + " - " + activeTopic.title + " (" + status + ")")
+    lines.push("Topic: " + registryView.active_topic + " — " + activeTopic.title + " (" + status + ")")
     if (activeTopic.scope) {
-      const scopeStr = truncate(activeTopic.scope, opts.maxSummaryLen)
-      lines.push("  - Scope: " + scopeStr)
+      const s = truncate(activeTopic.scope, opts.maxSummaryLen)
+      lines.push("Scope: " + s)
     }
     if (activeTopic.summary) {
-      const summaryStr = truncate(activeTopic.summary, opts.maxSummaryLen)
-      lines.push("  - Summary: " + summaryStr)
+      const s = truncate(activeTopic.summary, opts.maxSummaryLen)
+      lines.push("Summary: " + s)
     }
   } else {
-    lines.push("- **Current topic**: " + registryView.active_topic + " (details not found on disk)")
+    lines.push("Topic: " + registryView.active_topic + " (details not found on disk)")
   }
 
   // Realtime detection metadata (if enabled and available)
   if (detectionResult && opts.detectionMode === "realtime") {
     lines.push("")
-    lines.push(formatDetectionMeta(detectionResult))
-  }
-
-  // Related topics
-  const relatedTopics = Object.entries(registryView.topics)
-    .filter(function(entry) { return entry[0] !== registryView.active_topic })
-    .filter(function(entry) { const s = entry[1].status; return s === "active" || s === "warm" })
-    .slice(0, opts.maxTopics)
-
-  if (relatedTopics.length > 0) {
-    lines.push("")
-    lines.push("- **Related topics**:")
-    for (const item of relatedTopics) {
-      lines.push("  - " + item[0] + " - " + item[1].title + " (" + item[1].status + ")")
-    }
-  }
-
-  // Topic graph edges
-  if (graph && graph.edges) {
-    const activeEdges = graph.edges
-      .filter(function(e) { return e.source === registryView.active_topic || e.target === registryView.active_topic })
-      .slice(0, 3)
-    if (activeEdges.length > 0) {
-      lines.push("")
-      lines.push("- **Topic relations**:")
-      for (const edge of activeEdges) {
-        const other = edge.source === registryView.active_topic ? edge.target : edge.source
-        lines.push("  - " + other + " (" + edge.relation + ")")
-      }
-    }
+    lines.push("Detection: " + detectionResult.relation +
+      " (conf=" + detectionResult.confidence.toFixed(2) +
+      ", risk=" + detectionResult.risk + "/" + detectionResult.risk_level +
+      (detectionResult.target_topic ? ", target=" + detectionResult.target_topic : "") + ")")
   }
 
   lines.push("")
-  lines.push("Topic context above is automatically injected by plugin " +
-    "(" + opts.detectionMode + " mode). " +
-    "Do NOT call topic_detect or get_memory_context for routine turns. " +
-    "MCP tools (topic_list, topic_create, session_bind, topic_detect with semantic=True) " +
-    "are available ONLY for user-initiated topic management or deep analysis.")
-
+  // Mode indicator for #165 rules consumption
+  lines.push("[fish-trail-mode: " + opts.detectionMode + " | routine-MCP: suppressed | deep-query: allowed on request]")
   return lines.join("\n")
+}
+
+/**
+ * Read previous injected block state from disk.
+ * Returns null if never written or on error.
+ */
+async function readInjectedState(fishTrailDir: string): Promise<InjectedBlockState | null> {
+  try {
+    const raw = await readFile(join(fishTrailDir, INJECTED_STATE_FILENAME), "utf-8")
+    return JSON.parse(raw) as InjectedBlockState
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Write current injected block state to disk for next-turn comparison.
+ */
+async function writeInjectedState(fishTrailDir: string, state: InjectedBlockState): Promise<void> {
+  try {
+    await mkdir(fishTrailDir, { recursive: true })
+    await writeFile(
+      join(fishTrailDir, INJECTED_STATE_FILENAME),
+      JSON.stringify(state, null, 2),
+      "utf-8",
+    )
+  } catch (e) {
+    console.log("[system-prompt-context-inject] Failed to write injected state: " + String(e))
+  }
 }
 
 /**
@@ -1493,15 +1586,42 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         }
       }
 
-      // Format and inject
-      const contextBlock = formatTopicContext(registryView, activeTopic, graph, detectionResult, pluginOpts)
-      output.system.push(contextBlock)
+      // Format and inject (#164: cache-stable 3-block architecture)
+      const registryBlock = formatRegistryBlock(registryView, pluginOpts)
+      const warmBlock = formatWarmBriefBlock(registryView, graph, pluginOpts)
+      const activeBlock = formatActiveFocusBlock(registryView, activeTopic, detectionResult, pluginOpts)
+
+      // #164: Compare with previous turn's blocks to detect changes
+      const prevState = await readInjectedState(fishTrailDir)
+      const registryHash = simpleHash(registryBlock)
+      const warmHash = simpleHash(warmBlock)
+      const registryChanged = !prevState || prevState.registryHash !== registryHash
+      const warmChanged = !prevState || prevState.warmHash !== warmHash
+      // Active block always changes (volatile by design)
+
+      // Push 3 separate blocks to output.system
+      // Stable blocks first, volatile last — optimizes prefix cache behavior
+      output.system.push(registryBlock)
+      output.system.push(warmBlock)
+      output.system.push(activeBlock)
+
+      // Persist state for next-turn comparison
+      await writeInjectedState(fishTrailDir, {
+        registryHash,
+        warmHash,
+        registryBlock,
+        warmBlock,
+        opencodeVersion: getOpenCodeVersion(),
+      })
 
       const relatedCount = Object.keys(registryView.topics).length - 1
       const modeTag = pluginOpts.detectionMode === "realtime" ? "realtime" : "disk"
+      const cacheTag = "registry=" + (registryChanged ? "MISS" : "HIT") +
+        ", warm=" + (warmChanged ? "MISS" : "HIT") +
+        ", active=MISS"
       console.log(
-        "[system-prompt-context-inject] Injected topic context (" + modeTag + " mode): " +
-        "active=" + activeTopicId + ", related=" + relatedCount,
+        "[system-prompt-context-inject] Injected 3-block context (" + modeTag + " mode): " +
+        "active=" + activeTopicId + ", related=" + relatedCount + ", cache=" + cacheTag,
       )
     },
   }
