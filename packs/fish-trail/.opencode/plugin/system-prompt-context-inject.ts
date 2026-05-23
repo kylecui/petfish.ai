@@ -199,6 +199,28 @@ function formatTopicContext(
   detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null,
   opts: Required<PluginOptions>,
 ): string {
+  // #159: When reset is detected, inject a minimal block instead of full context.
+  // If we inject the full old topic context alongside "relation: reset", the model
+  // may comply with the "forget" instruction and ignore the detection metadata too.
+  if (detectionResult && detectionResult.relation === "reset") {
+    const lines: string[] = [
+      "## Active Topic Context (auto-injected by plugin)",
+      "",
+      "- **Reset requested**: user indicated a context reset (" + opts.detectionMode + " mode).",
+      "  - Previous topic: " + registryView.active_topic + " (no longer active).",
+      "  - Relation: reset",
+      "  - Confidence: " + detectionResult.confidence.toFixed(2),
+      "  - Risk: " + detectionResult.risk + " (" + detectionResult.risk_level + ")",
+      "  - Action: start fresh without inheriting earlier discussion. " +
+        "Use MCP `topic_create` if a new topic should be created.",
+      "",
+      "Topic context above is automatically injected by plugin " +
+        "(" + opts.detectionMode + " mode). " +
+        "Do NOT call topic_detect for routine turns.",
+    ]
+    return lines.join("\n")
+  }
+
   const lines: string[] = [
     "## Active Topic Context (auto-injected by plugin)",
     "",
@@ -457,6 +479,13 @@ const plugin: Plugin = async ({ directory }, options) => {
         // 3. Support both string and part-array content formats
         const userMsg = await extractUserMessage(input)
 
+        // Debug: log extracted message length for troubleshooting (#159)
+        console.log(
+          "[system-prompt-context-inject] Realtime detection input: " +
+          "userMsg.length=" + (userMsg ? userMsg.length : 0) +
+          ", first60=" + (userMsg ? JSON.stringify(userMsg.slice(0, 60)) : "null"),
+        )
+
         if (userMsg && userMsg.length > 0) {
           try {
             // Build currentTopic and allTopics for detector
@@ -469,6 +498,14 @@ const plugin: Plugin = async ({ directory }, options) => {
             })
 
             detectionResult = getDetector().detect(userMsg, currentTopicForDetect, allTopicsForDetect)
+
+            // Debug: log detection result (#159)
+            console.log(
+              "[system-prompt-context-inject] Realtime detection result: " +
+              "relation=" + (detectionResult ? detectionResult.relation : "null") +
+              ", confidence=" + (detectionResult ? detectionResult.confidence.toFixed(2) : "n/a") +
+              ", target=" + (detectionResult && detectionResult.target_topic ? detectionResult.target_topic : "none"),
+            )
           } catch (e) {
             // Detection failure must not break injection
             console.log("[system-prompt-context-inject] Realtime detection failed: " + String(e))

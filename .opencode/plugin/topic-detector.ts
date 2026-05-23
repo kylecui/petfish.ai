@@ -136,6 +136,9 @@ export class TopicDetector {
   readonly resetSignals: readonly string[] = [
     "重新开始", "忘掉前面", "清空上下文", "从头来", "全部重来",
     "start over", "fresh start", "reset context", "forget everything", "clean slate",
+    "forget all", "forget it all", "forget it", "clear everything", "clear all",
+    "wipe", "erase everything", "start fresh", "start clean", "new conversation",
+    "brand new", "from scratch", "blank slate", "tabula rasa",
   ]
 
   readonly archiveSignals: readonly string[] = [
