@@ -118,20 +118,6 @@ $AllPacks = @(
     "trustskills-governance-pack",
     "anti-sycophancy-calibration-pack",
     "fish-trail",
-    "research-skill-pack"
-)
-
-$AllPacks = @(
-    "opencode-course-skills-pack",
-    "opencode-skill-pack-testcases-usage-docs",
-    "repo-deploy-ops-skill-pack",
-    "project-initializer-skill",
-    "petfish-style-skill",
-    "petfish-companion-skill",
-    "opencode-ppt-skills",
-    "trustskills-governance-pack",
-    "anti-sycophancy-calibration-pack",
-    "fish-trail",
     "research-skill-pack",
     "fish-reflection-pack"
 )
