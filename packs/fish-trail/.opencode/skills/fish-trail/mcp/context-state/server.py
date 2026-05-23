@@ -858,6 +858,60 @@ class ContextStateServer:
                 sanitized[key] = value
         return sanitized
 
+    def _auto_log_mutation(
+        self,
+        tool_name: str,
+        original_args: Dict[str, Any],
+        result: Any,
+    ) -> None:
+        """Auto-log a mutation to decision-log with correct identifiers.
+
+        Captures identifiers from original_args (before handler mutation)
+        and enriches from result (for created resources like topic IDs).
+        """
+        try:
+            # Resolve source_topic and target_topic per-tool
+            source_topic = None
+            target_topic = None
+            session_id = None
+
+            if tool_name == "topic_create":
+                # New topic ID lives in result
+                if isinstance(result, dict):
+                    target_topic = result.get("id") or result.get("topic_id")
+            elif tool_name == "topic_update":
+                source_topic = original_args.get("topic_id")
+            elif tool_name == "topic_archive":
+                source_topic = original_args.get("topic_id")
+            elif tool_name in ("topic_link", "topic_unlink"):
+                source_topic = original_args.get("source")
+                target_topic = original_args.get("target")
+            elif tool_name == "session_bind":
+                if isinstance(result, dict):
+                    session_obj = result.get("session", result)
+                    session_id = session_obj.get("id") if isinstance(session_obj, dict) else None
+            elif tool_name == "session_close":
+                session_id = original_args.get("session_id")
+
+            log_entry = {
+                "action": tool_name,
+                "source_topic": source_topic,
+                "target_topic": target_topic,
+                "risk_level": "info",
+                "user_confirmed": False,
+                "payload": {
+                    k: v
+                    for k, v in self._sanitize_args(original_args).items()
+                    if k not in ("topic_id", "source", "target", "session_id")
+                },
+            }
+            if session_id:
+                log_entry["session_id"] = session_id
+
+            self.store.log_decision(log_entry)
+        except Exception:
+            pass  # Never let audit logging break the response
+
     def _dispatch_tool_call(
         self, msg_id: Any, params: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -872,30 +926,15 @@ class ContextStateServer:
 
         logger.info("tool_call name=%s", tool_name)
         try:
+            # Snapshot args BEFORE handler runs (handlers may mutate args)
+            original_args = dict(arguments)
             result = handler(arguments)
             duration_ms = (time.monotonic() - start) * 1000
             logger.info("tool_done name=%s duration=%.1fms", tool_name, duration_ms)
 
             # Auto-log mutations to decision-log for audit trail
             if tool_name in self.MUTATION_TOOLS:
-                try:
-                    self.store.log_decision(
-                        {
-                            "action": tool_name,
-                            "source_topic": arguments.get("source")
-                            or arguments.get("topic_id"),
-                            "target_topic": arguments.get("target"),
-                            "risk_level": "info",
-                            "user_confirmed": False,
-                            "payload": {
-                                k: v
-                                for k, v in self._sanitize_args(arguments).items()
-                                if k not in ("topic_id", "source", "target")
-                            },
-                        }
-                    )
-                except Exception:
-                    pass  # Never let audit logging break the response
+                self._auto_log_mutation(tool_name, original_args, result)
 
             return _jsonrpc_response(
                 msg_id,
@@ -990,8 +1029,9 @@ class ContextStateServer:
         return {"topic": topic, "related": related}
 
     def _handle_topic_update(self, args: Dict[str, Any]) -> Dict[str, Any]:
-        topic_id = args.pop("topic_id")
-        return self.store.update(topic_id, **args)
+        topic_id = args.get("topic_id")
+        update_kwargs = {k: v for k, v in args.items() if k != "topic_id"}
+        return self.store.update(topic_id, **update_kwargs)
 
     def _handle_topic_archive(self, args: Dict[str, Any]) -> Dict[str, Any]:
         return self.store.archive(args["topic_id"])
