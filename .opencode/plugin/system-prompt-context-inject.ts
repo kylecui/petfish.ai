@@ -1063,31 +1063,6 @@ async function buildRegistryView(
   return { active_topic: activeTopicId, topics }
 }
 
-function formatDetectionMeta(result: {
-  relation: string
-  confidence: number
-  risk: number
-  risk_level: string
-  target_topic: string | null
-}): string {
-  const lines: string[] = [
-    "- **Realtime detection**:",
-    "  - Relation: " + result.relation,
-    "  - Confidence: " + result.confidence.toFixed(2),
-    "  - Risk: " + result.risk + " (" + result.risk_level + ")",
-  ]
-  if (result.target_topic) {
-    lines.push("  - Target: " + result.target_topic)
-  }
-  if (result.relation === "switch" || result.relation === "fork") {
-    lines.push(
-      "  - If this is an unintended topic shift, consider using MCP `topic_detect` " +
-      "for deeper analysis or `topic_create`/`topic_link` to formalize the split.",
-    )
-  }
-  return lines.join("\n")
-}
-
 /**
  * #164/#166: Format Block 1 — Topic Registry (stable, changes on create/delete).
  * #166: Reflective compression — compact table format, strip redundant labels.
