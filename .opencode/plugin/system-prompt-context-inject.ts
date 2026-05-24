@@ -1238,10 +1238,11 @@ function formatActiveFocusBlock(
   }
 
   lines.push("")
-  // #166: Compact mode indicator — from 15 tokens to ~5
-  // Format: [mode|rMCP:status|deep:status]
-  // rMCP = routine-MCP, deep = deep-query
-  lines.push("[disk|rMCP:off|deep:ask]")
+  // #166/#167: Compact mode indicator with tiered MCP reference
+  // Format: [mode|rMCP:status|detail:tool_name]
+  // rMCP = routine-MCP (topic_detect, get_memory_context — handled by plugin)
+  // detail = cold-data tool for deep queries (topic_show returns full scope/summary/tags/edges)
+  lines.push("[disk|rMCP:off|detail:topic_show]")
   return lines.join("\n")
 }
 
