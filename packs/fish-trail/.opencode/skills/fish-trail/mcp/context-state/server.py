@@ -704,6 +704,7 @@ class ContextStateServer:
             stream=sys.stderr,  # MCP uses stdout for JSON-RPC, so log to stderr
         )
         self.store = TopicStore(base_dir)
+        self._base_dir = base_dir  # for call-log path
 
         # Load config (stdlib json, no external deps)
         config = self._load_config(base_dir)
@@ -912,6 +913,58 @@ class ContextStateServer:
         except Exception:
             pass  # Never let audit logging break the response
 
+    def _log_tool_call(
+        self,
+        tool_name: str,
+        args: Dict[str, Any],
+        duration_ms: float,
+        ok: bool,
+        error: Optional[str] = None,
+    ) -> None:
+        """Append a JSONL entry to mcp-call-log.jsonl for benchmark observability.
+
+        Each line is a self-contained JSON object with:
+          - ts: ISO 8601 timestamp
+          - tool: tool name
+          - ok: whether the call succeeded
+          - duration_ms: wall-clock duration
+          - args: sanitized arguments (truncated for safety)
+          - error: error message (only on failure)
+
+        The log is written to <base_dir>/mcp-call-log.jsonl.
+        Rotation: when the file exceeds 1MB, it is truncated to the last
+        1000 lines to keep disk usage bounded.
+        """
+        try:
+            log_path = os.path.join(self._base_dir, "mcp-call-log.jsonl")
+            entry = {
+                "ts": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()) + "Z",
+                "tool": tool_name,
+                "ok": ok,
+                "duration_ms": round(duration_ms, 1),
+                "args": self._sanitize_args(args),
+            }
+            if error is not None:
+                entry["error"] = error[:200]  # cap error length
+
+            line = json.dumps(entry, ensure_ascii=False) + chr(10)  # chr(10) = newline
+
+            # Rotation: if file > 1MB, truncate to last 1000 lines
+            if os.path.exists(log_path) and os.path.getsize(log_path) > 1_000_000:
+                try:
+                    with open(log_path, "r", encoding="utf-8") as f:
+                        lines = f.readlines()
+                    with open(log_path, "w", encoding="utf-8") as f:
+                        for l in lines[-1000:]:
+                            f.write(l)
+                except Exception:
+                    pass  # rotation failure should not block logging
+
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(line)
+        except Exception:
+            pass  # Never let call logging break the response
+
     def _dispatch_tool_call(
         self, msg_id: Any, params: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -936,6 +989,9 @@ class ContextStateServer:
             if tool_name in self.MUTATION_TOOLS:
                 self._auto_log_mutation(tool_name, original_args, result)
 
+            # Server-side call logging for benchmark observability
+            self._log_tool_call(tool_name, original_args, duration_ms, ok=True)
+
             return _jsonrpc_response(
                 msg_id,
                 {
@@ -955,6 +1011,7 @@ class ContextStateServer:
                 duration_ms,
                 exc,
             )
+            self._log_tool_call(tool_name, original_args, duration_ms, ok=False, error=str(exc))
             return _jsonrpc_response(
                 msg_id,
                 {
@@ -975,6 +1032,7 @@ class ContextStateServer:
                 duration_ms,
                 exc,
             )
+            self._log_tool_call(tool_name, original_args, duration_ms, ok=False, error=str(exc))
             return _jsonrpc_response(
                 msg_id,
                 {
@@ -995,6 +1053,7 @@ class ContextStateServer:
                 duration_ms,
                 exc,
             )
+            self._log_tool_call(tool_name, original_args, duration_ms, ok=False, error=str(exc))
             return _jsonrpc_error(msg_id, -32603, "Internal error: {}".format(exc))
 
     # -- Tool handlers ------------------------------------------------------

@@ -33,6 +33,7 @@
  * Config via opencode.json plugin tuple:
  *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "disk" }]
  *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "experimental.realtime" }]
+ *   ["path/to/plugin", { "compressionLevel": "full" }]  // verbose for Flash-tier models
  *
  * "disk" (default): reads previous turn's state from disk only. Zero overhead.
  * "experimental.realtime": requires patched OpenCode with lastUserMessage support (#163).
@@ -927,6 +928,13 @@ interface PluginOptions {
   // "experimental.realtime": same as "realtime" — use this in opencode.json to make the
   //   experimental status explicit.
   detectionMode?: "disk" | "realtime" | "experimental.realtime"
+  // #166/#167: Compression level for injected topic context.
+  //   "compact" (default): reflective brief + merged title/scope + compact mode indicator.
+  //     Optimized for Pro-tier models (DeepSeek V4 Pro, Claude Sonnet) that attend well
+  //     to semantic summaries. ~48 tokens for Active Focus block.
+  //   "full": verbose labels + full summary text + detailed mode indicator.
+  //     Better for Flash-tier models that may lose signal in compressed output. ~108 tokens.
+  compressionLevel?: "compact" | "full"
 }
 
 interface TopicRegistry {
@@ -1182,12 +1190,15 @@ function reflectiveBrief(summary: string | undefined, maxLen: number): string {
 }
 
 /**
- * #164/#166: Format Block 3 — Active Topic Focus (volatile, changes every turn).
+ * #164/#166/#167: Format Block 3 — Active Topic Focus (volatile, changes every turn).
  * #166: Reflective compression — semantically dense brief replaces raw metadata.
  *   - Merge title + scope into one line (eliminates "Scope:" label)
  *   - Replace full summary with reflective brief (current position only)
  *   - Compact mode indicator to inline bracket notation
  *   - Strip "(auto-injected, volatile)" — model doesn't need this meta-commentary
+ * #167: compressionLevel option — "compact" (default) or "full" (verbose).
+ *   - compact: ~48 tokens, optimized for Pro-tier models
+ *   - full: ~108 tokens, better for Flash-tier models that may lose signal
  */
 function formatActiveFocusBlock(
   registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
@@ -1201,14 +1212,14 @@ function formatActiveFocusBlock(
     return "## Focus\nRESET·" + registryView.active_topic + "\n[disk]\n"
   }
 
-  // #166: Compact header
+  // Compact header
   const lines: string[] = [
     "## Focus",
     "",
   ]
 
   if (activeTopic) {
-    // #166: Merge title + scope into one dense line
+    // Merge title + scope into one dense line
     // Format: "id Title · Scope excerpt" (scope replaces separate label)
     const title = activeTopic.title || registryView.active_topic
     const scopeExcerpt = activeTopic.scope
@@ -1219,7 +1230,7 @@ function formatActiveFocusBlock(
       ? " (" + activeTopic.status + ")" : ""
     lines.push(registryView.active_topic + " " + title + statusTag + scopeExcerpt)
 
-    // #166: Reflective brief replaces full summary
+    // Reflective brief replaces full summary
     const brief = reflectiveBrief(activeTopic.summary, 120)
     if (brief) {
       lines.push(brief)
@@ -1238,11 +1249,54 @@ function formatActiveFocusBlock(
   }
 
   lines.push("")
-  // #166/#167: Compact mode indicator with tiered MCP reference
-  // Format: [mode|rMCP:status|detail:tool_name]
-  // rMCP = routine-MCP (topic_detect, get_memory_context — handled by plugin)
-  // detail = cold-data tool for deep queries (topic_show returns full scope/summary/tags/edges)
+  // Compact mode indicator with tiered MCP reference
   lines.push("[disk|rMCP:off|detail:topic_show]")
+  return lines.join("\n")
+}
+
+/**
+ * #167: Full format (verbose) — ~108 tokens.
+ * Explicit labels, full summary text, detailed detection metadata.
+ * Better for Flash-tier models that may lose signal in compact output.
+ */
+function formatActiveFocusFull(
+  registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
+  activeTopic: TopicData | null,
+  detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null,
+  opts: Required<PluginOptions>,
+): string {
+  const lines: string[] = [
+    "## Active Focus (auto-injected, volatile)",
+    "",
+  ]
+
+  if (activeTopic) {
+    const status = activeTopic.status || "active"
+    lines.push("Topic: " + registryView.active_topic + " — " + activeTopic.title + " (" + status + ")")
+    if (activeTopic.scope) {
+      const s = truncate(activeTopic.scope, opts.maxSummaryLen)
+      lines.push("Scope: " + s)
+    }
+    if (activeTopic.summary) {
+      const s = truncate(activeTopic.summary, opts.maxSummaryLen)
+      lines.push("Summary: " + s)
+    }
+  } else {
+    lines.push("Topic: " + registryView.active_topic + " (details not found on disk)")
+  }
+
+  // Realtime detection metadata (verbose)
+  if (detectionResult && opts.detectionMode === "realtime") {
+    lines.push("")
+    lines.push("Detection: " + detectionResult.relation +
+      " (conf=" + detectionResult.confidence.toFixed(2) +
+      ", risk=" + detectionResult.risk + "/" + detectionResult.risk_level +
+      (detectionResult.target_topic ? ", target=" + detectionResult.target_topic : "") + ")")
+  }
+
+  lines.push("")
+  // Verbose mode indicator
+  lines.push("[fish-trail-mode: " + opts.detectionMode + " | routine-MCP: suppressed | deep-query: topic_show]")
   return lines.join("\n")
 }
 
@@ -1345,16 +1399,19 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
     maxTopics: 5,
     maxSummaryLen: 200,
     detectionMode: "disk",
+    compressionLevel: "compact",
   }
 
   // Layer 1: function argument
   if (fnOptions && typeof fnOptions === "object" && Object.keys(fnOptions as Record<string, unknown>).length > 0) {
     const raw = fnOptions as Record<string, unknown>
     const rawMode = raw.detectionMode as string | undefined
+    const rawCompress = raw.compressionLevel as string | undefined
     return {
       maxTopics: (raw.maxTopics as number) ?? defaults.maxTopics,
       maxSummaryLen: (raw.maxSummaryLen as number) ?? defaults.maxSummaryLen,
       detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
+      compressionLevel: rawCompress === "full" ? "full" : "compact",
     }
   }
 
@@ -1372,10 +1429,12 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
           const opts = entry[1] as Record<string, unknown>
           if (path.includes(PLUGIN_FILENAME) && opts && typeof opts === "object") {
             const rawMode = opts.detectionMode as string | undefined
+            const rawCompress = opts.compressionLevel as string | undefined
             return {
               maxTopics: (opts.maxTopics as number) ?? defaults.maxTopics,
               maxSummaryLen: (opts.maxSummaryLen as number) ?? defaults.maxSummaryLen,
               detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
+              compressionLevel: rawCompress === "full" ? "full" : "compact",
             }
           }
         }
