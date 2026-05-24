@@ -1206,31 +1206,42 @@ function formatActiveFocusBlock(
   detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null,
   opts: Required<PluginOptions>,
 ): string {
-  // Reset detection — minimal block
+  // Reset detection — minimal block (same for both compression levels)
   if (detectionResult && detectionResult.relation === "reset") {
-    // #166: Compact reset message
-    return "## Focus\nRESET·" + registryView.active_topic + "\n[disk]\n"
+    return "## Focus\nRESET·" + registryView.active_topic + "\n[" + opts.detectionMode + "]\n"
   }
 
-  // Compact header
+  // #167: Branch on compressionLevel
+  if (opts.compressionLevel === "full") {
+    return formatActiveFocusFull(registryView, activeTopic, detectionResult, opts)
+  }
+  return formatActiveFocusCompact(registryView, activeTopic, detectionResult, opts)
+}
+
+/**
+ * #167: Compact format (default) — ~48 tokens.
+ * Reflective brief, merged title+scope, compact mode indicator.
+ */
+function formatActiveFocusCompact(
+  registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
+  activeTopic: TopicData | null,
+  detectionResult: { relation: string; confidence: number; risk: number; risk_level: string; target_topic: string | null } | null,
+  opts: Required<PluginOptions>,
+): string {
   const lines: string[] = [
     "## Focus",
     "",
   ]
 
   if (activeTopic) {
-    // Merge title + scope into one dense line
-    // Format: "id Title · Scope excerpt" (scope replaces separate label)
     const title = activeTopic.title || registryView.active_topic
     const scopeExcerpt = activeTopic.scope
       ? " · " + truncate(activeTopic.scope, 80)
       : ""
-    // Non-active status only shown when it's not "active"
     const statusTag = activeTopic.status && activeTopic.status !== "active"
       ? " (" + activeTopic.status + ")" : ""
     lines.push(registryView.active_topic + " " + title + statusTag + scopeExcerpt)
 
-    // Reflective brief replaces full summary
     const brief = reflectiveBrief(activeTopic.summary, 120)
     if (brief) {
       lines.push(brief)
@@ -1239,7 +1250,6 @@ function formatActiveFocusBlock(
     lines.push(registryView.active_topic + " (not on disk)")
   }
 
-  // Realtime detection metadata (compact inline)
   if (detectionResult && opts.detectionMode === "realtime") {
     const targetTag = detectionResult.target_topic ? "→" + detectionResult.target_topic : ""
     const riskTag = detectionResult.risk_level !== "low" ? "/" + detectionResult.risk_level : ""
@@ -1249,7 +1259,6 @@ function formatActiveFocusBlock(
   }
 
   lines.push("")
-  // Compact mode indicator with tiered MCP reference
   lines.push("[disk|rMCP:off|detail:topic_show]")
   return lines.join("\n")
 }
