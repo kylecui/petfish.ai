@@ -47,10 +47,10 @@ import { join } from "node:path"
 import { execSync } from "node:child_process"
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Cache-stable Memory Blocks (#164)
+// Cache-stable Memory Blocks (#164) + Reflective Compression (#166)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
-// The plugin now outputs 3 separate blocks to output.system, each with a
+// The plugin outputs 3 separate blocks to output.system, each with a
 // different change frequency. DeepSeek V4 Pro uses automatic implicit prefix
 // caching — by keeping stable blocks byte-identical across turns, the provider
 // can reuse cached KV entries for the unchanged prefix.
@@ -58,7 +58,14 @@ import { execSync } from "node:child_process"
 // Block order (low→high change frequency):
 //   1. Registry Block: topic list + status → changes on create/delete only
 //   2. Warm Brief Block: related topic one-liners → changes on status transition
-//   3. Active Focus Block: current topic + summary + detection → changes every turn
+//   3. Active Focus Block: current topic + reflective brief + mode → every turn
+//
+// #166 Reflective Compression:
+//   - Each block uses semantically dense compact notation instead of verbose labels
+//   - Active Focus merges title+scope, replaces full summary with reflective brief
+//   - Mode indicator compacted from ~15 tokens to ~5
+//   - Cold-start block compressed from ~50 tokens to ~12
+//   - Target: ~100-120 tokens per turn for Active Focus (down from ~260)
 //
 // Previous turn's block content is persisted to disk. On each turn, we compare
 // current state with previous state and output byte-identical content for
@@ -1074,32 +1081,36 @@ function formatDetectionMeta(result: {
 }
 
 /**
- * #164: Format Block 1 — Topic Registry (stable, changes on create/delete only).
- * Lists all known topics with their status. Ordered deterministically.
+ * #164/#166: Format Block 1 — Topic Registry (stable, changes on create/delete).
+ * #166: Reflective compression — compact table format, strip redundant labels.
+ * Deterministically sorted by topic ID for byte-identical output across turns.
  */
 function formatRegistryBlock(
   registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
   opts: Required<PluginOptions>,
 ): string {
+  // #166: Compact header — model knows this is auto-injected, no need to say so
   const lines: string[] = [
-    "## Topic Registry (auto-injected, stable)",
+    "## Topics",
     "",
-    "Active: " + registryView.active_topic,
   ]
   // Sort by topic ID for deterministic output
   const sorted = Object.entries(registryView.topics)
     .sort(function(a, b) { return a[0].localeCompare(b[0]) })
   for (const item of sorted) {
     const marker = item[0] === registryView.active_topic ? "→" : " "
-    lines.push(marker + " " + item[0] + ": " + item[1].title + " (" + item[1].status + ")")
+    // #166: Drop parenthetical status when it's "active" — the → marker already signals active
+    const statusTag = item[1].status !== "active" ? "/" + item[1].status : ""
+    lines.push(marker + " " + item[0] + statusTag + " " + item[1].title)
   }
   lines.push("")
   return lines.join("\n")
 }
 
 /**
- * #164: Format Block 2 — Warm Topics Brief (semi-stable, changes on status transition).
- * Summarizes non-active topics as one-liners.
+ * #164/#166: Format Block 2 — Warm Topics Brief (semi-stable, changes on status transition).
+ * #166: Reflective compression — omit verbose header, inline relations,
+ * suppress "active" status (only show non-active like /warm, /paused).
  */
 function formatWarmBriefBlock(
   registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
@@ -1113,11 +1124,12 @@ function formatWarmBriefBlock(
     .slice(0, opts.maxTopics)
 
   if (warmTopics.length === 0) {
-    return "## Related Topics (auto-injected)\n(none)\n"
+    // #166: Empty case — return minimal single-line block instead of 3-line header+none
+    return "## Related\n—\n"
   }
 
   const lines: string[] = [
-    "## Related Topics (auto-injected)",
+    "## Related",
     "",
   ]
   for (const item of warmTopics) {
@@ -1128,17 +1140,54 @@ function formatWarmBriefBlock(
         return (e.source === registryView.active_topic && e.target === item[0]) ||
                (e.target === registryView.active_topic && e.source === item[0])
       })
-      if (edge) relation = " [" + edge.relation + "]"
+      if (edge) relation = "·" + edge.relation
     }
-    lines.push("- " + item[0] + ": " + item[1].title + " (" + item[1].status + ")" + relation)
+    // #166: suppress "active" status, only show when non-active (e.g. /warm, /paused)
+    const statusTag = (item[1].status !== "active" && item[1].status !== "warm")
+      ? "/" + item[1].status : ""
+    lines.push("- " + item[0] + statusTag + " " + item[1].title + relation)
   }
   lines.push("")
   return lines.join("\n")
 }
 
 /**
- * #164: Format Block 3 — Active Topic Focus (volatile, changes every turn).
- * Contains the active topic's scope, summary, and detection metadata.
+ * #166: Extract a reflective brief from a topic summary.
+ * Tries to find the "current position" within the summary:
+ *   - If summary contains "At:" or "Progress:" lines, extract those
+ *   - Otherwise take first sentence (up to first period) or first 120 chars
+ * Returns empty string if no compressible content.
+ */
+function reflectiveBrief(summary: string | undefined, maxLen: number): string {
+  if (!summary) return ""
+  const trimmed = summary.trim()
+  if (trimmed.length === 0) return ""
+
+  // Strategy 1: Look for "At:" or "Progress:" prefixes (common in our summaries)
+  const posMatch = trimmed.match(/(?:At|Progress|Status|Current)[:]\s*(.+?)(?:\.|$)/m)
+  if (posMatch && posMatch[1]) {
+    const brief = posMatch[1].trim()
+    return brief.length > maxLen ? brief.substring(0, maxLen) + "…" : brief
+  }
+
+  // Strategy 2: First sentence
+  const firstSentence = trimmed.match(/^(.+?[.!?])(?:\s|$)/)
+  if (firstSentence && firstSentence[1]) {
+    const brief = firstSentence[1].trim()
+    return brief.length > maxLen ? brief.substring(0, maxLen) + "…" : brief
+  }
+
+  // Strategy 3: Hard truncation at maxLen
+  return trimmed.length > maxLen ? trimmed.substring(0, maxLen) + "…" : trimmed
+}
+
+/**
+ * #164/#166: Format Block 3 — Active Topic Focus (volatile, changes every turn).
+ * #166: Reflective compression — semantically dense brief replaces raw metadata.
+ *   - Merge title + scope into one line (eliminates "Scope:" label)
+ *   - Replace full summary with reflective brief (current position only)
+ *   - Compact mode indicator to inline bracket notation
+ *   - Strip "(auto-injected, volatile)" — model doesn't need this meta-commentary
  */
 function formatActiveFocusBlock(
   registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
@@ -1148,48 +1197,51 @@ function formatActiveFocusBlock(
 ): string {
   // Reset detection — minimal block
   if (detectionResult && detectionResult.relation === "reset") {
-    const lines: string[] = [
-      "## Active Focus (auto-injected, volatile)",
-      "",
-      "RESET — context cleared (" + opts.detectionMode + " mode).",
-      "Previous: " + registryView.active_topic + ". Start fresh or use topic_create.",
-      "",
-    ]
-    return lines.join("\n")
+    // #166: Compact reset message
+    return "## Focus\nRESET·" + registryView.active_topic + "\n[disk]\n"
   }
 
+  // #166: Compact header
   const lines: string[] = [
-    "## Active Focus (auto-injected, volatile)",
+    "## Focus",
     "",
   ]
 
   if (activeTopic) {
-    const status = activeTopic.status || "active"
-    lines.push("Topic: " + registryView.active_topic + " — " + activeTopic.title + " (" + status + ")")
-    if (activeTopic.scope) {
-      const s = truncate(activeTopic.scope, opts.maxSummaryLen)
-      lines.push("Scope: " + s)
-    }
-    if (activeTopic.summary) {
-      const s = truncate(activeTopic.summary, opts.maxSummaryLen)
-      lines.push("Summary: " + s)
+    // #166: Merge title + scope into one dense line
+    // Format: "id Title · Scope excerpt" (scope replaces separate label)
+    const title = activeTopic.title || registryView.active_topic
+    const scopeExcerpt = activeTopic.scope
+      ? " · " + truncate(activeTopic.scope, 80)
+      : ""
+    // Non-active status only shown when it's not "active"
+    const statusTag = activeTopic.status && activeTopic.status !== "active"
+      ? " (" + activeTopic.status + ")" : ""
+    lines.push(registryView.active_topic + " " + title + statusTag + scopeExcerpt)
+
+    // #166: Reflective brief replaces full summary
+    const brief = reflectiveBrief(activeTopic.summary, 120)
+    if (brief) {
+      lines.push(brief)
     }
   } else {
-    lines.push("Topic: " + registryView.active_topic + " (details not found on disk)")
+    lines.push(registryView.active_topic + " (not on disk)")
   }
 
-  // Realtime detection metadata (if enabled and available)
+  // Realtime detection metadata (compact inline)
   if (detectionResult && opts.detectionMode === "realtime") {
-    lines.push("")
-    lines.push("Detection: " + detectionResult.relation +
-      " (conf=" + detectionResult.confidence.toFixed(2) +
-      ", risk=" + detectionResult.risk + "/" + detectionResult.risk_level +
-      (detectionResult.target_topic ? ", target=" + detectionResult.target_topic : "") + ")")
+    const targetTag = detectionResult.target_topic ? "→" + detectionResult.target_topic : ""
+    const riskTag = detectionResult.risk_level !== "low" ? "/" + detectionResult.risk_level : ""
+    lines.push(detectionResult.relation + riskTag +
+      " c" + detectionResult.confidence.toFixed(1) +
+      " r" + detectionResult.risk + targetTag)
   }
 
   lines.push("")
-  // Mode indicator for #165 rules consumption
-  lines.push("[fish-trail-mode: " + opts.detectionMode + " | routine-MCP: suppressed | deep-query: allowed on request]")
+  // #166: Compact mode indicator — from 15 tokens to ~5
+  // Format: [mode|rMCP:status|deep:status]
+  // rMCP = routine-MCP, deep = deep-query
+  lines.push("[disk|rMCP:off|deep:ask]")
   return lines.join("\n")
 }
 
@@ -1449,16 +1501,11 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
           )
         }
         // Inject a minimal cold-start block so the model knows MCP tools exist
+        // #166: Reflective compression — compact cold-start block
         output.system.push([
-          "## Topic Context (auto-injected by plugin)",
-          "",
-          "- **Status**: No active topic. Topic system is ready but idle.",
-          "- **Available MCP tools**: `topic_create`, `topic_list`, `topic_detect`, `session_bind`.",
-          "  Use `topic_create` when starting a significant new task or discussion thread.",
-          "",
-          "Topic context above is automatically injected by plugin " +
-            "(disk mode). " +
-            "Do NOT call topic_detect or get_memory_context for routine turns.",
+          "## Topics",
+          "No active topic. Use `topic_create` to start.",
+          "[disk]",
         ].join("\n"))
         return
       }
