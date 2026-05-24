@@ -8,7 +8,7 @@
 
 1. 涉及话题管理、上下文治理、污染检测、话题切换类任务时，**必须**路由到 `fish-trail` skill
 2. 用户说"整理话题"、"切换到X"、"合并话题"、"topic管理"时，**必须**加载fish-trail执行深度治理
-3. topic_detect返回high风险时，**必须**暂停正常处理，向用户说明风险并建议fork/switch/reset
+3. 当system prompt中注入的topic context显示high-risk话题切换时，**必须**暂停正常处理，向用户说明风险并建议fork/switch/reset
 4. 对merge、archive、bridge三种关系类型，检测置信度低时**必须**提示用户确认，**不得**自动执行
 
 ### 冲突解决
@@ -16,38 +16,85 @@
 - 当话题治理与正常任务并行时，话题治理优先级更高——先处理上下文风险，再执行任务
 - 当MCP不可用时，不阻塞正常工作，静默降级
 
-## Always-On行为（每次交互自动执行）
+## Topic Context: Plugin Injection（非MCP工具调用）
 
-### 交互前检查
+### 机制
 
-每次收到用户消息时，执行以下两步：
+Topic context由 `system-prompt-context-inject` 插件自动注入到system prompt的cached prefix中。**你无需也不应在每轮交互中调用 `topic_detect` 或 `get_memory_context`**——插件已处理。
 
-**Step 1: Topic Detect**
+### 3-Block注入结构（#164+#166+#167）
 
-调用MCP tool `topic_detect`判断当前消息与活跃topic的关系。若有可用的session_id（如OpenCode session ID），应在调用时传入`session_id`参数以启用会话追踪。根据返回的风险等级执行对应行为：
+插件输出3个独立block，每个block有不同的变更频率：
 
-| 风险等级 | 行为 |
-|---------|------|
-| low (0-30) | 静默继续，不做任何提示 |
-| medium (31-60) | 在回复开头用一行简要说明上下文继承范围，例如："当前继续topic「X」，继承上下文包含Y和Z。" |
-| high (61-100) | 主动向用户说明话题变更风险，建议处理策略（fork/switch/reset），加载fish-trail skill执行深度治理 |
+| Block | 内容 | 变更频率 | 用途 |
+|-------|------|---------|------|
+| `## Topics` | 话题ID、标题、状态列表 | 每100轮 | 稳定注册表 |
+| `## Related` | 相关话题一行摘要 + 关系 | 每20轮 | 温话题提醒 |
+| `## Focus` | 当前话题 + 反射摘要 + 模式标记 | 每轮 | 活跃焦点 |
 
-**Step 2: Memory Context Injection**
+### 模式标记（Mode Indicator）
 
-在`topic_detect`完成后，调用MCP tool `get_memory_context`获取分层记忆上下文：
+Focus block末尾的方括号标记控制MCP调用行为：
 
-```yaml
-tool: get_memory_context
-input:
-  current_topic_id: "<当前活跃topic ID>"  # 可选，自动推断
+```
+[disk|rMCP:off|detail:topic_show]
 ```
 
-返回的`context_block`文本直接作为当前交互的上下文参考。该文本包含按优先级分层的topic摘要（active → warm → cold），token用量由Memory Pressure Monitor自动管理。
+| 标记 | 含义 | 行为 |
+|------|------|------|
+| `disk` | 当前运行在disk模式 | 话题感知由插件注入，非MCP实时检测 |
+| `rMCP:off` | 例行MCP调用已抑制 | **禁止**自动调用topic_detect、get_memory_context、topic_list等 |
+| `detail:topic_show` | 冷数据按需获取工具 | 需要完整话题详情（scope、summary、tags、edges）时使用topic_show |
 
-**降级行为：**
-- `get_memory_context`调用失败或超时时，不阻塞正常工作，静默跳过
-- 返回空`context_block`时，视为无历史记忆可用，正常继续
-- 与`topic_detect`的降级行为一致：MCP不可用时整体静默跳过
+### #165: MCP调用条件化规则
+
+根据模式标记决定MCP调用策略：
+
+**禁止的例行调用（rMCP:off时）：**
+- ❌ `topic_detect` — 插件已处理，每轮无需调用
+- ❌ `get_memory_context` — 插件已注入，每轮无需调用
+- ❌ `topic_list` — 插件已注入 `## Topics` block
+- ❌ `topic_graph` — 插件已注入 `## Related` block
+
+**允许的按需调用：**
+- ✅ `topic_show` — 需要完整话题详情时（冷数据）
+- ✅ `topic_create` — 用户发起新话题
+- ✅ `topic_update` — 交互后更新话题摘要/状态
+- ✅ `topic_link`/`topic_unlink` — 用户发起话题关系操作
+- ✅ `topic_archive` — 用户发起归档
+- ✅ `session_bind`/`session_list`/`session_resume` — 会话管理
+
+**禁止 → 允许的升级条件：**
+- 用户明确发起话题管理操作
+- Focus block显示high-risk切换信号
+- Agent需要理解另一个话题的完整上下文（使用topic_show）
+
+### 根据注入的context采取行动
+
+| 话题状态 | 行为 |
+|---------|------|
+| 当前话题继续（无切换信号） | 静默继续 |
+| 检测到话题切换 | 回复开头一行说明上下文变更 |
+| 检测到high-risk切换（跨领域大幅切换） | 向用户说明话题变更风险，建议fork/switch/reset |
+| Focus block包含RESET | 上下文已清除，开始新话题 |
+
+### 何时使用MCP工具
+
+MCP工具**仅限**用户主动发起的话题管理操作和冷数据按需获取：
+
+| 场景 | 使用MCP工具 | 原因 |
+|------|-----------|------|
+| 例行话题感知 | ❌ 不使用 | 插件已注入3个block |
+| 例行记忆上下文 | ❌ 不使用 | 插件已注入Focus+Related |
+| 查看话题列表 | ❌ 不使用 | 插件已注入Topics block |
+| 需要完整话题详情 | ✅ 调用topic_show | 冷数据，按需获取 |
+| 用户问"有哪些话题" | ✅ 调用topic_list | 用户触发，需返回完整列表 |
+| 用户要求切换/分叉/合并话题 | ✅ 调用对应MCP工具 | 状态变更，需事务保证 |
+| 用户要求创建新话题 | ✅ 调用topic_create | 状态变更 |
+
+### One-turn延迟
+
+插件从磁盘读取上一轮的状态。首次对话（冷启动）时无注入，第二轮起才有完整的topic context。质量评估（N=18）显示此延迟不影响使用。
 
 ### 交互后更新
 
@@ -58,7 +105,7 @@ input:
 fish-trail支持会话级追踪。会话（session）绑定外部平台的session ID或自动推断创建。
 
 - **会话绑定**：在会话开始时调用`session_bind`绑定外部session_id和当前topic
-- **事件追踪**：`topic_detect`传入`session_id`时，自动记录话题切换事件到session timeline
+- **事件追踪**：用户发起话题管理操作时，自动记录到session timeline
 - **会话查询**：通过`session_list`按topic、时间、状态过滤，回答"昨天我们做了什么？"
 - **会话恢复**：通过`session_resume`查找与特定topic关联的最近session，支持跨会话上下文继承
 
@@ -82,7 +129,7 @@ fish-trail支持会话级追踪。会话（session）绑定外部平台的sessio
 
 fish-trail自动管理会话边界：
 
-- `topic_detect`检测到archive或reset信号时，自动关闭关联session
+- 用户发起archive或reset操作时，自动关闭关联session
 - `session_bind`时自动清理不活跃超过24小时的session
 - 使用`session_close`显式关闭session并附带summary
 - `session_resume`返回resume context（session summary + timeline digest），支持跨会话上下文继承
@@ -96,14 +143,14 @@ fish-trail自动管理会话边界：
 当context-state MCP server未启动、连接失败或调用超时时：
 
 - 不报错，不阻塞正常工作
-- 在回复中附带一行提示："⚠ fish-trail MCP未连接，话题治理未激活。"
-- 跳过所有topic_detect和topic_update调用
-- 每次会话最多提示一次，避免重复干扰
+- 插件注入的topic context仍然可用（来自磁盘缓存）
+- 仅MCP工具调用不可用（用户主动的话题管理操作受影响）
+- 每次会话最多提示一次"⚠ fish-trail MCP未连接"
 
 ## 深度治理触发条件
 
 以下情况自动加载`.opencode/skills/fish-trail/SKILL.md`执行完整5步工作流：
 
-- topic_detect返回风险等级high
+- 插件注入的topic context显示high-risk话题切换
 - 用户主动要求话题管理（"整理一下话题"、"切换到X"、"把这两个话题合并"等）
 - 用户使用fish-trail相关关键词（topic、话题、上下文、污染、继承、隔离等）

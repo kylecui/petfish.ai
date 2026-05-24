@@ -20,33 +20,75 @@
 
 ### 机制
 
-Topic context（当前话题、相关话题、分层记忆）由 `system-prompt-context-inject` 插件自动注入到system prompt的cached prefix中。**你无需也不应在每轮交互中调用 `topic_detect` 或 `get_memory_context`。**
+Topic context由 `system-prompt-context-inject` 插件自动注入到system prompt的cached prefix中。**你无需也不应在每轮交互中调用 `topic_detect` 或 `get_memory_context`**——插件已处理。
 
-### 读取注入的topic context
+### 3-Block注入结构（#164+#166+#167）
 
-插件注入的内容位于system prompt的 `## Active Topic Context` 块中，包含：
-- 当前话题ID、标题、状态
-- 话题摘要（如有）
-- 相关话题列表
-- 话题关系
+插件输出3个独立block，每个block有不同的变更频率：
+
+| Block | 内容 | 变更频率 | 用途 |
+|-------|------|---------|------|
+| `## Topics` | 话题ID、标题、状态列表 | 每100轮 | 稳定注册表 |
+| `## Related` | 相关话题一行摘要 + 关系 | 每20轮 | 温话题提醒 |
+| `## Focus` | 当前话题 + 反射摘要 + 模式标记 | 每轮 | 活跃焦点 |
+
+### 模式标记（Mode Indicator）
+
+Focus block末尾的方括号标记控制MCP调用行为：
+
+```
+[disk|rMCP:off|detail:topic_show]
+```
+
+| 标记 | 含义 | 行为 |
+|------|------|------|
+| `disk` | 当前运行在disk模式 | 话题感知由插件注入，非MCP实时检测 |
+| `rMCP:off` | 例行MCP调用已抑制 | **禁止**自动调用topic_detect、get_memory_context、topic_list等 |
+| `detail:topic_show` | 冷数据按需获取工具 | 需要完整话题详情（scope、summary、tags、edges）时使用topic_show |
+
+### #165: MCP调用条件化规则
+
+根据模式标记决定MCP调用策略：
+
+**禁止的例行调用（rMCP:off时）：**
+- ❌ `topic_detect` — 插件已处理，每轮无需调用
+- ❌ `get_memory_context` — 插件已注入，每轮无需调用
+- ❌ `topic_list` — 插件已注入 `## Topics` block
+- ❌ `topic_graph` — 插件已注入 `## Related` block
+
+**允许的按需调用：**
+- ✅ `topic_show` — 需要完整话题详情时（冷数据）
+- ✅ `topic_create` — 用户发起新话题
+- ✅ `topic_update` — 交互后更新话题摘要/状态
+- ✅ `topic_link`/`topic_unlink` — 用户发起话题关系操作
+- ✅ `topic_archive` — 用户发起归档
+- ✅ `session_bind`/`session_list`/`session_resume` — 会话管理
+
+**禁止 → 允许的升级条件：**
+- 用户明确发起话题管理操作
+- Focus block显示high-risk切换信号
+- Agent需要理解另一个话题的完整上下文（使用topic_show）
 
 ### 根据注入的context采取行动
 
 | 话题状态 | 行为 |
 |---------|------|
 | 当前话题继续（无切换信号） | 静默继续 |
-| 检测到话题切换（用户消息与新话题相关） | 在回复开头用一行简要说明上下文变更，例如："切换到topic「X」。" |
-| 检测到high-risk切换（跨领域大幅切换） | 向用户说明话题变更风险，建议fork/switch/reset，加载fish-trail skill执行深度治理 |
+| 检测到话题切换 | 回复开头一行说明上下文变更 |
+| 检测到high-risk切换（跨领域大幅切换） | 向用户说明话题变更风险，建议fork/switch/reset |
+| Focus block包含RESET | 上下文已清除，开始新话题 |
 
 ### 何时使用MCP工具
 
-MCP工具**仅限**用户主动发起的话题管理操作：
+MCP工具**仅限**用户主动发起的话题管理操作和冷数据按需获取：
 
 | 场景 | 使用MCP工具 | 原因 |
 |------|-----------|------|
-| 例行话题感知 | ❌ 不使用 | 插件已注入，cached |
-| 例行记忆上下文 | ❌ 不使用 | 插件已注入，cached |
-| 用户问"有哪些话题" | ✅ 调用topic_list | 用户触发，模型会配合 |
+| 例行话题感知 | ❌ 不使用 | 插件已注入3个block |
+| 例行记忆上下文 | ❌ 不使用 | 插件已注入Focus+Related |
+| 查看话题列表 | ❌ 不使用 | 插件已注入Topics block |
+| 需要完整话题详情 | ✅ 调用topic_show | 冷数据，按需获取 |
+| 用户问"有哪些话题" | ✅ 调用topic_list | 用户触发，需返回完整列表 |
 | 用户要求切换/分叉/合并话题 | ✅ 调用对应MCP工具 | 状态变更，需事务保证 |
 | 用户要求创建新话题 | ✅ 调用topic_create | 状态变更 |
 
