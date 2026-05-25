@@ -49,7 +49,7 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
-import { readFile, readdir, writeFile, mkdir } from "node:fs/promises"
+import { readFile, readdir, writeFile, mkdir, open } from "node:fs/promises"
 import { join } from "node:path"
 import { execSync } from "node:child_process"
 
@@ -80,12 +80,32 @@ import { execSync } from "node:child_process"
 
 const INJECTED_STATE_FILENAME = "injected-block-state.json"
 
+interface AdaptiveSwitch {
+  ts: string
+  from: string
+  to: string
+  round: number
+}
+
+interface AdaptiveState {
+  mode: "compact" | "full" | "unknown"
+  roundCounter: number
+  cooldownUntil: number
+  signalHistory: number[]
+  roundsWithHighSignal: number
+  roundsWithLowSignal: number
+  switchHistory: AdaptiveSwitch[]
+  unstable: boolean
+  signalCold: boolean
+}
+
 interface InjectedBlockState {
   registryHash: string
   warmHash: string
   registryBlock: string
   warmBlock: string
   opencodeVersion: string
+  adaptiveState?: AdaptiveState
 }
 
 /** Simple hash for detecting content changes without storing full content. */
@@ -969,6 +989,7 @@ interface TopicData {
   tags?: string[]
   summary?: string
   status?: string
+  reflective_brief?: string  // v1.2: pre-compressed semantic brief from MCP server
 }
 
 interface TopicGraphNode {
@@ -994,6 +1015,9 @@ function getDetector(): TopicDetector {
   }
   return _detector
 }
+
+// v1.2: Resolved adaptive mode (set during injection, read by formatActiveFocusBlock)
+let _adaptiveResolvedMode: string = "compact"
 
 async function readJSON<T>(path: string): Promise<T | null> {
   try {
@@ -1185,6 +1209,160 @@ function reflectiveBrief(summary: string | undefined, maxLen: number): string {
 }
 
 /**
+ * v1.2: Measure recall signal from mcp-call-log.jsonl.
+ * Returns topic_show frequency (0.0~1.0) from last windowSize entries.
+ * Returns null if file doesn't exist or has no data.
+ */
+async function measureRecallSignal(
+  fishTrailDir: string,
+  windowSize: number,
+): Promise<number | null> {
+  const logPath = join(fishTrailDir, "mcp-call-log.jsonl")
+  let fh: import("fs/promises").FileHandle | null = null
+  try {
+    fh = await open(logPath, "r")
+    const fstat = await fh.stat()
+    if (fstat.size === 0) return null
+
+    const readStart = Math.max(0, fstat.size - 65536)
+    const buf = Buffer.allocUnsafe(fstat.size - readStart)
+    await fh.read(buf, 0, buf.length, readStart)
+    const text = buf.toString("utf-8")
+    const lines = text.split("\n").filter(function(l) { return l.trim().length > 0 })
+
+    const recent = lines.slice(-windowSize)
+    if (recent.length === 0) return null
+
+    let topicShowCount = 0
+    for (const line of recent) {
+      try {
+        const entry = JSON.parse(line)
+        if (entry.tool === "topic_show") {
+          topicShowCount++
+        }
+      } catch {
+        // skip malformed
+      }
+    }
+
+    return topicShowCount / recent.length
+  } catch {
+    return null
+  } finally {
+    if (fh) await fh.close()
+  }
+}
+
+/**
+ * v1.2: Adaptive compression state machine.
+ * UNKNOWN → COMPACT/FULL based on signal, with hysteresis + cooldown + oscillation lock.
+ */
+function resolveAdaptiveMode(
+  current: AdaptiveState,
+  signal: number | null,
+  totalRounds: number,
+): AdaptiveState {
+  const next: AdaptiveState = {
+    mode: current.mode,
+    roundCounter: totalRounds,
+    cooldownUntil: current.cooldownUntil,
+    signalHistory: (current.signalHistory || []).concat([signal || 0]).slice(-5),
+    roundsWithHighSignal: current.roundsWithHighSignal,
+    roundsWithLowSignal: current.roundsWithLowSignal,
+    switchHistory: current.switchHistory || [],
+    unstable: current.unstable,
+    signalCold: current.signalCold,
+  }
+
+  if (signal === null) {
+    next.signalCold = true
+    return next
+  }
+  next.signalCold = false
+
+  // UNKNOWN → initial decision
+  if (current.mode === "unknown") {
+    next.mode = signal > 0.3 ? "full" : "compact"
+    next.switchHistory = next.switchHistory.concat([{
+      ts: new Date().toISOString(),
+      from: "unknown",
+      to: next.mode,
+      round: totalRounds,
+    }])
+    next.cooldownUntil = totalRounds + 10
+    return next
+  }
+
+  // Cooldown check
+  if (totalRounds < (current.cooldownUntil || 0)) {
+    return next
+  }
+
+  // Oscillation unlock
+  if (current.unstable) {
+    const history = next.signalHistory
+    const stable = history.length >= 5 && history.every(function(s) {
+      return s <= 0.1 || s >= 0.3
+    })
+    if (stable) {
+      next.unstable = false
+    } else {
+      return next
+    }
+  }
+
+  // Track consecutive signal
+  if (signal > 0.3) {
+    next.roundsWithHighSignal = (current.roundsWithHighSignal || 0) + 1
+    next.roundsWithLowSignal = 0
+  } else if (signal <= 0.1) {
+    next.roundsWithLowSignal = (current.roundsWithLowSignal || 0) + 1
+    next.roundsWithHighSignal = 0
+  } else {
+    next.roundsWithHighSignal = 0
+    next.roundsWithLowSignal = 0
+  }
+
+  // Switch with 3-round hysteresis
+  if (current.mode === "compact" && next.roundsWithHighSignal >= 3) {
+    next.mode = "full"
+    next.roundsWithHighSignal = 0
+    next.roundsWithLowSignal = 0
+    next.cooldownUntil = totalRounds + 10
+    next.switchHistory = next.switchHistory.concat([{
+      ts: new Date().toISOString(),
+      from: "compact",
+      to: "full",
+      round: totalRounds,
+    }])
+  } else if (current.mode === "full" && next.roundsWithLowSignal >= 3) {
+    next.mode = "compact"
+    next.roundsWithHighSignal = 0
+    next.roundsWithLowSignal = 0
+    next.cooldownUntil = totalRounds + 10
+    next.switchHistory = next.switchHistory.concat([{
+      ts: new Date().toISOString(),
+      from: "full",
+      to: "compact",
+      round: totalRounds,
+    }])
+  }
+
+  // Oscillation detection: 5 switches in <50 rounds → lock full
+  const recentSw = next.switchHistory.slice(-5)
+  if (recentSw.length >= 5) {
+    const span = totalRounds - recentSw[0].round
+    if (span < 50) {
+      next.unstable = true
+      next.mode = "full"
+      next.cooldownUntil = totalRounds + 20
+    }
+  }
+
+  return next
+}
+
+/**
  * #164/#166/#167: Format Block 3 — Active Topic Focus (volatile, changes every turn).
  * #166: Reflective compression — semantically dense brief replaces raw metadata.
  *   - Merge title + scope into one line (eliminates "Scope:" label)
@@ -1210,7 +1388,13 @@ function formatActiveFocusBlock(
   if (opts.compressionLevel === "full") {
     return formatActiveFocusFull(registryView, activeTopic, detectionResult, opts)
   }
-  return formatActiveFocusCompact(registryView, activeTopic, detectionResult, opts)
+  if (opts.compressionLevel === "compact") {
+    return formatActiveFocusCompact(registryView, activeTopic, detectionResult, opts)
+  }
+  // adaptive (or unspecified): use resolved adaptive mode
+  return _adaptiveResolvedMode === "full"
+    ? formatActiveFocusFull(registryView, activeTopic, detectionResult, opts)
+    : formatActiveFocusCompact(registryView, activeTopic, detectionResult, opts)
 }
 
 /**
@@ -1237,7 +1421,10 @@ function formatActiveFocusCompact(
       ? " (" + activeTopic.status + ")" : ""
     lines.push(registryView.active_topic + " " + title + statusTag + scopeExcerpt)
 
-    const brief = reflectiveBrief(activeTopic.summary, 120)
+    // v1.2: Prefer pre-compressed reflective_brief when available and enabled
+    const brief = (opts.reflectiveBriefEnabled && activeTopic.reflective_brief)
+      ? activeTopic.reflective_brief
+      : reflectiveBrief(activeTopic.summary, 120)
     if (brief) {
       lines.push(brief)
     }
@@ -1284,6 +1471,10 @@ function formatActiveFocusFull(
     if (activeTopic.summary) {
       const s = truncate(activeTopic.summary, opts.maxSummaryLen)
       lines.push("Summary: " + s)
+    }
+    // v1.2: If reflective_brief exists and enabled, show it as compressed context
+    if (opts.reflectiveBriefEnabled && activeTopic.reflective_brief) {
+      lines.push("Brief: " + activeTopic.reflective_brief)
     }
   } else {
     lines.push("Topic: " + registryView.active_topic + " (details not found on disk)")
@@ -1711,10 +1902,40 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
       // Format and inject (#164: cache-stable 3-block architecture)
       const registryBlock = formatRegistryBlock(registryView, pluginOpts)
       const warmBlock = formatWarmBriefBlock(registryView, graph, pluginOpts)
+
+      // #164: Read previous state before building active block (adaptive needs it)
+      const prevState = await readInjectedState(fishTrailDir)
+
+      // v1.2: Adaptive compression — measure signal and resolve mode
+      if (pluginOpts.adaptiveCompressionEnabled) {
+        const signal = await measureRecallSignal(fishTrailDir, 20)
+        const prevAdaptive = prevState ? prevState.adaptiveState : undefined
+        const defaultAdaptive: AdaptiveState = {
+          mode: "compact",
+          roundCounter: 0,
+          cooldownUntil: 0,
+          signalHistory: [],
+          roundsWithHighSignal: 0,
+          roundsWithLowSignal: 0,
+          switchHistory: [],
+          unstable: false,
+          signalCold: false,
+        }
+        const adaptiveState = resolveAdaptiveMode(
+          prevAdaptive || defaultAdaptive,
+          signal,
+          (prevAdaptive ? prevAdaptive.roundCounter : 0) + 1,
+        )
+        _adaptiveResolvedMode = adaptiveState.mode
+        // Persist in injected state for next round
+        if (prevState) {
+          prevState.adaptiveState = adaptiveState
+        }
+        _log("adaptive signal=" + String(signal) + " mode=" + adaptiveState.mode + " round=" + adaptiveState.roundCounter)
+      }
+
       const activeBlock = formatActiveFocusBlock(registryView, activeTopic, detectionResult, pluginOpts)
 
-      // #164: Compare with previous turn's blocks to detect changes
-      const prevState = await readInjectedState(fishTrailDir)
       const registryHash = simpleHash(registryBlock)
       const warmHash = simpleHash(warmBlock)
       const registryChanged = !prevState || prevState.registryHash !== registryHash
@@ -1734,6 +1955,7 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         registryBlock,
         warmBlock,
         opencodeVersion: getOpenCodeVersion(),
+        adaptiveState: prevState ? prevState.adaptiveState : undefined,
       })
 
       const relatedCount = Object.keys(registryView.topics).length - 1

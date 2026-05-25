@@ -100,6 +100,17 @@ MCP工具**仅限**用户主动发起的话题管理操作和冷数据按需获�
 
 当本次交互产生实质性成果（代码变更、文档输出、决策结论等）时，调用`topic_update`更新当前topic的summary和status。
 
+### 交互后Reflective Brief
+
+当本次交互产生实质性成果时，调用topic_update并附带reflective_brief：
+- brief ≤200字符（≈40-80 tokens），必须包含：当前阶段 + 核心动作/决策
+- 示例："v1.2 design complete, 2 proposals drafted"
+- 示例："#169 console.log→stderr fix committed, pre-release updated"
+- 不要写："继续开发中"（无信息量，会被MCP server拒绝）
+- 不要写：完整长句（太浪费tokens）
+- MCP server会校验brief质量（10-200字符，无低质量模式），无效brief会被拒绝并用启发式替代
+- 连续3次提交无效brief会触发自动降级，后续不再接受agent brief
+
 ### 会话管理
 
 fish-trail支持会话级追踪。会话（session）绑定外部平台的session ID或自动推断创建。
