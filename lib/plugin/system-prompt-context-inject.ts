@@ -175,7 +175,7 @@ async function writePatchState(fishTrailDir: string, state: OpenCodePatchState):
     )
   } catch (e) {
     // Non-critical — best effort
-    console.log("[system-prompt-context-inject] Failed to write patch state: " + String(e))
+    _warn("Failed to write patch state: " + String(e))
   }
 }
 
@@ -202,13 +202,13 @@ async function checkAutoPatch(
 
   // Detect version change
   if (prevState && prevState.opencodeVersion !== currentVersion) {
-    console.log(
-      "[system-prompt-context-inject] OpenCode version changed: " +
+    _warn(
+      "OpenCode version changed: " +
       prevState.opencodeVersion + " -> " + currentVersion,
     )
     if (prevState.patchedBinaryVersion && !lastUserMessageAvailable) {
-      console.log(
-        "[system-prompt-context-inject] Patched OpenCode was replaced by upgrade. " +
+      _warn(
+        "Patched OpenCode was replaced by upgrade. " +
         "Disk mode will continue to work. For realtime, see: " +
         "uv run scripts/patch_opencode.py --check",
       )
@@ -217,8 +217,8 @@ async function checkAutoPatch(
 
   // Guidance for users who want realtime mode
   if (!lastUserMessageAvailable && (!prevState || !prevState.lastUserMessageAvailable)) {
-    console.log(
-      "[system-prompt-context-inject] Disk mode is active (one-turn delay, zero overhead). " +
+    _warn(
+      "Disk mode is active (one-turn delay, zero overhead). " +
       "Realtime detection requires upstream OpenCode support — " +
       "follow PR https://github.com/anomalyco/opencode/pull/28993",
     )
@@ -935,6 +935,17 @@ interface PluginOptions {
   //   "full": verbose labels + full summary text + detailed mode indicator.
   //     Better for Flash-tier models that may lose signal in compressed output. ~108 tokens.
   compressionLevel?: "compact" | "full"
+  debug?: boolean
+}
+
+const _PREFIX = "[system-prompt-context-inject] "
+
+function _log(msg: string): void {
+  if (_debugEnabled) console.error(_PREFIX + msg)
+}
+
+function _warn(msg: string): void {
+  console.error(_PREFIX + msg)
 }
 
 interface TopicRegistry {
@@ -1309,7 +1320,7 @@ async function writeInjectedState(fishTrailDir: string, state: InjectedBlockStat
       "utf-8",
     )
   } catch (e) {
-    console.log("[system-prompt-context-inject] Failed to write injected state: " + String(e))
+    _warn("Failed to write injected state: " + String(e))
   }
 }
 
@@ -1377,6 +1388,7 @@ let _inputShapeLogged = false
 let _clientProbeLogged = false
 let _noTopicWarned = false
 let _realtimeFallbackWarned = false
+let _debugEnabled = false
 
 async function resolvePluginOptions(directory: string, fnOptions: unknown): Promise<Required<PluginOptions>> {
   const defaults: Required<PluginOptions> = {
@@ -1384,6 +1396,7 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
     maxSummaryLen: 200,
     detectionMode: "disk",
     compressionLevel: "compact",
+    debug: false,
   }
 
   // Layer 1: function argument
@@ -1396,6 +1409,7 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
       maxSummaryLen: (raw.maxSummaryLen as number) ?? defaults.maxSummaryLen,
       detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
       compressionLevel: rawCompress === "full" ? "full" : "compact",
+      debug: raw.debug === true,
     }
   }
 
@@ -1419,6 +1433,7 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
               maxSummaryLen: (opts.maxSummaryLen as number) ?? defaults.maxSummaryLen,
               detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
               compressionLevel: rawCompress === "full" ? "full" : "compact",
+              debug: opts.debug === true,
             }
           }
         }
@@ -1447,13 +1462,14 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
 
     "experimental.chat.system.transform": async (input, output) => {
       const pluginOpts = await pluginOptsPromise
+      _debugEnabled = pluginOpts.debug
       const fishTrailDir = join(directory, FISH_TRAIL_DIR)
 
       // #158: Log resolved options on first call for debugging
       if (!_optionsLogged) {
         _optionsLogged = true
-        console.log(
-          "[system-prompt-context-inject] options resolved: " +
+        _log(
+          "options resolved: " +
           "maxTopics=" + pluginOpts.maxTopics +
           ", maxSummaryLen=" + pluginOpts.maxSummaryLen +
           ", detectionMode=" + pluginOpts.detectionMode +
@@ -1471,8 +1487,8 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         const msgsLen = input && typeof input === "object" && Array.isArray((input as Record<string, unknown>).messages)
           ? String((input as Record<string, unknown>).messages.length)
           : "n/a"
-        console.log(
-          "[system-prompt-context-inject] input shape: keys=[" + inputKeys + "] messages.len=" + msgsLen,
+        _log(
+          "input shape: keys=[" + inputKeys + "] messages.len=" + msgsLen,
         )
       }
 
@@ -1510,25 +1526,25 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
                 break
               }
             }
-            console.log(
-              "[system-prompt-context-inject] #163 client probe: " +
+            _log(
+              "#163 client probe: " +
               "msgs=" + msgCount + ", lastUserText=" + lastUserText,
             )
           } else {
-            console.log(
-              "[system-prompt-context-inject] #163 client probe: " +
+            _log(
+              "#163 client probe: " +
               "status=" + msgsResult.status + " (expected 200)",
             )
           }
         } catch (e) {
-          console.log(
-            "[system-prompt-context-inject] #163 client probe FAILED: " + String(e),
+          _log(
+            "#163 client probe FAILED: " + String(e),
           )
         }
       } else if (!_clientProbeLogged) {
         _clientProbeLogged = true
-        console.log(
-          "[system-prompt-context-inject] #163 client probe SKIPPED: " +
+        _log(
+          "#163 client probe SKIPPED: " +
           "client=" + String(!!client) + ", sessionID=" + String(input.sessionID),
         )
       }
@@ -1539,8 +1555,8 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         // Cold start: no topics created yet. Log once, then inject minimal guidance.
         if (!_noTopicWarned) {
           _noTopicWarned = true
-          console.log(
-            "[system-prompt-context-inject] No active topic found " +
+          _log(
+            "No active topic found " +
             "(cold start or no topics created yet). Injecting cold-start guidance.",
           )
         }
@@ -1582,8 +1598,8 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
           activeTopic = await readJSON<TopicData>(join(fishTrailDir, "topics", matchFile))
         }
       } catch {
-        console.log(
-          "[system-prompt-context-inject] topics/ directory not found. " +
+        _log(
+          "topics/ directory not found. " +
           "Injection will contain topic ID only.",
         )
       }
@@ -1625,7 +1641,7 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
             }
           } catch (e) {
             // client.messages() failed — continue with empty userMsg
-            console.log("[system-prompt-context-inject] client.messages() failed: " + String(e))
+            _warn("client.messages() failed: " + String(e))
           }
         }
 
@@ -1634,8 +1650,8 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         if (!userMsg || userMsg.length === 0) {
           if (!_realtimeFallbackWarned) {
             _realtimeFallbackWarned = true
-            console.log(
-              "[system-prompt-context-inject] Realtime mode configured but no user message available. " +
+            _log(
+              "Realtime mode configured but no user message available. " +
               "OpenCode system.transform hook does not expose user messages (#163). " +
               "Falling back to disk-mode behavior. " +
               "To enable true realtime detection, follow upstream PR: https://github.com/anomalyco/opencode/pull/28993",
@@ -1644,8 +1660,8 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         }
 
         // Debug: log extracted message length for troubleshooting (#159)
-        console.log(
-          "[system-prompt-context-inject] Realtime detection input: " +
+        _log(
+          "Realtime detection input: " +
           "userMsg.length=" + (userMsg ? userMsg.length : 0) +
           ", first60=" + (userMsg ? JSON.stringify(userMsg.slice(0, 60)) : "null"),
         )
@@ -1664,15 +1680,15 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
             detectionResult = getDetector().detect(userMsg, currentTopicForDetect, allTopicsForDetect)
 
             // Debug: log detection result (#159)
-            console.log(
-              "[system-prompt-context-inject] Realtime detection result: " +
+            _log(
+              "Realtime detection result: " +
               "relation=" + (detectionResult ? detectionResult.relation : "null") +
               ", confidence=" + (detectionResult ? detectionResult.confidence.toFixed(2) : "n/a") +
               ", target=" + (detectionResult && detectionResult.target_topic ? detectionResult.target_topic : "none"),
             )
           } catch (e) {
             // Detection failure must not break injection
-            console.log("[system-prompt-context-inject] Realtime detection failed: " + String(e))
+            _warn("Realtime detection failed: " + String(e))
           }
         }
       }
@@ -1710,8 +1726,8 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
       const cacheTag = "registry=" + (registryChanged ? "MISS" : "HIT") +
         ", warm=" + (warmChanged ? "MISS" : "HIT") +
         ", active=MISS"
-      console.log(
-        "[system-prompt-context-inject] Injected 3-block context (" + modeTag + " mode): " +
+      _log(
+        "Injected 3-block context (" + modeTag + " mode): " +
         "active=" + activeTopicId + ", related=" + relatedCount + ", cache=" + cacheTag,
       )
     },
