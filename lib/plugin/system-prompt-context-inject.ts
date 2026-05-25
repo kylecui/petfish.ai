@@ -99,6 +99,15 @@ interface AdaptiveState {
   signalCold: boolean
 }
 
+interface BriefMetrics {
+  total_topics: number
+  topics_with_brief: number
+  brief_hit_rate: number
+  heuristic_ratio: number
+  agent_reject_rate: number
+  last_updated: string
+}
+
 interface InjectedBlockState {
   registryHash: string
   warmHash: string
@@ -106,6 +115,7 @@ interface InjectedBlockState {
   warmBlock: string
   opencodeVersion: string
   adaptiveState?: AdaptiveState
+  _brief_metrics?: BriefMetrics
 }
 
 /** Simple hash for detecting content changes without storing full content. */
@@ -1108,6 +1118,69 @@ async function buildRegistryView(
 }
 
 /**
+ * v1.2: Compute brief metrics from all topic files on disk.
+ * Reads each topic JSON and checks for reflective_brief, brief_model, brief_stats.
+ */
+async function computeBriefMetrics(fishTrailDir: string): Promise<BriefMetrics> {
+  const now = new Date().toISOString()
+  const defaultMetrics: BriefMetrics = {
+    total_topics: 0,
+    topics_with_brief: 0,
+    brief_hit_rate: 0,
+    heuristic_ratio: 0,
+    agent_reject_rate: 0,
+    last_updated: now,
+  }
+
+  try {
+    const topicsDir = join(fishTrailDir, "topics")
+    const files = await readdir(topicsDir)
+    const jsonFiles = files.filter(function(f: string) { return f.endsWith(".json") })
+
+    let totalAttempts = 0
+    let totalAccepted = 0
+    let totalRejected = 0
+    let totalHeuristic = 0
+    let totalWithBrief = 0
+
+    for (const f of jsonFiles) {
+      const data = await readJSON<Record<string, any>>(join(topicsDir, f))
+      if (!data) continue
+      defaultMetrics.total_topics++
+
+      if (data.reflective_brief) {
+        totalWithBrief++
+      }
+
+      const stats = data.brief_stats
+      if (stats) {
+        totalAttempts += (stats.agent_attempts || 0)
+        totalAccepted += (stats.agent_accepted || 0)
+        totalRejected += (stats.agent_rejected || 0)
+        totalHeuristic += (stats.heuristic_count || 0)
+      }
+    }
+
+    defaultMetrics.topics_with_brief = totalWithBrief
+    defaultMetrics.brief_hit_rate = defaultMetrics.total_topics > 0
+      ? totalWithBrief / defaultMetrics.total_topics : 0
+
+    const totalGenerated = totalAccepted + totalHeuristic
+    defaultMetrics.heuristic_ratio = totalGenerated > 0
+      ? totalHeuristic / totalGenerated : 0
+
+    defaultMetrics.agent_reject_rate = totalAttempts > 0
+      ? totalRejected / totalAttempts : 0
+
+    defaultMetrics.last_updated = now
+  } catch {
+    // topics/ dir doesn't exist yet
+  }
+
+  return defaultMetrics
+}
+
+/**
  * #164/#166: Format Block 1 — Topic Registry (stable, changes on create/delete).
  * #166: Reflective compression — compact table format, strip redundant labels.
  * Deterministically sorted by topic ID for byte-identical output across turns.
@@ -1948,7 +2021,14 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
       output.system.push(warmBlock)
       output.system.push(activeBlock)
 
-      // Persist state for next-turn comparison
+      // v1.2: Compute brief metrics (every 10 rounds or if not yet computed)
+      const prevRoundCount = prevState?.adaptiveState?.roundCounter || 0
+      const prevMetrics = prevState?._brief_metrics
+      const shouldComputeMetrics = !prevMetrics || prevRoundCount % 10 === 0
+      const briefMetrics = shouldComputeMetrics
+        ? await computeBriefMetrics(fishTrailDir)
+        : prevMetrics
+
       await writeInjectedState(fishTrailDir, {
         registryHash,
         warmHash,
@@ -1956,6 +2036,7 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         warmBlock,
         opencodeVersion: getOpenCodeVersion(),
         adaptiveState: prevState ? prevState.adaptiveState : undefined,
+        _brief_metrics: briefMetrics,
       })
 
       const relatedCount = Object.keys(registryView.topics).length - 1
