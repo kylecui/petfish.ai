@@ -11,8 +11,10 @@ Usage:
 import json
 import logging
 import os
+import re
 import sys
 import time
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger("fish-trail")
@@ -228,6 +230,10 @@ TOOLS = [
                 "status": {"type": "string"},
                 "summary": {"type": "string"},
                 "tags": {"type": "array", "items": {"type": "string"}},
+                "reflective_brief": {
+                    "type": "string",
+                    "description": "Agent-authored reflective brief (validated; fallback to heuristic if invalid or degraded)",
+                },
             },
             "required": ["topic_id"],
         },
@@ -1087,8 +1093,149 @@ class ContextStateServer:
                 )
         return {"topic": topic, "related": related}
 
+    # -- Brief validation and heuristic generation --------------------------
+
+    _BRIEF_LOW_QUALITY_PATTERN = re.compile(
+        r"^(?:继续|ongoing|working on it|进行中|继续开发中|ok|done|完成)$",
+        re.IGNORECASE,
+    )
+
+    @staticmethod
+    def _validate_brief(brief: str) -> tuple:
+        """Validate a reflective_brief value.  Returns (is_valid, reason)."""
+        if brief is None or brief.strip() == "":
+            return (False, "empty")
+
+        stripped = brief.strip()
+
+        # Reject if only whitespace/punctuation (no word characters)
+        if not re.search(r"\w", stripped):
+            return (False, "no_content")
+
+        if len(stripped) < 10:
+            return (False, "too_short")
+
+        if len(stripped) > 200:
+            return (False, "too_long")
+
+        if ContextStateServer._BRIEF_LOW_QUALITY_PATTERN.match(stripped):
+            return (False, "low_quality_pattern")
+
+        return (True, "ok")
+
+    @staticmethod
+    def _heuristic_brief(summary: str, max_chars: int = 200) -> str:
+        """Auto-generate a brief from the topic summary when no agent brief exists."""
+        if not summary or not summary.strip():
+            return ""
+
+        text = summary.strip()
+
+        # Strategy 1: Extract "At:/Progress:/Status:" prefix
+        m = re.search(r"(?:At|Progress|Status)[:]\s*(.+?)(?:\.|$)", text, re.M)
+        if m and len(m.group(1).strip()) >= 10:
+            result = m.group(1).strip()
+            if len(result) > max_chars:
+                result = result[: max_chars - 1] + chr(0x2026)
+            return result
+
+        # Strategy 2: First sentence
+        m = re.match(r"^(.+?[.!?])\s", text)
+        if m and len(m.group(1).strip()) >= 10:
+            result = m.group(1).strip()
+            if len(result) > max_chars:
+                result = result[: max_chars - 1] + chr(0x2026)
+            return result
+
+        # Strategy 3: Hard truncate
+        if len(text) > max_chars:
+            return text[: max_chars - 1] + chr(0x2026)
+        return text
+
     def _handle_topic_update(self, args: Dict[str, Any]) -> Dict[str, Any]:
         topic_id = args.get("topic_id")
+
+        # --- reflective_brief handling ---
+        if "reflective_brief" in args or (
+            "summary" in args and "reflective_brief" not in args
+        ):
+            topic = self.store.get(topic_id)
+            if topic is None:
+                raise KeyError("topic not found: {0}".format(topic_id))
+
+            stats = topic.get("brief_stats")
+            if stats is None:
+                stats = {
+                    "agent_attempts": 0,
+                    "agent_accepted": 0,
+                    "agent_rejected": 0,
+                    "heuristic_count": 0,
+                    "degraded": False,
+                }
+
+            # Determine effective summary: incoming args override, else topic's existing
+            effective_summary = args.get("summary", topic.get("summary", ""))
+
+            now_ts = datetime.now(timezone.utc).isoformat()
+
+            if stats.get("degraded", False):
+                # Degraded mode: ignore agent brief, always use heuristic
+                brief = self._heuristic_brief(effective_summary)
+                if brief:
+                    args["reflective_brief"] = brief
+                    args["brief_model"] = "heuristic"
+                    args["brief_generated_at"] = now_ts
+                    stats["heuristic_count"] += 1
+                logger.warning(
+                    "topic_update degraded heuristic topic_id=%s brief_len=%d",
+                    topic_id,
+                    len(brief) if brief else 0,
+                )
+
+            elif "reflective_brief" in args:
+                raw_brief = args.get("reflective_brief", "")
+                is_valid, reason = self._validate_brief(raw_brief)
+                stats["agent_attempts"] += 1
+
+                if is_valid:
+                    stats["agent_accepted"] += 1
+                    args["brief_model"] = "agent"
+                    args["brief_generated_at"] = now_ts
+                else:
+                    stats["agent_rejected"] += 1
+                    # Remove invalid brief — don't store it
+                    del args["reflective_brief"]
+                    logger.warning(
+                        "topic_update brief_rejected topic_id=%s reason=%s len=%d",
+                        topic_id,
+                        reason,
+                        len(raw_brief) if raw_brief else 0,
+                    )
+
+            else:
+                # No reflective_brief in args — check if topic already has one
+                existing_brief = topic.get("reflective_brief")
+                if existing_brief:
+                    # Keep it — do not overwrite
+                    pass
+                else:
+                    brief = self._heuristic_brief(effective_summary)
+                    if brief:
+                        args["reflective_brief"] = brief
+                        args["brief_model"] = "heuristic"
+                        args["brief_generated_at"] = now_ts
+                        stats["heuristic_count"] += 1
+
+            # Degradation check
+            attempts = max(stats["agent_attempts"], 1)
+            if (
+                stats["agent_rejected"] / attempts > 0.5
+                and stats["agent_attempts"] >= 3
+            ):
+                stats["degraded"] = True
+
+            args["brief_stats"] = stats
+
         update_kwargs = {k: v for k, v in args.items() if k != "topic_id"}
         return self.store.update(topic_id, **update_kwargs)
 

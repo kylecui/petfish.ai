@@ -34,6 +34,12 @@
  *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "disk" }]
  *   ["path/to/plugin", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "experimental.realtime" }]
  *   ["path/to/plugin", { "compressionLevel": "full" }]  // verbose for Flash-tier models
+ *   ["path/to/plugin", { "reflectiveBriefEnabled": true }]   // v1.2: enable reflective brief compression
+ *   ["path/to/plugin", { "adaptiveCompressionEnabled": true }]  // v1.2: enable adaptive compression
+ *
+ * v1.2 feature flags (default false):
+ *   - reflectiveBriefEnabled: enables reflective brief compression
+ *   - adaptiveCompressionEnabled: enables adaptive compression
  *
  * "disk" (default): reads previous turn's state from disk only. Zero overhead.
  * "experimental.realtime": requires patched OpenCode with lastUserMessage support (#163).
@@ -936,6 +942,9 @@ interface PluginOptions {
   //     Better for Flash-tier models that may lose signal in compressed output. ~108 tokens.
   compressionLevel?: "compact" | "full"
   debug?: boolean
+  // v1.2 feature flags — default false (off)
+  reflectiveBriefEnabled?: boolean
+  adaptiveCompressionEnabled?: boolean
 }
 
 const _PREFIX = "[system-prompt-context-inject] "
@@ -1397,6 +1406,8 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
     detectionMode: "disk",
     compressionLevel: "compact",
     debug: false,
+    reflectiveBriefEnabled: false,
+    adaptiveCompressionEnabled: false,
   }
 
   // Layer 1: function argument
@@ -1410,6 +1421,8 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
       detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
       compressionLevel: rawCompress === "full" ? "full" : "compact",
       debug: raw.debug === true,
+      reflectiveBriefEnabled: raw.reflectiveBriefEnabled === true,
+      adaptiveCompressionEnabled: raw.adaptiveCompressionEnabled === true,
     }
   }
 
@@ -1434,6 +1447,8 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
               detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
               compressionLevel: rawCompress === "full" ? "full" : "compact",
               debug: opts.debug === true,
+              reflectiveBriefEnabled: opts.reflectiveBriefEnabled === true,
+              adaptiveCompressionEnabled: opts.adaptiveCompressionEnabled === true,
             }
           }
         }
