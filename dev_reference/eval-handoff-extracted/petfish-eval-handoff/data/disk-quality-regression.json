@@ -1,0 +1,71 @@
+{
+  "mode": "disk",
+  "n": 7,
+  "results": [
+    {
+      "prompt": "What is the active topic title and scope?",
+      "elapsed": 3.24,
+      "input": 12043,
+      "output": 50,
+      "cache_read": 4096,
+      "tools": 0,
+      "text": "**Active topic:** `topic_20260523_aaaa` — **QA Audit Topic**\n\n- **Title:** QA Audit Topic\n- **Scope:** Verify mutation audit logging\n- **Summary:** Audit logging must preserve topic and session identifiers."
+    },
+    {
+      "prompt": "Does the current topic involve API monitoring? Answer yes/no with one reason.",
+      "elapsed": 2.51,
+      "input": 17,
+      "output": 20,
+      "cache_read": 16128,
+      "tools": 0,
+      "text": "No. Current topic is about mutation audit logging preserving topic/session identifiers, not API monitoring."
+    },
+    {
+      "prompt": "Name the related topic(s) and their status.",
+      "elapsed": 6.71,
+      "input": 519,
+      "output": 112,
+      "cache_read": 16128,
+      "tools": 0,
+      "text": "Here are the topics in this workspace:\n\n| Topic ID | Title | Status |\n|---|---|---|\n| `topic_20260523_aaaa` | QA Audit Topic | **active** (current) |\n| `topic_20260523_bbbb` | API Monitoring Setup | **active** |\n| `topic_20260523_ed99` | Temp Archive Test | **archived** |\n\nCurrent topic is `topic_20260523_aaaa` (\"QA Audit Topic\") — verifying mutation audit logging with topic/session identifier preservation."
+    },
+    {
+      "prompt": "What is the scope of the active topic? Quote exactly.",
+      "elapsed": 4.92,
+      "input": 127,
+      "output": 7,
+      "cache_read": 16256,
+      "tools": 0,
+      "text": "\"Verify mutation audit logging\""
+    },
+    {
+      "prompt": "Is the active topic about dashboard alerts? Answer yes/no.",
+      "elapsed": 4.54,
+      "input": 127,
+      "output": 2,
+      "cache_read": 16256,
+      "tools": 0,
+      "text": "No"
+    },
+    {
+      "prompt": "List all topics. For each, state title only.",
+      "elapsed": 4.67,
+      "input": 489,
+      "output": 29,
+      "cache_read": 16128,
+      "tools": 0,
+      "text": "- **Temp Archive Test** (archived)\n- **QA Audit Topic** (active)\n- **API Monitoring Setup** (active)"
+    },
+    {
+      "prompt": "Describe the active topic's summary in your own words.",
+      "elapsed": 7.22,
+      "input": 154,
+      "output": 78,
+      "cache_read": 16256,
+      "tools": 0,
+      "text": "The active topic, **QA Audit Topic** (`topic_20260523_aaaa`), is focused on verifying that mutation audit logs correctly capture and retain both the topic ID and session ID in their log entries. In other words, it's a quality assurance check to ensure audit trail integrity — every logged mutation must be traceable back to the specific topic and session that produced it."
+    }
+  ],
+  "active_recall": 6,
+  "contamination_fails": 0
+}

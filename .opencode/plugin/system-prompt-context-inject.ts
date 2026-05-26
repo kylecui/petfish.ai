@@ -1421,11 +1421,11 @@ function resolveAdaptiveMode(
     }])
   }
 
-  // Oscillation detection: 5 switches in <50 rounds → lock full
+  // Oscillation detection: 5 switches in <65 rounds → lock full
   const recentSw = next.switchHistory.slice(-5)
   if (recentSw.length >= 5) {
     const span = totalRounds - recentSw[0].round
-    if (span < 50) {
+    if (span < 65) {
       next.unstable = true
       next.mode = "full"
       next.cooldownUntil = totalRounds + 20
