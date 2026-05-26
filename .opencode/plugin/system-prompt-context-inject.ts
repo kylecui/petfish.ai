@@ -49,7 +49,7 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
-import { readFile, readdir, writeFile, mkdir, open } from "node:fs/promises"
+import { readFile, readdir, writeFile, mkdir, open, appendFile, stat, rename } from "node:fs/promises"
 import { join } from "node:path"
 import { execSync } from "node:child_process"
 
@@ -978,13 +978,34 @@ interface PluginOptions {
 }
 
 const _PREFIX = "[system-prompt-context-inject] "
+const _LOG_ROTATE_SIZE = 1_000_000 // 1MB
+let _logDir = "" // set on first hook call
+
+function _writeLog(msg: string): void {
+  if (!_logDir) return
+  const logPath = join(_logDir, "plugin-debug.log")
+  const ts = new Date().toISOString()
+  const line = ts + " " + _PREFIX + msg + "\n"
+  // Fire-and-forget write + rotate
+  appendFile(logPath, line).catch(function() {})
+  // Rotate check (best-effort, non-blocking)
+  stat(logPath).then(function(s) {
+    if (s.size > _LOG_ROTATE_SIZE) {
+      rename(logPath, logPath + ".1").catch(function() {})
+    }
+  }).catch(function() {})
+}
 
 function _log(msg: string): void {
-  if (_debugEnabled) console.error(_PREFIX + msg)
+  if (!_debugEnabled) return
+  _writeLog(msg)
 }
 
 function _warn(msg: string): void {
-  console.error(_PREFIX + msg)
+  // Always write to log file (captures errors even when debug=false)
+  _writeLog(msg)
+  // Only console.error in debug mode to avoid polluting TUI
+  if (_debugEnabled) console.error(_PREFIX + msg)
 }
 
 interface TopicRegistry {
@@ -1743,6 +1764,7 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
       const pluginOpts = await pluginOptsPromise
       _debugEnabled = pluginOpts.debug
       const fishTrailDir = join(directory, FISH_TRAIL_DIR)
+      _logDir = fishTrailDir
 
       // #158: Log resolved options on first call for debugging
       if (!_optionsLogged) {
