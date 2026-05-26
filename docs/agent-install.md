@@ -180,6 +180,75 @@ This installs the external trust governance engine for behavioral analysis of sk
 
 ---
 
+## Offline / Network-Restricted Install
+
+If the user's environment cannot access GitHub (firewall, air-gapped, China network issues), use local install instead of remote.
+
+### Option 1: Pre-download and run locally
+
+1. On a machine with network access, download these files to the same directory:
+   - `install.ps1` (or `install.sh`)
+   - `platforms.json`
+   - The target pack directory under `packs/` (e.g. `packs/petfish-style-skill/`)
+
+   The easiest way is to clone the entire repo:
+   ```bash
+   git clone https://github.com/kylecui/petfish.ai.git
+   ```
+
+2. Transfer the files (or the whole repo) to the target machine via USB, internal file share, or SCP.
+
+3. Run the local installer:
+   **PowerShell:**
+   ```powershell
+   .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
+   ```
+
+   **Bash:**
+   ```bash
+   ./install.sh --pack <alias> --platform <PLATFORM> --target .
+   ```
+
+   > The local installer scans the `packs/` directory dynamically — no internet access needed. `platforms.json` provides platform metadata; if missing, the installer falls back to hardcoded defaults.
+
+### Option 2: Mirror-enhanced remote install (China network)
+
+The remote installer (`remote-install.ps1` v0.11.12+) includes automatic mirror fallback for China network environments:
+
+- Tries the original GitHub URL first
+- Falls back to `ghfast.top` mirror
+- Falls back to `ghproxy.com` mirror
+- Retries up to 3 times with exponential backoff
+
+No extra flags needed — mirror fallback is automatic on download failure.
+
+### Option 3: Private repo with GitHub token
+
+If the repo is private or rate-limited:
+
+**Bash:**
+```bash
+curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
+  https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack <alias> --platform <PLATFORM>
+```
+
+**PowerShell:**
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> -Platform <PLATFORM> -GitHubToken $env:GITHUB_TOKEN
+```
+
+### Minimum files for local install
+
+| File | Required | Notes |
+|------|----------|-------|
+| `install.ps1` or `install.sh` | Yes | Main installer script |
+| `platforms.json` | Recommended | Platform metadata; fallback defaults exist if missing |
+| `packs/<pack-dir>/` | Yes | At least the pack you want to install |
+| `packs/<pack-dir>/pack-manifest.json` | Yes | Pack metadata read by installer |
+
+---
+
 ## About PEtFiSh
 
 **GitHub**: https://github.com/kylecui/petfish.ai

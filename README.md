@@ -186,6 +186,24 @@ curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack course -GitHubToken $env:GITHUB_TOKEN
 ```
 
+### Offline / Network-Restricted Install
+
+1. Clone or download the repo: `git clone https://github.com/kylecui/petfish.ai.git`
+2. Transfer to target machine (USB, SCP, internal share)
+3. Run local installer:
+   ```powershell
+   .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
+   ```
+   ```bash
+   ./install.sh --pack <alias> --platform <PLATFORM> --target .
+   ```
+
+The local installer needs no internet — it scans `packs/` locally. `platforms.json` is recommended but optional (hardcoded fallback exists).
+
+For China network: remote installer (v0.11.12+) auto-falls back to `ghfast.top` → `ghproxy.com` mirrors with 3 retries.
+
+See [docs/agent-install.md](docs/agent-install.md) for full offline install instructions.
+
 ---
 
 ## Upgrade
