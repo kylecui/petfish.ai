@@ -391,6 +391,13 @@ class TopicStore:
         registry.setdefault("topics", {})
         registry.setdefault("links", [])
 
+        # v1→v2 migration: topics was array, convert to dict keyed by id (#175)
+        if isinstance(registry["topics"], list):
+            registry["topics"] = {
+                t["id"]: t for t in registry["topics"]
+                if isinstance(t, dict) and "id" in t
+            }
+
         if not isinstance(registry["topics"], dict):
             raise ValueError("invalid registry topics payload")
         if not isinstance(registry["links"], list):
