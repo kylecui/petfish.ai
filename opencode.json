@@ -11,7 +11,8 @@
   "plugin": [
     [".opencode/plugin/system-prompt-rules.ts", {}],
     [".opencode/plugin/fish-trail-compaction.ts", {}],
-    [".opencode/plugin/topic-context-filter.ts", { "enabled": true, "safetyWindow": 3, "minMessages": 10 }]
+    [".opencode/plugin/topic-context-filter.ts", { "enabled": true, "safetyWindow": 3, "minMessages": 10 }],
+    [".opencode/plugin/system-prompt-context-inject.ts", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "disk", "reflectiveBriefEnabled": true }]
   ],
   "mcp": {
     "context-state": {
