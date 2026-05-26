@@ -8,7 +8,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List, Optional
 
 
 class TopicValidator:
@@ -87,8 +87,9 @@ class TopicValidator:
             base_dir: Path to .petfish/fish-trail directory
         """
         self.base_dir = Path(base_dir)
-        self.graph_file = self.base_dir / "topic_graph.json"
+        self.graph_file: Optional[Path] = None  # resolved in _load_graph
         self.topic_cards_dir = self.base_dir / "topic_cards"
+        self.topics_dir = self.base_dir / "topics"
         self.errors: List[Dict[str, str]] = []
         self.warnings: List[Dict[str, str]] = []
         self.graph: Dict[str, Any] = {}
@@ -128,25 +129,43 @@ class TopicValidator:
         status = "fail" if self.errors else "pass"
         return {"status": status, "errors": self.errors, "warnings": self.warnings}
 
+    # ------------------------------------------------------------------
+    # Loading & normalization
+    # ------------------------------------------------------------------
+
     def _load_graph(self) -> bool:
-        """Load and parse topic_graph.json."""
-        if not self.graph_file.exists():
+        """Load and normalize graph/registry data from topic_graph.json or topic-registry.json."""
+        # Try topic_graph.json first, then topic-registry.json
+        candidates = [
+            self.base_dir / "topic_graph.json",
+            self.base_dir / "topic-registry.json",
+        ]
+        self.graph_file = None
+        for candidate in candidates:
+            if candidate.exists():
+                self.graph_file = candidate
+                break
+
+        if self.graph_file is None:
             self.errors.append(
                 {
                     "code": "MISSING_GRAPH_FILE",
-                    "message": f"topic_graph.json not found at {self.graph_file}",
+                    "message": (
+                        "Neither topic_graph.json nor topic-registry.json found in "
+                        f"{self.base_dir}"
+                    ),
                 }
             )
             return False
 
         try:
             with open(self.graph_file, "r", encoding="utf-8") as f:
-                self.graph = json.load(f)
+                raw = json.load(f)
         except json.JSONDecodeError as e:
             self.errors.append(
                 {
                     "code": "INVALID_JSON",
-                    "message": f"Invalid JSON in topic_graph.json: {str(e)}",
+                    "message": f"Invalid JSON in {self.graph_file.name}: {str(e)}",
                 }
             )
             return False
@@ -154,28 +173,173 @@ class TopicValidator:
             self.errors.append(
                 {
                     "code": "INVALID_JSON",
-                    "message": f"Error reading topic_graph.json: {str(e)}",
+                    "message": f"Error reading {self.graph_file.name}: {str(e)}",
                 }
             )
             return False
 
+        if not isinstance(raw, dict):
+            self.errors.append(
+                {"code": "INVALID_JSON", "message": "Data file must be a JSON object."}
+            )
+            return False
+
+        self.graph = self._normalize(raw)
         return True
 
-    def _validate_top_level(self) -> None:
-        """Validate top-level structure."""
-        required_keys = {"version", "nodes", "edges"}
-        missing = required_keys - set(self.graph.keys())
+    def _normalize(self, raw: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize any supported format to {version, nodes: [...], edges: [...]}.
 
-        for key in missing:
-            self.errors.append(
+        Supported formats:
+          1. graph() output:        {"version":N, "nodes":[...],   "edges":[...]}
+          2. v1 registry:           {"version":1, "topics":{...},  "links":[...]}
+          3. v2 registry:           {"version":"2.0","topics":{...}}
+          4. Legacy v1 list:        {"version":1, "topics":[...],  "links":[...]}
+        """
+        version = raw.get("version", 1)
+        edges = raw.get("edges", raw.get("links", []))
+
+        # Format 1: already has nodes/edges arrays
+        if "nodes" in raw and isinstance(raw["nodes"], list):
+            nodes = raw["nodes"]
+            return {"version": str(version), "nodes": nodes, "edges": edges}
+
+        # Format 2 / 3 / 4: registry with topics
+        topics_src = raw.get("topics", {})
+        nodes: List[Dict[str, Any]] = []
+
+        if isinstance(topics_src, dict):
+            self._normalize_dict_topics(topics_src, nodes)
+        elif isinstance(topics_src, list):
+            # Legacy v1 format: topics as a list of dicts (pre-migration)
+            self.warnings.append(
+                {
+                    "code": "LEGACY_TOPICS_FORMAT",
+                    "message": (
+                        "topics is a list (pre-migration v1 format). "
+                        "Consider migrating to dict-keyed topics."
+                    ),
+                }
+            )
+            self._normalize_list_topics(topics_src, nodes)
+
+        return {"version": str(version), "nodes": nodes, "edges": edges}
+
+    def _normalize_dict_topics(
+        self, topics_src: Dict[str, Any], nodes: List[Dict[str, Any]]
+    ) -> None:
+        """Normalize dict-keyed topics (v1 or v2 registry format)."""
+        for topic_id, entry in topics_src.items():
+            if not isinstance(entry, dict):
+                continue
+            # Prefer full topic file for richer data
+            node = self._read_topic_file(topic_id)
+            if node is not None:
+                # Merge: registry entry metadata (status, timestamps) wins
+                node.update(entry)
+            else:
+                node = self._entry_to_node(topic_id, entry)
+            nodes.append(node)
+
+    def _normalize_list_topics(
+        self, topics_src: List[Dict[str, Any]], nodes: List[Dict[str, Any]]
+    ) -> None:
+        """Normalize list-format topics (legacy v1 pre-migration)."""
+        for entry in topics_src:
+            if not isinstance(entry, dict):
+                continue
+            topic_id = entry.get("id")
+            if not topic_id:
+                continue
+            # Prefer full topic file for richer data
+            node = self._read_topic_file(topic_id)
+            if node is not None:
+                # Merge: registry entry metadata wins
+                node.update(entry)
+            else:
+                node = dict(entry)
+                # Ensure canonical fields
+                node.setdefault("id", topic_id)
+                node.setdefault("title", topic_id)
+                node.setdefault("status", "active")
+            nodes.append(node)
+
+    def _entry_to_node(self, topic_id: str, entry: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert a registry entry to the canonical node format ({id, title, status, ...}).
+
+        Handles:
+          - v1 registry entries: {title, status, created_at, updated_at, ...}
+          - v2 TopicEntry dicts:  {topic_id, label, state, description, ...}
+        """
+        node: Dict[str, Any] = {"id": topic_id}
+
+        # Title: v1="title", v2="label" → canonical "title"
+        node["title"] = entry.get("title", entry.get("label", topic_id))
+        # Status: v1="status", v2="state" → canonical "status"
+        node["status"] = entry.get("status", entry.get("state", "active"))
+
+        # Carry through optional fields with canonical names
+        for key in (
+            "created_at",
+            "updated_at",
+            "summary",
+            "tags",
+            "scope",
+            "parent",
+            "confidence",
+            "evidence_level",
+            "keywords",
+            "freshness",
+            "metadata",
+            "type",
+        ):
+            if key in entry:
+                node[key] = entry[key]
+
+        # v2 description → scope
+        if "description" in entry and "scope" not in node:
+            node["scope"] = entry["description"]
+
+        return node
+
+    def _read_topic_file(self, topic_id: str) -> Optional[Dict[str, Any]]:
+        """Read individual topic file from topics/ directory if it exists."""
+        topic_path = self.topics_dir / f"{topic_id}.json"
+        if not topic_path.exists():
+            return None
+        try:
+            with open(topic_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return data
+        except (json.JSONDecodeError, OSError):
+            pass
+        return None
+
+    # ------------------------------------------------------------------
+    # Validation steps
+    # ------------------------------------------------------------------
+
+    def _validate_top_level(self) -> None:
+        """Validate top-level structure (post-normalization)."""
+        # After _normalize(), nodes and edges are always present as lists
+        # Version is optional — if missing, it's just a data quirk, not an error
+        if "version" not in self.graph:
+            self.warnings.append(
                 {
                     "code": "MISSING_TOP_LEVEL_KEY",
-                    "message": f"Missing required top-level key: {key}",
+                    "message": "Missing top-level key 'version' (treated as v1)",
                 }
             )
 
-        # Ensure nodes and edges are lists
-        if "nodes" in self.graph and not isinstance(self.graph["nodes"], list):
+        if "nodes" not in self.graph:
+            self.errors.append(
+                {
+                    "code": "MISSING_TOP_LEVEL_KEY",
+                    "message": "Missing required top-level key: nodes",
+                }
+            )
+        elif not isinstance(self.graph["nodes"], list):
             self.errors.append(
                 {
                     "code": "MISSING_TOP_LEVEL_KEY",
@@ -183,7 +347,14 @@ class TopicValidator:
                 }
             )
 
-        if "edges" in self.graph and not isinstance(self.graph["edges"], list):
+        if "edges" not in self.graph:
+            self.errors.append(
+                {
+                    "code": "MISSING_TOP_LEVEL_KEY",
+                    "message": "Missing required top-level key: edges",
+                }
+            )
+        elif not isinstance(self.graph["edges"], list):
             self.errors.append(
                 {
                     "code": "MISSING_TOP_LEVEL_KEY",
@@ -370,7 +541,7 @@ class TopicValidator:
                 )
 
     def _validate_topic_cards(self) -> None:
-        """Validate topic card cross-references."""
+        """Validate that every node has a corresponding topic file (topics/ or topic_cards/)."""
         nodes = self.graph.get("nodes", [])
 
         for node in nodes:
@@ -387,18 +558,27 @@ class TopicValidator:
                 if node_id.startswith("topic-")
                 else node_id
             )
+
+            # Check topics/ directory (individual topic JSON files — canonical)
+            topic_file = self.topics_dir / f"{node_id}.json"
+            # Check topic_cards/ directory (Markdown cards — legacy)
             card_file = self.topic_cards_dir / f"{slug}.md"
 
-            # Check if card exists
-            if not card_file.exists():
+            has_topic_file = topic_file.exists()
+            has_card_file = card_file.exists()
+
+            if not has_topic_file and not has_card_file:
                 self.warnings.append(
                     {
                         "code": "MISSING_TOPIC_CARD",
-                        "message": f"Topic card missing for node '{node_id}' at {card_file}",
+                        "message": (
+                            f"No topic file for node '{node_id}'. "
+                            f"Checked: {topic_file} and {card_file}"
+                        ),
                     }
                 )
-            else:
-                # Validate card frontmatter topic_id
+            elif has_card_file:
+                # Validate card frontmatter topic_id for Markdown cards
                 self._validate_card_frontmatter(card_file, node_id)
 
     def _validate_card_frontmatter(
