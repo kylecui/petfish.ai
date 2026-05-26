@@ -19,6 +19,7 @@ from pathlib import Path
 
 CJK = r"\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff"
 EN_TOKEN = r"[A-Za-z][A-Za-z0-9_.*+-]*"
+BT_TOKEN = r"`[^`]+`"
 
 AI_FLAVOR_PATTERNS = [
     # From V3
@@ -191,6 +192,10 @@ def find_zh_en_spacing_issues(text: str) -> list[str]:
         issues.extend(re.findall(rf"[{CJK}]\s+{EN_TOKEN}", line))
         # Pattern 2: English token + space(s) + CJK
         issues.extend(re.findall(rf"{EN_TOKEN}\s+[{CJK}]", line))
+        # Pattern 3: CJK + space(s) + backtick token
+        issues.extend(re.findall(rf"[{CJK}]\s+{BT_TOKEN}", line))
+        # Pattern 4: backtick token + space(s) + CJK
+        issues.extend(re.findall(rf"{BT_TOKEN}\s+[{CJK}]", line))
 
     return sorted(set(issues))[:30]
 

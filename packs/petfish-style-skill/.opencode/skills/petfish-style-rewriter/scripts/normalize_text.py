@@ -20,6 +20,8 @@ CJK = r"\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff"
 
 # English token: letters/digits/underscore/hyphen/dot but NOT slash (slash handled separately)
 EN_TOKEN = r"[A-Za-z][A-Za-z0-9_.*+-]*"
+# Backtick-wrapped code identifiers: `execute_change`, `action`, `api_key`, etc.
+BT_TOKEN = r"`[^`]+`"
 
 
 def normalize_slash_groups(text: str) -> str:
@@ -96,6 +98,10 @@ def normalize_zh_en_spacing(text: str) -> str:
         line = re.sub(rf"([{CJK}])\s+({EN_TOKEN})", r"\1\2", line)
         # General: English token + spaces + Chinese → compact
         line = re.sub(rf"({EN_TOKEN})\s+([{CJK}])", r"\1\2", line)
+        # Backtick: Chinese + spaces + backtick token → compact
+        line = re.sub(rf"([{CJK}])\s+({BT_TOKEN})", r"\1\2", line)
+        # Backtick: backtick token + spaces + Chinese → compact
+        line = re.sub(rf"({BT_TOKEN})\s+([{CJK}])", r"\1\2", line)
         # Chinese + spaces + number + common unit/percent → compact
         line = re.sub(rf"([{CJK}])\s+(\d+(?:\.\d+)?%?)", r"\1\2", line)
         line = re.sub(rf"(\d+(?:\.\d+)?)\s+([{CJK}])", r"\1\2", line)
