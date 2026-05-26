@@ -1,5 +1,5 @@
 ---
-name: petfish-companion
+name: fish-brain
 description: >
   胖鱼PEtFiSh常驻伙伴：感知需求与能力缺口（Tier1领域映射+Tier2意图检测）、
   查询已装pack状态、自动检查更新、推荐安装/升级并提供/petfish命令入口。Use when

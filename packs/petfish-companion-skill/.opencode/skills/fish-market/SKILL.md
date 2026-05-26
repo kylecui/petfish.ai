@@ -1,5 +1,5 @@
 ---
-name: marketplace-connector
+name: fish-market
 description: >
   Search/discover skills and MCP servers across PEtFiSh, PEtFiSh Market (community),
   Glama, Smithery, SkillKit, anthropics/skills, and GitHub. Use for /petfish search, “find a
