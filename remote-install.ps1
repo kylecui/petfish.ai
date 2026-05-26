@@ -1633,8 +1633,54 @@ try {
         $zipRequest.Headers = $headers
     }
 
-    Invoke-WebRequest @platformsRequest -UseBasicParsing
-    Invoke-WebRequest @zipRequest -UseBasicParsing
+    # Download with retry + mirror fallback for network-restricted environments (#173)
+    $mirrorPrefixes = @(
+        "",  # Original: raw.githubusercontent.com / github.com
+        "https://ghfast.top/https://",    # ghfast mirror (China-friendly)
+        "https://mirror.ghproxy.com/https://"  # ghproxy mirror (China-friendly)
+    )
+
+    function Invoke-WebRequestWithRetry {
+        param([hashtable]$Params, [int]$MaxAttempts = 3, [string]$Description = "file")
+        for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+            try {
+                Invoke-WebRequest @Params -UseBasicParsing -ErrorAction Stop
+                return $true
+            } catch {
+                if ($attempt -lt $MaxAttempts) {
+                    $wait = [math]::Pow(2, $attempt)
+                    Write-Host "  [download] Failed to download ${Description} (attempt $attempt/$MaxAttempts), retrying in ${wait}s..." -ForegroundColor Yellow
+                    Start-Sleep -Seconds $wait
+                } else {
+                    Write-Host "  [download] Failed to download ${Description} after $MaxAttempts attempts: $($_.Exception.Message)" -ForegroundColor Red
+                    return $false
+                }
+            }
+        }
+    }
+
+    # Try mirrors for platforms.json
+    $platformsOk = $false
+    foreach ($prefix in $mirrorPrefixes) {
+        $mirroredUri = "${prefix}$($platformsRequest.Uri)"
+        $platformsRequest.Uri = $mirroredUri
+        if ((Invoke-WebRequestWithRetry -Params $platformsRequest -Description "platforms.json")) {
+            $platformsOk = $true
+            $workingPrefix = $prefix
+            break
+        }
+    }
+    if (-not $platformsOk) {
+        Write-Error "Failed to download platforms.json from all mirrors. Set -GitHubToken or try again later."
+        exit 1
+    }
+
+    # Use working mirror for zip download too
+    $zipRequest.Uri = "${workingPrefix}$($zipRequest.Uri)"
+    if (-not (Invoke-WebRequestWithRetry -Params $zipRequest -MaxAttempts 3 -Description "repository archive")) {
+        Write-Error "Failed to download repository archive. Check network connectivity."
+        exit 1
+    }
 
     $PlatformRegistry = Get-Content $platformsPath -Raw -Encoding UTF8 | ConvertFrom-Json
 
