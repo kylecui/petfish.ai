@@ -10,7 +10,7 @@
 
 .PARAMETER Pack
     Pack name or alias. Use 'all' to install every pack.
-    Aliases: course, testdocs, deploy, init, petfish, companion, ppt, trust, research
+    Aliases: course, testdocs, deploy, init, petfish, companion, ppt, trust, research, toolchain
     Full names also accepted.
 
 .PARAMETER Target
@@ -349,6 +349,8 @@ $Aliases = @{
     "fish-trail"     = "fish-trail"
     "fish-research"  = "research-skill-pack"
     "fish-reflect"   = "fish-reflection-pack"
+    "fish-brain"     = "petfish-companion-skill"
+    "toolchain"      = "petfish-toolchain-skill"
 }
 
 # --- Platform path configuration ---
@@ -1747,7 +1749,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
             $hasL1 = $false
             if ($platformName -eq "opencode") {
-                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
+                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","petfish-toolchain-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
                 $hasL1 = $L1Packs -contains $packName
             }
 

@@ -105,6 +105,8 @@ $Aliases = @{
     "fish-trail"     = "fish-trail"
     "fish-research"  = "research-skill-pack"
     "fish-reflect"   = "fish-reflection-pack"
+    "fish-brain"     = "petfish-companion-skill"
+    "toolchain"      = "petfish-toolchain-skill"
 }
 
 $AllPacks = @(
@@ -114,6 +116,7 @@ $AllPacks = @(
     "project-initializer-skill",
     "petfish-style-skill",
     "petfish-companion-skill",
+    "petfish-toolchain-skill",
     "opencode-ppt-skills",
     "trustskills-governance-pack",
     "anti-sycophancy-calibration-pack",
@@ -128,7 +131,8 @@ $PackDisplayOrder = @(
     @{ Name = "repo-deploy-ops-skill-pack"; Alias = "deploy, fish-deploy" },
     @{ Name = "project-initializer-skill"; Alias = "init, fish-init" },
     @{ Name = "petfish-style-skill"; Alias = "petfish, fish-style" },
-    @{ Name = "petfish-companion-skill"; Alias = "companion, fish-core" },
+    @{ Name = "petfish-companion-skill"; Alias = "companion, fish-core, fish-brain" },
+    @{ Name = "petfish-toolchain-skill"; Alias = "toolchain" },
     @{ Name = "opencode-ppt-skills"; Alias = "ppt, fish-slides" },
     @{ Name = "trustskills-governance-pack"; Alias = "trust" },
     @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate, fish-calibrate" },
@@ -1248,7 +1252,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
             $hasL1 = $false
             if ($platformName -eq "opencode") {
-                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
+                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","petfish-toolchain-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
                 $hasL1 = $L1Packs -contains $packName
             }
 

@@ -33,6 +33,9 @@ from pathlib import Path
 ALIAS_MAP = {
     "init": "project-initializer-skill",
     "companion": "petfish-companion-skill",
+    "fish-brain": "petfish-companion-skill",
+    "fish-core": "petfish-companion-skill",
+    "toolchain": "petfish-toolchain-skill",
     "course": "opencode-course-skills-pack",
     "deploy": "repo-deploy-ops-skill-pack",
     "petfish": "petfish-style-skill",

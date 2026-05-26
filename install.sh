@@ -376,6 +376,7 @@ write_pack_rules_file() {
         repo-deploy-ops-skill-pack)        l1_name="deploy-ops.md" ;;
         petfish-style-skill)               l1_name="petfish-style.md" ;;
         petfish-companion-skill)           l1_name="petfish-companion.md" ;;
+        petfish-toolchain-skill)           l1_name="petfish-companion.md" ;;
         anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;
@@ -775,6 +776,8 @@ declare -A ALIASES=(
     [fish-trail]="fish-trail"
     [fish-research]="research-skill-pack"
     [fish-reflect]="fish-reflection-pack"
+    [fish-brain]="petfish-companion-skill"
+    [toolchain]="petfish-toolchain-skill"
 )
 
 # --- Defaults ---
@@ -1686,7 +1689,7 @@ install_for_platform() {
             local has_l1=false
             if [[ "$platform_name" == "opencode" ]]; then
                 case "$pack_name" in
-                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack)
+                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|petfish-toolchain-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack)
                         has_l1=true ;;
                 esac
             fi
@@ -2280,6 +2283,7 @@ for a in m.get('agents', []):
         repo-deploy-ops-skill-pack)        l1_name="deploy-ops.md" ;;
         petfish-style-skill)               l1_name="petfish-style.md" ;;
         petfish-companion-skill)           l1_name="petfish-companion.md" ;;
+        petfish-toolchain-skill)           l1_name="petfish-companion.md" ;;
         anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;

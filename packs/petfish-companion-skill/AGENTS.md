@@ -6,9 +6,9 @@
 
 ### 必须遵守的路由规则
 
-1. 用户说"/petfish"或任何petfish子命令时，**必须**路由到 `petfish-companion` skill处理
+1. 用户说"/petfish"或任何petfish子命令时，**必须**路由到 `fish-brain` skill处理
 2. 用户需要创建新skill时，**必须**使用 `skill-author`；需要验证skill质量时，**必须**使用 `skill-lint`
-3. 用户需要搜索外部skill或MCP server时，**必须**使用 `marketplace-connector`
+3. 用户需要搜索外部skill或MCP server时，**必须**使用 `fish-market`
 4. 用户需要发布skill时，**必须**使用 `quality-gate` 运行完整发布门禁（lint+security→决策）
 5. 用户需要从仓库挖掘skill候选时，**必须**使用 `repo-skill-miner`
 6. 用户需要安全审计skill时，**必须**使用 `skill-security-auditor`
@@ -16,7 +16,7 @@
 ### 冲突解决
 
 - 当用户同时涉及skill创建和质量检查时，先创建（`skill-author`），后检查（`skill-lint` → `quality-gate`）
-- 当用户请求"搜索skill"时，区分：搜索外部市场用 `marketplace-connector`，搜索已安装skill用 `petfish-companion`
+- 当用户请求"搜索skill"时，区分：搜索外部市场用 `fish-market`，搜索已安装skill用 `fish-brain`
 
 ## 感知规则
 
@@ -33,7 +33,7 @@
 | 话题治理/上下文污染/topic管理 | context | `/petfish install context` |
 | 研究/调研/文献/证据/综述 | research | `/petfish install research` |
 
-当用户需要创建新skill、搜索外部skill、或验证skill质量时，使用companion内置的skill-author、marketplace-connector、skill-lint。
+当用户需要创建新skill、搜索外部skill、或验证skill质量时，使用companion内置的skill-author、fish-market、skill-lint。
 
 每次会话对同一pack最多主动推荐1次。
 
@@ -55,7 +55,7 @@
 
 **触发时行为：**
 1. 推断用户需求最相关的英文关键词
-2. 主动运行 marketplace-connector（即 /petfish search <关键词>）搜索跨市场skill和MCP server
+2. 主动运行 fish-market（即 /petfish search <关键词>）搜索跨市场skill和MCP server
 3. 根据搜索结果：
    - **找到匹配skill** → 推荐安装并提供命令
    - **找到相似但不完全匹配** → 展示结果，建议参考这些skill用 skill-author 手动创建
