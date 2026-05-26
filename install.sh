@@ -35,6 +35,226 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PACKS_DIR="$SCRIPT_DIR/packs"
 PLATFORMS_JSON="$SCRIPT_DIR/platforms.json"
 
+# Fallback: if platforms.json is missing (e.g. standalone download), use hardcoded defaults
+if [[ ! -f "$PLATFORMS_JSON" ]]; then
+    PLATFORMS_TEMP="$(mktemp)"
+    PLATFORMS_JSON="$PLATFORMS_TEMP"
+    cat > "$PLATFORMS_JSON" <<'PLATFORMSEOF'
+{
+  "platforms": {
+    "opencode": {
+      "display_name": "OpenCode",
+      "project": {
+        "skills_dir": ".opencode/skills",
+        "commands_dir": ".opencode/commands",
+        "agents_dir": ".opencode/agents",
+        "config_file": "opencode.json",
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.config/opencode/skills",
+        "commands_dir": "~/.config/opencode/commands",
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".opencode", "opencode.json"],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Primary development platform for PEtFiSh."
+    },
+    "claude": {
+      "display_name": "Claude Code",
+      "project": {
+        "skills_dir": ".claude/skills",
+        "commands_dir": ".claude/commands",
+        "agents_dir": ".claude/agents",
+        "config_file": ".claude/settings.json",
+        "instructions_file": "CLAUDE.md",
+        "rules_dir": ".claude/rules"
+      },
+      "global": {
+        "skills_dir": "~/.claude/skills",
+        "commands_dir": "~/.claude/commands",
+        "agents_dir": "~/.claude/agents",
+        "config_file": "~/.claude/settings.json",
+        "instructions_file": "~/.claude/CLAUDE.md"
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".claude", "CLAUDE.md"],
+      "instructions_merge_strategy": "marker_based",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": "CLAUDE.md",
+        "method": "rename_with_header"
+      },
+      "notes": "SKILL.md format is fully compatible with OpenCode."
+    },
+    "codex": {
+      "display_name": "Codex",
+      "project": {
+        "skills_dir": ".agents/skills",
+        "commands_dir": null,
+        "agents_dir": ".codex/agents",
+        "config_file": ".codex/config.toml",
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.agents/skills",
+        "commands_dir": null,
+        "agents_dir": "~/.codex/agents",
+        "config_file": "~/.codex/config.toml",
+        "instructions_file": "~/.codex/AGENTS.md"
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".codex"],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Uses AGENTS.md natively."
+    },
+    "cursor": {
+      "display_name": "Cursor",
+      "project": {
+        "skills_dir": ".cursor/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null,
+        "rules_dir": ".cursor/rules"
+      },
+      "global": {
+        "skills_dir": null,
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".cursor", ".cursorrules"],
+      "instructions_merge_strategy": "mdc_rules",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": ".cursor/rules/petfish-agents.mdc",
+        "method": "wrap_as_mdc"
+      },
+      "condense": {
+        "max_tokens": 8000
+      },
+      "notes": "Supports SKILL.md natively."
+    },
+    "copilot": {
+      "display_name": "GitHub Copilot",
+      "project": {
+        "skills_dir": ".github/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": ".github/copilot-instructions.md",
+        "rules_dir": ".github/instructions"
+      },
+      "global": {
+        "skills_dir": null,
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".github/copilot-instructions.md", ".github/skills"],
+      "instructions_merge_strategy": "marker_based",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": ".github/copilot-instructions.md",
+        "method": "rename_with_header"
+      },
+      "notes": "Supports SKILL.md under .github/skills/."
+    },
+    "windsurf": {
+      "display_name": "Windsurf",
+      "project": {
+        "skills_dir": ".windsurf/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": ".windsurfrules",
+        "rules_dir": ".windsurf/rules"
+      },
+      "global": {
+        "skills_dir": null,
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": "~/.codeium/windsurf/config.json",
+        "instructions_file": "~/.codeium/windsurf/memories/global_rules.md"
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".windsurf", ".windsurfrules"],
+      "instructions_merge_strategy": "marker_based",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": ".windsurfrules",
+        "method": "rename_with_header"
+      },
+      "condense": {
+        "max_tokens": 6000
+      },
+      "notes": "Supports SKILL.md under .windsurf/skills/."
+    },
+    "antigravity": {
+      "display_name": "Antigravity",
+      "project": {
+        "skills_dir": ".agents/skills",
+        "commands_dir": ".agents/workflows",
+        "agents_dir": ".agents/rules",
+        "config_file": null,
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.gemini/antigravity/skills",
+        "commands_dir": "~/.gemini/antigravity/workflows",
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".agents", "GEMINI.md"],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Google Gemini-based platform."
+    },
+    "universal": {
+      "display_name": "Universal (cross-platform)",
+      "project": {
+        "skills_dir": ".agents/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.agents/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Fallback cross-platform path."
+    }
+  },
+  "platform_groups": {
+    "all": ["opencode", "claude", "codex", "cursor", "copilot", "windsurf", "antigravity"],
+    "primary": ["opencode", "claude", "codex"],
+    "ide": ["cursor", "copilot", "windsurf"],
+    "cli": ["opencode", "claude", "codex", "antigravity"]
+  }
+}
+PLATFORMSEOF
+fi
+
 # --- Merge helpers ---
 
 merge_agents_md() {
@@ -569,10 +789,14 @@ LIST=false
 GLOBAL=false
 UNINSTALL=false
 COMMUNITY_STAGING_DIR=""
+PLATFORMS_TEMP=""
 
 cleanup_community_staging() {
     if [[ -n "$COMMUNITY_STAGING_DIR" && -d "$COMMUNITY_STAGING_DIR" ]]; then
         rm -rf "$COMMUNITY_STAGING_DIR"
+    fi
+    if [[ -n "$PLATFORMS_TEMP" && -f "$PLATFORMS_TEMP" ]]; then
+        rm -f "$PLATFORMS_TEMP"
     fi
 }
 trap cleanup_community_staging EXIT
