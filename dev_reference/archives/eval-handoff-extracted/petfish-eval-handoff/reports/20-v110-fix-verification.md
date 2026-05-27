@@ -34,7 +34,7 @@ The MCP audit logging work passes direct functional testing. After branch update
 
 | Issue | Severity | Summary |
 |---|---|---|
-| #155 | Blocker | `packs/fish-trail/opencode.example.json` invalid JSON; fresh install fails |
+| #155 | Blocker | `packs/core/fish-trail/opencode.example.json` invalid JSON; fresh install fails |
 | #156 | High | Plugin topic detail lookup uses 8-char prefix, causing wrong topic title/scope injection |
 | #157 | High | `realtime` mode does not receive user text via `input.content`; no detection metadata injected |
 | #158 | Blocker | Runtime plugin option remains `disk mode` despite `opencode.json` setting `detectionMode: "realtime"` |
@@ -323,7 +323,7 @@ Error:
 json.decoder.JSONDecodeError: Extra data: line 18 column 3 (char 456)
 ```
 
-Original root cause: `packs/fish-trail/opencode.example.json` contained a duplicated trailing JSON fragment. Fixed in `20a0b29`.
+Original root cause: `packs/core/fish-trail/opencode.example.json` contained a duplicated trailing JSON fragment. Fixed in `20a0b29`.
 
 ### MCP Mutation Audit
 

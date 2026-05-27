@@ -8,8 +8,8 @@ Loads trigger-evals.json files from:
 Reports which prompts matched/mismatched for deterministic CI execution.
 
 Usage:
-    uv run packs/research-skill-pack/scripts/run_trigger_evals.py
-    uv run packs/research-skill-pack/scripts/run_trigger_evals.py --verbose
+uv run packs/optional/research-skill-pack/scripts/run_trigger_evals.py
+uv run packs/optional/research-skill-pack/scripts/run_trigger_evals.py --verbose
 """
 
 from __future__ import annotations

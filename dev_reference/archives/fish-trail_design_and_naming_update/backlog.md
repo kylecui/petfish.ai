@@ -98,7 +98,7 @@
 
 ### E3-3: rename context-router → fish-trail (pack 目录)
 - **类型**: 重构
-- **描述**: `packs/context-router-skill/` → `packs/fish-trail/`，pack-manifest.json 添加 legacy_names，安装脚本 alias 指向新目录
+- **描述**: `packs/context-router-skill/` → `packs/core/fish-trail/`，pack-manifest.json 添加 legacy_names，安装脚本 alias 指向新目录
 - **验收**: `--pack fish-trail` 和 `--pack context` 都正常安装
 
 ### E3-4: 实现 topic_route.py

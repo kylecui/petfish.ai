@@ -11,7 +11,7 @@ import pytest
 
 # Load catalog_query.py as a module
 _SCRIPT = Path(__file__).resolve().parents[1] / (
-    "packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py"
+    "packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py"
 )
 _spec = importlib.util.spec_from_file_location("catalog_query", _SCRIPT)
 cq = importlib.util.module_from_spec(_spec)

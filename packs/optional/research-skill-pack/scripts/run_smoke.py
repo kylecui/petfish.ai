@@ -5,8 +5,8 @@ Exercises the full research pipeline on seeded fixture data:
   init workspace → validate workspace → lint evidence → quality-gate report
 
 Usage:
-    uv run packs/research-skill-pack/scripts/run_smoke.py
-    uv run packs/research-skill-pack/scripts/run_smoke.py --fixtures path/to/fixtures
+uv run packs/optional/research-skill-pack/scripts/run_smoke.py
+uv run packs/optional/research-skill-pack/scripts/run_smoke.py --fixtures path/to/fixtures
 """
 
 from __future__ import annotations

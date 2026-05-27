@@ -43,4 +43,4 @@ jobs:
         run: pytest tests/test_smoke_research_pack.py -v --tb=short
 
       - name: Research pack trigger evals
-        run: uv run python packs/research-skill-pack/scripts/run_trigger_evals.py --verbose
+        run: uv run python packs/optional/research-skill-pack/scripts/run_trigger_evals.py --verbose

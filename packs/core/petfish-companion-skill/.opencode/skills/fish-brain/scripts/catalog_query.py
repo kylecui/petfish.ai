@@ -262,8 +262,8 @@ PROFILES = {
 
 def _find_packs_root() -> Path | None:
     """Walk up from this script to find the packs/ directory."""
-    # Script lives in: packs/<pack>/.opencode/skills/<skill>/scripts/
-    # So packs/ is 6 levels up
+    # Script lives in: packs/{core,optional}/<pack>/.opencode/skills/<skill>/scripts/
+    # So packs/ is 7 levels up
     current = Path(__file__).resolve()
     for _ in range(8):
         current = current.parent
@@ -352,7 +352,10 @@ def build_catalog(target: Path | None = None) -> list[dict]:
 
         manifest = None
         if packs_root:
-            pack_dir = packs_root / pack_name
+            # v1.4: packs restructured into core/ + optional/
+            pack_dir = packs_root / "core" / pack_name
+            if not pack_dir.is_dir():
+                pack_dir = packs_root / "optional" / pack_name
             if pack_dir.is_dir():
                 manifest = _load_manifest(pack_dir)
 

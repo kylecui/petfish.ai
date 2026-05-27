@@ -71,7 +71,7 @@ Design says outputs are "project knowledge assets" but has no spec for how futur
 ## Pack Structure
 
 ```
-packs/fish-reflection-pack/
+packs/optional/fish-reflection-pack/
 ├── .opencode/
 │   └── skills/
 │       └── fish-reflection/
@@ -96,7 +96,7 @@ packs/fish-reflection-pack/
 | 3 | Remote installer ALL_PACKS (PS1) | `remote-install.ps1` | Add to `$AllPacks` array + alias registry |
 | 4 | Remote installer ALL_PACKS (sh) | `remote-install.sh` | Add to `ALL_PACKS` array + alias registry |
 | 5 | Companion catalog | `catalog_query.py` | Add ALIAS_MAP, TRIGGERS, PROFILES (at least `comprehensive`), FAILURE_SIGNALS |
-| 6 | project-initializer | `packs/project-initializer-skill/.opencode/skills/project-initializer/SKILL.md` + `tools/init_project.py` | Add `reflect` to relevant profiles and pack references |
+| 6 | project-initializer | `packs/core/project-initializer-skill/.opencode/skills/project-initializer/SKILL.md` + `tools/init_project.py` | Add `reflect` to relevant profiles and pack references |
 | 7 | README | `README.md` | Update pack table to 12 packs, update profile mapping |
 | 8 | Website | `website/index.html`, `website/pitch.html`, `website/blog.html` | Update pack count, add pack card/row |
 | 9 | Install/upgrade docs | `docs/agent-install.md`, `docs/agent-upgrade.md` | Update pack list |
@@ -118,10 +118,10 @@ packs/fish-reflection-pack/
 8. Write `CHANGELOG.md`
 
 **QA:**
-- Run `uv run packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path packs/fish-reflection-pack/.opencode/skills/fish-reflection/`
+- Run `uv run packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path packs/optional/fish-reflection-pack/.opencode/skills/fish-reflection/`
 - Expected: score ≥ 80/100, no ERROR-level findings
 - Verify SKILL.md frontmatter has: name, description, version fields
-- Verify `pack-manifest.json` lists all skills and has valid JSON structure (`python -c "import json; json.load(open('packs/fish-reflection-pack/pack-manifest.json'))"`)
+- Verify `pack-manifest.json` lists all skills and has valid JSON structure (`python -c "import json; json.load(open('packs/optional/fish-reflection-pack/pack-manifest.json'))"`)
 
 ### Phase 2: 11-touchpoint integration
 
@@ -140,19 +140,19 @@ packs/fish-reflection-pack/
 
 **QA per sub-task:**
 - Installers: search each of `install.ps1`, `install.sh`, `remote-install.ps1`, `remote-install.sh` for string "reflect" → each file should have ≥2 matches (alias + fish-alias)
-- Catalog: `uv run packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --search reflect` → should return pack info with alias and description
-- Catalog: `uv run packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --profile comprehensive` → output includes `reflect`
+- Catalog: `uv run packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --search reflect` → should return pack info with alias and description
+- Catalog: `uv run packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --profile comprehensive` → output includes `reflect`
 - README: search for "12" in pack table header, verify `reflect` appears in pack list and profile table
 - project-initializer: search for `reflect` in SKILL.md and `init_project.py` → at least 1 match each
 
 ### Phase 3: End-to-end verification
 
 **Tasks & QA:**
-1. Run skill-lint on final skill: `uv run packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path packs/fish-reflection-pack/.opencode/skills/fish-reflection/` → score ≥ 80, 0 ERRORs
-2. Run quality-gate: `uv run packs/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path packs/fish-reflection-pack/.opencode/skills/fish-reflection/` → PASS or CONDITIONAL
+1. Run skill-lint on final skill: `uv run packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path packs/optional/fish-reflection-pack/.opencode/skills/fish-reflection/` → score ≥ 80, 0 ERRORs
+2. Run quality-gate: `uv run packs/core/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path packs/optional/fish-reflection-pack/.opencode/skills/fish-reflection/` → PASS or CONDITIONAL
 3. Dry-run local installer: `.\install.ps1 -List` → `reflect` appears in available packs list
-4. Verify catalog search: `uv run packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --search reflect` → returns pack info with alias, description, and triggers
-5. Verify profile inclusion: `uv run packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --profile comprehensive` → `reflect` appears in output
+4. Verify catalog search: `uv run packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --search reflect` → returns pack info with alias, description, and triggers
+5. Verify profile inclusion: `uv run packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --profile comprehensive` → `reflect` appears in output
 6. Cross-check: search all 11 touchpoint files for string "reflect" → each has ≥1 match
 
 ## Files Changed

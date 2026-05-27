@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-cd packs/project-initializer-skill
+cd packs/core/project-initializer-skill
 uv sync
 ```
 

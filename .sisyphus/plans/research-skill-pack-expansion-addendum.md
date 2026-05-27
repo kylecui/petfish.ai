@@ -1624,15 +1624,15 @@ decision-recommendation
 交付物路径：
 
 ```text
-packs/research-skill-pack/.opencode/skills/learning-goal-framer/SKILL.md
-packs/research-skill-pack/.opencode/skills/learning-resource-discovery/SKILL.md
-packs/research-skill-pack/.opencode/skills/learning-path-designer/SKILL.md
-packs/research-skill-pack/.opencode/skills/decision-brief-framer/SKILL.md
-packs/research-skill-pack/.opencode/skills/decision-criteria-builder/SKILL.md
-packs/research-skill-pack/.opencode/skills/option-comparison-matrix/SKILL.md
-packs/research-skill-pack/.opencode/skills/decision-recommendation/SKILL.md
-packs/research-skill-pack/evals/trigger/learning-trigger-evals.json
-packs/research-skill-pack/evals/trigger/decision-trigger-evals.json
+packs/optional/research-skill-pack/.opencode/skills/learning-goal-framer/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/learning-resource-discovery/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/learning-path-designer/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/decision-brief-framer/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/decision-criteria-builder/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/option-comparison-matrix/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/decision-recommendation/SKILL.md
+packs/optional/research-skill-pack/evals/trigger/learning-trigger-evals.json
+packs/optional/research-skill-pack/evals/trigger/decision-trigger-evals.json
 ```
 
 退出标准：
@@ -1646,12 +1646,12 @@ QA验证场景：
 ```text
 工具：pytest, uv run
 步骤：
-  1. 确认7个SKILL.md已创建：glob packs/research-skill-pack/.opencode/skills/{learning-*,decision-*,option-*}/SKILL.md
+  1. 确认7个SKILL.md已创建：glob packs/optional/research-skill-pack/.opencode/skills/{learning-*,decision-*,option-*}/SKILL.md
   2. 确认pack-manifest.json skills数组包含7个新条目，skill_count已更新
   3. 确认test_smoke_research_pack.py::TestFixtureIntegrity::test_all_skills_have_skill_md通过
   4. 确认evals/trigger/learning-trigger-evals.json和decision-trigger-evals.json存在
   5. 运行：uv run pytest tests/test_smoke_research_pack.py -v
-  6. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+  6. 运行：uv run packs/optional/research-skill-pack/scripts/run_trigger_evals.py
 预期结果：
   - pytest全部通过
   - trigger eval harness输出total_checks > 0，包含learning和decision相关检查
@@ -1675,13 +1675,13 @@ adoption-recommendation
 交付物路径：
 
 ```text
-packs/research-skill-pack/.opencode/skills/risk-research-brief/SKILL.md
-packs/research-skill-pack/.opencode/skills/vendor-source-diligence/SKILL.md
-packs/research-skill-pack/.opencode/skills/security-risk-review/SKILL.md
-packs/research-skill-pack/.opencode/skills/compliance-check/SKILL.md
-packs/research-skill-pack/.opencode/skills/tco-operational-risk/SKILL.md
-packs/research-skill-pack/.opencode/skills/adoption-recommendation/SKILL.md
-packs/research-skill-pack/evals/trigger/risk-procurement-trigger-evals.json
+packs/optional/research-skill-pack/.opencode/skills/risk-research-brief/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/vendor-source-diligence/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/security-risk-review/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/compliance-check/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/tco-operational-risk/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/adoption-recommendation/SKILL.md
+packs/optional/research-skill-pack/evals/trigger/risk-procurement-trigger-evals.json
 ```
 
 退出标准：
@@ -1695,11 +1695,11 @@ QA验证场景：
 ```text
 工具：pytest, uv run
 步骤：
-  1. 确认6个SKILL.md已创建：glob packs/research-skill-pack/.opencode/skills/{risk-*,vendor-*,security-risk-*,compliance-*,tco-*,adoption-*}/SKILL.md
+  1. 确认6个SKILL.md已创建：glob packs/optional/research-skill-pack/.opencode/skills/{risk-*,vendor-*,security-risk-*,compliance-*,tco-*,adoption-*}/SKILL.md
   2. 确认pack-manifest.json skills数组包含6个新条目，skill_count已更新
   3. 确认evals/trigger/risk-procurement-trigger-evals.json存在
   4. 运行：uv run pytest tests/test_smoke_research_pack.py -v
-  5. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+  5. 运行：uv run packs/optional/research-skill-pack/scripts/run_trigger_evals.py
 预期结果：
   - pytest全部通过
   - trigger eval harness包含risk/procurement相关检查
@@ -1722,12 +1722,12 @@ event-runbook-writer
 交付物路径：
 
 ```text
-packs/research-skill-pack/.opencode/skills/experience-brief-framer/SKILL.md
-packs/research-skill-pack/.opencode/skills/venue-destination-research/SKILL.md
-packs/research-skill-pack/.opencode/skills/schedule-itinerary-planner/SKILL.md
-packs/research-skill-pack/.opencode/skills/logistics-risk-planner/SKILL.md
-packs/research-skill-pack/.opencode/skills/event-runbook-writer/SKILL.md
-packs/research-skill-pack/evals/trigger/experience-event-trigger-evals.json
+packs/optional/research-skill-pack/.opencode/skills/experience-brief-framer/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/venue-destination-research/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/schedule-itinerary-planner/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/logistics-risk-planner/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/event-runbook-writer/SKILL.md
+packs/optional/research-skill-pack/evals/trigger/experience-event-trigger-evals.json
 ```
 
 退出标准：
@@ -1745,7 +1745,7 @@ QA验证场景：
   2. 确认pack-manifest.json已更新
   3. 确认evals/trigger/experience-event-trigger-evals.json存在
   4. 运行：uv run pytest tests/test_smoke_research_pack.py -v
-  5. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+  5. 运行：uv run packs/optional/research-skill-pack/scripts/run_trigger_evals.py
 预期结果：
   - pytest全部通过
   - trigger eval harness包含experience/event相关检查
@@ -1767,11 +1767,11 @@ content-selection-adapter
 交付物路径：
 
 ```text
-packs/research-skill-pack/.opencode/skills/travel-adapter/SKILL.md
-packs/research-skill-pack/.opencode/skills/conference-adapter/SKILL.md
-packs/research-skill-pack/.opencode/skills/training-event-adapter/SKILL.md
-packs/research-skill-pack/.opencode/skills/content-selection-adapter/SKILL.md
-packs/research-skill-pack/evals/trigger/adapter-trigger-evals.json
+packs/optional/research-skill-pack/.opencode/skills/travel-adapter/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/conference-adapter/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/training-event-adapter/SKILL.md
+packs/optional/research-skill-pack/.opencode/skills/content-selection-adapter/SKILL.md
+packs/optional/research-skill-pack/evals/trigger/adapter-trigger-evals.json
 ```
 
 退出标准：
@@ -1790,7 +1790,7 @@ QA验证场景：
   2. 确认pack-manifest.json已更新，skill_count反映全部新增
   3. 确认evals/trigger/adapter-trigger-evals.json存在
   4. 运行：uv run pytest tests/test_smoke_research_pack.py -v
-  5. 运行：uv run packs/research-skill-pack/scripts/run_trigger_evals.py
+  5. 运行：uv run packs/optional/research-skill-pack/scripts/run_trigger_evals.py
   6. 验证每个新增范式（learning/decision/risk/experience）的trigger eval至少有3个正例和2个反例
   7. 验证trigger eval harness total_checks覆盖所有新增范式
 预期结果：

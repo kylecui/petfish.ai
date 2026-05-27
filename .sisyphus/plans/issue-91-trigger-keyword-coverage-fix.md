@@ -24,7 +24,7 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 
 ### 1.1 修复 research-router description
 
-**文件**: `packs/research-skill-pack/.opencode/skills/research-router/SKILL.md`
+**文件**: `packs/optional/research-skill-pack/.opencode/skills/research-router/SKILL.md`
 
 **动作**: 在frontmatter description中添加缺失的高频触发词：
 - "研究", "帮我研究", "仔细研究"
@@ -55,13 +55,13 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
    ```
 2. 运行evaluate_triggers.py对research-router单独验证：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/research-skill-pack/.opencode/skills/research-router --test-file packs/research-skill-pack/evals/trigger/core-trigger-evals-router-only.json --json --verbose
+   uv run packs/core/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/optional/research-skill-pack/.opencode/skills/research-router --test-file packs/optional/research-skill-pack/evals/trigger/core-trigger-evals-router-only.json --json --verbose
    ```
 3. **预期结果**: verdict为`PASS`，所有should_trigger用例triggered=true（特别是包含"研究"的中文用例）
 
 ### 1.2 强化 research pack AGENTS.md 路由规则
 
-**文件**: `packs/research-skill-pack/AGENTS.md`
+**文件**: `packs/optional/research-skill-pack/AGENTS.md`
 
 **动作**: 将现有"推荐skill"措辞改为MUST级别规则：
 - "涉及研究、调研、文献、证据收集类任务时，**必须**首先路由到 research-router"
@@ -72,19 +72,19 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 **QA场景**:
 1. 修改完成后验证（PowerShell）：
    ```powershell
-   (Select-String -Path "packs/research-skill-pack/AGENTS.md" -Pattern "必须|MUST" -AllMatches).Matches.Count
+   (Select-String -Path "packs/optional/research-skill-pack/AGENTS.md" -Pattern "必须|MUST" -AllMatches).Matches.Count
    ```
 2. **预期结果**: 返回值 ≥ 3
 
 ### 1.3 检查其他router/entry skills
 
 **文件**: 
-- `packs/research-skill-pack/.opencode/skills/experience-brief-framer/SKILL.md`
-- `packs/research-skill-pack/.opencode/skills/decision-brief-framer/SKILL.md`
-- `packs/research-skill-pack/.opencode/skills/research-brief-framer/SKILL.md`
-- `packs/research-skill-pack/.opencode/skills/risk-research-brief/SKILL.md`
-- `packs/research-skill-pack/.opencode/skills/learning-goal-framer/SKILL.md`
-- `packs/research-skill-pack/.opencode/skills/learning-prerequisite-mapper/SKILL.md`
+- `packs/optional/research-skill-pack/.opencode/skills/experience-brief-framer/SKILL.md`
+- `packs/optional/research-skill-pack/.opencode/skills/decision-brief-framer/SKILL.md`
+- `packs/optional/research-skill-pack/.opencode/skills/research-brief-framer/SKILL.md`
+- `packs/optional/research-skill-pack/.opencode/skills/risk-research-brief/SKILL.md`
+- `packs/optional/research-skill-pack/.opencode/skills/learning-goal-framer/SKILL.md`
+- `packs/optional/research-skill-pack/.opencode/skills/learning-prerequisite-mapper/SKILL.md`
 
 **动作**: 对每个router/entry skill，提取body中的触发场景关键词，与frontmatter description对比，补齐缺失项
 
@@ -93,7 +93,7 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 **QA场景**:
 1. 对每个修改后的skill，运行evaluate_triggers.py单独验证（以experience-brief-framer为例）：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/research-skill-pack/.opencode/skills/experience-brief-framer --json
+   uv run packs/core/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/optional/research-skill-pack/.opencode/skills/experience-brief-framer --json
    ```
    （不带`--test-file`时脚本自动从description生成测试用例）
 2. **预期结果**: 每个skill的verdict为`PASS`（trigger_pass_rate ≥ 0.80）
@@ -117,24 +117,24 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 **QA场景**:
 1. 修改前，对5个代表性skill运行evaluate_triggers.py记录baseline trigger_pass_rate：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/research-skill-pack/.opencode/skills/research-synthesis --json
+   uv run packs/core/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/optional/research-skill-pack/.opencode/skills/research-synthesis --json
    ```
 2. 修改后，对同样5个skill重新运行，确认trigger_pass_rate不低于修改前
 3. 对全部54个skill逐一运行auto-generate模式验证（无需手写test-file，脚本自动从description生成用例）：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/research-skill-pack/.opencode/skills/<skill-name> --json --siblings packs/research-skill-pack/.opencode/skills
+   uv run packs/core/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path packs/optional/research-skill-pack/.opencode/skills/<skill-name> --json --siblings packs/optional/research-skill-pack/.opencode/skills
    ```
 4. **预期结果**: 所有skill verdict为`PASS`，无新增cross-trigger冲突
 
 ### 2.2 其他6个pack的skills修复
 
 **范围**: 
-- `packs/petfish-companion-skill/` — companion、marketplace-connector等
-- `packs/anti-sycophancy-calibration-pack/` — anti-sycophancy-calibration
-- `packs/petfish-style-skill/` — petfish-style-rewriter
-- `packs/opencode-course-skills-pack/` — 全部课程skills
-- `packs/repo-deploy-ops-skill-pack/` — 全部部署运维skills
-- `packs/fish-trail/` — fish-trail
+- `packs/core/petfish-companion-skill/` — companion、marketplace-connector等
+- `packs/optional/anti-sycophancy-calibration-pack/` — anti-sycophancy-calibration
+- `packs/optional/petfish-style-skill/` — petfish-style-rewriter
+- `packs/optional/opencode-course-skills-pack/` — 全部课程skills
+- `packs/optional/repo-deploy-ops-skill-pack/` — 全部部署运维skills
+- `packs/core/fish-trail/` — fish-trail
 
 **方法**: 同2.1
 
@@ -143,7 +143,7 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 **QA场景**:
 1. 对每个pack中的每个skill运行evaluate_triggers.py auto-generate模式：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path <pack>/.opencode/skills/<skill-name> --json
+   uv run packs/core/petfish-companion-skill/.opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py --path <pack>/.opencode/skills/<skill-name> --json
    ```
 2. **预期结果**: 所有skill verdict为`PASS`（trigger_pass_rate ≥ 0.80）
 
@@ -171,7 +171,7 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 
 ### 3.1 skill-lint 增加 description-body 覆盖检查
 
-**文件**: `packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py`
+**文件**: `packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py`
 
 **动作**: 新增lint规则：
 - 提取SKILL.md body中的触发关键词（从`触发场景`、`Trigger`、`Use this skill when`等section）
@@ -185,18 +185,18 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 1. 准备一个测试用的SKILL.md：将research-router的SKILL.md复制到临时目录，故意从description中删除"research"和"研究"关键词
 2. 运行lint（PowerShell，使用$env:TEMP代替/tmp）：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path $env:TEMP/test-skill --json
+   uv run packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path $env:TEMP/test-skill --json
    ```
 3. **预期结果**: JSON输出的findings数组中包含severity为`WARNING`或`ERROR`的条目，message包含"trigger"或"coverage"字样，且lint score因此降低
 4. 对一个description已完善的skill（如修复后的research-router）运行同一命令：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path packs/research-skill-pack/.opencode/skills/research-router --json
+   uv run packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path packs/optional/research-skill-pack/.opencode/skills/research-router --json
    ```
 5. **预期结果**: 无trigger-coverage相关的warning或error finding
 
 ### 3.2 quality-gate 集成覆盖检查
 
-**文件**: `packs/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py`
+**文件**: `packs/core/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py`
 
 **动作**: 
 - gate已通过调用lint_skill.py间接获取lint结果；3.1中lint新增的trigger-coverage findings会自动流入gate的lint阶段
@@ -209,12 +209,12 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 1. 使用3.1中准备的低覆盖率测试SKILL.md
 2. 运行gate（PowerShell）：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path $env:TEMP/test-skill --json
+   uv run packs/core/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path $env:TEMP/test-skill --json
    ```
 3. **预期结果**: JSON输出中`decision`字段为`"CONDITIONAL"`（大写），`lint.finding_count` > 0
 4. 对一个覆盖率正常的skill运行gate：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path packs/research-skill-pack/.opencode/skills/research-router --json
+   uv run packs/core/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path packs/optional/research-skill-pack/.opencode/skills/research-router --json
    ```
 5. **预期结果**: trigger-coverage规则不影响原有decision判定（若其他指标均通过，decision仍为`"PASS"`）
 
@@ -242,7 +242,7 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 
 ### 4.1 Companion Gateway Skill Sense增强
 
-**文件**: `packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py`
+**文件**: `packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py`
 
 **动作**: 在TRIGGERS字典中，为research pack补充缺失的中文高频关键词（如"研究"、"帮我研究"），作为Companion Gateway Tier 1白名单的补充保护层。
 
@@ -251,7 +251,7 @@ GitHub Issue #91 报告：用户输入"帮我仔细研究一下XXX"时，researc
 **QA场景**:
 1. 修改TRIGGERS后，运行catalog_query.py验证：
    ```powershell
-   uv run packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --query "帮我研究一下这个问题"
+   uv run packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py --query "帮我研究一下这个问题"
    ```
 2. **预期结果**: 输出中包含research pack的推荐
 

@@ -108,8 +108,8 @@ Add to companion SKILL.md and catalog_query.py. Shows the local uninstall comman
 - `install.sh` — add --uninstall flag + uninstall_pack function
 - `remote-install.ps1` — add error message for --uninstall
 - `remote-install.sh` — add error message for --uninstall
-- `packs/petfish-companion-skill/.opencode/skills/petfish-companion/SKILL.md` — add /petfish uninstall docs
-- `packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py` — add /petfish uninstall command support
+- `packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/SKILL.md` — add /petfish uninstall docs
+- `packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py` — add /petfish uninstall command support
 
 ## QA Scenarios
 

@@ -1062,6 +1062,18 @@ COMMUNITY_STAGING="$TMPDIR/community-staging"
 mkdir -p "$COMMUNITY_STAGING"
 
 PACKS_DIR="$EXTRACT_DIR/packs"
+
+# Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
+find_pack_dir() {
+    local name="$1"
+    if [[ -d "$PACKS_DIR/core/$name" ]]; then
+        echo "$PACKS_DIR/core/$name"
+    elif [[ -d "$PACKS_DIR/optional/$name" ]]; then
+        echo "$PACKS_DIR/optional/$name"
+    else
+        echo "$PACKS_DIR/$name"
+    fi
+}
 PLATFORMS_JSON="$EXTRACT_DIR/platforms.json"
 
 if [[ ! -f "$PLATFORMS_JSON" ]]; then
@@ -1475,7 +1487,7 @@ install_for_platform() {
         if is_community_pack "$pack_name" && [[ -n "${COMMUNITY_PACK_DIRS[$pack_name]+x}" ]]; then
             pack_root="$COMMUNITY_STAGING/${COMMUNITY_PACK_DIRS[$pack_name]}"
         else
-            pack_root="$PACKS_DIR/$pack_name"
+            pack_root="$(find_pack_dir "$pack_name")"
         fi
         local pack_opencode="$pack_root/.opencode"
         if [[ ! -d "$pack_opencode" ]]; then
@@ -1799,7 +1811,7 @@ install_global_for_platform() {
         if is_community_pack "$pack_name" && [[ -n "${COMMUNITY_PACK_DIRS[$pack_name]+x}" ]]; then
             pack_root="$COMMUNITY_STAGING/${COMMUNITY_PACK_DIRS[$pack_name]}"
         else
-            pack_root="$PACKS_DIR/$pack_name"
+            pack_root="$(find_pack_dir "$pack_name")"
         fi
         local pack_opencode="$pack_root/.opencode"
         local manifest_file="$pack_root/pack-manifest.json"

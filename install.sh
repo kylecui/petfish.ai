@@ -1529,7 +1529,7 @@ resolve_pack() {
         echo "$pack_dir_name"
     elif [[ -n "${ALIASES[$name]+x}" ]]; then
         echo "${ALIASES[$name]}"
-    elif [[ -d "$PACKS_DIR/$name" ]]; then
+    elif [[ -d "$PACKS_DIR/core/$name" ]] || [[ -d "$PACKS_DIR/optional/$name" ]]; then
         echo "$name"
     else
         echo "Unknown pack: '$name'. Use --list to see available packs." >&2
@@ -1537,9 +1537,21 @@ resolve_pack() {
     fi
 }
 
+# Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
+find_pack_dir() {
+    local name="$1"
+    if [[ -d "$PACKS_DIR/core/$name" ]]; then
+        echo "$PACKS_DIR/core/$name"
+    elif [[ -d "$PACKS_DIR/optional/$name" ]]; then
+        echo "$PACKS_DIR/optional/$name"
+    else
+        echo "$PACKS_DIR/$name"
+    fi
+}
+
 get_all_packs() {
     local dir
-    for dir in "$PACKS_DIR"/*; do
+    for dir in "$PACKS_DIR"/core/* "$PACKS_DIR"/optional/*; do
         [[ -d "$dir" ]] || continue
         basename "$dir"
     done | sort
@@ -1636,7 +1648,7 @@ install_for_platform() {
         if [[ "$pack_name" == community--* && -n "$COMMUNITY_STAGING_DIR" && -d "$COMMUNITY_STAGING_DIR/$pack_name" ]]; then
             pack_root="$COMMUNITY_STAGING_DIR/$pack_name"
         else
-            pack_root="$PACKS_DIR/$pack_name"
+            pack_root="$(find_pack_dir "$pack_name")"
         fi
 
         local pack_opencode="$pack_root/.opencode"
@@ -1991,7 +2003,7 @@ install_global_for_platform() {
         if [[ "$pack_name" == community--* && -n "$COMMUNITY_STAGING_DIR" && -d "$COMMUNITY_STAGING_DIR/$pack_name" ]]; then
             pack_root="$COMMUNITY_STAGING_DIR/$pack_name"
         else
-            pack_root="$PACKS_DIR/$pack_name"
+            pack_root="$(find_pack_dir "$pack_name")"
         fi
         local pack_opencode="$pack_root/.opencode"
         local manifest_file="$pack_root/pack-manifest.json"
@@ -2113,7 +2125,7 @@ uninstall_pack() {
     fi
 
     if [[ "$is_community" == "false" ]]; then
-        local pack_root="$PACKS_DIR/$pack_name"
+        local pack_root="$(find_pack_dir "$pack_name")"
         manifest_file="$pack_root/pack-manifest.json"
         if [[ ! -f "$manifest_file" ]]; then
             echo "Error: Pack manifest not found: $manifest_file" >&2
@@ -2460,7 +2472,7 @@ uninstall_global_pack() {
     fi
 
     if [[ "$is_community" == "false" ]]; then
-        local pack_root="$PACKS_DIR/$pack_name"
+        local pack_root="$(find_pack_dir "$pack_name")"
         manifest_file="$pack_root/pack-manifest.json"
         if [[ ! -f "$manifest_file" ]]; then
             echo "Error: Pack manifest not found: $manifest_file" >&2

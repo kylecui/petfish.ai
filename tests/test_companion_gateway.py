@@ -25,7 +25,7 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
 _CATALOG_SCRIPT = _REPO_ROOT / (
-    "packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py"
+    "packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py"
 )
 _spec = importlib.util.spec_from_file_location("catalog_query", _CATALOG_SCRIPT)
 cq = importlib.util.module_from_spec(_spec)
@@ -33,7 +33,7 @@ sys.modules.setdefault("catalog_query", cq)
 _spec.loader.exec_module(cq)
 
 _CHECK_SCRIPT = _REPO_ROOT / (
-    "packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/check_installed.py"
+    "packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/check_installed.py"
 )
 _spec2 = importlib.util.spec_from_file_location("check_installed", _CHECK_SCRIPT)
 ci = importlib.util.module_from_spec(_spec2)

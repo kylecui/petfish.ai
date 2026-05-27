@@ -9,7 +9,7 @@ import pytest
 
 MODULE_DIR = (
     Path(__file__).resolve().parents[1]
-    / "packs/fish-trail/.opencode/skills/fish-trail/mcp/context-state"
+    / "packs/core/fish-trail/.opencode/skills/fish-trail/mcp/context-state"
 )
 sys.path.insert(0, str(MODULE_DIR))
 

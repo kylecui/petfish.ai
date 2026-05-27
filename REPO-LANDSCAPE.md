@@ -25,36 +25,39 @@
 ```
 petfish.ai/
 ├── packs/                                    # ★ Pack源码（用户安装的内容来源）
-│   ├── petfish-companion-skill/              # companion — 2 skills + 2 MCPs + 1 cmd
-│   │   └── .opencode/
-│   │       ├── skills/fish-brain/            # 鱼伴 — 传感、路由、registry查询
-│   │       ├── skills/fish-market/           # 鱼市 — 外部skill搜索
-│   │       ├── commands/petfish.md           # /petfish 命令
-│   │       ├── mcp/skill-registry/           # MCP: pack查询
-│   │       └── mcp/usage-cost/               # MCP: token用量追踪
+│   ├── core/                                  # v1.4: 核心pack（伴随者gateway依赖）
+│   │   ├── petfish-companion-skill/           # companion — 2 skills + 2 MCPs + 1 cmd
+│   │   │   └── .opencode/
+│   │   │       ├── skills/fish-brain/         # 鱼伴 — 传感、路由、registry查询
+│   │   │       ├── skills/fish-market/        # 鱼市 — 外部skill搜索
+│   │   │       ├── commands/petfish.md        # /petfish 命令
+│   │   │       ├── mcp/skill-registry/        # MCP: pack查询
+│   │   │       └── mcp/usage-cost/            # MCP: token用量追踪
+│   │   │
+│   │   ├── petfish-toolchain-skill/           # toolchain — 8 skills (v1.3新增)
+│   │   │   └── .opencode/skills/
+│   │   │       ├── skill-author/              #   新skill脚手架
+│   │   │       ├── skill-lint/                #   质量检查
+│   │   │       ├── repo-skill-miner/          #   仓库挖掘
+│   │   │       ├── skill-security-auditor/    #   安全审计
+│   │   │       ├── quality-gate/              #   发布门禁
+│   │   │       ├── skill-description-optimizer/#   描述优化
+│   │   │       ├── skill-trigger-evaluator/   #   触发测试
+│   │   │       └── skill-usage-tracker/       #   使用统计
+│   │   │
+│   │   ├── project-initializer-skill/         # init — 1 skill (fish-init 鱼启) + /initproject
+│   │   └── fish-trail/                        # context — 1 skill + 1 MCP (context-state)
 │   │
-│   ├── petfish-toolchain-skill/              # toolchain — 8 skills (v1.3新增)
-│   │   └── .opencode/skills/
-│   │       ├── skill-author/                 #   新skill脚手架
-│   │       ├── skill-lint/                   #   质量检查
-│   │       ├── repo-skill-miner/             #   仓库挖掘
-│   │       ├── skill-security-auditor/       #   安全审计
-│   │       ├── quality-gate/                 #   发布门禁
-│   │       ├── skill-description-optimizer/  #   描述优化
-│   │       ├── skill-trigger-evaluator/      #   触发测试
-│   │       └── skill-usage-tracker/          #   使用统计
-│   │
-│   ├── project-initializer-skill/            # init — 1 skill (fish-init 鱼启) + /initproject
-│   ├── research-skill-pack/                  # research — 54 skills (7领域)
-│   ├── opencode-course-skills-pack/          # course — 15 skills + 8 agents + 10 cmds
-│   ├── repo-deploy-ops-skill-pack/           # deploy — 7 skills
-│   ├── opencode-ppt-skills/                  # ppt — 2 skills
-│   ├── opencode-skill-pack-testcases-usage-docs/ # testdocs — 2 skills
-│   ├── petfish-style-skill/                  # petfish — 1 skill (fish-style 鱼言)
-│   ├── anti-sycophancy-calibration-pack/     # calibrate — 1 skill (fish-calibrate 鱼准)
-│   ├── fish-trail/                           # context — 1 skill + 1 MCP (context-state)
-│   ├── trustskills-governance-pack/          # trust — 1 skill (fish-guard 鱼卫)
-│   └── fish-reflection-pack/                 # reflect — 1 skill (fish-reflection)
+│   └── optional/                              # v1.4: 可选pack（按需安装）
+│       ├── research-skill-pack/               # research — 54 skills (7领域)
+│       ├── opencode-course-skills-pack/       # course — 15 skills + 8 agents + 10 cmds
+│       ├── repo-deploy-ops-skill-pack/        # deploy — 7 skills
+│       ├── opencode-ppt-skills/               # ppt — 2 skills
+│       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs — 2 skills
+│       ├── petfish-style-skill/               # petfish — 1 skill (fish-style 鱼言)
+│       ├── anti-sycophancy-calibration-pack/  # calibrate — 1 skill (fish-calibrate 鱼准)
+│       ├── trustskills-governance-pack/       # trust — 1 skill (fish-guard 鱼卫)
+│       └── fish-reflection-pack/              # reflect — 1 skill (fish-reflection)
 │
 ├── install.ps1 / install.sh                  # ★ 本地安装器（动态扫描packs/）
 ├── remote-install.ps1 / remote-install.sh    # ★ 远程安装器（静态ALL_PACKS数组）
@@ -140,7 +143,7 @@ petfish_remote/
 ```
                     petfish.ai (主仓库)
                     ┌────────────────┐
-                    │ packs/ (13)     │
+                    │ packs/ (core 4 + optional 9) │
                     │ installers (4)  │
                     │ CI/CD (4)       │
                     └──┬─────┬───────┘
@@ -182,7 +185,7 @@ petfish_remote/
 | petfish.ai → market | `marketplace_search.py` 查询 `petfish.ai/master/community-packs.json` | ai: `packs/.../fish-market/scripts/marketplace_search.py` L120 |
 | remote → petfish.ai | 通过 `install.ps1/sh` 安装 skills 到 `.opencode/skills/` | remote: `opencode.json`, `.opencode/installed-packs.json` |
 | ai → opencode fork | `patch_opencode.py` 构建本地patch | ai: `scripts/patch_opencode.py` L50 |
-| ai → trustskills | `fish-guard` 通过 `uv add trustskills` 引用 | ai: `packs/trustskills-governance-pack/README.md` |
+| ai → trustskills | `fish-guard` 通过 `uv add trustskills` 引用 | ai: `packs/optional/trustskills-governance-pack/README.md` |
 | ai → petfish_tester | eval benchmark数据源 | ai: `dev_reference/eval-handoff-extracted/` |
 | remote → connector.yaml | `wss://remote.petfish.ai/ws/connector` 连接器配置 | ai: `connector.yaml` → remote 的 server |
 
@@ -224,11 +227,11 @@ petfish_remote/
 
 **问题**: v1.3 将 `quality-gate` 从 `companion` pack 迁移到 `toolchain` pack。market CI 的 `validate-submission.yml` 引用的路径是：
 ```
-petfish-ai/packs/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py
+petfish-ai/packs/core/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py
 ```
 该路径在 v1.3 后已不存在，实际路径变为：
 ```
-petfish-ai/packs/petfish-toolchain-skill/.opencode/skills/quality-gate/scripts/run_gate.py
+petfish-ai/packs/core/petfish-toolchain-skill/.opencode/skills/quality-gate/scripts/run_gate.py
 ```
 
 **影响**: 社区提交 PR 时 CI 会因找不到 `run_gate.py` 而失败。
@@ -237,7 +240,7 @@ petfish-ai/packs/petfish-toolchain-skill/.opencode/skills/quality-gate/scripts/r
 
 ### 5.2 petfish-market 测试 skill 指向过时路径
 
-**问题**: `skills/community--test-skill.json` 中 `"path": "packs/petfish-companion-skill/.opencode/skills/skill-lint"`。v1.3 后 `skill-lint` 已迁移到 `petfish-toolchain-skill/`。
+**问题**: `skills/community--test-skill.json` 中 `"path": "packs/core/petfish-companion-skill/.opencode/skills/skill-lint"`。v1.3 后 `skill-lint` 已迁移到 `petfish-toolchain-skill/`。
 
 **修复**: 更新 `community--test-skill.json` 的 `path` 字段。
 

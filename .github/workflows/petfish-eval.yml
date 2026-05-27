@@ -30,7 +30,7 @@ jobs:
         run: uv pip install pytest --system
 
       - name: Run fish-trail tests
-        run: uv run pytest packs/fish-trail/.opencode/skills/fish-trail/mcp/context-state/ -v --tb=short
+        run: uv run pytest packs/core/fish-trail/.opencode/skills/fish-trail/mcp/context-state/ -v --tb=short
 
   benchmark-eval:
     name: benchmark-eval

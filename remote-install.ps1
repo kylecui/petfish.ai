@@ -1217,7 +1217,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
             Join-Path $script:CommunityStagingDir $packName
         } else {
-            Join-Path $packsDir $packName
+            Get-PackDirPath $packName
         }
 
         $packOpencode = Join-Path $packRoot ".opencode"
@@ -1503,7 +1503,7 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
         $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
             Join-Path $script:CommunityStagingDir $packName
         } else {
-            Join-Path $packsDir $packName
+            Get-PackDirPath $packName
         }
 
         $packOpencode = Join-Path $packRoot ".opencode"
@@ -1699,6 +1699,15 @@ try {
     }
 
     $packsDir = Join-Path $extractDir.FullName "packs"
+
+    # Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
+    function Get-PackDirPath([string]$name) {
+        $corePath = Join-Path $packsDir "core" $name
+        $optionalPath = Join-Path $packsDir "optional" $name
+        if (Test-Path $corePath) { return $corePath }
+        if (Test-Path $optionalPath) { return $optionalPath }
+        return (Join-Path $packsDir $name)
+    }
     if (-not (Test-Path $packsDir)) {
         Write-Error "Downloaded repository does not contain a packs/ directory."
         exit 1

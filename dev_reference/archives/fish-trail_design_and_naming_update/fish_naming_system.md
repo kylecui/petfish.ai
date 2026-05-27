@@ -494,10 +494,10 @@ SKILL_builder/
 如果不想一次性大改目录，可以先做兼容层。
 
 ```text
-packs/project-initializer-skill      → packs/fish-init
-packs/petfish-companion-skill        → packs/fish-core
-packs/opencode-course-skills-pack    → packs/fish-course
-packs/context-router-skill           → packs/fish-trail
+packs/core/project-initializer-skill      → packs/fish-init
+packs/core/petfish-companion-skill        → packs/fish-core
+packs/optional/opencode-course-skills-pack    → packs/fish-course
+packs/core/fish-trail           → packs/core/fish-trail
 ```
 
 旧目录保留一段时间，新增 manifest 里的 `legacy_aliases`。
@@ -727,13 +727,13 @@ legacy_names:
 同时保留 compatibility shim：
 
 ```text
-packs/context-router-skill/README.md
+packs/core/fish-trail/README.md
 ```
 
 内容说明：
 
 ```text
-This pack has moved to packs/fish-trail.
+This pack has moved to packs/core/fish-trail.
 ```
 
 ---

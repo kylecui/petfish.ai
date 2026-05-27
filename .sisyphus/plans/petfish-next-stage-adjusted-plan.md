@@ -13,9 +13,9 @@
 | Capability | Status | Location |
 |---|---|---|
 | Companion Gateway (6-step) | ✅ v0.11.x | AGENTS.md |
-| Topic Governance (fish-trail) | ✅ v1.1.0 pre-release | packs/fish-trail/ |
+| Topic Governance (fish-trail) | ✅ v1.1.0 pre-release | packs/core/fish-trail/ |
 | Tiered Memory v2 (4-state lifecycle) | ✅ 340 tests passing | topic_registry_v2.py, memory_pressure_monitor.py, memory_context.py |
-| Context-state MCP | ✅ 31 tools | packs/fish-trail/mcp/context-state/ |
+| Context-state MCP | ✅ 31 tools | packs/core/fish-trail/mcp/context-state/ |
 | Plugin architecture (OpenCode) | ✅ 3 plugins exist | .opencode/plugin/ |
 | system-prompt-rules plugin | ✅ Production | .opencode/plugin/system-prompt-rules.ts |
 | fish-trail-compaction plugin | ✅ Production | .opencode/plugin/fish-trail-compaction.ts |
@@ -134,8 +134,8 @@ v1.1.0 (pre-release) → v1.2.0 → v1.3.0 → v1.4.0 → (future)
 
 | # | Item | Location |
 |---|---|---|
-| 1 | skill-registry MCP server | packs/petfish-companion-skill/mcp/skill-registry/ |
-| 2 | usage-cost MCP server | packs/petfish-companion-skill/mcp/usage-cost/ |
+| 1 | skill-registry MCP server | packs/core/petfish-companion-skill/mcp/skill-registry/ |
+| 2 | usage-cost MCP server | packs/core/petfish-companion-skill/mcp/usage-cost/ |
 | 3 | Gateway integration (Gateway reads from MCP) | AGENTS.md update |
 | 4 | MCP startup/config documentation | docs/mcp/ |
 
@@ -148,9 +148,9 @@ v1.1.0 (pre-release) → v1.2.0 → v1.3.0 → v1.4.0 → (future)
 
 ### Files Touched
 
-- `packs/petfish-companion-skill/mcp/skill-registry/server.py` — new
-- `packs/petfish-companion-skill/mcp/usage-cost/server.py` — new
-- `packs/petfish-companion-skill/pack-manifest.json` — update
+- `packs/core/petfish-companion-skill/mcp/skill-registry/server.py` — new
+- `packs/core/petfish-companion-skill/mcp/usage-cost/server.py` — new
+- `packs/core/petfish-companion-skill/pack-manifest.json` — update
 - `AGENTS.md` — update Gateway to use MCP
 
 ---

@@ -102,6 +102,15 @@ $PlatformExplicitlyPassed = $PSBoundParameters.ContainsKey("Platform")
 # Resolve script root (works whether run directly or piped)
 $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD.Path }
 $PacksDir = Join-Path $ScriptRoot "packs"
+
+# Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
+function Find-PackDir([string]$name) {
+    $corePath = Join-Path $PacksDir "core" $name
+    $optionalPath = Join-Path $PacksDir "optional" $name
+    if (Test-Path $corePath) { return $corePath }
+    if (Test-Path $optionalPath) { return $optionalPath }
+    return (Join-Path $PacksDir $name)
+}
 $platformsFile = Join-Path $ScriptRoot "platforms.json"
 if (Test-Path $platformsFile) {
     $PlatformRegistry = Get-Content $platformsFile -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -692,7 +701,7 @@ function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
     Write-Host "`n  Uninstalling pack: $packName (alias: $packAlias)" -ForegroundColor Yellow
 
     # Step 1: Read pack-manifest.json from source
-    $packRoot = Join-Path $PacksDir $packName
+    $packRoot = Find-PackDir $packName
     $manifestFile = Join-Path $packRoot "pack-manifest.json"
     if (-not (Test-Path $manifestFile)) {
         Write-Error "Pack manifest not found: $manifestFile"
@@ -832,7 +841,7 @@ function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
             if ($targetRegistry -and (Test-Path $regFile)) {
                 foreach ($otherPack in $registry.packs.PSObject.Properties) {
                     if ($otherPack.Name -eq $packName) { continue }
-                    $otherRoot = Join-Path $PacksDir $otherPack.Name
+                    $otherRoot = Find-PackDir $otherPack.Name
                     $otherExample = Join-Path $otherRoot "opencode.example.json"
                     if (Test-Path $otherExample) {
                         $otherJson = Get-Content $otherExample -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -914,7 +923,7 @@ function Uninstall-GlobalPack([string]$packAlias) {
 
     Write-Host "`n  Uninstalling pack (global): $packName (alias: $packAlias)" -ForegroundColor Yellow
 
-    $packRoot = Join-Path $PacksDir $packName
+    $packRoot = Find-PackDir $packName
     $manifestFile = Join-Path $packRoot "pack-manifest.json"
     if (-not (Test-Path $manifestFile)) {
         Write-Error "Pack manifest not found: $manifestFile"
@@ -1624,13 +1633,13 @@ function Get-PackFullName([string]$name) {
         return (Download-CommunityPack $name)
     }
     if ($Aliases.ContainsKey($name)) { return $Aliases[$name] }
-    if (Test-Path (Join-Path $PacksDir $name)) { return $name }
+    if ((Test-Path (Join-Path $PacksDir "core" $name)) -or (Test-Path (Join-Path $PacksDir "optional" $name))) { return $name }
     Write-Error "Unknown pack: '$name'. Use -List to see available packs."
     exit 1
 }
 
 function Get-AllPacks {
-    Get-ChildItem -Path $PacksDir -Directory | ForEach-Object { $_.Name }
+    Get-ChildItem -Path (Join-Path $PacksDir "core"), (Join-Path $PacksDir "optional") -Directory | ForEach-Object { $_.Name }
 }
 
 function Show-PackList {
@@ -1638,7 +1647,8 @@ function Show-PackList {
     Write-Host ("-" * 60)
     foreach ($dir in (Get-AllPacks)) {
         $alias = ($Aliases.GetEnumerator() | Where-Object { $_.Value -eq $dir } | Select-Object -First 1).Key
-        $manifest = Join-Path (Join-Path $PacksDir $dir) "pack-manifest.json"
+        $packDirPath = Find-PackDir $dir
+        $manifest = Join-Path $packDirPath "pack-manifest.json"
         $info = ""
         if (Test-Path $manifest) {
             $m = Get-Content $manifest -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -1713,7 +1723,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
             Join-Path $script:CommunityStagingDir $packName
         } else {
-            Join-Path $PacksDir $packName
+            Find-PackDir $packName
         }
 
         $packOpencode = Join-Path $packRoot ".opencode"
@@ -2008,7 +2018,7 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
         $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
             Join-Path $script:CommunityStagingDir $packName
         } else {
-            Join-Path $PacksDir $packName
+            Find-PackDir $packName
         }
 
         $packOpencode = Join-Path $packRoot ".opencode"

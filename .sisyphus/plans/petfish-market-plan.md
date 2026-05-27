@@ -93,11 +93,11 @@ Triggered on PRs that add/modify `skills/*.json`:
 1. **Schema validation** — JSON structure, required fields, valid license
 2. **Repo accessibility check** — Clone the `repo` at `ref`, verify `path` exists and contains `SKILL.md`
 3. **Obtain gate tooling** — Checkout `kylecui/petfish.ai` at latest release tag to get the quality gate stack:
-   - `packs/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py`
-   - `packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py`
-   - `packs/petfish-companion-skill/.opencode/skills/skill-security-auditor/scripts/audit_skill.py`
+   - `packs/core/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py`
+   - `packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py`
+   - `packs/core/petfish-companion-skill/.opencode/skills/skill-security-auditor/scripts/audit_skill.py`
    - These scripts are invoked via `uv run` with the `petfish.ai` checkout as working context
-4. **Quality gate** — Run `uv run <petfish.ai-checkout>/packs/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path <cloned-skill-dir> --json`
+4. **Quality gate** — Run `uv run <petfish.ai-checkout>/packs/core/petfish-companion-skill/.opencode/skills/quality-gate/scripts/run_gate.py --path <cloned-skill-dir> --json`
    - Lint score ≥ 80
    - Security risk ≤ 0.5
    - No CRITICAL findings
@@ -177,8 +177,8 @@ This does NOT modify the `ALL_PACKS` arrays — community skills are orthogonal 
 
 ### Phase 2: Discovery Integration
 **Files changed in petfish.ai:**
-- `packs/petfish-companion-skill/.opencode/skills/marketplace-connector/scripts/marketplace_search.py` — add PEtFiSh Market source
-- `packs/petfish-companion-skill/.opencode/skills/marketplace-connector/SKILL.md` — update source priority table
+- `packs/core/petfish-companion-skill/.opencode/skills/marketplace-connector/scripts/marketplace_search.py` — add PEtFiSh Market source
+- `packs/core/petfish-companion-skill/.opencode/skills/marketplace-connector/SKILL.md` — update source priority table
 
 **Verification:**
 - `/petfish search <test-skill>` returns community skill results
@@ -190,8 +190,8 @@ This does NOT modify the `ALL_PACKS` arrays — community skills are orthogonal 
 - `install.sh` — add `install_community_skill` function, detect `community/` prefix in pack arg
 - `remote-install.ps1` — add community skill install support
 - `remote-install.sh` — add community skill install support
-- `packs/petfish-companion-skill/.opencode/commands/petfish.md` — update `/petfish install` to document `community/<name>` syntax and route to installer with `--pack community/<name>`
-- `packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py` — handle `community/` namespace in `--install` flag; fetch metadata from `index.json` and display install command
+- `packs/core/petfish-companion-skill/.opencode/commands/petfish.md` — update `/petfish install` to document `community/<name>` syntax and route to installer with `--pack community/<name>`
+- `packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py` — handle `community/` namespace in `--install` flag; fetch metadata from `index.json` and display install command
 
 **Verification:**
 1. Run `.\install.ps1 -Pack "community/test-skill" -Target . -Detect` → skill cloned from author repo, placed in `.opencode/skills/test-skill/`, `SKILL.md` present

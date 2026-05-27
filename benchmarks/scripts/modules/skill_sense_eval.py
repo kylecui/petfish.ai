@@ -22,7 +22,7 @@ Detection logic:
 from typing import Any
 
 # ---------------------------------------------------------------------------
-# TRIGGERS mapping — mirrors packs/petfish-companion-skill/.../catalog_query.py
+# TRIGGERS mapping — mirrors packs/core/petfish-companion-skill/.../catalog_query.py
 # ---------------------------------------------------------------------------
 
 TRIGGERS: dict[str, list[str]] = {

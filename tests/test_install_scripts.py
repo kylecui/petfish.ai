@@ -16,7 +16,7 @@ import importlib.util
 
 _CQ_SCRIPT = (
     REPO_ROOT
-    / "packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py"
+    / "packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py"
 )
 _spec = importlib.util.spec_from_file_location("catalog_query_ref", _CQ_SCRIPT)
 _cq = importlib.util.module_from_spec(_spec)

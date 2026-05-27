@@ -11,7 +11,7 @@
 
 ```bash
 # 进入项目目录
-cd packs/fish-trail/.opencode/skills/fish-trail/mcp/context-state/
+cd packs/core/fish-trail/.opencode/skills/fish-trail/mcp/context-state/
 
 # 运行全部测试（约2秒）
 uv run pytest -v
