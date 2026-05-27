@@ -545,6 +545,15 @@ Skipped: [list skipped steps] (you can do these manually anytime)
 
 If any steps were skipped, briefly list the manual commands the user can run later.
 
+## Pack Classification (v1.4)
+
+PEtFiSh packs are divided into two categories:
+
+- **Core packs** (4): companion, toolchain, init, context — always installed from petfish.ai
+- **Optional packs** (9): research, course, deploy, ppt, testdocs, petfish, calibrate, trust, reflect — distributed via petfish-market
+
+Profile → Pack mapping remains the same. The install command (`/petfish install <alias>`) handles core/optional routing transparently.
+
 ## Available Files
 
 - `tools/init_project.py` — deterministic initializer script.

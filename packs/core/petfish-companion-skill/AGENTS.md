@@ -12,6 +12,14 @@
 4. 用户需要发布skill时，**必须**使用 `quality-gate` 运行完整发布门禁（lint+security→决策）
 5. 用户需要从仓库挖掘skill候选时，**必须**使用 `repo-skill-miner`
 6. 用户需要安全审计skill时，**必须**使用 `skill-security-auditor`
+7. 用户需要发布pack到市场时，**必须**使用 `skill-publish`（在 `quality-gate` PASS 之后）
+
+### Pack分类（v1.4）
+
+- **Core packs** (4): companion, toolchain, init, context — 直接从 petfish.ai 安装，不可发布到市场
+- **Optional packs** (9): research, course, deploy, ppt, testdocs, petfish, calibrate, trust, reflect — 通过 petfish-market 发布和分发
+
+Optional pack 的安装路由经过 petfish-market index.json；用户无需关心内部路由差异。
 
 ### 冲突解决
 
