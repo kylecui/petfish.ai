@@ -46,9 +46,9 @@
 | `packs/petfish-companion-skill/pack-manifest.json` | config | pack v1.1.0，mcp_count=2，10 skills |
 | `packs/petfish-companion-skill/AGENTS.md` | spec | Companion 路由规则 |
 | `packs/petfish-companion-skill/.opencode/skills/petfish-companion/SKILL.md` | spec | companion skill 完整指令 |
-| `packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py` | code | pack 目录查询 |
-| `packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/check_installed.py` | code | 已安装检查 |
-| `packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/detect_platform.py` | code | 平台检测 |
+| `packs/petfish-companion-skill/.opencode/skills/fish-brain/scripts/catalog_query.py` | code | pack 目录查询 |
+| `packs/petfish-companion-skill/.opencode/skills/fish-brain/scripts/check_installed.py` | code | 已安装检查 |
+| `packs/petfish-companion-skill/.opencode/skills/fish-brain/scripts/detect_platform.py` | code | 平台检测 |
 
 ---
 

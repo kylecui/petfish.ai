@@ -16,7 +16,7 @@ import importlib.util
 
 _CQ_SCRIPT = (
     REPO_ROOT
-    / "packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py"
+    / "packs/core/petfish-companion-skill/.opencode/skills/fish-brain/scripts/catalog_query.py"
 )
 _spec = importlib.util.spec_from_file_location("catalog_query_ref", _CQ_SCRIPT)
 _cq = importlib.util.module_from_spec(_spec)
@@ -102,16 +102,15 @@ def _extract_ps1_aliases(path: Path) -> set[str]:
     aliases = set()
     # Match patterns like: "init" { ... } or "init" = "..."
     # In install.ps1, aliases appear in switch cases or hashtable keys
-    for m in re.finditer(r'["\'](\w+)["\']\s*\{', content):
-        candidate = m.group(1)
-        if candidate.lower() in CANONICAL_ALIASES:
-            aliases.add(candidate.lower())
+    for m in re.finditer(r'["\']([\w-]+)["\']\s*[={]', content):
+        candidate = m.group(1).lower()
+        if candidate in CANONICAL_ALIASES:
+            aliases.add(candidate)
     # Also check $AllPacks or similar array definitions
-    for m in re.finditer(
-        r'["\'](init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate|context|research)["\']',
-        content,
-    ):
-        aliases.add(m.group(1).lower())
+    for m in re.finditer(r'["\']([\w-]+)["\']', content):
+        candidate = m.group(1).lower()
+        if candidate in CANONICAL_ALIASES:
+            aliases.add(candidate)
     return aliases
 
 
@@ -120,21 +119,18 @@ def _extract_bash_aliases(path: Path) -> set[str]:
     content = path.read_text(encoding="utf-8")
     aliases = set()
     # Match associative array entries: [alias]="pack-name"
-    for m in re.finditer(r'\[(\w+)\]="[\w-]+"', content):
+    for m in re.finditer(r'\[([\w-]+)\]="[\w-]+"', content):
         aliases.add(m.group(1).lower())
     # Match quoted alias strings
-    for m in re.finditer(
-        r'["\'](init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate|context|research)["\']',
-        content,
-    ):
-        aliases.add(m.group(1).lower())
+    for m in re.finditer(r'["\']([\w-]+)["\']', content):
+        candidate = m.group(1).lower()
+        if candidate in CANONICAL_ALIASES:
+            aliases.add(candidate)
     # Match case patterns: alias) or "alias")
-    for m in re.finditer(
-        r"(?:^|\|)\s*(init|companion|course|deploy|petfish|ppt|testdocs|trust|calibrate|context|research)\s*\)",
-        content,
-        re.MULTILINE,
-    ):
-        aliases.add(m.group(1).lower())
+    for m in re.finditer(r'(?:^|\|)\s*([\w-]+)\s*\)', content, re.MULTILINE):
+        candidate = m.group(1).lower()
+        if candidate in CANONICAL_ALIASES:
+            aliases.add(candidate)
     return aliases
 
 

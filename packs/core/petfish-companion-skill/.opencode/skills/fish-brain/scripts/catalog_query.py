@@ -51,10 +51,16 @@ ALIAS_MAP = {
     "fish-calibrate": "anti-sycophancy-calibration-pack",
     "context": "fish-trail",
     "research": "research-skill-pack",
+    "reflect": "fish-reflection-pack",
 }
 
-# Reverse map: pack name → alias
-PACK_TO_ALIAS = {v: k for k, v in ALIAS_MAP.items()}
+# Reverse map: pack name → canonical alias (first alias listed for each pack)
+PACK_TO_ALIAS = {}
+_seen_packs = set()
+for _a, _p in ALIAS_MAP.items():
+    if _p not in _seen_packs:
+        PACK_TO_ALIAS[_p] = _a
+        _seen_packs.add(_p)
 
 # Install scope overrides (packs not listed default to "project")
 GLOBAL_PACKS = {"init", "companion"}
@@ -186,6 +192,17 @@ TRIGGERS = {
         "纠正",
         "返工",
         "rework",
+    ],
+    # v1.3/v1.4 aliases share triggers with canonical
+    "fish-init": ["初始化", "新项目", "project init", "scaffold", "创建项目"],
+    "fish-brain": ["/petfish", "what skills", "what can you do", "help with"],
+    "fish-core": ["/petfish", "what skills", "what can you do", "help with"],
+    "toolchain": ["lint", "audit", "gate", "skill publish", "toolchain"],
+    "fish-style": ["说人话", "润色", "去AI味", "风格", "改写", "rewrite", "polish"],
+    "fish-guard": ["skill trust", "skill安全", "治理", "可信度", "trust scan"],
+    "fish-calibrate": [
+        "评审", "评价", "批判", "review", "critique", "feedback",
+        "校准", "迎合", "sycophancy", "方案评估",
     ],
 }
 
