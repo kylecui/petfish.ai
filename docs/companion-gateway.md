@@ -81,11 +81,15 @@ Three-tier detection to spot capability gaps.
 
 **Tier 1 — Keyword whitelist**: Matches against TRIGGERS in `catalog_query.py`. You say "deployment" → it knows to recommend the deploy pack. Only recommends when: keyword hit + pack not installed + not already recommended this session.
 
+Core packs (init, companion, petfish, toolchain) install directly from petfish.ai. Optional packs (course, research, deploy, etc.) are routed through petfish-market for distribution — install commands resolve automatically with no user-visible difference.
+
 **Tier 2 — Intent detection**: When Tier 1 doesn't match, checks whether you're asking for something that needs external integration — email, charts, monitoring — that neither the agent nor installed skills can handle. Suggests `/petfish search <keyword>`.
 
 **Tier 3 — No gap**: Nothing detected, stay silent.
 
 Recommendations appear at the end of the reply, never interrupting. Each domain is mentioned at most once per session.
+
+> **v1.4 note**: Optional packs (course, research, deploy, etc.) are distributed via petfish-market. When Skill Sense recommends an optional pack, the install command resolves through the market — same user experience, different resolution path under the hood.
 
 ### Step 2.5: Anti-Sycophancy Check
 
@@ -157,7 +161,7 @@ Gateway depends on two components:
 
 **2. catalog_query.py TRIGGERS** — Keyword table in the companion skill:
 ```
-.opencode/skills/petfish-companion/scripts/catalog_query.py
+.opencode/skills/fish-brain/scripts/catalog_query.py
 ```
 
 ## Install
@@ -175,13 +179,13 @@ Gateway rules are injected into the target project via the AGENTS.md pack merge 
 
 Test keyword matching:
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --search "Docker"
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py --search "Docker"
 # Should return: deploy pack
 ```
 
 Test failure signal detection:
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --check-failures "无法读取PDF文件"
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py --check-failures "无法读取PDF文件"
 # Should return: ppt pack recommendation
 ```
 

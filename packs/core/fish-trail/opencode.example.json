@@ -1,0 +1,17 @@
+{
+  "mcp": {
+    "context-state": {
+      "type": "local",
+      "command": ["uv", "run", "python", ".opencode/skills/fish-trail/mcp/context-state/server.py"]
+    }
+  },
+  "plugin": [
+    [".opencode/plugin/system-prompt-rules.ts", { "mode": "all" }],
+    [".opencode/plugin/system-prompt-context-inject.ts", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "disk", "reflectiveBriefEnabled": true }]
+  ],
+  "permission": {
+    "skill": {
+      "fish-trail": "allow"
+    }
+  }
+}

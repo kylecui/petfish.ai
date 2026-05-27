@@ -265,6 +265,22 @@
     .code-block .copy-btn:hover { color: var(--text); }
     .install-note { color: var(--text-muted); font-size: 13px; margin-top: 16px; line-height: 1.7; }
 
+    /* ── Preview Install ── */
+    .preview-section {
+      margin-top: 48px; padding-top: 32px;
+      border-top: 1px dashed var(--border);
+    }
+    .preview-section h2 { font-size: 20px; margin-bottom: 4px; text-align: center; }
+    .preview-badge {
+      display: inline-block; background: var(--accent3); color: #0d1117;
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 3px;
+      margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .preview-warning {
+      text-align: center; color: var(--accent3); font-size: 13px;
+      margin-bottom: 24px; line-height: 1.6;
+    }
+
     /* ── Platform badges ── */
     .platforms { text-align: center; padding: 48px 0; }
     .platforms h2 { font-size: 24px; margin-bottom: 24px; }
@@ -483,8 +499,8 @@
       <div class="pack-card-hero">
         <div class="hero-fish-icon">><(((^></div>
         <div class="pack-name">companion · <span class="copy-zh">胖鱼</span><span class="copy-en">PEtFiSh</span></div>
-        <div class="pack-desc"><span class="copy-zh">Companion Gateway + 10个生命周期Skill + 15个子命令</span><span class="copy-en">Companion Gateway + 10 lifecycle skills + 15 subcommands</span></div>
-        <div class="pack-meta">10 skills · global · <span class="copy-zh">常伴</span><span class="copy-en">Always Present</span></div>
+        <div class="pack-desc"><span class="copy-zh">Companion Gateway + 2个核心Skill（fish-brain 鱼伴 · fish-market 鱼市）</span><span class="copy-en">Companion Gateway + 2 core skills (fish-brain · fish-market)</span></div>
+        <div class="pack-meta">2 skills · global · <span class="copy-zh">常伴</span><span class="copy-en">Always Present</span></div>
       </div>
     </div>
 
@@ -580,6 +596,12 @@
           <div class="pack-meta">1 skill</div>
         </div>
 
+        <div class="pack-card">
+          <div class="pack-name">toolchain</div>
+          <div class="pack-desc"><span class="copy-zh">Skill生命周期工具链</span><span class="copy-en">Skill lifecycle pipeline</span></div>
+          <div class="pack-meta">9 skills</div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -641,6 +663,60 @@
       <div class="code-block">
         <button class="copy-btn" onclick="copyCode(this)">copy</button>
         Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Preview Install (v1.1.0 Tiered Memory v2) -->
+<section class="install-section" id="preview-install">
+  <div class="container">
+    <div class="preview-section">
+      <h2>
+        <span class="copy-zh">🧪 Tiered Memory v2 预览版</span>
+        <span class="copy-en">🧪 Tiered Memory v2 Preview</span>
+      </h2>
+      <div style="text-align:center;"><span class="preview-badge">Pre-release</span></div>
+      <p class="preview-warning">
+        <span class="copy-zh">⚠️ 测试版本（v1.1.0），不影响稳定版安装。仅供试用分层记忆新功能。</span>
+        <span class="copy-en">⚠️ Test release (v1.1.0). Does NOT affect stable installs. For trying Tiered Memory v2.</span>
+      </p>
+
+      <div class="install-block">
+        <h3><span class="copy-zh">▸ 一句话安装（粘贴到AI编程助手）</span><span class="copy-en">▸ One-line install (paste into AI coding assistant)</span></h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          Install PEtFiSh v1.1.0 Preview by following: https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/docs/agent-install-v1.1.0-preview.md
+        </div>
+      </div>
+
+      <div class="install-block">
+        <h3>▸ macOS / Linux / WSL</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/remote-install.sh \<br/>  | bash -s -- --pack context --detect
+        </div>
+      </div>
+
+      <div class="install-block">
+        <h3>▸ Windows PowerShell</h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/remote-install.ps1))) -Pack context -Detect
+        </div>
+      </div>
+
+      <p class="install-note">
+        <span class="copy-zh">安装脚本从 v1.1.0 pre-release tag 拉取。仅安装 <code>context</code> (fish-trail) pack。V1→V2 数据自动迁移，不影响已有话题。回退：用 <code>master</code> 替代 <code>v1.1.0</code> 重装即可。</span>
+        <span class="copy-en">Install script fetches from v1.1.0 pre-release tag. Installs only the <code>context</code> (fish-trail) pack. V1→V2 data auto-migrates, no impact on existing topics. Rollback: replace <code>v1.1.0</code> with <code>master</code> and reinstall.</span>
+      </p>
+
+      <div class="install-block" style="margin-top: 32px;">
+        <h3><span class="copy-zh">▸ 已安装预览版？一句话升级</span><span class="copy-en">▸ Already on preview? One-line upgrade</span></h3>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          Upgrade PEtFiSh v1.1.0 by following: https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/docs/agent-install-v1.1.0-preview.md
+        </div>
       </div>
     </div>
   </div>

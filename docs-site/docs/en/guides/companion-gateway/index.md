@@ -226,7 +226,7 @@ Install with: `/petfish install context`
 Provides Skill Sense keyword matching (Step 2) and Failure Signal Detection (Step 1.5):
 
 ```
-.opencode/skills/petfish-companion/scripts/catalog_query.py
+.opencode/skills/fish-brain/scripts/catalog_query.py
 ```
 
 Installed automatically with the `companion` pack.
@@ -238,7 +238,7 @@ Installed automatically with the `companion` pack.
 Test keyword matching:
 
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py \
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py \
   --search "Docker"
 # Should return: deploy pack
 ```
@@ -246,7 +246,7 @@ uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py \
 Test failure signal detection:
 
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py \
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py \
   --check-failures "无法读取PDF文件"
 # Should return: ppt pack recommendation
 ```

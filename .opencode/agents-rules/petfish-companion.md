@@ -10,8 +10,9 @@
 2. 用户需要创建新skill时，**必须**使用 `skill-author`；需要验证skill质量时，**必须**使用 `skill-lint`
 3. 用户需要搜索外部skill或MCP server时，**必须**使用 `marketplace-connector`
 4. 用户需要发布skill时，**必须**使用 `quality-gate` 运行完整发布门禁（lint+security→决策）
-5. 用户需要从仓库挖掘skill候选时，**必须**使用 `repo-skill-miner`
-6. 用户需要安全审计skill时，**必须**使用 `skill-security-auditor`
+5. 用户需要将skill发布到市场时，**必须**使用 `skill-publish`（gate PASS→market availability）
+6. 用户需要从仓库挖掘skill候选时，**必须**使用 `repo-skill-miner`
+7. 用户需要安全审计skill时，**必须**使用 `skill-security-auditor`
 
 ### 冲突解决
 
@@ -86,6 +87,7 @@
 - `/petfish mine <repo>` — 从仓库挖掘候选skill
 - `/petfish audit <path>` — skill安全审计
 - `/petfish gate <path>` — 运行发布门禁（lint+security→决策）
+- `/petfish publish <path>` — 将gate PASS的skill发布到petfish-market
 - `/petfish optimize <path>` — 分析并优化skill描述
 - `/petfish eval <path>` — 测试skill触发准确率
 - `/petfish stats` — 查看skill使用统计

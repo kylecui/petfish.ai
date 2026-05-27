@@ -70,7 +70,8 @@ This determines how the research workspace is scaffolded and which skill chains 
 
 If user chooses **custom**, show available packs:
 - `init` — Project initializer + wizard
-- `companion` — PEtFiSh core (10 skill lifecycle tools + /petfish command)
+- `companion` — PEtFiSh core (2 core skills: fish-brain + fish-market, + /petfish command)
+- `toolchain` — Skill lifecycle pipeline (9 skills: author, lint, mine, audit, gate, publish, optimize, eval, tracker)
 - `course` — Course development (15 skills, 10 commands, 8 agents)
 - `deploy` — Deployment & operations (7 skills)
 - `testdocs` — Test cases & documentation (2 skills)
@@ -83,6 +84,8 @@ If user chooses **custom**, show available packs:
 - `reflect` — Structured reflection — capture what went wrong, why, and corrective actions (1 skill)
 
 Ask which packs they want. If they include `research`, ask the research domain follow-up question above.
+
+> **Note**: Packs are split into **core** (init, companion, petfish, toolchain — shipped on petfish.ai) and **optional** (course, deploy, testdocs, ppt, calibrate, context, trust, research, reflect — distributed via petfish-market). Install commands resolve automatically — no user-visible difference.
 
 ---
 
@@ -121,6 +124,8 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 ```
 
 Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc.) and `<PLATFORM>` with the platform from Step 1.
+
+> **Core vs Optional**: Core packs (init, companion, petfish, toolchain) download directly from the petfish.ai release. Optional packs (course, research, etc.) resolve via petfish-market — same command, same experience. The installer queries the market index automatically when a pack is not found in the core set.
 
 ---
 
@@ -180,8 +185,77 @@ This installs the external trust governance engine for behavioral analysis of sk
 
 ---
 
+## Offline / Network-Restricted Install
+
+If the user's environment cannot access GitHub (firewall, air-gapped, China network issues), use local install instead of remote.
+
+### Option 1: Pre-download and run locally
+
+1. On a machine with network access, download these files to the same directory:
+   - `install.ps1` (or `install.sh`)
+   - `platforms.json`
+   - The target pack directory under `packs/` (e.g. `packs/petfish-style-skill/`)
+
+   The easiest way is to clone the entire repo:
+   ```bash
+   git clone https://github.com/kylecui/petfish.ai.git
+   ```
+
+2. Transfer the files (or the whole repo) to the target machine via USB, internal file share, or SCP.
+
+3. Run the local installer:
+   **PowerShell:**
+   ```powershell
+   .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
+   ```
+
+   **Bash:**
+   ```bash
+   ./install.sh --pack <alias> --platform <PLATFORM> --target .
+   ```
+
+   > The local installer scans the `packs/` directory dynamically — no internet access needed. `platforms.json` provides platform metadata; if missing, the installer falls back to hardcoded defaults.
+
+### Option 2: Mirror-enhanced remote install (China network)
+
+The remote installer (`remote-install.ps1` v0.11.12+) includes automatic mirror fallback for China network environments:
+
+- Tries the original GitHub URL first
+- Falls back to `ghfast.top` mirror
+- Falls back to `ghproxy.com` mirror
+- Retries up to 3 times with exponential backoff
+
+No extra flags needed — mirror fallback is automatic on download failure.
+
+### Option 3: Private repo with GitHub token
+
+If the repo is private or rate-limited:
+
+**Bash:**
+```bash
+curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
+  https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack <alias> --platform <PLATFORM>
+```
+
+**PowerShell:**
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> -Platform <PLATFORM> -GitHubToken $env:GITHUB_TOKEN
+```
+
+### Minimum files for local install
+
+| File | Required | Notes |
+|------|----------|-------|
+| `install.ps1` or `install.sh` | Yes | Main installer script |
+| `platforms.json` | Recommended | Platform metadata; fallback defaults exist if missing |
+| `packs/<pack-dir>/` | Yes | At least the pack you want to install |
+| `packs/<pack-dir>/pack-manifest.json` | Yes | Pack metadata read by installer |
+
+---
+
 ## About PEtFiSh
 
 **GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
-**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track.
+**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track. 4 core packs + 9 optional packs via petfish-market.

@@ -1,0 +1,31 @@
+{
+  "name": "petfish-style-skill",
+  "version": "4.0.1",
+  "legacy_names": ["petfish-style-rewriter"],
+  "description": "工程写作风格改写 — 去AI味、说人话、AI腔检测与改写、中英文紧凑混排",
+  "compatibility": "opencode",
+  "skill_count": 1,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": [
+    "fish-style"
+  ],
+  "commands": [],
+  "agents": [],
+  "contents": [
+    "AGENTS.md",
+    "README.md",
+    ".opencode/skills/fish-style/SKILL.md",
+    ".opencode/skills/fish-style/references/style-guide.md",
+    ".opencode/skills/fish-style/references/anti-patterns.md",
+    ".opencode/skills/fish-style/references/templates.md",
+    ".opencode/skills/fish-style/references/formatting-rules.md",
+    ".opencode/skills/fish-style/references/ai-slop-detector.md",
+    ".opencode/skills/fish-style/scripts/style_check.py",
+    ".opencode/skills/fish-style/scripts/normalize_text.py",
+    ".opencode/skills/fish-style/evals/evals.json",
+    ".opencode/skills/fish-style/examples/rewrite-examples.md",
+    ".opencode/skills/fish-style/assets/rewrite-request-template.md",
+    ".opencode/skills/fish-style/README.md"
+  ]
+}

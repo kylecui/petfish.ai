@@ -142,11 +142,11 @@ Gateway 与两个可选的外部组件进行交互：
 
 ```bash
 # Keyword matching
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py \
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py \
   --search "Docker"
 
 # Failure signal detection
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py \
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py \
   --check-failures "无法读取PDF文件"
 ```
 

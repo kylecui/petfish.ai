@@ -55,7 +55,7 @@ The `mkdocs-static-i18n` plugin with `fallback_to_default: true` means any missi
 The `generate_skill_reference.py` script produces:
 
 - `reference/packs/index.md` — pack catalog table
-- `reference/packs/<alias>.md` — one page per pack (12 packs)
+- `reference/packs/<alias>.md` — one page per pack (4 core + 9 optional = 13 packs)
 - `reference/skills/index.md` — skill catalog table
 - `reference/skills/<name>.md` — one page per skill (96 skills)
 

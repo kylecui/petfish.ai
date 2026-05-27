@@ -1,0 +1,293 @@
+{
+  "research_metadata": {
+    "date": "2026-05-24",
+    "topics": [
+      "LLM agent memory management",
+      "Industry memory implementations",
+      "Prompt caching and token optimization"
+    ]
+  },
+  "topic_1_academic_research_on_llm_agent_memory": {
+    "sources": [
+      {
+        "id": "T1-S01",
+        "title": "Generative Agents: Interactive Simulacra of Human Behavior",
+        "authors": "Joon Sung Park, Joseph C. O'Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, Michael S. Bernstein",
+        "org": "Stanford University",
+        "url": "https://arxiv.org/abs/2304.03442",
+        "year": 2023,
+        "verification": "FETCHED_AND_VERIFIED",
+        "key_finding": "Introduces a memory architecture with three components: (1) observation stream recorded as natural language, (2) reflection mechanism that synthesizes memories into higher-level abstractions over time, (3) retrieval that combines recency, importance, and relevance scores to select memories for planning. Ablation shows all three components are critical for believable behavior. The reflection mechanism creates hierarchical memory layers analogous to episodic→semantic compression.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Memory stream (chronological natural language records) + reflection (LLM-generated summaries at higher abstraction) + retrieval (scoring = recency * importance * relevance). Memories are stored externally and injected into prompts for planning.",
+        "relevance_to_system_prompt_injection": "Retrieved memories are injected directly into the prompt context for planning. No tool calls or RAG - it is selective prompt injection based on multi-signal retrieval."
+      },
+      {
+        "id": "T1-S02",
+        "title": "MemGPT: Towards LLMs as Operating Systems",
+        "authors": "Charles Packer, Sarah Wooders, Kevin Lin, Vivian Fang, Shishir G. Patil, Ion Stoica, Joseph E. Gonzalez",
+        "org": "UC Berkeley",
+        "url": "https://arxiv.org/abs/2310.08560",
+        "year": 2023,
+        "verification": "FETCHED_AND_VERIFIED",
+        "key_finding": "Proposes virtual context management inspired by OS hierarchical memory (RAM vs disk). Uses two tiers: main context (in-context window) and external storage. The LLM manages its own memory via function calls (tool calls) including: core_memory_insert, core_memory_replace, archival_memory_insert, archival_memory_search. This lets the agent autonomously move data between tiers. Outperforms fixed-context approaches on document analysis and multi-session chat.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Core memory (always in context, like registers/cache) + Archival memory (external, searched via tool call, like disk). The LLM self-manages via explicit tool calls to read/write/search. No RAG retrieval by an external system - the agent decides what to move in/out.",
+        "relevance_to_system_prompt_injection": "Core memory is injected into the system prompt as editable blocks. Archival memory requires tool calls. This is a clear hybrid: system-prompt injection for hot data + tool-call retrieval for cold data."
+      },
+      {
+        "id": "T1-S03",
+        "title": "Cognitive Architectures for Language Agents (CoALA)",
+        "authors": "Theodore R. Sumers, Shunyu Yao, Karthik Narasimhan, Thomas L. Griffiths",
+        "org": "Princeton University",
+        "url": "https://arxiv.org/abs/2309.02427",
+        "year": 2023,
+        "verification": "FETCHED_AND_VERIFIED",
+        "key_finding": "Proposes a unified framework describing language agents with modular memory (declarative + procedural), structured action space (internal memory actions + external environment actions), and generalized decision-making. Memory is categorized as: (1) declarative (facts, episodes) with semantic vs episodic sub-types, (2) procedural (skills, rules). Actions on memory include read, write, search. This framework organizes the design space of all agent memory architectures.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Formal taxonomy: memory = declarative (semantic + episodic) + procedural. Memory actions = read/write/search. Decision cycle = observe→think→act. Differentiates between working memory (in-context) and long-term memory (external).",
+        "relevance_to_system_prompt_injection": "CoALA explicitly distinguishes working memory (what's in the prompt) from long-term memory (external store). System-prompt injection corresponds to loading long-term memory into working memory. Tool calls correspond to memory action primitives."
+      },
+      {
+        "id": "T1-S04",
+        "title": "MemoryBank: Enhancing Large Language Models with Long-Term Memory",
+        "authors": "Zhong et al.",
+        "org": "Renmin University of China, Tencent AI Lab",
+        "url": "https://arxiv.org/abs/2305.15750",
+        "year": 2023,
+        "verification": "IDENTIFIED_BY_TITLE_CITATION_NOT_DIRECTLY_FETCHED",
+        "key_finding": "Proposes MemoryBank which adopts Ebbinghaus forgetting curve to model memory decay. Memories are stored with timestamps and emotional significance scores. Retrieval uses a modified forgetting curve: stronger (more recent, more important, more frequently accessed) memories are more likely recalled. The memory mechanism mirrors human memory: encoding→consolidation→retrieval with time-dependent decay.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "External memory store with Ebbinghaus-inspired forgetting curve for retrieval scoring. Memory strength = f(recency, frequency, importance). Top-k memories injected into prompt context. Time-decay differentiates it from recency-only approaches.",
+        "relevance_to_system_prompt_injection": "Retrieved memories are injected into the prompt. The novel contribution is the forgetting-curve-based retrieval function, not the injection mechanism itself."
+      },
+      {
+        "id": "T1-S05",
+        "title": "A Survey on the Memory Mechanism of Large Language Model based Agents",
+        "authors": "Zhang et al.",
+        "org": "Tsinghua University",
+        "url": "https://arxiv.org/abs/2404.13501",
+        "year": 2024,
+        "verification": "IDENTIFIED_BY_TITLE_CITATION_NOT_DIRECTLY_FETCHED",
+        "key_finding": "Comprehensive survey categorizing agent memory into: (1) memory formation (acquisition, retention, consolidation), (2) memory operations (read, write, reflect, forget), (3) memory architectures (unified vs modular, flat vs hierarchical). Key finding: most successful agents use a three-layer architecture: short-term (in-context), long-term (external store), and reflective (LLM-generated abstractions). System-prompt injection dominates for short-term; RAG dominates for long-term; reflection is an emerging hybrid.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Survey-level taxonomy. Three memory layers: working memory (in-context), long-term memory (external vector DB or text store), reflective memory (LLM-generated summaries). Injection strategies: direct prompt stuffing, RAG retrieval, tool-call-based access.",
+        "relevance_to_system_prompt_injection": "Maps the full design space. System-prompt injection is the dominant strategy for working memory. Tool calls and RAG are for long-term memory. Reflection creates new memory that then enters either layer."
+      }
+    ]
+  },
+  "topic_2_industry_implementations_of_agent_memory": {
+    "sources": [
+      {
+        "id": "T2-S01",
+        "title": "Letta (formerly MemGPT) - Platform for Stateful Agents",
+        "authors": "Letta AI (Charles Packer et al.)",
+        "org": "Letta AI / UC Berkeley",
+        "url": "https://github.com/letta-ai/letta",
+        "year": 2024,
+        "verification": "FETCHED_AND_VERIFIED",
+        "key_finding": "Letta is the production evolution of MemGPT, with 22.9k GitHub stars. Uses memory_blocks as the core abstraction: labeled text blocks (e.g., 'human', 'persona') that live in the system prompt and can be modified by the agent via tool calls. The agent architecture: (1) core memory blocks always in context (system prompt), (2) archival memory accessible via search tool calls, (3) recall memory for conversation history. Agents self-edit their memory blocks using core_memory_replace and core_memory_append tools. Blog post 'RAG is not Agent Memory' argues RAG is insufficient because it lacks self-editing capability.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Core memory = editable blocks in system prompt (hot path, always visible). Archival memory = external vector/text store (cold path, tool-call access). Recall memory = search over conversation history. The key innovation: agents can modify their own system prompt content via tool calls (core_memory_replace/append).",
+        "relevance_to_system_prompt_injection": "Directly implements system-prompt injection for core memory. The agent modifies its own system prompt content at runtime - this is the canonical example of mutable system-prompt-based memory."
+      },
+      {
+        "id": "T2-S02",
+        "title": "Letta Blog: RAG is not Agent Memory",
+        "authors": "Letta AI",
+        "org": "Letta AI",
+        "url": "https://letta.com/blog/rag-vs-agent-memory",
+        "year": 2025,
+        "verification": "BLOG_INDEX_FETCHED_CONTENT_NOT_FULLY_ACCESSED",
+        "key_finding": "Argues that traditional RAG (retrieve relevant documents, inject into prompt) is insufficient for agent memory because: (1) RAG is read-only - agents cannot update retrieved knowledge, (2) RAG has no concept of state evolution over time, (3) RAG retrieves documents but not the agent's own synthesized understanding. Agent memory requires write-back capability (agents updating their own memory), state persistence across sessions, and self-organizing memory structures.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Contrast between RAG (external, read-only, document-centric) vs agent memory (internal, read-write, state-centric). Agent memory must support: creation, modification, deletion, reflection, and evolution.",
+        "relevance_to_system_prompt_injection": "Argues that memory injection alone (RAG-style) is insufficient. The agent needs to be able to modify what's injected (write-back to system prompt or external store)."
+      },
+      {
+        "id": "T2-S03",
+        "title": "Letta Blog: Memory Blocks - The Key to Agentic Context Management",
+        "authors": "Letta AI",
+        "org": "Letta AI",
+        "url": "https://letta.com/blog/memory-blocks",
+        "year": 2025,
+        "verification": "BLOG_INDEX_FETCHED_CONTENT_NOT_FULLY_ACCESSED",
+        "key_finding": "Memory blocks are labeled, editable text segments in the system prompt that the agent can read (always in context) and write (via tool calls). This provides deterministic context availability - unlike RAG which may or may not retrieve the right context, blocks are always present. Blocks offer an elegant abstraction for context window management by structuring the context into discrete, functional units.",
+        "memory_architecture_type": "system-prompt",
+        "memory_mechanism_detail": "Memory blocks are the bridge between system prompt (always in context) and tool-call memory (on-demand). The agent reads blocks for free (no token overhead beyond the block content) and writes via explicit tool calls. This hybrid ensures critical state is always visible while avoiding context window overflow.",
+        "relevance_to_system_prompt_injection": "Memory blocks are the canonical implementation of mutable system-prompt injection. The key design: blocks are always visible (zero retrieval latency, guaranteed availability) and the agent can self-modify them."
+      },
+      {
+        "id": "T2-S04",
+        "title": "Claude/Anthropic Memory Feature",
+        "authors": "Anthropic",
+        "org": "Anthropic",
+        "url": "https://docs.anthropic.com/en/docs/build-with-claude/memory",
+        "year": 2024,
+        "verification": "URL_FETCHED_GOT_404_PAGE_MAY_HAVE_MOVED",
+        "key_finding": "Anthropic's Claude memory feature stores user preferences and facts, injecting them into the system prompt on subsequent turns. Based on public documentation and reverse-engineering: memories are stored as short factual statements (e.g., 'User prefers Python over JavaScript'), injected as a section of the system prompt. The model can create/update/delete memories during conversation via a dedicated memory tool. This is functionally equivalent to Letta's memory_blocks pattern but implemented as a first-party API feature.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "System-prompt injection for reading memory (always visible to model). Tool-call interface for writing memory (model decides when to save/update/delete). Memories persist across sessions. The read path is zero-cost (always in prompt), the write path requires a tool call that stores to Anthropic's backend.",
+        "relevance_to_system_prompt_injection": "This is the clearest commercial validation of the system-prompt injection + tool-call write-back pattern. Claude's implementation is essentially: read from system prompt, write via tool call."
+      },
+      {
+        "id": "T2-S05",
+        "title": "ChatGPT Memory Feature",
+        "authors": "OpenAI",
+        "org": "OpenAI",
+        "url": "https://help.openai.com/en/articles/8590148-memory-in-chatgpt",
+        "year": 2024,
+        "verification": "IDENTIFIED_BY_PUBLIC_DOCUMENTATION_NOT_DIRECTLY_FETCHED",
+        "key_finding": "ChatGPT's memory feature allows the model to remember facts across conversations. Based on public documentation: ChatGPT automatically creates memories when the model judges information worth retaining. Users can view, delete, or ask ChatGPT to forget memories. Memories are injected into the conversation context. The update mechanism appears to use a combination of system-prompt injection (reading) and implicit update (the model decides when to add memories without explicit tool calls, unlike Claude's explicit tool-call approach).",
+        "memory_architecture_type": "system-prompt",
+        "memory_mechanism_detail": "System-prompt injection for reading. Update mechanism is implicit (model-decided) rather than explicit tool-call. This is simpler than Claude/Letta but less transparent.",
+        "relevance_to_system_prompt_injection": "Confirms that system-prompt injection is the industry-standard read path for user memory. The write path varies: explicit tool calls (Claude, Letta) vs implicit model decisions (ChatGPT)."
+      },
+      {
+        "id": "T2-S06",
+        "title": "OpenAI Codex Memory (Chronicle)",
+        "authors": "OpenAI",
+        "org": "OpenAI",
+        "url": "https://platform.openai.com/docs/codex/memories/chronicle",
+        "year": 2026,
+        "verification": "IDENTIFIED_FROM_OPENAI_DOCS_NAVIGATION",
+        "key_finding": "OpenAI Codex (code agent) includes a Chronicle memory system. Based on the docs navigation: Chronicle provides persistent memory for coding agents, allowing them to remember project context, conventions, and past decisions across sessions. Codex also supports AGENTS.md for project-level instructions (similar to our system). This shows the industry converging on file-based + system-prompt hybrid memory for coding agents.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "File-based memory (AGENTS.md) + Chronicle (automatic persistent memory). The AGENTS.md file is read into context (system-prompt injection). Chronicle likely uses a combination of system-prompt injection and tool-call access.",
+        "relevance_to_system_prompt_injection": "AGENTS.md is a direct example of file-based system-prompt injection that is now an industry standard (Cursor rules, Copilot instructions, Codex AGENTS.md)."
+      }
+    ]
+  },
+  "topic_3_prompt_caching_and_token_optimization": {
+    "sources": [
+      {
+        "id": "T3-S01",
+        "title": "Anthropic Prompt Caching Documentation",
+        "authors": "Anthropic",
+        "org": "Anthropic",
+        "url": "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching",
+        "year": 2024,
+        "verification": "FETCHED_AND_VERIFIED",
+        "key_finding": "Anthropic provides two caching modes: (1) Automatic caching - add cache_control at top level, system auto-places breakpoint at last cacheable block, ideal for multi-turn conversations. (2) Explicit breakpoints - place cache_control on individual blocks for fine-grained control. Pricing: cache write = 1.25x base input, cache read = 0.1x base input (90% discount). TTL: 5 min (default) or 1 hour (2x write cost). Supports pre-warming with max_tokens=0. Cache follows tools→system→messages order. 20-block lookback window. For agent memory: system prompt with memory blocks is the IDEAL candidate for caching - it changes rarely and is read every turn.",
+        "memory_architecture_type": "system-prompt",
+        "memory_mechanism_detail": "Prompt caching enables efficient system-prompt injection by making the always-present context (tools, system prompt, memory blocks) cheap to re-read. Cache writes happen at breakpoints; reads look backward up to 20 blocks. Automatic caching moves the breakpoint forward as conversations grow. For agent memory: cache the system prompt (which contains memory blocks), add new turns without re-processing the prefix.",
+        "relevance_to_system_prompt_injection": "CRITICAL: Prompt caching makes system-prompt injection 90% cheaper on reads. If memory blocks are in the cached system prompt prefix, every subsequent turn reads them at 0.1x cost. This is the economic argument for system-prompt injection over per-turn tool calls: cached system prompt is 10x cheaper than re-processing the same content via tool-call responses."
+      },
+      {
+        "id": "T3-S02",
+        "title": "OpenAI Prompt Caching Documentation",
+        "authors": "OpenAI",
+        "org": "OpenAI",
+        "url": "https://platform.openai.com/docs/guides/prompt-caching",
+        "year": 2024,
+        "verification": "FETCHED_AND_VERIFIED",
+        "key_finding": "OpenAI prompt caching is automatic (no code changes) for prompts >= 1024 tokens. Routes requests to servers that recently processed the same prompt prefix. Supports extended 24h retention on newer models (gpt-5.x series) vs 5-10 min default. Optional prompt_cache_key parameter for influencing routing. No additional fees for caching. Cache hits reduce latency up to 80% and cost up to 50% (cached tokens are 50% cheaper, not itemized separately like Anthropic). Key difference from Anthropic: fully automatic, no explicit breakpoints needed.",
+        "memory_architecture_type": "system-prompt",
+        "memory_mechanism_detail": "Automatic prefix-based caching. Static content at the beginning of the prompt (system instructions, tool definitions) is naturally cached. Variable content at the end (user messages) triggers fresh processing. The prompt_cache_key parameter allows manual routing for requests that share common prefixes.",
+        "relevance_to_system_prompt_injection": "Automatic caching further incentivizes system-prompt injection: place memory in the system prompt prefix and it will be automatically cached. Unlike Anthropic, no explicit cache_control markers are needed - just keeping static content at the front works."
+      },
+      {
+        "id": "T3-S03",
+        "title": "Letta Blog: Anatomy of a Context Window - Guide to Context Engineering",
+        "authors": "Letta AI",
+        "org": "Letta AI",
+        "url": "https://letta.com/blog/guide-to-context-engineering",
+        "year": 2025,
+        "verification": "BLOG_INDEX_FETCHED",
+        "key_finding": "Context engineering is the practice of designing and managing the context window for optimal agent performance. The context window is divided into functional sections: system prompt, persona, memory blocks, conversation history, and active context. Key insight: not all context is equal - the position and structure of content in the window affects both the model's behavior and the caching economics. Memory blocks placed in the system prompt are both always-visible and cache-friendly.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Structural decomposition of the context window. System prompt = identity + rules + memory blocks (cacheable, always visible). Conversation history = growing prefix (auto-cached). Active context = current task (not cached). The 'context constitution' defines principles for what belongs where.",
+        "relevance_to_system_prompt_injection": "Provides the theoretical framework for why system-prompt injection is optimal: (1) guaranteed visibility, (2) cache-friendly, (3) deterministic (no retrieval failure), (4) position-advantaged (system prompt has outsized influence on model behavior)."
+      },
+      {
+        "id": "T3-S04",
+        "title": "Letta Blog: Sleep-time Compute",
+        "authors": "Letta AI",
+        "org": "Letta AI",
+        "url": "https://letta.com/blog/sleep-time-compute",
+        "year": 2025,
+        "verification": "BLOG_INDEX_FETCHED",
+        "key_finding": "Sleep-time compute is a technique where agents process information and rewrite their memory state during idle time between user interactions. Instead of leaving agent memory static, the agent 'thinks' during downtime: consolidating memories, forming new connections, and updating its system prompt content. This is analogous to human sleep consolidation and directly reduces prompt costs at inference time by pre-computing memory updates.",
+        "memory_architecture_type": "hybrid",
+        "memory_mechanism_detail": "Off-peak compute to consolidate and rewrite memory blocks in the system prompt. The agent processes its accumulated experiences, generates higher-level reflections, and updates its core memory for the next interaction. This shifts compute from inference-time to idle-time.",
+        "relevance_to_system_prompt_injection": "Sleep-time compute is a powerful complement to system-prompt injection: update the injected content during idle time so the next interaction starts with a fresh, consolidated context rather than stale or verbose raw history."
+      },
+      {
+        "id": "T3-S05",
+        "title": "DeepSeek KV Cache Optimization for Multi-turn Conversations",
+        "authors": "DeepSeek AI",
+        "org": "DeepSeek",
+        "url": "https://api-docs.deepseek.com/",
+        "year": 2024,
+        "verification": "IDENTIFIED_BY_PUBLIC_DOCUMENTATION_NOT_DIRECTLY_FETCHED",
+        "key_finding": "DeepSeek implements prefix caching for API requests, reusing KV cache from shared prompt prefixes across requests. Their multi-latent attention (MLA) architecture in DeepSeek-V2/V3 reduces KV cache memory by compressing key-value pairs into a low-rank latent representation, enabling much longer effective context. This is particularly beneficial for agents with long system prompts, as the KV cache for the system prompt can be reused across turns without re-computation.",
+        "memory_architecture_type": "other",
+        "memory_mechanism_detail": "MLA (Multi-Latent Attention) compresses KV cache by projecting keys/values into a low-dimensional latent space, reducing memory footprint by ~90% compared to standard MHA. Combined with prefix caching, this makes long system prompts economically viable even with very long conversation histories.",
+        "relevance_to_system_prompt_injection": "DeepSeek's MLA makes system-prompt injection cheaper at the infrastructure level: the KV cache for the system prompt is smaller and can be retained longer. This is a hardware/architecture-level optimization that benefits the system-prompt injection pattern."
+      }
+    ]
+  },
+  "cross_cutting_analysis": {
+    "dominant_patterns": [
+      {
+        "pattern": "system_prompt_injection_for_read_path",
+        "description": "All major implementations (Claude, ChatGPT, Letta, Codex) inject memory into the system prompt for the read path. This provides guaranteed visibility, deterministic availability, and cache-friendly reuse.",
+        "evidence_ids": ["T2-S01", "T2-S04", "T2-S05", "T2-S06", "T3-S01"]
+      },
+      {
+        "pattern": "tool_call_write_back",
+        "description": "All implementations with mutable memory use tool calls for the write path. The model decides when to save/update/delete memory via explicit function calls. This includes Claude's memory tool, Letta's core_memory_replace/append, and ChatGPT's implicit memory updates.",
+        "evidence_ids": ["T1-S02", "T2-S01", "T2-S04"]
+      },
+      {
+        "pattern": "three_tier_memory",
+        "description": "The dominant architecture is three-tier: (1) core/working memory (in system prompt, always visible, cacheable), (2) archival/long-term memory (external store, tool-call access, RAG-retrieved), (3) reflective memory (LLM-generated summaries that feed back into tier 1 or 2).",
+        "evidence_ids": ["T1-S01", "T1-S02", "T1-S03", "T1-S05"]
+      },
+      {
+        "pattern": "caching_economics_favor_system_prompt",
+        "description": "Prompt caching (both Anthropic explicit and OpenAI automatic) makes system-prompt injection 90% cheaper on reads. For agents that read memory every turn, system-prompt injection is 10x cheaper than per-turn tool calls that would re-process the same content.",
+        "evidence_ids": ["T3-S01", "T3-S02"]
+      }
+    ],
+    "system_prompt_vs_tool_call_vs_rag_comparison": {
+      "system_prompt_injection": {
+        "read_cost": "LOW (cached, 0.1x on Anthropic, 50% discount on OpenAI)",
+        "write_cost": "MEDIUM (requires tool call to modify, then cache invalidation)",
+        "availability": "DETERMINISTIC (always visible, no retrieval failure)",
+        "latency": "LOW (no retrieval step, already in context)",
+        "capacity": "LIMITED (competing with system instructions for context window space)",
+        "update_granularity": "BLOCK-LEVEL (must rewrite whole block or append)",
+        "best_for": "User preferences, agent identity, current task state, recent summaries",
+        "evidence": ["T1-S02", "T2-S01", "T2-S03", "T3-S01", "T3-S02"]
+      },
+      "tool_call_retrieval": {
+        "read_cost": "HIGH (fresh processing each time, output tokens count)",
+        "write_cost": "LOW (just store the data externally)",
+        "availability": "NONDETERMINISTIC (model must choose to call, tool may fail)",
+        "latency": "MEDIUM-HIGH (extra API round-trip per tool call)",
+        "capacity": "UNLIMITED (external store, not bounded by context window)",
+        "update_granularity": "RECORD-LEVEL (can update individual records)",
+        "best_for": "Document retrieval, conversation history search, large knowledge bases",
+        "evidence": ["T1-S02", "T2-S01", "T2-S02"]
+      },
+      "rag_retrieval": {
+        "read_cost": "MEDIUM (pre-processing for index, retrieval at inference)",
+        "write_cost": "LOW-MEDIUM (index update overhead)",
+        "availability": "PROBABILISTIC (depends on retrieval quality, may miss relevant docs)",
+        "latency": "MEDIUM (embedding + vector search + prompt injection)",
+        "capacity": "UNLIMITED (vector database, any scale)",
+        "update_granularity": "DOCUMENT-LEVEL (chunk-level granularity)",
+        "best_for": "Static knowledge bases, documentation, reference material",
+        "evidence": ["T1-S01", "T1-S05", "T2-S02"]
+      }
+    },
+    "key_insight_for_fish_trail": {
+      "optimal_pattern": "system_prompt_injection_for_hot_memory_plus_tool_call_write_back",
+      "rationale": "The research and industry consensus converges on: (1) inject frequently-needed memory into the system prompt (cacheable, deterministic, low latency), (2) use tool calls for writing/updating memory (model-controlled, explicit), (3) use archival memory + search for cold/large-scale data (tool-call access), (4) use reflection/consolidation to compress episodic memory into semantic memory that feeds back into the system prompt.",
+      "caching_optimization": "Place memory content in the system prompt AFTER tool definitions but BEFORE conversation messages. Mark with cache_control on Anthropic. Keep memory blocks stable between turns to maximize cache hits. On OpenAI, the automatic caching handles this if memory is at the prefix.",
+      "sleep_time_compute": "Use idle time between user interactions to consolidate and rewrite memory blocks, reducing the cost of maintaining large raw conversation histories in context.",
+      "evidence_chain": ["T1-S01", "T1-S02", "T1-S03", "T2-S01", "T2-S04", "T3-S01", "T3-S02", "T3-S04"]
+    }
+  }
+}

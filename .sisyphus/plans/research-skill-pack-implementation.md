@@ -46,7 +46,7 @@ This plan covers **Phase 0 + Phase 1 + Phase 2** (plan freeze → SKILL.md autho
 - Scripts with external deps use PEP 723 inline metadata or pack-level pyproject.toml
 - All scripts: non-interactive, `--help` support, structured output (JSON or Markdown)
 - SKILL.md descriptions bilingual (Chinese + English) per existing pack convention
-- Pack directory lives at `packs/research-skill-pack/`
+- Pack directory lives at `packs/optional/research-skill-pack/`
 - Installed skills are derived artifacts — not tracked in git
 
 ---
@@ -54,7 +54,7 @@ This plan covers **Phase 0 + Phase 1 + Phase 2** (plan freeze → SKILL.md autho
 ## 3. Pack Directory Structure
 
 ```text
-packs/research-skill-pack/
+packs/optional/research-skill-pack/
   README.md
   AGENTS.md
   CHANGELOG.md
@@ -393,13 +393,13 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 
 1. Check all 10 SKILL.md files exist:
    ```pwsh
-   Get-ChildItem -Path packs/research-skill-pack/.opencode/skills/*/SKILL.md | Measure-Object
+   Get-ChildItem -Path packs/optional/research-skill-pack/.opencode/skills/*/SKILL.md | Measure-Object
    ```
    Expected: Count = 10.
 
 2. Validate frontmatter for each SKILL.md:
    ```pwsh
-   Get-ChildItem -Path packs/research-skill-pack/.opencode/skills/*/SKILL.md | ForEach-Object {
+   Get-ChildItem -Path packs/optional/research-skill-pack/.opencode/skills/*/SKILL.md | ForEach-Object {
      $count = (Select-String -Path $_.FullName -Pattern "^---" | Measure-Object).Count
      "$($_.Directory.Name): $count"
    }
@@ -408,7 +408,7 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 
 3. Validate skill names match regex:
    ```pwsh
-   Get-ChildItem -Directory -Path packs/research-skill-pack/.opencode/skills/ | ForEach-Object {
+   Get-ChildItem -Directory -Path packs/optional/research-skill-pack/.opencode/skills/ | ForEach-Object {
      if ($_.Name -notmatch '^[a-z0-9]+(-[a-z0-9]+)*$') { "FAIL: $($_.Name)" }
    }
    ```
@@ -416,7 +416,7 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 
 4. Validate description length:
    ```pwsh
-   Get-ChildItem -Path packs/research-skill-pack/.opencode/skills/*/SKILL.md | ForEach-Object {
+   Get-ChildItem -Path packs/optional/research-skill-pack/.opencode/skills/*/SKILL.md | ForEach-Object {
      $desc = (Select-String -Path $_.FullName -Pattern "^description:" | Select-Object -First 1).Line
      if ($desc.Length -gt 1024 + "description: ".Length) { "TOO LONG: $($_.Directory.Name)" }
    }
@@ -425,18 +425,18 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 
 5. Run skill-lint on each skill:
    ```pwsh
-   Get-ChildItem -Directory -Path packs/research-skill-pack/.opencode/skills/ | ForEach-Object {
-     uv run packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path $_.FullName
+   Get-ChildItem -Directory -Path packs/optional/research-skill-pack/.opencode/skills/ | ForEach-Object {
+     uv run packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path $_.FullName
    }
    ```
    Expected: score ≥ 80 for each skill.
 
 6. Verify pack-manifest.json:
    ```pwsh
-   $manifest = Get-Content packs/research-skill-pack/pack-manifest.json | ConvertFrom-Json
+   $manifest = Get-Content packs/optional/research-skill-pack/pack-manifest.json | ConvertFrom-Json
    if ($manifest.skill_count -ne 10) { "FAIL: skill_count = $($manifest.skill_count)" }
-   $actualFiles = Get-ChildItem -Recurse -File packs/research-skill-pack/ -Exclude ".git*" | ForEach-Object {
-     $_.FullName.Replace((Resolve-Path packs/research-skill-pack/).Path, '').TrimStart('\','/')
+   $actualFiles = Get-ChildItem -Recurse -File packs/optional/research-skill-pack/ -Exclude ".git*" | ForEach-Object {
+     $_.FullName.Replace((Resolve-Path packs/optional/research-skill-pack/).Path, '').TrimStart('\','/')
    }
    # Verify all actual files are listed in $manifest.contents
    ```
@@ -445,13 +445,13 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 7. Verify all asset/template files exist:
    ```pwsh
    $requiredFiles = @(
-     "packs/research-skill-pack/.opencode/skills/research-brief-framer/assets/research-brief-template.md",
-     "packs/research-skill-pack/.opencode/skills/research-literature-access/assets/literature-access-template.json",
-     "packs/research-skill-pack/.opencode/skills/research-note-capture/assets/excerpt-notes-empty.jsonl",
-     "packs/research-skill-pack/.opencode/skills/research-insight-log/assets/insight-log-empty.jsonl",
-     "packs/research-skill-pack/.opencode/skills/research-evidence-ledger/assets/evidence-ledger-empty.jsonl",
-     "packs/research-skill-pack/.opencode/skills/research-report-writer/assets/research-report-template.md",
-     "packs/research-skill-pack/.opencode/skills/research-quality-reviewer/references/quality-gates.md"
+     "packs/optional/research-skill-pack/.opencode/skills/research-brief-framer/assets/research-brief-template.md",
+     "packs/optional/research-skill-pack/.opencode/skills/research-literature-access/assets/literature-access-template.json",
+     "packs/optional/research-skill-pack/.opencode/skills/research-note-capture/assets/excerpt-notes-empty.jsonl",
+     "packs/optional/research-skill-pack/.opencode/skills/research-insight-log/assets/insight-log-empty.jsonl",
+     "packs/optional/research-skill-pack/.opencode/skills/research-evidence-ledger/assets/evidence-ledger-empty.jsonl",
+     "packs/optional/research-skill-pack/.opencode/skills/research-report-writer/assets/research-report-template.md",
+     "packs/optional/research-skill-pack/.opencode/skills/research-quality-reviewer/references/quality-gates.md"
    )
    $requiredFiles | ForEach-Object { if (!(Test-Path $_)) { "MISSING: $_" } }
    ```
@@ -460,11 +460,11 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 8. Verify pack infrastructure files exist:
    ```pwsh
    $infraFiles = @(
-     "packs/research-skill-pack/README.md",
-     "packs/research-skill-pack/AGENTS.md",
-     "packs/research-skill-pack/CHANGELOG.md",
-     "packs/research-skill-pack/pack-manifest.json",
-     "packs/research-skill-pack/opencode.json.example"
+     "packs/optional/research-skill-pack/README.md",
+     "packs/optional/research-skill-pack/AGENTS.md",
+     "packs/optional/research-skill-pack/CHANGELOG.md",
+     "packs/optional/research-skill-pack/pack-manifest.json",
+     "packs/optional/research-skill-pack/opencode.json.example"
    )
    $infraFiles | ForEach-Object { if (!(Test-Path $_)) { "MISSING: $_" } }
    ```
@@ -473,8 +473,8 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 9. Verify eval skeletons exist:
    ```pwsh
    $evalFiles = @(
-     "packs/research-skill-pack/evals/trigger/core-trigger-evals.json",
-     "packs/research-skill-pack/evals/output/mvp-evals.json"
+     "packs/optional/research-skill-pack/evals/trigger/core-trigger-evals.json",
+     "packs/optional/research-skill-pack/evals/output/mvp-evals.json"
    )
    $evalFiles | ForEach-Object { if (!(Test-Path $_)) { "MISSING: $_" } }
    ```
@@ -482,7 +482,7 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 
 10. Verify reference files exist (at least one per skill that declares references/):
     ```pwsh
-    $refDirs = Get-ChildItem -Directory -Path packs/research-skill-pack/.opencode/skills/*/references -ErrorAction SilentlyContinue
+    $refDirs = Get-ChildItem -Directory -Path packs/optional/research-skill-pack/.opencode/skills/*/references -ErrorAction SilentlyContinue
     $refDirs | ForEach-Object {
       $count = (Get-ChildItem -File $_.FullName | Measure-Object).Count
       if ($count -eq 0) { "EMPTY: $($_.FullName)" }
@@ -569,7 +569,7 @@ This example is saved as `schemas/examples/quality-review-example.json` and vali
 7. No pip install in any file:
    ```pwsh
    Set-Location -Path (git rev-parse --show-toplevel)
-   Select-String -Path (Get-ChildItem -Recurse -File packs/research-skill-pack/) -Pattern "pip install"
+   Select-String -Path (Get-ChildItem -Recurse -File packs/optional/research-skill-pack/) -Pattern "pip install"
    ```
    Expected: no matches.
 

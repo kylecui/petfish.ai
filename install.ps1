@@ -10,7 +10,7 @@
 
 .PARAMETER Pack
     Pack name or alias. Use 'all' to install every pack.
-    Aliases: course, testdocs, deploy, init, petfish, companion, ppt, trust, research
+    Aliases: course, testdocs, deploy, init, petfish, companion, ppt, trust, research, toolchain
     Full names also accepted.
 
 .PARAMETER Target
@@ -102,7 +102,236 @@ $PlatformExplicitlyPassed = $PSBoundParameters.ContainsKey("Platform")
 # Resolve script root (works whether run directly or piped)
 $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD.Path }
 $PacksDir = Join-Path $ScriptRoot "packs"
-$PlatformRegistry = Get-Content (Join-Path $ScriptRoot "platforms.json") -Raw -Encoding UTF8 | ConvertFrom-Json
+
+# Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
+function Find-PackDir([string]$name) {
+    $corePath = Join-Path $PacksDir "core" $name
+    $optionalPath = Join-Path $PacksDir "optional" $name
+    if (Test-Path $corePath) { return $corePath }
+    if (Test-Path $optionalPath) { return $optionalPath }
+    return (Join-Path $PacksDir $name)
+}
+$platformsFile = Join-Path $ScriptRoot "platforms.json"
+if (Test-Path $platformsFile) {
+    $PlatformRegistry = Get-Content $platformsFile -Raw -Encoding UTF8 | ConvertFrom-Json
+} else {
+    # Fallback: hardcoded platform definitions (synced from platforms.json)
+    # Used when install.ps1 is downloaded standalone without the full repo
+    $PlatformRegistry = ConvertFrom-Json @'
+{
+  "platforms": {
+    "opencode": {
+      "display_name": "OpenCode",
+      "project": {
+        "skills_dir": ".opencode/skills",
+        "commands_dir": ".opencode/commands",
+        "agents_dir": ".opencode/agents",
+        "config_file": "opencode.json",
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.config/opencode/skills",
+        "commands_dir": "~/.config/opencode/commands",
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".opencode", "opencode.json"],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Primary development platform for PEtFiSh."
+    },
+    "claude": {
+      "display_name": "Claude Code",
+      "project": {
+        "skills_dir": ".claude/skills",
+        "commands_dir": ".claude/commands",
+        "agents_dir": ".claude/agents",
+        "config_file": ".claude/settings.json",
+        "instructions_file": "CLAUDE.md",
+        "rules_dir": ".claude/rules"
+      },
+      "global": {
+        "skills_dir": "~/.claude/skills",
+        "commands_dir": "~/.claude/commands",
+        "agents_dir": "~/.claude/agents",
+        "config_file": "~/.claude/settings.json",
+        "instructions_file": "~/.claude/CLAUDE.md"
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".claude", "CLAUDE.md"],
+      "instructions_merge_strategy": "marker_based",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": "CLAUDE.md",
+        "method": "rename_with_header"
+      },
+      "notes": "SKILL.md format is fully compatible with OpenCode."
+    },
+    "codex": {
+      "display_name": "Codex",
+      "project": {
+        "skills_dir": ".agents/skills",
+        "commands_dir": null,
+        "agents_dir": ".codex/agents",
+        "config_file": ".codex/config.toml",
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.agents/skills",
+        "commands_dir": null,
+        "agents_dir": "~/.codex/agents",
+        "config_file": "~/.codex/config.toml",
+        "instructions_file": "~/.codex/AGENTS.md"
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".codex"],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Uses AGENTS.md natively."
+    },
+    "cursor": {
+      "display_name": "Cursor",
+      "project": {
+        "skills_dir": ".cursor/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null,
+        "rules_dir": ".cursor/rules"
+      },
+      "global": {
+        "skills_dir": null,
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".cursor", ".cursorrules"],
+      "instructions_merge_strategy": "mdc_rules",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": ".cursor/rules/petfish-agents.mdc",
+        "method": "wrap_as_mdc"
+      },
+      "condense": {
+        "max_tokens": 8000
+      },
+      "notes": "Supports SKILL.md natively."
+    },
+    "copilot": {
+      "display_name": "GitHub Copilot",
+      "project": {
+        "skills_dir": ".github/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": ".github/copilot-instructions.md",
+        "rules_dir": ".github/instructions"
+      },
+      "global": {
+        "skills_dir": null,
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".github/copilot-instructions.md", ".github/skills"],
+      "instructions_merge_strategy": "marker_based",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": ".github/copilot-instructions.md",
+        "method": "rename_with_header"
+      },
+      "notes": "Supports SKILL.md under .github/skills/."
+    },
+    "windsurf": {
+      "display_name": "Windsurf",
+      "project": {
+        "skills_dir": ".windsurf/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": ".windsurfrules",
+        "rules_dir": ".windsurf/rules"
+      },
+      "global": {
+        "skills_dir": null,
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": "~/.codeium/windsurf/config.json",
+        "instructions_file": "~/.codeium/windsurf/memories/global_rules.md"
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".windsurf", ".windsurfrules"],
+      "instructions_merge_strategy": "marker_based",
+      "instructions_translation": {
+        "source": "AGENTS.md",
+        "target": ".windsurfrules",
+        "method": "rename_with_header"
+      },
+      "condense": {
+        "max_tokens": 6000
+      },
+      "notes": "Supports SKILL.md under .windsurf/skills/."
+    },
+    "antigravity": {
+      "display_name": "Antigravity",
+      "project": {
+        "skills_dir": ".agents/skills",
+        "commands_dir": ".agents/workflows",
+        "agents_dir": ".agents/rules",
+        "config_file": null,
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.gemini/antigravity/skills",
+        "commands_dir": "~/.gemini/antigravity/workflows",
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [".agents", "GEMINI.md"],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Google Gemini-based platform."
+    },
+    "universal": {
+      "display_name": "Universal (cross-platform)",
+      "project": {
+        "skills_dir": ".agents/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": "AGENTS.md",
+        "rules_dir": null
+      },
+      "global": {
+        "skills_dir": "~/.agents/skills",
+        "commands_dir": null,
+        "agents_dir": null,
+        "config_file": null,
+        "instructions_file": null
+      },
+      "skill_format": "SKILL.md",
+      "detect_markers": [],
+      "instructions_merge_strategy": "marker_based",
+      "notes": "Fallback cross-platform path."
+    }
+  },
+  "platform_groups": {
+    "all": ["opencode", "claude", "codex", "cursor", "copilot", "windsurf", "antigravity"],
+    "primary": ["opencode", "claude", "codex"],
+    "ide": ["cursor", "copilot", "windsurf"],
+    "cli": ["opencode", "claude", "codex", "antigravity"]
+  }
+}
+'@
+}
 
 # Pack alias registry
 $Aliases = @{
@@ -113,7 +342,8 @@ $Aliases = @{
     "petfish"  = "petfish-style-skill"
     "companion" = "petfish-companion-skill"
     "ppt"      = "opencode-ppt-skills"
-    "trust"    = "trustskills-governance-pack"
+    "trust"     = "trustskills-governance-pack"
+    "fish-guard" = "trustskills-governance-pack"
     "calibrate" = "anti-sycophancy-calibration-pack"
     "context"  = "fish-trail"
     "research" = "research-skill-pack"
@@ -129,6 +359,8 @@ $Aliases = @{
     "fish-trail"     = "fish-trail"
     "fish-research"  = "research-skill-pack"
     "fish-reflect"   = "fish-reflection-pack"
+    "fish-brain"     = "petfish-companion-skill"
+    "toolchain"      = "petfish-toolchain-skill"
 }
 
 # --- Platform path configuration ---
@@ -365,17 +597,21 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
 # Install system-prompt-rules plugin file to .opencode/plugin/ (v0.11.0+)
 # Only for OpenCode platform when L1 packs are present.
 function Install-PluginFile([string]$sourceRoot, [string]$targetDir) {
-    $srcPlugin = Join-Path $sourceRoot "lib" "plugin" "system-prompt-rules.ts"
-    if (-not (Test-Path $srcPlugin)) { return }
+    $srcPluginDir = Join-Path $sourceRoot "lib" "plugin"
+    if (-not (Test-Path $srcPluginDir)) { return }
 
     $pluginDir = Join-Path $targetDir ".opencode" "plugin"
     if (-not (Test-Path $pluginDir)) {
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
     }
-
-    $dstPlugin = Join-Path $pluginDir "system-prompt-rules.ts"
-    Copy-Item -Path $srcPlugin -Destination $dstPlugin -Force
-    Write-Host "    + .opencode/plugin/system-prompt-rules.ts" -ForegroundColor DarkGreen
+    Get-ChildItem -Path $srcPluginDir -Filter "*.ts" | Where-Object {
+        # topic-detector.ts is inlined into system-prompt-context-inject.ts (#160/#161)
+        # and must NOT be deployed as a standalone plugin (causes constructor crash)
+        $_.Name -ne "topic-detector.ts"
+    } | ForEach-Object {
+        Copy-Item -Path $_.FullName -Destination (Join-Path $pluginDir $_.Name) -Force
+        Write-Host "    + .opencode/plugin/$($_.Name)" -ForegroundColor DarkGreen
+    }
 }
 
 # Register plugin tuple in opencode.json (idempotent)
@@ -383,31 +619,41 @@ function Register-PluginInConfig([string]$configFile) {
     if (-not (Test-Path $configFile)) { return }
 
     $raw = Get-Content $configFile -Raw -Encoding UTF8
-    $json = $raw | ConvertFrom-Json
+    $json = ConvertFrom-Json $raw
 
-    $pluginPath = ".opencode/plugin/system-prompt-rules.ts"
-    $pluginTuple = @($pluginPath, @{ mode = "all" })
+    $pluginsToRegister = @(
+        @(".opencode/plugin/system-prompt-rules.ts", @{ mode = "all" }),
+        @(".opencode/plugin/system-prompt-context-inject.ts", @{ maxTopics = 5; maxSummaryLen = 200 })
+    )
 
-    # Check if plugin array exists and already contains this plugin
-    if ($json.PSObject.Properties["plugin"]) {
-        $existing = $json.plugin
-        foreach ($entry in $existing) {
+    if (-not ($json.PSObject.Properties["plugin"])) {
+        $json | Add-Member -NotePropertyName "plugin" -NotePropertyValue @()
+    }
+
+    $changed = $false
+    foreach ($pt in $pluginsToRegister) {
+        $pluginPath = $pt[0]
+        $pluginOpts = $pt[1]
+        $alreadyExists = $false
+        foreach ($entry in $json.plugin) {
             if ($entry -is [System.Collections.IEnumerable] -and $entry.Count -ge 1) {
                 if ($entry[0] -eq $pluginPath) {
-                    # Already registered
-                    return
+                    $alreadyExists = $true
+                    break
                 }
             }
         }
-        # Append to existing plugin array
-        $json.plugin = @($existing) + ,@(,$pluginTuple)
-    } else {
-        # Create plugin array with single tuple
-        $json | Add-Member -NotePropertyName "plugin" -NotePropertyValue @(,@($pluginTuple))
+        if (-not $alreadyExists) {
+            $tuple = @($pluginPath, $pluginOpts)
+            $json.plugin = @($json.plugin) + ,@(,$tuple)
+            $changed = $true
+        }
     }
 
-    $json | ConvertTo-Json -Depth 10 | Set-Content $configFile -Encoding UTF8
-    Write-Host "    + opencode.json (plugin registered)" -ForegroundColor DarkGreen
+    if ($changed) {
+        $json | ConvertTo-Json -Depth 10 | Set-Content $configFile -Encoding UTF8
+        Write-Host "    + opencode.json (plugins registered)" -ForegroundColor DarkGreen
+    }
 }
 
 # v0.10.x→v0.11.x migration: remove inline pack section from AGENTS.md
@@ -455,7 +701,7 @@ function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
     Write-Host "`n  Uninstalling pack: $packName (alias: $packAlias)" -ForegroundColor Yellow
 
     # Step 1: Read pack-manifest.json from source
-    $packRoot = Join-Path $PacksDir $packName
+    $packRoot = Find-PackDir $packName
     $manifestFile = Join-Path $packRoot "pack-manifest.json"
     if (-not (Test-Path $manifestFile)) {
         Write-Error "Pack manifest not found: $manifestFile"
@@ -595,7 +841,7 @@ function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
             if ($targetRegistry -and (Test-Path $regFile)) {
                 foreach ($otherPack in $registry.packs.PSObject.Properties) {
                     if ($otherPack.Name -eq $packName) { continue }
-                    $otherRoot = Join-Path $PacksDir $otherPack.Name
+                    $otherRoot = Find-PackDir $otherPack.Name
                     $otherExample = Join-Path $otherRoot "opencode.example.json"
                     if (Test-Path $otherExample) {
                         $otherJson = Get-Content $otherExample -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -677,7 +923,7 @@ function Uninstall-GlobalPack([string]$packAlias) {
 
     Write-Host "`n  Uninstalling pack (global): $packName (alias: $packAlias)" -ForegroundColor Yellow
 
-    $packRoot = Join-Path $PacksDir $packName
+    $packRoot = Find-PackDir $packName
     $manifestFile = Join-Path $packRoot "pack-manifest.json"
     if (-not (Test-Path $manifestFile)) {
         Write-Error "Pack manifest not found: $manifestFile"
@@ -1172,15 +1418,228 @@ function Convert-OpencodeExampleToClaudeSettings([string]$srcFile, [string]$dstF
     return "created"
 }
 
+# --- Community pack support ---
+$script:CommunityStagingDir = ""
+
+function Test-CommunityPack([string]$name) {
+    return $name -like "community/*"
+}
+
+function Parse-CommunitySpec([string]$spec) {
+    # Strip leading "community/"
+    $remainder = $spec.Substring("community/".Length)
+    $parts = $remainder -split '/', 3
+    $owner = $parts[0]
+    $repo = if ($parts.Length -ge 2) { $parts[1] } else { "" }
+    $ref = if ($parts.Length -ge 3) { $parts[2] } else { "" }
+    return @{ Owner = $owner; Repo = $repo; Ref = $ref }
+}
+
+function Download-CommunityPack([string]$spec) {
+    $parsed = Parse-CommunitySpec $spec
+    $owner = $parsed.Owner
+    $repo = $parsed.Repo
+    $ref = $parsed.Ref
+
+    if (-not $owner -or -not $repo) {
+        Write-Error "Invalid community pack spec '$spec'. Expected: community/<owner>/<repo>[/<ref>]"
+        exit 1
+    }
+
+    $packDirName = "community--${owner}--${repo}"
+
+    # Create staging dir (once per install run)
+    if (-not $script:CommunityStagingDir -or -not (Test-Path $script:CommunityStagingDir)) {
+        $script:CommunityStagingDir = Join-Path ([System.IO.Path]::GetTempPath()) "petfish-community-$([System.IO.Path]::GetRandomFileName())"
+        New-Item -ItemType Directory -Path $script:CommunityStagingDir -Force | Out-Null
+    }
+
+    $stagedPack = Join-Path $script:CommunityStagingDir $packDirName
+    if (Test-Path $stagedPack) {
+        # Already downloaded in this run
+        return $packDirName
+    }
+
+    $githubRef = if ($ref) { $ref } else { "main" }
+    $tarballUrl = "https://github.com/${owner}/${repo}/archive/refs/heads/${githubRef}.tar.gz"
+
+    Write-Host "  [community] Downloading ${owner}/${repo} (ref: ${githubRef})..." -ForegroundColor Cyan
+
+    $dlTmp = Join-Path ([System.IO.Path]::GetTempPath()) "petfish-dl-$([System.IO.Path]::GetRandomFileName())"
+    New-Item -ItemType Directory -Path $dlTmp -Force | Out-Null
+
+    $dlOk = $false
+    $archivePath = Join-Path $dlTmp "archive.tar.gz"
+
+    # Try tarball download with Invoke-WebRequest (retry up to 3 times for rate limits)
+    $headers = @{}
+    $token = if ($GitHubToken) { $GitHubToken } elseif ($env:GITHUB_TOKEN) { $env:GITHUB_TOKEN } else { $null }
+    if ($token) { $headers["Authorization"] = "token $token" }
+    for ($attempt = 1; $attempt -le 3; $attempt++) {
+        try {
+            Invoke-WebRequest -Uri $tarballUrl -OutFile $archivePath -Headers $headers -UseBasicParsing -ErrorAction Stop
+            $dlOk = $true
+            break
+        } catch {
+            $statusCode = $null
+            if ($_.Exception.Response) { $statusCode = [int]$_.Exception.Response.StatusCode }
+            if ($statusCode -in @(429, 403) -and $attempt -lt 3) {
+                $wait = [math]::Pow(2, $attempt)
+                Write-Host "  [community] Rate limited (HTTP $statusCode), retrying in ${wait}s... (attempt $attempt/3)" -ForegroundColor Yellow
+                Start-Sleep -Seconds $wait
+            } else {
+                break
+            }
+        }
+    }
+
+    if ($dlOk) {
+        # Extract tarball using tar (available on Windows 10+)
+        try {
+            tar -xzf $archivePath -C $dlTmp 2>$null
+            $extracted = Get-ChildItem -Path $dlTmp -Directory | Where-Object { $_.Name -ne "archive.tar.gz" } | Select-Object -First 1
+            if (-not $extracted) {
+                Write-Error "Failed to extract community pack tarball for ${owner}/${repo}"
+                Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+                exit 1
+            }
+            Move-Item -Path $extracted.FullName -Destination $stagedPack -Force
+        } catch {
+            $dlOk = $false
+        }
+    }
+
+    if (-not $dlOk) {
+        # Fall back to git clone
+        $gitCmd = Get-Command git -ErrorAction SilentlyContinue
+        if (-not $gitCmd) {
+            Write-Error "Cannot download community pack ${owner}/${repo}. Neither tarball download nor git clone available."
+            Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+            exit 1
+        }
+        Write-Host "  [community] Tarball download failed, falling back to git clone..." -ForegroundColor Yellow
+        $cloneUrl = "https://github.com/${owner}/${repo}.git"
+        $token = if ($GitHubToken) { $GitHubToken } elseif ($env:GITHUB_TOKEN) { $env:GITHUB_TOKEN } else { $null }
+        if ($token) { $cloneUrl = "https://${token}@github.com/${owner}/${repo}.git" }
+        $cloneArgs = @("clone", "--depth", "1")
+        if ($ref) { $cloneArgs += @("--branch", $ref) }
+        $cloneArgs += @($cloneUrl, $stagedPack)
+        $cloneOk = $false
+        for ($attempt = 1; $attempt -le 3; $attempt++) {
+            & git @cloneArgs 2>$null
+            if ($LASTEXITCODE -eq 0) { $cloneOk = $true; break }
+            if ($attempt -lt 3) {
+                $wait = [math]::Pow(2, $attempt)
+                Write-Host "  [community] git clone failed, retrying in ${wait}s... (attempt $attempt/3)" -ForegroundColor Yellow
+                Start-Sleep -Seconds $wait
+                Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+        if (-not $cloneOk) {
+            Write-Error "Failed to clone community pack ${owner}/${repo}"
+            Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+            exit 1
+        }
+    }
+    Remove-Item -Path $dlTmp -Recurse -Force -ErrorAction SilentlyContinue
+
+    # Validate: must have .opencode/ with at least skills/ or commands/ or agents/
+    $stagedOpencode = Join-Path $stagedPack ".opencode"
+    if (-not (Test-Path $stagedOpencode)) {
+        Write-Error "Community pack ${owner}/${repo} has no .opencode/ directory. Not a valid skill pack."
+        Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+        exit 1
+    }
+
+    $hasContent = $false
+    if (Test-Path (Join-Path $stagedOpencode "skills")) { $hasContent = $true }
+    if (Test-Path (Join-Path $stagedOpencode "commands")) { $hasContent = $true }
+    if (Test-Path (Join-Path $stagedOpencode "agents")) { $hasContent = $true }
+    if (-not $hasContent) {
+        Write-Error "Community pack ${owner}/${repo} .opencode/ has no skills/, commands/, or agents/. Not a valid skill pack."
+        Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+        exit 1
+    }
+
+    # Generate a minimal pack-manifest.json if missing
+    $manifestPath = Join-Path $stagedPack "pack-manifest.json"
+    if (-not (Test-Path $manifestPath)) {
+        python3 -c "
+import json, os, sys
+
+pack_dir = sys.argv[1]
+owner = sys.argv[2]
+repo = sys.argv[3]
+opencode_dir = os.path.join(pack_dir, '.opencode')
+skills = []
+commands = []
+agents = []
+skills_dir = os.path.join(opencode_dir, 'skills')
+if os.path.isdir(skills_dir):
+    skills = [d for d in os.listdir(skills_dir) if os.path.isdir(os.path.join(skills_dir, d))]
+commands_dir = os.path.join(opencode_dir, 'commands')
+if os.path.isdir(commands_dir):
+    commands = [d for d in os.listdir(commands_dir)]
+agents_dir = os.path.join(opencode_dir, 'agents')
+if os.path.isdir(agents_dir):
+    agents = [d for d in os.listdir(agents_dir) if os.path.isdir(os.path.join(agents_dir, d))]
+
+manifest = {
+    'name': f'community/{owner}/{repo}',
+    'version': '0.0.0',
+    'description': f'Community skill pack from {owner}/{repo}',
+    'skills': sorted(skills),
+    'commands': sorted(commands),
+    'agents': sorted(agents)
+}
+with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+    f.write(chr(10))
+" "$stagedPack" "$owner" "$repo"
+        Write-Host "  [community] Generated pack-manifest.json" -ForegroundColor DarkCyan
+    } else {
+        # Validate existing manifest has required fields
+        $manifestPath = Join-Path $stagedPack "pack-manifest.json"
+        try {
+            $m = Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $missing = @()
+            foreach ($field in @('name', 'version', 'description', 'skills')) {
+                if (-not ($m.PSObject.Properties.Name -contains $field)) { $missing += $field }
+            }
+            if ($missing.Count -gt 0) {
+                throw "Missing required fields: $($missing -join ', ')"
+            }
+            if ($m.skills -isnot [array]) {
+                throw "'skills' must be an array"
+            }
+        } catch {
+            Write-Error "  [community] Invalid pack-manifest.json in ${owner}/${repo}: $_"
+            Remove-Item -Path $stagedPack -Recurse -Force -ErrorAction SilentlyContinue
+            exit 1
+        }
+    }
+
+    return $packDirName
+}
+
+function Remove-CommunityStagingDir {
+    if ($script:CommunityStagingDir -and (Test-Path $script:CommunityStagingDir)) {
+        Remove-Item -Path $script:CommunityStagingDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+}
+
 function Get-PackFullName([string]$name) {
+    if (Test-CommunityPack $name) {
+        return (Download-CommunityPack $name)
+    }
     if ($Aliases.ContainsKey($name)) { return $Aliases[$name] }
-    if (Test-Path (Join-Path $PacksDir $name)) { return $name }
+    if ((Test-Path (Join-Path $PacksDir "core" $name)) -or (Test-Path (Join-Path $PacksDir "optional" $name))) { return $name }
     Write-Error "Unknown pack: '$name'. Use -List to see available packs."
     exit 1
 }
 
 function Get-AllPacks {
-    Get-ChildItem -Path $PacksDir -Directory | ForEach-Object { $_.Name }
+    Get-ChildItem -Path (Join-Path $PacksDir "core"), (Join-Path $PacksDir "optional") -Directory | ForEach-Object { $_.Name }
 }
 
 function Show-PackList {
@@ -1188,7 +1647,8 @@ function Show-PackList {
     Write-Host ("-" * 60)
     foreach ($dir in (Get-AllPacks)) {
         $alias = ($Aliases.GetEnumerator() | Where-Object { $_.Value -eq $dir } | Select-Object -First 1).Key
-        $manifest = Join-Path (Join-Path $PacksDir $dir) "pack-manifest.json"
+        $packDirPath = Find-PackDir $dir
+        $manifest = Join-Path $packDirPath "pack-manifest.json"
         $info = ""
         if (Test-Path $manifest) {
             $m = Get-Content $manifest -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -1200,6 +1660,35 @@ function Show-PackList {
         Write-Host "  $dir$aliasLabel$info"
     }
     Write-Host ""
+
+    # Show installed community packs from target registry
+    $regFile = Join-Path $Target ".opencode" "installed-packs.json"
+    if (Test-Path $regFile) {
+        try {
+            $reg = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            $packs = $reg.packs
+            if ($packs) {
+                $communityPacks = $packs.PSObject.Properties | Where-Object { $_.Name -like "community/*" } | Sort-Object Name
+                if ($communityPacks) {
+                    Write-Host "Community packs (installed):" -ForegroundColor Cyan
+                    Write-Host ("-" * 60)
+                    foreach ($cp in $communityPacks) {
+                        $name = $cp.Name
+                        $info = $cp.Value
+                        $version = if ($info.PSObject.Properties['version']) { $info.version } else { "unknown" }
+                        $skills = if ($info.PSObject.Properties['skill_count']) { $info.skill_count } elseif ($info.PSObject.Properties['skills']) { $info.skills.Count } else { 0 }
+                        $desc = if ($info.PSObject.Properties['description']) { $info.description } else { "" }
+                        $line = "  $name  v$version  skills=$skills"
+                        if ($desc) { $line += "  ($desc)" }
+                        Write-Host $line
+                    }
+                    Write-Host ""
+                }
+            }
+        } catch {
+            # Silently ignore registry read failures
+        }
+    }
 }
 
 function Get-RestartHint([string]$platformName) {
@@ -1230,7 +1719,14 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
     $script:skipped = 0
 
     foreach ($packName in $packs) {
-        $packOpencode = Join-Path (Join-Path $PacksDir $packName) ".opencode"
+        # Resolve pack root: community packs live in staging dir, official packs in PacksDir
+        $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
+            Join-Path $script:CommunityStagingDir $packName
+        } else {
+            Find-PackDir $packName
+        }
+
+        $packOpencode = Join-Path $packRoot ".opencode"
         if (-not (Test-Path $packOpencode)) {
             Write-Warning "Pack '$packName' has no .opencode/ directory. Skipping."
             continue
@@ -1238,7 +1734,6 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
 
         Write-Host "`n  Installing pack: $packName" -ForegroundColor Green
 
-        $packRoot = Join-Path $PacksDir $packName
         $manifestFile = Join-Path $packRoot "pack-manifest.json"
         $forceThisPack = $ForceInstall
 
@@ -1265,11 +1760,21 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
             $hasL1 = $false
             if ($platformName -eq "opencode") {
-                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
+                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","petfish-toolchain-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
                 $hasL1 = $L1Packs -contains $packName
             }
 
             if ($hasL1) {
+                # Also deploy any extra agents-rules files from the pack
+                $extraRulesDir = Join-Path $packOpenCode "agents-rules"
+                if (Test-Path $extraRulesDir) {
+                    $targetRulesDir = Join-Path $Target ".opencode" "agents-rules"
+                    New-Item -ItemType Directory -Path $targetRulesDir -Force | Out-Null
+                    Get-ChildItem -Path $extraRulesDir -Filter "*.md" | ForEach-Object {
+                        Copy-Item $_.FullName (Join-Path $targetRulesDir $_.Name) -Force
+                        Write-Host "    + .opencode/agents-rules/$($_.Name)" -ForegroundColor DarkGreen
+                    }
+                }
                 # L1-only: write standalone rules file, skip inline merge
                 Write-PackRulesFile $agentsMd $targetPath $packName
                 # Deliver system-prompt-rules plugin (idempotent, runs for each L1 pack)
@@ -1303,6 +1808,19 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
         }
 
         # --- Platform-specific config handling ---
+            # Deploy MCP server files from pack's .opencode/mcp/ to target
+            $mcpSourceDir = Join-Path $packOpenCode "mcp"
+            if (Test-Path $mcpSourceDir) {
+                $targetMcpDir = Join-Path $targetPath ".opencode" "mcp"
+                Get-ChildItem -Path $mcpSourceDir -Directory | ForEach-Object {
+                    $mcpName = $_.Name
+                    $targetMcp = Join-Path $targetMcpDir $mcpName
+                    New-Item -ItemType Directory -Path $targetMcp -Force | Out-Null
+                    Copy-Item -Path "$($_.FullName)/*" -Destination $targetMcp -Recurse -Force
+                    Write-Host "    + .opencode/mcp/$mcpName/" -ForegroundColor DarkGreen
+                }
+            }
+
         if ($cfg.ConfigFile) {
             $ocExample = Join-Path $packRoot "opencode.example.json"
             if (Test-Path $ocExample) {
@@ -1496,7 +2014,14 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
     $script:skipped = 0
 
     foreach ($packName in $packs) {
-        $packOpencode = Join-Path (Join-Path $PacksDir $packName) ".opencode"
+        # Resolve pack root: community packs live in staging dir, official packs in PacksDir
+        $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
+            Join-Path $script:CommunityStagingDir $packName
+        } else {
+            Find-PackDir $packName
+        }
+
+        $packOpencode = Join-Path $packRoot ".opencode"
         if (-not (Test-Path $packOpencode)) {
             Write-Warning "Pack '$packName' has no .opencode/ directory. Skipping."
             continue
@@ -1504,7 +2029,6 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
 
         Write-Host "`n  Installing pack: $packName" -ForegroundColor Green
 
-        $packRoot = Join-Path $PacksDir $packName
         $manifestFile = Join-Path $packRoot "pack-manifest.json"
         $forceThisPack = $ForceInstall
 

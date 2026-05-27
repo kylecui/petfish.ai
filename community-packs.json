@@ -1,0 +1,12 @@
+{
+  "_comment": "PEtFiSh Community Pack Registry. Authors submit PRs to add their pack.",
+  "_schema": {
+    "name": "string — pack short name (unique identifier)",
+    "repo": "string — GitHub owner/repo",
+    "description": "string — one-line description",
+    "author": "string — GitHub username or display name",
+    "verified": "boolean — true if passed quality-gate",
+    "min_version": "string — minimum PEtFiSh version required (semver)"
+  },
+  "packs": []
+}

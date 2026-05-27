@@ -155,7 +155,7 @@ Build a bilingual (zh/en) documentation site for PEtFiSh covering user manuals, 
 **Acceptance**: A new contributor can create a skill, run quality gate, and submit a PR using only the docs. Technical papers render as standalone publications with proper citations.
 
 **QA Scenarios**:
-1. **Skill authoring walkthrough**: Follow skill authoring guide to create a minimal test skill. Install the companion pack to a temp workspace, then run `uv run packs/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path <test-skill>`. Expected: guide steps produce a valid skill that passes lint with score ≥ 80.
+1. **Skill authoring walkthrough**: Follow skill authoring guide to create a minimal test skill. Install the companion pack to a temp workspace, then run `uv run packs/core/petfish-companion-skill/.opencode/skills/skill-lint/scripts/lint_skill.py --path <test-skill>`. Expected: guide steps produce a valid skill that passes lint with score ≥ 80.
 2. **Quality gate guide**: Follow quality gate guide. Expected: covers lint → security → trust → trigger eval → publish sequence with concrete commands.
 3. **Technical papers**: Open each of the 3 technical papers. Expected: each has abstract, methodology, results, conclusion sections. No "TODO" or placeholder text. Citations reference actual files in the repo.
 4. **Build clean**: `uv run mkdocs build --strict`. Expected: zero warnings.

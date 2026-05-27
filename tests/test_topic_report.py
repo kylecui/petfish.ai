@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 # Import TopicReporter using required pattern
 MODULE_DIR = (
     Path(__file__).resolve().parents[1]
-    / "packs/fish-trail/.opencode/skills/fish-trail/scripts"
+    / "packs/core/fish-trail/.opencode/skills/fish-trail/scripts"
 )
 sys.path.insert(0, str(MODULE_DIR))
 from topic_report import TopicReporter

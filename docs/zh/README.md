@@ -22,7 +22,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v0.11                       │
+│  ><(((^>  胖鱼 PEtFiSh v1.4                       │
 │                                                     │
 │  常伴  每一轮交互都在                                │
 │  守护  感知缺口、守护上下文、阻断污染                │
@@ -98,21 +98,29 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 
 ---
 
-## 12个能力包
+## 4个核心包（每次安装必带）
+> 核心包随 petfish.ai 仓库直接分发。
 
 | 别名 | 定位 | 规模 |
 |------|------|------|
-| `companion` | 胖鱼本体——常伴核心 + 生命周期管理 | 10 skills, 1 cmd |
+| `companion` | 胖鱼本体——常伴核心，2个核心skill（fish-brain 鱼伴、fish-market 鱼市） | 2 skills, 1 cmd |
+| `init` | 项目初始化向导 | 1 skill, 1 cmd |
+| `petfish` | 工程写作风格 | 1 skill |
+| `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
+
+## 9个可选包（通过 petfish-market 获取）
+> 可选包通过 [petfish-market](https://github.com/kylecui/petfish-market) 分发。安装命令自动解析，用户无感知。
+
+| 别名 | 定位 | 规模 |
+|------|------|------|
 | `context` | 话题治理器——守护核心 | 1 skill, 31 MCP |
 | `calibrate` | 反迎合校准——秉正核心 | 1 skill |
 | `trust` | Skill可信度治理——可信核心 | 1 skill |
-| `init` | 项目初始化向导 | 1 skill, 1 cmd |
 | `course` | 课程开发全套 | 15 skills, 10 cmds, 8 agents |
 | `deploy` | 部署与运维 | 7 skills |
-| `petfish` | 工程写作风格 | 1 skill |
 | `testdocs` | 测试用例与文档 | 2 skills |
 | `ppt` | PPT设计 | 2 skills |
-| `research` | 研究工作台——科研、产品、规划等8个领域 | 50 skills |
+| `research` | 研究工作台——科研、产品、规划等8个领域 | 54 skills |
 | `reflect` | 结构化反思——捕获失败原因与纠正措施 | 1 skill |
 
 ---
@@ -167,6 +175,14 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v1.4 — 市场优先分发
+
+- **v1.4.0**: packs/重构为`core/`（4个核心包：init、companion、petfish、toolchain）和`optional/`（9个可选包：course、testdocs、deploy、ppt、calibrate、context、trust、research、reflect）。可选包通过petfish-market分发，安装器自动解析。新增工具链skill `skill-publish`连接质量门禁PASS与市场发布。远程安装器增加市场查询钩子（`query_market_index()` / `Query-MarketIndex`）。`catalog_query.py`新增`--install <alias>`标志和市场感知。`marketplace_search.py`优先petfish-market源。petfish-market新增`registry/official/`（9个官方pack条目）和`index.json` v2。
+
+### v1.3 — 模块解耦：Companion + Toolchain 拆分
+
+- **v1.3.0**: 从`companion`中拆出8个工具链skill，组成新的`toolchain` pack（`petfish-toolchain-skill`）；`petfish-companion`重命名为`fish-brain`（鱼伴），`marketplace-connector`重命名为`fish-market`（鱼市）；`companion` pack现在只包含2个核心skill；总pack数12→13，总skill数不变（96个）。
 
 ### v0.11 — Companion Gateway增强：主动智能
 

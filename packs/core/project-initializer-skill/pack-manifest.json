@@ -1,0 +1,15 @@
+{
+  "name": "project-initializer-skill",
+  "version": "1.1.0",
+  "legacy_names": ["project-initializer"],
+  "description": "项目初始化器 — 创建标准目录结构、自动安装推荐skill、运行post-init wizard",
+  "compatibility": "opencode",
+  "skill_count": 1,
+  "command_count": 1,
+  "agent_count": 0,
+  "skills": ["fish-init"],
+  "commands": ["initproject"],
+  "agents": [],
+  "global_default": true,
+  "platforms": ["opencode", "antigravity"]
+}

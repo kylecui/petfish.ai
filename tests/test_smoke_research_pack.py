@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PACK_ROOT = REPO_ROOT / "packs" / "research-skill-pack"
+PACK_ROOT = REPO_ROOT / "packs" / "optional" / "research-skill-pack"
 SCRIPTS_DIR = PACK_ROOT / "scripts"
 SKILLS_DIR = PACK_ROOT / ".opencode" / "skills"
 FIXTURES_DIR = PACK_ROOT / "tests" / "fixtures" / "smoke-workspace"

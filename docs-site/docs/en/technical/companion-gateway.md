@@ -142,11 +142,11 @@ The Gateway interacts with two external components, both optional:
 
 ```bash
 # Keyword matching
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py \
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py \
   --search "Docker"
 
 # Failure signal detection
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py \
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py \
   --check-failures "无法读取PDF文件"
 ```
 

@@ -1,0 +1,110 @@
+{
+  "0": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer provides a comprehensive, well-structured recall of CI/CD stages with their triggers, dependencies, and outcomes, staying entirely focused on the cicd topic without any mixing of python-setup or database information.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer provides a comprehensive, well-structured recall of CI/CD stages with their triggers, dependencies, and outcomes, staying entirely focused on the cicd topic without any mixing of python-setup or database information."
+  },
+  "1": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer accurately recalls detailed PostgreSQL schema and security measures without any inappropriate mixing of python-setup or cicd topic details.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer accurately recalls detailed PostgreSQL schema and security measures without any inappropriate mixing of python-setup or cicd topic details."
+  },
+  "2": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer fully and accurately covers the PostgreSQL schema (tables, constraints, RLS, roles, audit, pooling) with no information from python-setup or cicd topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer fully and accurately covers the PostgreSQL schema (tables, constraints, RLS, roles, audit, pooling) with no information from python-setup or cicd topics."
+  },
+  "3": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer accurately and comprehensively lists all dependency groups (runtime, dev, db) added to pyproject.toml for the data-pipeline project, and the \"Db extras\" inclusion is part of the python-setup topic (pyproject.toml config), not contamination from the database topic.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer accurately and comprehensively lists all dependency groups (runtime, dev, db) added to pyproject.toml for the data-pipeline project, and the \"Db extras\" inclusion is part of the python-setup topic (pyproject.toml config), not contamination from the database topic."
+  },
+  "4": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer provides a comprehensive, well-structured recall of CI/CD stages with accurate trigger details and workflow references, staying entirely focused on the cicd topic with no mixing of python-setup or database information.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer provides a comprehensive, well-structured recall of CI/CD stages with accurate trigger details and workflow references, staying entirely focused on the cicd topic with no mixing of python-setup or database information."
+  },
+  "5": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer accurately lists all dependency groups with versions and clearly separates DB dependencies (from the database topic) under a distinct section header, showing no mixing or confusion of topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer accurately lists all dependency groups with versions and clearly separates DB dependencies (from the database topic) under a distinct section header, showing no mixing or confusion of topics."
+  },
+  "6": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer comprehensively and accurately details CI/CD stages and their triggers across two workflow files, with no mixing of information from the python-setup or database topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer comprehensively and accurately details CI/CD stages and their triggers across two workflow files, with no mixing of information from the python-setup or database topics."
+  },
+  "7": {
+    "accuracy": 2,
+    "contamination": 0,
+    "reason": "The answer correctly recalls all python-setup topic dependencies but inappropriately includes a full section of database dependencies from another topic, indicating topic confusion.",
+    "raw_response": "accuracy: 2\ncontamination: 0\nreason: The answer correctly recalls all python-setup topic dependencies but inappropriately includes a full section of database dependencies from another topic, indicating topic confusion."
+  },
+  "8": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer accurately lists all dependency categories with organized specs, and including database deps is relevant to the question about total pyproject.toml contents rather than topic confusion.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer accurately lists all dependency categories with organized specs, and including database deps is relevant to the question about total pyproject.toml contents rather than topic confusion."
+  },
+  "9": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer accurately and thoroughly recalls database schema tables and security measures without any mixing of information from other conversation topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer accurately and thoroughly recalls database schema tables and security measures without any mixing of information from other conversation topics."
+  },
+  "10": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer provides detailed, coherent recall of database schema and security measures without any reference to python-setup or cicd topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer provides detailed, coherent recall of database schema and security measures without any reference to python-setup or cicd topics."
+  },
+  "11": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer accurately and comprehensively recalls the database schema tables and security measures without mixing in details from the other topics (python-setup or cicd).",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer accurately and comprehensively recalls the database schema tables and security measures without mixing in details from the other topics (python-setup or cicd)."
+  },
+  "12": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer stays fully within the cicd topic, providing a detailed and structured breakdown of CI/CD stages and triggers with no mixing of python-setup or database information.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer stays fully within the cicd topic, providing a detailed and structured breakdown of CI/CD stages and triggers with no mixing of python-setup or database information."
+  },
+  "13": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer is fully focused on the CI/CD topic with comprehensive and accurate recall of pipeline stages, triggers, and caching, showing no signs of confusing or mixing in details from the python-setup or database topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer is fully focused on the CI/CD topic with comprehensive and accurate recall of pipeline stages, triggers, and caching, showing no signs of confusing or mixing in details from the python-setup or database topics."
+  },
+  "14": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer comprehensively lists dependencies with constraints and purposes focused on the python-setup topic, with no evidence of information bleeding from database or cicd topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer comprehensively lists dependencies with constraints and purposes focused on the python-setup topic, with no evidence of information bleeding from database or cicd topics."
+  },
+  "15": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "Answer correctly and thoroughly recalls database schema tables and security measures without any mixing of other topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: Answer correctly and thoroughly recalls database schema tables and security measures without any mixing of other topics."
+  },
+  "16": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer correctly and thoroughly recalls all CI/CD stages and triggers discussed under the cicd topic without any mixing of information from the other two topics.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer correctly and thoroughly recalls all CI/CD stages and triggers discussed under the cicd topic without any mixing of information from the other two topics."
+  },
+  "17": {
+    "accuracy": 2,
+    "contamination": 1,
+    "reason": "The answer is comprehensive and well-structured with specific version constraints and clear dependency groupings, and there is no clear evidence of topic confusion since database dependencies could legitimately be part of the python-setup topic.",
+    "raw_response": "accuracy: 2\ncontamination: 1\nreason: The answer is comprehensive and well-structured with specific version constraints and clear dependency groupings, and there is no clear evidence of topic confusion since database dependencies could legitimately be part of the python-setup topic."
+  }
+}

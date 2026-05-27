@@ -1,0 +1,15 @@
+{"previous_assistant_output": "I cannot open this PDF file because it appears to be corrupted.", "expected_signal": "ppt", "expected_detect": true}
+{"previous_assistant_output": "抱歉，我无法读取这个PPTX文件的幻灯片内容。", "expected_signal": "ppt", "expected_detect": true}
+{"previous_assistant_output": "I tried to parse the PDF but the format is not supported.", "expected_signal": "ppt", "expected_detect": true}
+{"previous_assistant_output": "无法解析这个PPT文档，请确认文件是否完整。", "expected_signal": "ppt", "expected_detect": true}
+{"previous_assistant_output": "The deploy to production failed with exit code 1.", "expected_signal": "deploy", "expected_detect": true}
+{"previous_assistant_output": "Docker部署失败，容器启动时出现错误。", "expected_signal": "deploy", "expected_detect": true}
+{"previous_assistant_output": "部署过程中遇到了一个error，服务没有正常启动。", "expected_signal": "deploy", "expected_detect": true}
+{"previous_assistant_output": "The deployment failed due to a network timeout error.", "expected_signal": "deploy", "expected_detect": true}
+{"previous_assistant_output": "测试用例我无法生成，因为缺少具体的业务规则描述。", "expected_signal": "testdocs", "expected_detect": true}
+{"previous_assistant_output": "I cannot generate test cases for this module without understanding the expected behavior.", "expected_signal": "testdocs", "expected_detect": true}
+{"previous_assistant_output": "测试用例的生成需要更明确的输入输出定义。", "expected_signal": "testdocs", "expected_detect": true}
+{"previous_assistant_output": "Here is the sorted list you requested: [1, 2, 3, 4, 5]", "expected_signal": null, "expected_detect": false}
+{"previous_assistant_output": "The function has been refactored and all tests pass.", "expected_signal": null, "expected_detect": false}
+{"previous_assistant_output": "I've added the comment to calculateTotal as requested.", "expected_signal": null, "expected_detect": false}
+{"previous_assistant_output": "Let me explain what this code does: it iterates through the array and filters null values.", "expected_signal": null, "expected_detect": false}

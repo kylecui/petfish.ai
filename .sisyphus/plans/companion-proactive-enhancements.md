@@ -280,11 +280,11 @@ Total: ~3.5 days. All changes are additive (no breaking changes to existing beha
 | File | Changes |
 |---|---|
 | `AGENTS.md` | Add Step 0 (mode read), Step 1.5 (failure signals), Step 2.5 (anti-sycophancy), Rigor mode section |
-| `packs/petfish-companion-skill/.opencode/skills/petfish-companion/SKILL.md` | Document all 4 enhancements, mode switching commands |
-| `packs/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py` | Add `--check-failures` mode, failure signal patterns |
-| `packs/project-initializer-skill/.opencode/skills/project-initializer/SKILL.md` | Add mode selection step |
-| `packs/project-initializer-skill/.opencode/skills/project-initializer/tools/init_project.py` | Generate `.opencode/project-mode.yaml` |
-| `packs/anti-sycophancy-calibration-pack/.opencode/skills/anti-sycophancy-calibration/SKILL.md` | Add proactive trigger documentation |
+| `packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/SKILL.md` | Document all 4 enhancements, mode switching commands |
+| `packs/core/petfish-companion-skill/.opencode/skills/petfish-companion/scripts/catalog_query.py` | Add `--check-failures` mode, failure signal patterns |
+| `packs/core/project-initializer-skill/.opencode/skills/project-initializer/SKILL.md` | Add mode selection step |
+| `packs/core/project-initializer-skill/.opencode/skills/project-initializer/tools/init_project.py` | Generate `.opencode/project-mode.yaml` |
+| `packs/optional/anti-sycophancy-calibration-pack/.opencode/skills/anti-sycophancy-calibration/SKILL.md` | Add proactive trigger documentation |
 
 ## QA Scenarios (per Phase)
 
