@@ -32,6 +32,7 @@ from pathlib import Path
 
 ALIAS_MAP = {
     "init": "project-initializer-skill",
+    "fish-init": "project-initializer-skill",
     "companion": "petfish-companion-skill",
     "fish-brain": "petfish-companion-skill",
     "fish-core": "petfish-companion-skill",
@@ -39,10 +40,13 @@ ALIAS_MAP = {
     "course": "opencode-course-skills-pack",
     "deploy": "repo-deploy-ops-skill-pack",
     "petfish": "petfish-style-skill",
+    "fish-style": "petfish-style-skill",
     "ppt": "opencode-ppt-skills",
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
     "trust": "trustskills-governance-pack",
+    "fish-guard": "trustskills-governance-pack",
     "calibrate": "anti-sycophancy-calibration-pack",
+    "fish-calibrate": "anti-sycophancy-calibration-pack",
     "context": "fish-trail",
     "research": "research-skill-pack",
 }

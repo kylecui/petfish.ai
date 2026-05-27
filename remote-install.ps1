@@ -90,6 +90,7 @@ $Aliases = @{
     "companion" = "petfish-companion-skill"
     "ppt"       = "opencode-ppt-skills"
     "trust"     = "trustskills-governance-pack"
+    "fish-guard" = "trustskills-governance-pack"
     "calibrate" = "anti-sycophancy-calibration-pack"
     "context"   = "fish-trail"
     "research"  = "research-skill-pack"
@@ -134,7 +135,7 @@ $PackDisplayOrder = @(
     @{ Name = "petfish-companion-skill"; Alias = "companion, fish-core, fish-brain" },
     @{ Name = "petfish-toolchain-skill"; Alias = "toolchain" },
     @{ Name = "opencode-ppt-skills"; Alias = "ppt, fish-slides" },
-    @{ Name = "trustskills-governance-pack"; Alias = "trust" },
+    @{ Name = "trustskills-governance-pack"; Alias = "trust, fish-guard" },
     @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate, fish-calibrate" },
     @{ Name = "fish-trail"; Alias = "context, fish-trail" },
     @{ Name = "research-skill-pack"; Alias = "research, fish-research" },

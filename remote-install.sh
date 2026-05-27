@@ -540,6 +540,7 @@ declare -A ALIASES=(
     [ppt]="opencode-ppt-skills"
     [init]="project-initializer-skill"
     [trust]="trustskills-governance-pack"
+    [fish-guard]="trustskills-governance-pack"
     [calibrate]="anti-sycophancy-calibration-pack"
     [context]="fish-trail"
     [research]="research-skill-pack"
