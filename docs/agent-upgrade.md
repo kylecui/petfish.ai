@@ -55,6 +55,38 @@ Same as install guide:
 
 ---
 
+## Step 2: Understand what's changing (v1.2.x → v1.3.x)
+
+### Breaking changes to be aware of:
+
+| Change | Impact | Auto-handled? |
+|--------|--------|---------------|
+| `petfish-companion` skill renamed → `fish-brain` | Skill directory name changed | ✅ Yes — installer handles legacy names |
+| `marketplace-connector` skill renamed → `fish-market` | Skill directory name changed | ✅ Yes — installer handles legacy names |
+| 8 toolchain skills moved from `companion` → new `toolchain` pack | Skills now in separate pack | ⚠️ Install `toolchain` pack separately if needed |
+
+### New features in v1.3.x:
+
+- **`toolchain` pack** — 8 skill lifecycle skills extracted from `companion` (skill-author, skill-lint, repo-skill-miner, skill-security-auditor, quality-gate, skill-description-optimizer, skill-trigger-evaluator, skill-usage-tracker)
+- **`fish-brain`** (鱼伴) — renamed from `petfish-companion`; same orchestration and sensing role
+- **`fish-market`** (鱼市) — renamed from `marketplace-connector`; same external search role
+- **`companion` pack** now ships only 2 core skills (fish-brain + fish-market)
+- Total packs: 12 → 13; total skills: unchanged at 96
+
+### Migration steps for v1.3.x:
+
+1. Re-run the installer with `--force` to get renamed skills:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack companion --force --platform <PLATFORM>
+   ```
+2. If you use toolchain skills (lint, audit, gate, etc.), install the new pack:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack toolchain --platform <PLATFORM>
+   ```
+3. Update any AGENTS.md or config references from `petfish-companion` → `fish-brain` and `marketplace-connector` → `fish-market`.
+
+---
+
 ## Step 2: Understand what's changing (v0.4.x → v0.5.x)
 
 ### Breaking changes to be aware of:

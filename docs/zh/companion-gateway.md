@@ -157,7 +157,7 @@ Gateway靠两个东西：
 
 **2. catalog_query.py TRIGGERS** — companion skill里的关键词匹配表：
 ```
-.opencode/skills/petfish-companion/scripts/catalog_query.py
+.opencode/skills/fish-brain/scripts/catalog_query.py
 ```
 
 ## 安装
@@ -175,13 +175,13 @@ Gateway规则通过AGENTS.md的pack merge机制注入目标项目。
 
 验证关键词匹配：
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --search "Docker"
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py --search "Docker"
 # 应返回 deploy pack
 ```
 
 验证失败信号检测：
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --check-failures "无法读取PDF文件"
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py --check-failures "无法读取PDF文件"
 # 应返回 ppt pack 推荐
 ```
 

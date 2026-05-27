@@ -70,7 +70,8 @@ This determines how the research workspace is scaffolded and which skill chains 
 
 If user chooses **custom**, show available packs:
 - `init` — Project initializer + wizard
-- `companion` — PEtFiSh core (10 skill lifecycle tools + /petfish command)
+- `companion` — PEtFiSh core (2 core skills: fish-brain + fish-market, + /petfish command)
+- `toolchain` — Skill lifecycle pipeline (8 skills: author, lint, mine, audit, gate, optimize, eval, tracker)
 - `course` — Course development (15 skills, 10 commands, 8 agents)
 - `deploy` — Deployment & operations (7 skills)
 - `testdocs` — Test cases & documentation (2 skills)

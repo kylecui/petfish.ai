@@ -98,11 +98,12 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 
 ---
 
-## 12个能力包
+## 13个能力包
 
 | 别名 | 定位 | 规模 |
 |------|------|------|
-| `companion` | 胖鱼本体——常伴核心 + 生命周期管理 | 10 skills, 1 cmd |
+| `companion` | 胖鱼本体——常伴核心，2个核心skill（fish-brain 鱼伴、fish-market 鱼市） | 2 skills, 1 cmd |
+| `toolchain` | Skill生命周期工具链——8个skill，从创作到发布 | 8 skills |
 | `context` | 话题治理器——守护核心 | 1 skill, 31 MCP |
 | `calibrate` | 反迎合校准——秉正核心 | 1 skill |
 | `trust` | Skill可信度治理——可信核心 | 1 skill |
@@ -167,6 +168,10 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v1.3 — 模块解耦：Companion + Toolchain 拆分
+
+- **v1.3.0**: 从`companion`中拆出8个工具链skill，组成新的`toolchain` pack（`petfish-toolchain-skill`）；`petfish-companion`重命名为`fish-brain`（鱼伴），`marketplace-connector`重命名为`fish-market`（鱼市）；`companion` pack现在只包含2个核心skill；总pack数12→13，总skill数不变（96个）。
 
 ### v0.11 — Companion Gateway增强：主动智能
 

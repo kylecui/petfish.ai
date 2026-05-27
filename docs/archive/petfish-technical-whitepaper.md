@@ -29,11 +29,11 @@ OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——
 │                    │                      │               │
 │            ┌───────┴───────┐      ┌───────┴───────┐      │
 │            │  Companion    │      │   Installer   │      │
-│            │  (10 skills)  │      │   (4 scripts) │      │
+│            │  (2 skills)   │      │   (4 scripts) │      │
 │            └───────┬───────┘      └───────┬───────┘      │
 │                    │                      │               │
 │            ┌───────┴──────────────────────┴───────┐      │
-│            │         Pack Layer (8 packs)          │      │
+│            │         Pack Layer (13 packs)         │      │
 │            │  pack-manifest.json 统一schema        │      │
 │            └───────────────────┬──────────────────┘      │
 │                                │                          │
@@ -50,8 +50,8 @@ OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——
 | 层 | 职责 | 关键文件 |
 |---|---|---|
 | 用户接口层 | `/petfish` 14个子命令 + 4个install脚本 | `petfish.md`, `install.ps1/sh`, `remote-install.ps1/sh` |
-| Companion层 | 10个内置skill，覆盖skill全生命周期 | `packs/petfish-companion-skill/.opencode/skills/` |
-| Pack层 | 8个skill pack，按领域组织 | `packs/*/pack-manifest.json` |
+| Companion层 | 2个核心skill（fish-brain 鱼伴、fish-market 鱼市） | `packs/petfish-companion-skill/.opencode/skills/` |
+| Pack层 | 13个skill pack，按领域组织 | `packs/*/pack-manifest.json` |
 | 平台适配层 | 8平台路径映射、指令翻译、配置合并 | `platforms.json` |
 
 ---
@@ -149,7 +149,8 @@ OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——
 | Pack | Alias | 定位 | Skills | Cmds | Agents |
 |---|---|---|---:|---:|---:|
 | project-initializer-skill | `init` | 项目初始化向导 | 1 | 1 | 0 |
-| petfish-companion-skill | `companion` | skill生命周期管理内核 | 10 | 1 | 0 |
+| petfish-companion-skill | `companion` | 常伴核心（fish-brain + fish-market） | 2 | 1 | 0 |
+| petfish-toolchain-skill | `toolchain` | skill生命周期工具链 | 8 | 0 | 0 |
 | opencode-course-skills-pack | `course` | 课程开发全套 | 15 | 10 | 8 |
 | repo-deploy-ops-skill-pack | `deploy` | 部署与运维 | 7 | 0 | 0 |
 | opencode-skill-pack-testcases-usage-docs | `testdocs` | 测试用例与文档生成 | 2 | 0 | 0 |
@@ -174,7 +175,7 @@ OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——
 
 ---
 
-## E. Companion内核：10个内置Skill
+## E. Companion内核：2个核心Skill + Toolchain Pack（8个工具链Skill）
 
 ### 生命周期流水线
 

@@ -157,7 +157,7 @@ Gateway depends on two components:
 
 **2. catalog_query.py TRIGGERS** — Keyword table in the companion skill:
 ```
-.opencode/skills/petfish-companion/scripts/catalog_query.py
+.opencode/skills/fish-brain/scripts/catalog_query.py
 ```
 
 ## Install
@@ -175,13 +175,13 @@ Gateway rules are injected into the target project via the AGENTS.md pack merge 
 
 Test keyword matching:
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --search "Docker"
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py --search "Docker"
 # Should return: deploy pack
 ```
 
 Test failure signal detection:
 ```bash
-uv run python .opencode/skills/petfish-companion/scripts/catalog_query.py --check-failures "无法读取PDF文件"
+uv run python .opencode/skills/fish-brain/scripts/catalog_query.py --check-failures "无法读取PDF文件"
 # Should return: ppt pack recommendation
 ```
 

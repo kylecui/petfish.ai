@@ -83,21 +83,29 @@ See [docs/companion-gateway.md](docs/companion-gateway.md) for the full flow.
 
 ---
 
-## 10 Built-in Skills
+## Built-in Skills
+### 2 Core Companion Skills (`companion` pack)
+```text
+fish-brain   — Orchestration, sensing, and routing (鱼伴)
+fish-market  — Search across external sources (鱼市)
+```
+
+| Skill | Purpose | Script |
+|---|---|---|
+| `fish-brain` | Orchestration, sensing, and routing | `catalog_query.py`, `check_installed.py`, `detect_platform.py` |
+| `fish-market` | Search across external sources | `marketplace_search.py` |
+
+### 8 Toolchain Skills (`toolchain` pack)
 ```text
 Skill Lifecycle Pipeline
 
 mine → author → lint → audit → gate → optimize → eval
 
-+ marketplace-connector
 + skill-usage-tracker
-+ petfish-companion
 ```
 
 | Skill | Purpose | Script |
 |---|---|---|
-| `petfish-companion` | Orchestration, sensing, and routing | `catalog_query.py`, `check_installed.py`, `detect_platform.py` |
-| `marketplace-connector` | Search across external sources | `marketplace_search.py` |
 | `skill-author` | Scaffold new skills | `generate_skill.py` |
 | `skill-lint` | Format and quality checks | `lint_skill.py` |
 | `repo-skill-miner` | Mine repositories for skill candidates | `mine_repo.py` |
@@ -109,11 +117,12 @@ mine → author → lint → audit → gate → optimize → eval
 
 ---
 
-## 12 Skill Packs
+## 13 Skill Packs
 | Alias | Purpose | Scale |
 |---|---|---|
 | `init` | Project initializer and `/initproject` wizard | Global default |
-| `companion` | Companion Gateway, `/petfish`, and 10 built-in skills | Global default |
+| `companion` | Companion Gateway, `/petfish`, and 2 core skills (fish-brain, fish-market) | Global default |
+| `toolchain` | Skill lifecycle pipeline — 8 skills for authoring, linting, auditing, and publishing | Global default |
 | `course` | Course outline, content, labs, QA, and QC workflows | Project |
 | `testdocs` | Test case and usage documentation workflows | Project |
 | `deploy` | Deployment, CI/CD, health check, rollback, and ops workflows | Project |
@@ -280,8 +289,10 @@ petfish.ai/
 │   ├── project-initializer-skill/                # init
 │   ├── petfish-companion-skill/                  # companion
 │   │   └── .opencode/skills/
-│   │       ├── petfish-companion/                # orchestration and sensing
-│   │       ├── marketplace-connector/            # external search
+│   │       ├── fish-brain/                       # orchestration and sensing (鱼伴)
+│   │       └── fish-market/                      # external search (鱼市)
+│   ├── petfish-toolchain-skill/                  # toolchain
+│   │   └── .opencode/skills/
 │   │       ├── skill-author/                     # scaffolding
 │   │       ├── skill-lint/                       # quality checks
 │   │       ├── repo-skill-miner/                 # repo mining
@@ -311,6 +322,10 @@ petfish.ai/
 ---
 
 ## Version History
+### v1.3 — Module Decomposition: Companion + Toolchain Split
+
+- **v1.3.0**: Extract 8 toolchain skills from `companion` into new `toolchain` pack (`petfish-toolchain-skill`); rename `petfish-companion` → `fish-brain` (鱼伴) and `marketplace-connector` → `fish-market` (鱼市); `companion` pack now ships 2 core skills only; total packs 12 → 13, total skills unchanged at 96.
+
 ### v0.11 — Companion Gateway Enhancement: Proactive Intelligence
 
 - **v0.11.7**: Documentation catchup — companion-gateway docs (EN+ZH), README, website updated to reflect 6-step Gateway flow; Token Cost Engineering blog post published.
