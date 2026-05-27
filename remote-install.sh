@@ -33,7 +33,7 @@ if ! command -v uv &>/dev/null; then
 fi
 
 REPO="kylecui/petfish.ai"
-BRANCH="feat/fish-trail-tiered-memory-v2"  # pre-release: change back to "master" after merging
+BRANCH="master"
 BRANCH_OVERRIDE=false  # tracked for --branch; auto-detect removed
 
 # --- Merge helpers ---

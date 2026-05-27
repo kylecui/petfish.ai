@@ -85,35 +85,6 @@ Same as install guide:
 
 ---
 
-## Step 2: Understand what's changing (v1.3.x → v1.4.x)
-
-### Breaking changes to be aware of:
-
-| Change | Impact | Auto-handled? |
-|--------|--------|---------------|
-| `packs/` restructured into `packs/core/` + `packs/optional/` | Directory layout changed | ⚠️ Local installers scan dynamically; remote installers updated with new paths |
-| Optional packs now distributed via petfish-market | Download source changed | ✅ Yes — installers query market index automatically |
-| New `skill-publish` toolchain skill | One more skill in toolchain pack | ✅ Yes — comes with toolchain update |
-
-### New features in v1.4.x:
-
-- **`packs/core/` + `packs/optional/`** — 4 core packs (init, companion, petfish, toolchain) stay on petfish.ai; 9 optional packs (course, testdocs, deploy, ppt, calibrate, context, trust, research, reflect) distributed via petfish-market
-- **`skill-publish`** — new toolchain skill that bridges quality-gate PASS → petfish-market availability (9th toolchain skill)
-- **Market query hooks** — remote installers call `query_market_index()` / `Query-MarketIndex` to resolve optional packs
-- **`catalog_query.py --install <alias>`** — new flag for direct install command generation with market awareness
-- **petfish-market `registry/official/`** — 9 official pack entries with `index.json` v2 schema
-
-### Migration steps for v1.4.x:
-
-1. Re-run the installer with `--force` to get the restructured pack layout:
-   ```bash
-   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force --platform <PLATFORM>
-   ```
-2. Core packs will install from the release as before. Optional packs resolve via petfish-market automatically — same command, no extra flags needed.
-3. If you use `skill-publish` (market publishing workflow), it comes with the `toolchain` pack update.
-
----
-
 ## Step 2b: Understand what's changing (v1.2.x → v1.3.x)
 
 ### Breaking changes to be aware of:
