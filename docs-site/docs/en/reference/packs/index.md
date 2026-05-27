@@ -1,6 +1,17 @@
 # Packs
 
-PEtFiSh ships **12 skill packs**.
+PEtFiSh ships **4 core + 9 optional** skill packs (13 total). Core packs are included in every install; optional packs are distributed via [petfish-market](https://github.com/kylecui/petfish-market).
+
+## Core Packs
+
+| Alias | Description | Skills | Version |
+|---|---|---|---|
+| [`companion`](companion.md) | PEtFiSh常驻伙伴 — Companion Gateway, /petfish command, fish-brain (传感/路由) + fish-market (外部搜索) | 2 | 1.1.0 |
+| [`toolchain`](toolchain.md) | Skill生命周期工具链 — author→lint→audit→gate→publish→optimize→eval + usage tracker | 9 | 1.4.0 |
+| [`init`](init.md) | 项目初始化器 — 创建标准目录结构、自动安装推荐skill、运行post-init wizard | 1 | 1.1.0 |
+| [`petfish`](petfish.md) | 工程写作风格改写 — 去AI味、说人话、AI腔检测与改写、中英文紧凑混排 | 1 | 4.0.1 |
+
+## Optional Packs (via petfish-market)
 
 | Alias | Description | Skills | Version |
 |---|---|---|---|
@@ -10,9 +21,6 @@ PEtFiSh ships **12 skill packs**.
 | [`course`](course.md) | 课程开发全生命周期 — 规划、提纲、正文、实验、资料、QA/QC、发布 | 15 | 1.3.2 |
 | [`ppt`](ppt.md) | PPT设计与制作 — 读取/生成PPTX、Slide QA、视觉渲染 | 2 | 1.0.1 |
 | [`testdocs`](testdocs.md) | 测试用例与使用文档生成 — test case、覆盖率矩阵、README、API docs | 2 | 1.0.1 |
-| [`companion`](companion.md) | PEtFiSh常驻伙伴 — 感知/搜索/创建/审计/门禁/挖掘/优化/评测/追踪skill的全生命周期管理 | 10 | 1.1.0 |
-| [`petfish`](petfish.md) | 工程写作风格改写 — 去AI味、说人话、AI腔检测与改写、中英文紧凑混排 | 1 | 4.0.1 |
-| [`init`](init.md) | 项目初始化器 — 创建标准目录结构、自动安装推荐skill、运行post-init wizard | 1 | 1.1.0 |
 | [`deploy`](deploy.md) | 部署与运维 — 运行时识别、主机检查、部署执行、验证、运维、回滚、全生命周期管理 | 7 | 1.0.1 |
-| [`research`](research.md) | Research workbench skill pack covering scientific, product, planning, learning,  | 54 | 0.9.0 |
+| [`research`](research.md) | Research workbench skill pack covering scientific, product, planning, learning, decision, risk-procurement, experience-event, and adapter domains | 54 | 0.9.0 |
 | [`trust`](trust.md) | Skill安全治理引擎 — 基于行为分析的skill可信度评估、风险评分与治理决策 | 1 | 0.1.1 |

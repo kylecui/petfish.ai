@@ -347,9 +347,11 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 
 ### 9个触点
 
+> **v1.4更新**：可选pack需额外在petfish-market注册（触点#10）。核心pack（`packs/core/`）随仓库直接分发，可选pack（`packs/optional/`）通过petfish-market分发。
+
 | # | 触点 | 文件位置 | 说明 |
 |---|------|---------|------|
-| 1 | 本地安装器别名 | `install.ps1`, `install.sh` | 添加pack别名到安装器的pack映射表。本地安装器通过扫描`packs/`目录动态发现pack，但别名映射仍需手动注册 |
+| 1 | 本地安装器别名 | `install.ps1`, `install.sh` | 添加pack别名到安装器的pack映射表。本地安装器通过扫描`packs/core/`和`packs/optional/`目录动态发现pack，但别名映射仍需手动注册 |
 | 2 | 远程安装器ALL_PACKS数组 | `remote-install.ps1`, `remote-install.sh` | **必须手动添加**。远程安装器使用静态数组，不扫描目录 |
 | 3 | Companion catalog PROFILES | `catalog_query.py` PROFILES dict | 将新pack加入相关profile（至少加入`comprehensive`） |
 | 4 | project-initializer | `project-initializer/SKILL.md` + `init_project.py` | 在初始化向导中添加新profile或将pack关联到现有profile |
@@ -358,11 +360,13 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 | 7 | 安装/升级指南 | `docs/agent-install.md`, `docs/agent-upgrade.md` | 更新安装示例和pack列表 |
 | 8 | 中文翻译 | `docs/zh/README.md` | 同步更新中文版 |
 | 9 | 归档文档 | `docs/archive/` 下相关文件 | 更新白皮书、介绍文档中的pack计数和列表 |
+| 10 | petfish-market注册（v1.4新增，仅可选pack） | `petfish-market/registry/official/` + `petfish-market/index.json` | 可选pack必须注册到market的官方目录并更新`index.json` |
 
 ### 关键陷阱：本地 vs 远程安装器架构差异
 
-- **本地安装器**（`install.ps1`, `install.sh`）：动态扫描`packs/`目录发现可用pack。新增pack目录后自动可见，但别名映射仍需注册。
+- **本地安装器**（`install.ps1`, `install.sh`）：动态扫描`packs/core/`和`packs/optional/`目录发现可用pack。新增pack目录后自动可见，但别名映射仍需注册。
 - **远程安装器**（`remote-install.ps1`, `remote-install.sh`）：使用**硬编码的静态数组**（`$AllPacks` / `ALL_PACKS`）。新增pack必须手动添加到数组中，否则`--pack all`会静默跳过。
+- **v1.4市场分发**：可选pack（`packs/optional/`）通过petfish-market分发，远程安装器通过`query_market_index()` / `Query-MarketIndex`自动解析。核心pack（`packs/core/`）仍直接从petfish.ai仓库下载。
 
 这一不对称是v0.10.7遗漏的根本原因。开发时使用本地安装器测试通过，但用户通过远程安装器安装时该pack不存在。
 
@@ -492,6 +496,16 @@ v0.11.10的修复通过PowerShell SSH会话测试，看起来正确，但PowerSh
 项目有4个安装器：`install.sh`、`install.ps1`、`remote-install.sh`、`remote-install.ps1`。任何逻辑变更必须评估是否需要同步到全部4个文件。本地和远程安装器架构不同（动态扫描 vs 静态数组），同一个修复在不同安装器中的实现方式可能不同，但功能语义必须一致。
 
 v0.11.9（uninstall功能）和v0.11.10/v0.11.11（rstrip修复）都涉及4个安装器的同步变更。遗漏任何一个会导致用户通过不同安装方式得到不一致的行为。
+
+### v1.4市场优先分发：核心pack vs 可选pack的触点差异
+
+v1.4将packs/拆分为`packs/core/`（4个）和`packs/optional/`（9个）。核心pack随仓库直接分发，可选pack通过petfish-market分发。这引入了一个新的关键触点（#10：petfish-market注册），并改变了触点#1和#2的语义：
+
+- **触点#1（本地安装器）**：新增pack时需同时更新扫描路径（`packs/core/`或`packs/optional/`）
+- **触点#2（远程安装器）**：可选pack不再需要手动添加到`ALL_PACKS`静态数组——远程安装器通过`query_market_index()`自动解析market索引
+- **触点#10（新增）**：可选pack必须在petfish-market的`registry/official/`目录创建条目，并更新`index.json`
+
+核心pack与可选pack的触点数量不同：核心pack覆盖#1-#9，可选pack额外需覆盖#10。
 
 ---
 

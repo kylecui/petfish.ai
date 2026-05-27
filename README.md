@@ -11,7 +11,7 @@
 **Your AI Companion**
 From first commit to final delivery, PEtFiSh is always there.
 ```text
-><(((^>  PEtFiSh v0.11
+><(((^>  PEtFiSh v1.4
 
 Always Present   Companion Gateway in every interaction
 Guarding         Sense gaps, guard context, block pollution
@@ -95,11 +95,11 @@ fish-market  — Search across external sources (鱼市)
 | `fish-brain` | Orchestration, sensing, and routing | `catalog_query.py`, `check_installed.py`, `detect_platform.py` |
 | `fish-market` | Search across external sources | `marketplace_search.py` |
 
-### 8 Toolchain Skills (`toolchain` pack)
+### 9 Toolchain Skills (`toolchain` pack)
 ```text
 Skill Lifecycle Pipeline
 
-mine → author → lint → audit → gate → optimize → eval
+mine → author → lint → audit → gate → publish → optimize → eval
 
 + skill-usage-tracker
 ```
@@ -111,22 +111,28 @@ mine → author → lint → audit → gate → optimize → eval
 | `repo-skill-miner` | Mine repositories for skill candidates | `mine_repo.py` |
 | `skill-security-auditor` | Static security analysis | `audit_skill.py` |
 | `quality-gate` | Publish decision pipeline | `run_gate.py` |
+| `skill-publish` | Bridge gate PASS → market availability | `publish.py` |
 | `skill-description-optimizer` | Improve descriptions and triggers | `optimize_description.py` |
 | `skill-trigger-evaluator` | Measure trigger precision and recall | `evaluate_triggers.py` |
 | `skill-usage-tracker` | Usage analytics and feedback | `track_usage.py` |
 
 ---
 
-## 13 Skill Packs
+## 4 Core Packs (included in every install)
 | Alias | Purpose | Scale |
 |---|---|---|
 | `init` | Project initializer and `/initproject` wizard | Global default |
 | `companion` | Companion Gateway, `/petfish`, and 2 core skills (fish-brain, fish-market) | Global default |
-| `toolchain` | Skill lifecycle pipeline — 8 skills for authoring, linting, auditing, and publishing | Global default |
+| `petfish` | Writing style and rewrite guidance | Global default |
+| `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
+
+## 9 Optional Packs (via petfish-market)
+> Optional packs are distributed through [petfish-market](https://github.com/kylecui/petfish-market). Install commands resolve automatically — no user-visible difference.
+| Alias | Purpose | Scale |
+|---|---|---|
 | `course` | Course outline, content, labs, QA, and QC workflows | Project |
 | `testdocs` | Test case and usage documentation workflows | Project |
 | `deploy` | Deployment, CI/CD, health check, rollback, and ops workflows | Project |
-| `petfish` | Writing style and rewrite guidance | Project |
 | `ppt` | Slide and presentation workflows | Project |
 | `calibrate` | Anti-sycophancy review and decision calibration | Project |
 | `context` | Topic governance, context isolation, and contamination scoring | Project |
@@ -273,12 +279,14 @@ uv run .opencode/skills/quality-gate/scripts/run_gate.py --path .opencode/skills
 ---
 
 ## Adding a New Pack
-1. Create a directory under `packs/`.
-2. Add `.opencode/` with `skills/`, `commands/`, and/or `agents/`.
-3. Add `pack-manifest.json`.
-4. Add `AGENTS.md` content for merge into the target instructions file.
-5. Add `opencode.example.json` if OpenCode config merge is needed.
-6. Register the alias in the installer scripts.
+1. Decide: `packs/core/` (shipped on petfish.ai) or `packs/optional/` (distributed via petfish-market).
+2. Create a directory under the appropriate location.
+3. Add `.opencode/` with `skills/`, `commands/`, and/or `agents/`.
+4. Add `pack-manifest.json`.
+5. Add `AGENTS.md` content for merge into the target instructions file.
+6. Add `opencode.example.json` if OpenCode config merge is needed.
+7. Register the alias in the installer scripts.
+8. For optional packs: register in petfish-market `registry/official/` and update `index.json`.
 
 ---
 
@@ -286,31 +294,34 @@ uv run .opencode/skills/quality-gate/scripts/run_gate.py --path .opencode/skills
 ```text
 petfish.ai/
 ├── packs/
-│   ├── project-initializer-skill/                # init
-│   ├── petfish-companion-skill/                  # companion
-│   │   └── .opencode/skills/
-│   │       ├── fish-brain/                       # orchestration and sensing (鱼伴)
-│   │       └── fish-market/                      # external search (鱼市)
-│   ├── petfish-toolchain-skill/                  # toolchain
-│   │   └── .opencode/skills/
-│   │       ├── skill-author/                     # scaffolding
-│   │       ├── skill-lint/                       # quality checks
-│   │       ├── repo-skill-miner/                 # repo mining
-│   │       ├── skill-security-auditor/           # security audit
-│   │       ├── quality-gate/                     # publish gate
-│   │       ├── skill-description-optimizer/      # description tuning
-│   │       ├── skill-trigger-evaluator/          # trigger testing
-│   │       └── skill-usage-tracker/              # usage analytics
-│   ├── opencode-course-skills-pack/              # course
-│   ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
-│   ├── repo-deploy-ops-skill-pack/               # deploy
-│   ├── petfish-style-skill/                      # petfish
-│   ├── opencode-ppt-skills/                      # ppt
-│   ├── anti-sycophancy-calibration-pack/         # calibrate
-│   ├── fish-trail/                               # context
-│   ├── trustskills-governance-pack/              # trust
-│   ├── research-skill-pack/                      # research
-│   └── fish-reflection-pack/                     # reflect
+│   ├── core/                                     # 4 core packs, shipped on petfish.ai
+│   │   ├── project-initializer-skill/            # init
+│   │   ├── petfish-companion-skill/              # companion
+│   │   │   └── .opencode/skills/
+│   │   │       ├── fish-brain/                   # orchestration and sensing (鱼伴)
+│   │   │       └── fish-market/                  # external search (鱼市)
+│   │   ├── petfish-style-skill/                  # petfish
+│   │   └── petfish-toolchain-skill/              # toolchain
+│   │       └── .opencode/skills/
+│   │           ├── skill-author/                 # scaffolding
+│   │           ├── skill-lint/                   # quality checks
+│   │           ├── repo-skill-miner/             # repo mining
+│   │           ├── skill-security-auditor/       # security audit
+│   │           ├── quality-gate/                 # publish gate
+│   │           ├── skill-publish/                # market publishing
+│   │           ├── skill-description-optimizer/  # description tuning
+│   │           ├── skill-trigger-evaluator/      # trigger testing
+│   │           └── skill-usage-tracker/          # usage analytics
+│   └── optional/                                 # 9 optional packs, distributed via petfish-market
+│       ├── opencode-course-skills-pack/          # course
+│       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
+│       ├── repo-deploy-ops-skill-pack/           # deploy
+│       ├── opencode-ppt-skills/                  # ppt
+│       ├── anti-sycophancy-calibration-pack/     # calibrate
+│       ├── fish-trail/                           # context
+│       ├── trustskills-governance-pack/          # trust
+│       ├── research-skill-pack/                  # research
+│       └── fish-reflection-pack/                 # reflect
 ├── platforms.json                                # platform registry
 ├── install.ps1                                   # local PowerShell installer
 ├── install.sh                                    # local shell installer
@@ -322,6 +333,10 @@ petfish.ai/
 ---
 
 ## Version History
+### v1.4 — Market-First Distribution
+
+- **v1.4.0**: packs/ restructured into `core/` (4 packs: init, companion, petfish, toolchain) and `optional/` (9 packs: course, testdocs, deploy, ppt, calibrate, context, trust, research, reflect). Optional packs distributed via petfish-market with auto-resolution in installers. New toolchain skill `skill-publish` bridges quality-gate PASS → market availability. Remote installers add market query hooks (`query_market_index()` / `Query-MarketIndex`). `catalog_query.py` gains `--install <alias>` flag and market awareness. `marketplace_search.py` prioritizes petfish-market source. petfish-market adds `registry/official/` with 9 official pack entries and `index.json` v2.
+
 ### v1.3 — Module Decomposition: Companion + Toolchain Split
 
 - **v1.3.0**: Extract 8 toolchain skills from `companion` into new `toolchain` pack (`petfish-toolchain-skill`); rename `petfish-companion` → `fish-brain` (鱼伴) and `marketplace-connector` → `fish-market` (鱼市); `companion` pack now ships 2 core skills only; total packs 12 → 13, total skills unchanged at 96.

@@ -30,7 +30,9 @@
 
 ---
 
-## 11个Skill Pack
+## 13个Skill Pack（4个核心 + 9个可选）
+
+> 核心pack（init、companion、petfish、toolchain）随petfish.ai分发。可选pack通过petfish-market获取。
 
 | Alias | 做什么 | Skills |
 |---|---|---:|

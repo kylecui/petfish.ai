@@ -24,7 +24,7 @@
 | topic-context-filter plugin | ✅ v1.2.0 | .opencode/plugin/topic-context-filter.ts |
 | Quality gate pipeline | ✅ v0.3+ | skill-lint + skill-security-auditor + run_gate.py |
 | Skill lifecycle (10 built-in skills) | ✅ | .opencode/skills/ |
-| 12 skill packs | ✅ | packs/ |
+| 13 skill packs (4 core + 9 optional) | ✅ | packs/core/ + packs/optional/ |
 | 8-platform support | ✅ | installers + platform registry |
 | Release discipline | ✅ | AGENTS.md enforced |
 | Model config cleanup | ✅ | Only deepseek/siliconflow loaded, ¥35/day budget |

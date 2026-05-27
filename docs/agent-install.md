@@ -71,7 +71,7 @@ This determines how the research workspace is scaffolded and which skill chains 
 If user chooses **custom**, show available packs:
 - `init` — Project initializer + wizard
 - `companion` — PEtFiSh core (2 core skills: fish-brain + fish-market, + /petfish command)
-- `toolchain` — Skill lifecycle pipeline (8 skills: author, lint, mine, audit, gate, optimize, eval, tracker)
+- `toolchain` — Skill lifecycle pipeline (9 skills: author, lint, mine, audit, gate, publish, optimize, eval, tracker)
 - `course` — Course development (15 skills, 10 commands, 8 agents)
 - `deploy` — Deployment & operations (7 skills)
 - `testdocs` — Test cases & documentation (2 skills)
@@ -84,6 +84,8 @@ If user chooses **custom**, show available packs:
 - `reflect` — Structured reflection — capture what went wrong, why, and corrective actions (1 skill)
 
 Ask which packs they want. If they include `research`, ask the research domain follow-up question above.
+
+> **Note**: Packs are split into **core** (init, companion, petfish, toolchain — shipped on petfish.ai) and **optional** (course, deploy, testdocs, ppt, calibrate, context, trust, research, reflect — distributed via petfish-market). Install commands resolve automatically — no user-visible difference.
 
 ---
 
@@ -122,6 +124,8 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 ```
 
 Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc.) and `<PLATFORM>` with the platform from Step 1.
+
+> **Core vs Optional**: Core packs (init, companion, petfish, toolchain) download directly from the petfish.ai release. Optional packs (course, research, etc.) resolve via petfish-market — same command, same experience. The installer queries the market index automatically when a pack is not found in the core set.
 
 ---
 
@@ -254,4 +258,4 @@ curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
 
 **GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
-**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track.
+**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track. 4 core packs + 9 optional packs via petfish-market.

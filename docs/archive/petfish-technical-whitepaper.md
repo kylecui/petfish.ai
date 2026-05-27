@@ -33,7 +33,7 @@ OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——
 │            └───────┬───────┘      └───────┬───────┘      │
 │                    │                      │               │
 │            ┌───────┴──────────────────────┴───────┐      │
-│            │         Pack Layer (13 packs)         │      │
+│            │         Pack Layer (4 core + 9 optional)     │      │
 │            │  pack-manifest.json 统一schema        │      │
 │            └───────────────────┬──────────────────┘      │
 │                                │                          │
@@ -51,7 +51,7 @@ OpenCode、Claude Code、Cursor、Copilot、Windsurf、Codex、Antigravity——
 |---|---|---|
 | 用户接口层 | `/petfish` 14个子命令 + 4个install脚本 | `petfish.md`, `install.ps1/sh`, `remote-install.ps1/sh` |
 | Companion层 | 2个核心skill（fish-brain 鱼伴、fish-market 鱼市） | `packs/petfish-companion-skill/.opencode/skills/` |
-| Pack层 | 13个skill pack，按领域组织 | `packs/*/pack-manifest.json` |
+| Pack层 | 4个核心pack + 9个可选pack（通过petfish-market分发） | `packs/core/*/pack-manifest.json`, `packs/optional/*/pack-manifest.json` |
 | 平台适配层 | 8平台路径映射、指令翻译、配置合并 | `platforms.json` |
 
 ---

@@ -1,7 +1,7 @@
 # PEtFiSh Project Landscape
 
 > **强制文档** — 所有涉及跨仓库变更的开发者必须遵守本文档定义的同步规则。
-> 上次更新: 2026-05-27 (v1.3)
+> 上次更新: 2026-05-27 (v1.4)
 
 ---
 
@@ -9,7 +9,7 @@
 
 | # | 仓库 | 可见性 | 角色 | 维护关系 |
 |---|------|--------|------|---------|
-| 1 | **[kylecui/petfish.ai](https://github.com/kylecui/petfish.ai)** | Public | 主单仓库 — 所有源码、13 packs、96 skills、文档、网站、CI/CD | 核心仓库，所有变更起点 |
+| 1 | **[kylecui/petfish.ai](https://github.com/kylecui/petfish.ai)** | Public | 主单仓库 — 所有源码、4 core + 9 optional packs、96 skills、文档、网站、CI/CD | 核心仓库，所有变更起点 |
 | 2 | **[kylecui/petfish-market](https://github.com/kylecui/petfish-market)** | Public | Community skill marketplace — 提交→CI验证→发布index.json | 依赖 #1 的 gate 工具链 |
 | 3 | **[kylecui/petfish_remote](https://github.com/kylecui/petfish_remote)** | Public | 胖鱼遥控器 — 通过IM操作opencode的连接器（飞书/Slack/Telegram/企微/Web） | 依赖 #1 的安装器分发 skills |
 | 4 | **[kylecui/petfish_tester](https://github.com/kylecui/petfish_tester)** | Private | 测试与评估工具 — benchmark、A/B test、实验 | 引用 #1 的评估数据 |
@@ -34,7 +34,7 @@ petfish.ai/
 │   │   │       ├── mcp/skill-registry/        # MCP: pack查询
 │   │   │       └── mcp/usage-cost/            # MCP: token用量追踪
 │   │   │
-│   │   ├── petfish-toolchain-skill/           # toolchain — 8 skills (v1.3新增)
+│   │   ├── petfish-toolchain-skill/           # toolchain — 9 skills (v1.4: +skill-publish)
 │   │   │   └── .opencode/skills/
 │   │   │       ├── skill-author/              #   新skill脚手架
 │   │   │       ├── skill-lint/                #   质量检查
@@ -104,8 +104,13 @@ petfish-market/
 ├── skills/
 │   ├── .gitkeep
 │   └── community--test-skill.json            # 测试skill
+├── registry/
+│   └── official/                              # v1.4: 9个官方pack注册条目
+│       ├── course.json
+│       ├── deploy.json
+│       └── ... (9 entries total)
+├── index.json                                # marketplace索引 (v2 schema)
 ├── CONTRIBUTING.md                           # 提交指南
-├── index.json                                # marketplace索引
 └── README.md
 ```
 
@@ -204,6 +209,7 @@ petfish_remote/
 | 安装器别名是否变化 | petfish_remote | remote 通过安装器分发 skills，确认旧别名仍有效 |
 | community-packs.json schema 是否变化 | petfish-market | 确认 `community-packs.json` 的 `_schema` 与 market 的 CONTRIBUTING.md 一致 |
 | fish-market 的搜索源 URL 是否变化 | petfish.ai | 确认 `marketplace_search.py` 中的 URL 仍可访问 |
+| 官方pack注册条目是否同步 | petfish-market | `registry/official/` 中的9个条目是否与 `packs/optional/` 中的实际pack对应 |
 
 ### 4.2 petfish-market 变更后必须检查
 
@@ -259,7 +265,7 @@ petfish-ai/packs/core/petfish-toolchain-skill/.opencode/skills/quality-gate/scri
 | Alias | Pack目录 | Skills | MCPs | Cmds | 中文品牌 |
 |-------|---------|--------|------|------|---------|
 | `companion`, `fish-brain`, `fish-core` | petfish-companion-skill | 2 | 2 | 1 | 鱼伴 |
-| `toolchain` | petfish-toolchain-skill | 8 | 0 | 0 | 鱼具 |
+| `toolchain` | petfish-toolchain-skill | 9 | 0 | 0 | 鱼具 |
 | `init`, `fish-init` | project-initializer-skill | 1 | 0 | 1 | 鱼启 |
 | `research` | research-skill-pack | 54 | 0 | 0 | — |
 | `course` | opencode-course-skills-pack | 15 | 0 | 10 | — |
@@ -271,7 +277,7 @@ petfish-ai/packs/core/petfish-toolchain-skill/.opencode/skills/quality-gate/scri
 | `context` | fish-trail | 1 | 1 | 0 | 鱼迹 |
 | `trust`, `fish-guard` | trustskills-governance-pack | 1 | 0 | 0 | 鱼卫 |
 | `reflect` | fish-reflection-pack | 1 | 0 | 0 | — |
-| **Total** | **13 packs** | **96** | **3** | **12** | |
+| **Total** | **4 core + 9 optional = 13 packs** | **96** | **3** | **12** | |
 
 ---
 
@@ -290,4 +296,4 @@ petfish-ai/packs/core/petfish-toolchain-skill/.opencode/skills/quality-gate/scri
 
 | 日期 | 变更 | 作者 |
 |------|------|------|
-| 2026-05-27 | 初始版本 — 6个仓库全景图 + 同步维护规则 + 已知问题 | v1.3 module decomposition |
+| 2026-05-27 | 初始版本 — 6个仓库全景图 + 同步维护规则 + 已知问题 | v1.4 market-first distribution |

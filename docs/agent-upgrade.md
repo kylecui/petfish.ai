@@ -55,7 +55,66 @@ Same as install guide:
 
 ---
 
-## Step 2: Understand what's changing (v1.2.x → v1.3.x)
+## Step 2: Understand what's changing (v1.3.x → v1.4.x)
+
+### Breaking changes to be aware of:
+
+| Change | Impact | Auto-handled? |
+|--------|--------|---------------|
+| packs/ restructured → `packs/core/` + `packs/optional/` | Pack directories moved under new parent dirs | ✅ Yes — installer scans both core/ and optional/ |
+| Optional packs distributed via petfish-market | Remote installer resolves optional packs from market | ✅ Yes — `query_market_index()` / `Query-MarketIndex` auto-handle |
+| `skill-publish` added to toolchain | Toolchain now has 9 skills (was 8) | ✅ Yes — included in `toolchain` pack upgrade |
+
+### New features in v1.4.x:
+
+- **`skill-publish`** — new toolchain skill bridging quality-gate PASS → petfish-market availability
+- **Market-aware installers** — remote installers (`remote-install.sh`, `remote-install.ps1`) query petfish-market for optional pack downloads; no user-visible command change
+- **`catalog_query.py`** — `--install <alias>` flag with market awareness; auto-resolves optional pack sources
+- **`marketplace_search.py`** — prioritizes petfish-market as primary search source
+- **petfish-market** — `registry/official/` with 9 official pack entries; `index.json` v2
+- **Pack count** — 4 core packs (init, companion, petfish, toolchain) + 9 optional packs via market
+
+### Migration steps for v1.4.x:
+
+1. Re-run the installer with `--force` to pick up the new pack structure:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force --platform <PLATFORM>
+   ```
+2. Core packs install as before. Optional packs are resolved via petfish-market automatically.
+3. If you use toolchain skills, the upgrade includes the new `skill-publish` skill.
+
+---
+
+## Step 2: Understand what's changing (v1.3.x → v1.4.x)
+
+### Breaking changes to be aware of:
+
+| Change | Impact | Auto-handled? |
+|--------|--------|---------------|
+| `packs/` restructured into `packs/core/` + `packs/optional/` | Directory layout changed | ⚠️ Local installers scan dynamically; remote installers updated with new paths |
+| Optional packs now distributed via petfish-market | Download source changed | ✅ Yes — installers query market index automatically |
+| New `skill-publish` toolchain skill | One more skill in toolchain pack | ✅ Yes — comes with toolchain update |
+
+### New features in v1.4.x:
+
+- **`packs/core/` + `packs/optional/`** — 4 core packs (init, companion, petfish, toolchain) stay on petfish.ai; 9 optional packs (course, testdocs, deploy, ppt, calibrate, context, trust, research, reflect) distributed via petfish-market
+- **`skill-publish`** — new toolchain skill that bridges quality-gate PASS → petfish-market availability (9th toolchain skill)
+- **Market query hooks** — remote installers call `query_market_index()` / `Query-MarketIndex` to resolve optional packs
+- **`catalog_query.py --install <alias>`** — new flag for direct install command generation with market awareness
+- **petfish-market `registry/official/`** — 9 official pack entries with `index.json` v2 schema
+
+### Migration steps for v1.4.x:
+
+1. Re-run the installer with `--force` to get the restructured pack layout:
+   ```bash
+   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force --platform <PLATFORM>
+   ```
+2. Core packs will install from the release as before. Optional packs resolve via petfish-market automatically — same command, no extra flags needed.
+3. If you use `skill-publish` (market publishing workflow), it comes with the `toolchain` pack update.
+
+---
+
+## Step 2b: Understand what's changing (v1.2.x → v1.3.x)
 
 ### Breaking changes to be aware of:
 
@@ -313,4 +372,4 @@ Already has fish-trail naming. Run Step 3 with `--force` to pick up the latest s
 
 **GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
-**What's new in v0.5.x**: fish-trail topic routing MVP, 31 MCP tools, context firewall, state dir migration, topic_graph version field fix
+**What's new in v1.4.x**: packs/ split into core/ + optional/, skill-publish, market-first distribution for optional packs, petfish-market registry with 9 official entries

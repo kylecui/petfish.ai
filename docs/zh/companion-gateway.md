@@ -81,11 +81,15 @@ MCP挂了？不卡你，静默降级。
 
 **Tier 1 — 关键词匹配**：基于 `catalog_query.py` 里的TRIGGERS表做匹配。你说"部署"，它知道推荐deploy pack。三个条件同时满足才推荐：消息命中关键词 + 该pack没装 + 本session没推荐过。
 
+核心包（init、companion、petfish、toolchain）直接从petfish.ai安装。可选包（course、research、deploy等）通过petfish-market分发——安装命令自动解析，用户无感知。
+
 **Tier 2 — 意图感知**：Tier 1没命中时，判断你是不是在要一个需要外部集成的能力——发邮件、画甘特图、接监控——而agent自己和已装的skill都做不了。触发时建议 `/petfish search <关键词>`。
 
 **Tier 3 — 没事**：什么都没检测到，闭嘴。
 
 推荐挂在回复末尾，不打断你。每个领域每session最多提醒一次。
+
+> **v1.4说明**：可选pack（course、research、deploy等）通过petfish-market分发。当Skill Sense推荐可选pack时，安装命令通过market解析——用户体验相同，底层解析路径不同。
 
 ### Step 2.5: 反迎合检查
 
