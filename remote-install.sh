@@ -561,6 +561,40 @@ declare -A ALIASES=(
 )
 ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "petfish-toolchain-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack")
 
+# --- Core pack classification ---
+# Core packs are always sourced from the petfish.ai tarball.
+# Optional packs are market-first (petfish-market index), with tarball fallback.
+CORE_ALIASES=("init" "companion" "toolchain" "fish-trail")
+
+is_core_alias() {
+    local alias="$1"
+    for core in "${CORE_ALIASES[@]}"; do
+        [[ "$alias" == "$core" ]] && return 0
+    done
+    return 1
+}
+
+# --- Market index query (hook for future market-first resolution) ---
+# Queries petfish-market index.json for a pack by alias.
+# Echoes the matching pack JSON on success; returns 1 if not found or unavailable.
+# NOTE: Not yet wired into the download path — value is in metadata discovery.
+query_market_index() {
+    local pack_alias="$1"
+    local market_url="https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+    local data
+    data="$(curl -fsSL --max-time 10 "$market_url" 2>/dev/null)" || return 1
+    python3 -c "
+import json, sys
+alias = sys.argv[1]
+data = json.loads(sys.argv[2])
+for pack in data.get('packs', []):
+    if alias in pack.get('alias', []) or pack.get('name') == alias:
+        print(json.dumps(pack))
+        sys.exit(0)
+sys.exit(1)
+" "$pack_alias" "$data" 2>/dev/null
+}
+
 # --- Community pack support ---
 is_community_pack() {
     [[ "$1" == community/* ]]

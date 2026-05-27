@@ -142,6 +142,34 @@ $PackDisplayOrder = @(
     @{ Name = "fish-reflection-pack"; Alias = "reflect, fish-reflect" }
 )
 
+# --- Core pack classification ---
+# Core packs are always sourced from the petfish.ai tarball.
+# Optional packs are market-first (petfish-market index), with tarball fallback.
+$CorePacks = @("project-initializer-skill", "petfish-companion-skill", "petfish-toolchain-skill", "fish-trail")
+
+function Test-CorePack([string]$packName) {
+    return $CorePacks -contains $packName
+}
+
+# --- Market index query (hook for future market-first resolution) ---
+# Queries petfish-market index.json for a pack by alias.
+# Returns the matching pack object, or $null if not found or unavailable.
+# NOTE: Not yet wired into the download path — value is in metadata discovery.
+function Query-MarketIndex([string]$PackAlias) {
+    $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+    try {
+        $data = Invoke-RestMethod -Uri $marketUrl -TimeoutSec 10 -ErrorAction Stop
+        foreach ($pack in $data.packs) {
+            if ($pack.alias -contains $PackAlias -or $pack.name -eq $PackAlias) {
+                return $pack
+            }
+        }
+    } catch {
+        # Market index unavailable — silent fallback
+    }
+    return $null
+}
+
 # --- Platform path configuration ---
 
 function Get-PlatformDefinition([string]$platformName) {

@@ -23,6 +23,8 @@ import argparse
 import json
 import re
 import sys
+import urllib.error
+import urllib.request
 import platform as platform_mod
 from pathlib import Path
 
@@ -235,6 +237,37 @@ def check_failures(text: str, target: Path, as_json: bool = False) -> None:
             )
         if not matches:
             pass  # silent when no failures detected
+
+
+# ---------------------------------------------------------------------------
+# Market index query
+# ---------------------------------------------------------------------------
+
+MARKET_INDEX_URL = (
+    "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+)
+
+# Core packs always come from petfish.ai tarball; optional packs are market-first.
+CORE_PACK_ALIASES = {"init", "companion", "toolchain", "context"}
+
+
+def query_market(alias: str) -> dict | None:
+    """Query petfish-market index.json for a pack by alias.
+
+    Returns the matching pack dict from the index, or None if not found or
+    the index is unavailable (network error, timeout, parse failure).
+    """
+    req = urllib.request.Request(MARKET_INDEX_URL)
+    req.add_header("User-Agent", "PEtFiSh-Catalog/1.0")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        for pack in data.get("packs", []):
+            if alias in pack.get("alias", []) or pack.get("name") == alias:
+                return pack
+    except Exception:
+        pass
+    return None
 
 
 PROFILES = {
@@ -640,6 +673,47 @@ def show_uninstall_command(alias: str, as_json: bool = False):
     print("Add --target <path> if the project is not in the current directory.")
 
 
+def show_install_command(alias: str, as_json: bool = False):
+    """Show remote-install command for a pack alias."""
+    os_name = platform_mod.system()
+    is_windows = os_name == "Windows"
+
+    pack_name = ALIAS_MAP.get(alias)
+    if not pack_name:
+        msg = f"Unknown pack alias: '{alias}'. Use --list to see available packs."
+        if as_json:
+            print(json.dumps({"error": msg}, ensure_ascii=False, indent=2))
+        else:
+            print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(1)
+
+    if is_windows:
+        command = (
+            "& ([scriptblock]::Create((irm "
+            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1"
+            f"))) -Pack {alias}"
+        )
+    else:
+        command = (
+            "curl -fsSL "
+            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh "
+            f"| bash -s -- --pack {alias}"
+        )
+
+    if as_json:
+        print(
+            json.dumps(
+                {"os": os_name, "alias": alias, "pack": pack_name, "command": command},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return
+
+    print(f"To install '{alias}', run:")
+    print(command)
+
+
 def main():
     parser = argparse.ArgumentParser(description="PEtFiSh Skill Catalog Query")
     parser.add_argument(
@@ -666,6 +740,12 @@ def main():
         type=str,
         metavar="ALIAS",
         help="Show command to uninstall a pack via local installer",
+    )
+    group.add_argument(
+        "--install",
+        type=str,
+        metavar="ALIAS",
+        help="Show remote install command for a pack alias",
     )
     parser.add_argument(
         "--target",
@@ -700,9 +780,10 @@ def main():
         or args.upgrade
         or check_failures_text
         or args.uninstall
+        or args.install
     ):
         parser.error(
-            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade/--check-failures/--uninstall"
+            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade/--check-failures/--uninstall/--install"
         )
 
     if args.list:
@@ -717,6 +798,8 @@ def main():
         check_failures(check_failures_text, target=target, as_json=args.json)
     elif args.uninstall:
         show_uninstall_command(args.uninstall, as_json=args.json)
+    elif args.install:
+        show_install_command(args.install, as_json=args.json)
 
 
 if __name__ == "__main__":

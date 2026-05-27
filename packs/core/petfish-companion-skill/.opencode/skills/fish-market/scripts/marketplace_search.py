@@ -20,40 +20,13 @@ import urllib.request
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Local catalog (PEtFiSh own packs)
+# Local catalog (PEtFiSh core packs only)
+# Optional packs (course, deploy, petfish, ppt, testdocs, calibrate, context,
+# trust, research, reflect) are resolved via petfish-market index — not listed
+# here to avoid stale hardcoded metadata.
 # ---------------------------------------------------------------------------
 
 LOCAL_CATALOG = [
-    {
-        "name": "course",
-        "pack": "opencode-course-skills-pack",
-        "description": "课程开发全生命周期",
-        "type": "skill",
-    },
-    {
-        "name": "deploy",
-        "pack": "repo-deploy-ops-skill-pack",
-        "description": "部署与运维",
-        "type": "skill",
-    },
-    {
-        "name": "petfish",
-        "pack": "petfish-style-skill",
-        "description": "工程写作风格改写",
-        "type": "skill",
-    },
-    {
-        "name": "ppt",
-        "pack": "opencode-ppt-skills",
-        "description": "PPT设计与制作",
-        "type": "skill",
-    },
-    {
-        "name": "testdocs",
-        "pack": "opencode-skill-pack-testcases-usage-docs",
-        "description": "测试用例与文档生成",
-        "type": "skill",
-    },
     {
         "name": "companion",
         "pack": "petfish-companion-skill",
@@ -64,6 +37,18 @@ LOCAL_CATALOG = [
         "name": "init",
         "pack": "project-initializer-skill",
         "description": "项目初始化器",
+        "type": "skill",
+    },
+    {
+        "name": "toolchain",
+        "pack": "petfish-toolchain-skill",
+        "description": "Skill lifecycle pipeline — author, lint, audit, gate, optimize, eval",
+        "type": "skill",
+    },
+    {
+        "name": "context",
+        "pack": "fish-trail",
+        "description": "话题治理与上下文隔离",
         "type": "skill",
     },
 ]
@@ -358,8 +343,8 @@ def search_github(query: str, limit: int) -> list[dict]:
 
 ALL_SOURCES = {
     "petfish": search_local,
-    "community": search_community_registry,
     "petfish-market": search_petfish_market,
+    "community": search_community_registry,
     "glama": search_glama,
     "smithery": search_smithery,
     "skillkit": search_skillkit,
