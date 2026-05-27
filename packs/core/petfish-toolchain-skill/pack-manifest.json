@@ -4,7 +4,7 @@
   "legacy_names": ["toolchain"],
   "description": "PEtFiSh Skill Toolchain — Author, lint, audit, gate, optimize, evaluate, mine, and track skills",
   "compatibility": "opencode",
-  "skill_count": 8,
+  "skill_count": 9,
   "command_count": 0,
   "agent_count": 0,
   "mcp_count": 0,
@@ -16,7 +16,8 @@
     "quality-gate",
     "skill-description-optimizer",
     "skill-trigger-evaluator",
-    "skill-usage-tracker"
+    "skill-usage-tracker",
+    "skill-publish"
   ],
   "commands": [],
   "agents": [],
@@ -46,6 +47,8 @@
     ".opencode/skills/skill-trigger-evaluator/scripts/evaluate_triggers.py",
     ".opencode/skills/skill-usage-tracker/SKILL.md",
     ".opencode/skills/skill-usage-tracker/references/tracking-guide.md",
-    ".opencode/skills/skill-usage-tracker/scripts/track_usage.py"
+    ".opencode/skills/skill-usage-tracker/scripts/track_usage.py",
+    ".opencode/skills/skill-publish/SKILL.md",
+    ".opencode/skills/skill-publish/scripts/publish_pack.py"
   ]
 }

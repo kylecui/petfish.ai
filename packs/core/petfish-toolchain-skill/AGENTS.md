@@ -7,6 +7,7 @@
 - 用户说"lint skill"、"check skill"、"validate skill" → skill-lint
 - 用户说"audit skill security"、"security review" → skill-security-auditor
 - 用户说"publish skill"、"quality gate"、"run gate" → quality-gate
+- 用户说"publish skill"、"发布到市场"、"release to market"、"publish pack" → skill-publish
 - 用户说"optimize description"、"improve trigger" → skill-description-optimizer
 - 用户说"evaluate triggers"、"test trigger" → skill-trigger-evaluator
 - 用户说"mine skills from repo"、"analyze repo" → repo-skill-miner
