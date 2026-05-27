@@ -13,7 +13,7 @@ param(
     [switch]$Uninstall,
     [switch]$TrustScan,
     [string]$Repo = "kylecui/petfish.ai",
-    [string]$Branch = "feat/fish-trail-tiered-memory-v2",  # pre-release: change back to "master" after merging
+    [string]$Branch = "master",
     [string]$GitHubToken
 )
 
