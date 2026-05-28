@@ -490,8 +490,8 @@
   <div class="container">
     <h2><span class="copy-zh">核心能力 + 无限扩展</span><span class="copy-en">Core Capabilities + Unlimited Extension</span></h2>
     <p>
-      <span class="copy-zh">胖鱼有四个核心能力包，支撑它作为可靠伙伴的四个承诺：常伴、守护、可信、秉正。此外提供多个领域的能力包供你按需安装。<br/>不够用？胖鱼可以搜索第三方市场、从任意仓库挖掘、甚至帮你直接构造新的能力包。</span>
-      <span class="copy-en">PEtFiSh has four core packs supporting its four promises. Plus multiple domain packs for on-demand install. Not enough? PEtFiSh can search third-party markets, mine any repo, or help you build new capability packs from scratch.</span>
+      <span class="copy-zh">胖鱼有四个核心能力包，随仓库直接分发。此外提供九个领域扩展包，通过 petfish-market 分发，安装命令自动解析。不够用？胖鱼可以搜索第三方市场、从任意仓库挖掘、甚至帮你直接构造新的能力包。</span>
+      <span class="copy-en">PEtFiSh has four core packs shipped directly. Plus nine optional domain packs distributed via petfish-market — install commands resolve automatically. Not enough? PEtFiSh can search third-party markets, mine any repo, or help you build new capability packs from scratch.</span>
     </p>
     <!-- Row 1: 胖鱼 (1) -->
     <div class="packs-tier">
@@ -506,35 +506,14 @@
 
     <div class="tier-connector"></div>
 
-    <!-- Row 2: 核心 (2) — 守护 + 可信 -->
+    <!-- Row 2: 核心能力包 (3) — init + petfish + toolchain -->
     <div class="packs-tier">
-      <div class="packs-tier-label"><span class="copy-zh">核心能力</span><span class="copy-en">Core Packs</span></div>
-      <div class="packs-row packs-row-2">
-
-        <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
-          <div class="pack-name">context · <span class="copy-zh">鱼迹</span><span class="copy-en">Fish Trail</span> <span style="font-size:11px;color:var(--accent2);"><span class="copy-zh">守护</span><span class="copy-en">Guard</span></span></div>
-          <div class="pack-desc"><span class="copy-zh">话题治理·上下文隔离·污染评分</span><span class="copy-en">Topic governance · context isolation</span></div>
-          <div class="pack-meta">1 skill · 31 MCP tools</div>
-        </div>
-
-        <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
-          <div class="pack-name">trust · <span class="copy-zh">鱼鳞</span><span class="copy-en">Fish Scale</span> <span style="font-size:11px;color:var(--accent3);"><span class="copy-zh">可信</span><span class="copy-en">Trust</span></span></div>
-          <div class="pack-desc"><span class="copy-zh">Skill可信度·6维风险·4条红线</span><span class="copy-en">Trust governance · 6 risk dims · 4 red lines</span></div>
-          <div class="pack-meta">1 skill</div>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="tier-connector"></div>
-
-    <!-- Row 3: 核心 (3) — 秉正 + 鱼话 + 鱼渊 -->
-    <div class="packs-tier">
+      <div class="packs-tier-label"><span class="copy-zh">核心能力包</span><span class="copy-en">Core Packs — shipped with petfish.ai</span></div>
       <div class="packs-row packs-row-3">
 
-        <div class="pack-card" data-accent="purple" style="border-color: #a371f7;">
-          <div class="pack-name">calibrate · <span class="copy-zh">鱼刺</span><span class="copy-en">Fishbone</span> <span style="font-size:11px;color:#a371f7;"><span class="copy-zh">秉正</span><span class="copy-en">Honest</span></span></div>
-          <div class="pack-desc"><span class="copy-zh">反迎合·先中性化再给结论</span><span class="copy-en">Anti-sycophancy calibration</span></div>
+        <div class="pack-card">
+          <div class="pack-name">init · <span class="copy-zh">初始化</span><span class="copy-en">Project init</span></div>
+          <div class="pack-desc"><span class="copy-zh">项目初始化向导</span><span class="copy-en">Project init wizard</span></div>
           <div class="pack-meta">1 skill</div>
         </div>
 
@@ -545,9 +524,9 @@
         </div>
 
         <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
-          <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
-          <div class="pack-desc"><span class="copy-zh">七大研究领域·证据驱动</span><span class="copy-en">7 research domains · evidence-driven</span></div>
-          <div class="pack-meta">54 skills · 7 domains</div>
+          <div class="pack-name">toolchain · <span class="copy-zh">鱼具</span><span class="copy-en">Fish Tool</span></div>
+          <div class="pack-desc"><span class="copy-zh">Skill生命周期工具链</span><span class="copy-en">Skill lifecycle pipeline</span></div>
+          <div class="pack-meta">9 skills</div>
         </div>
 
       </div>
@@ -555,15 +534,33 @@
 
     <div class="tier-connector"></div>
 
-    <!-- Row 4: 领域扩展 (5) -->
+    <!-- Row 3: 领域扩展包 (9) — via petfish-market -->
     <div class="packs-tier">
-      <div class="packs-tier-label"><span class="copy-zh">领域扩展</span><span class="copy-en">Domain Packs</span></div>
+      <div class="packs-tier-label"><span class="copy-zh">领域扩展包</span><span class="copy-en">Optional Packs — via petfish-market</span></div>
       <div class="packs-row packs-row-5">
 
-        <div class="pack-card">
-          <div class="pack-name">init</div>
-          <div class="pack-desc"><span class="copy-zh">初始化向导</span><span class="copy-en">Project init</span></div>
+        <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
+          <div class="pack-name">context · <span class="copy-zh">鱼迹</span><span class="copy-en">Fish Trail</span></div>
+          <div class="pack-desc"><span class="copy-zh">话题治理·上下文隔离</span><span class="copy-en">Topic governance · context isolation</span></div>
+          <div class="pack-meta">1 skill · 31 MCP tools</div>
+        </div>
+
+        <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
+          <div class="pack-name">trust · <span class="copy-zh">鱼鳞</span><span class="copy-en">Fish Scale</span></div>
+          <div class="pack-desc"><span class="copy-zh">Skill可信度·6维风险</span><span class="copy-en">Trust governance · 6 risk dims</span></div>
           <div class="pack-meta">1 skill</div>
+        </div>
+
+        <div class="pack-card" data-accent="purple" style="border-color: #a371f7;">
+          <div class="pack-name">calibrate · <span class="copy-zh">鱼刺</span><span class="copy-en">Fishbone</span></div>
+          <div class="pack-desc"><span class="copy-zh">反迎合·校准</span><span class="copy-en">Anti-sycophancy calibration</span></div>
+          <div class="pack-meta">1 skill</div>
+        </div>
+
+        <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
+          <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
+          <div class="pack-desc"><span class="copy-zh">七大研究领域·证据驱动</span><span class="copy-en">7 research domains · evidence-driven</span></div>
+          <div class="pack-meta">54 skills</div>
         </div>
 
         <div class="pack-card">
@@ -594,12 +591,6 @@
           <div class="pack-name">reflect</div>
           <div class="pack-desc"><span class="copy-zh">结构化反思</span><span class="copy-en">Reflection</span></div>
           <div class="pack-meta">1 skill</div>
-        </div>
-
-        <div class="pack-card">
-          <div class="pack-name">toolchain</div>
-          <div class="pack-desc"><span class="copy-zh">Skill生命周期工具链</span><span class="copy-en">Skill lifecycle pipeline</span></div>
-          <div class="pack-meta">9 skills</div>
         </div>
 
       </div>
@@ -641,7 +632,7 @@
       <h3>▸ macOS / Linux / WSL</h3>
       <div class="code-block">
         <button class="copy-btn" onclick="copyCode(this)">copy</button>
-        curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \<br/>  | bash -s -- --pack init,companion --detect
+        curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \<br/>  | bash -s -- --pack all --detect
       </div>
     </div>
 
@@ -649,7 +640,7 @@
       <h3>▸ Windows PowerShell</h3>
       <div class="code-block">
         <button class="copy-btn" onclick="copyCode(this)">copy</button>
-        & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
+        & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "all" -Detect
       </div>
     </div>
 
@@ -663,60 +654,6 @@
       <div class="code-block">
         <button class="copy-btn" onclick="copyCode(this)">copy</button>
         Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Preview Install (v1.1.0 Tiered Memory v2) -->
-<section class="install-section" id="preview-install">
-  <div class="container">
-    <div class="preview-section">
-      <h2>
-        <span class="copy-zh">🧪 Tiered Memory v2 预览版</span>
-        <span class="copy-en">🧪 Tiered Memory v2 Preview</span>
-      </h2>
-      <div style="text-align:center;"><span class="preview-badge">Pre-release</span></div>
-      <p class="preview-warning">
-        <span class="copy-zh">⚠️ 测试版本（v1.1.0），不影响稳定版安装。仅供试用分层记忆新功能。</span>
-        <span class="copy-en">⚠️ Test release (v1.1.0). Does NOT affect stable installs. For trying Tiered Memory v2.</span>
-      </p>
-
-      <div class="install-block">
-        <h3><span class="copy-zh">▸ 一句话安装（粘贴到AI编程助手）</span><span class="copy-en">▸ One-line install (paste into AI coding assistant)</span></h3>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">copy</button>
-          Install PEtFiSh v1.1.0 Preview by following: https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/docs/agent-install-v1.1.0-preview.md
-        </div>
-      </div>
-
-      <div class="install-block">
-        <h3>▸ macOS / Linux / WSL</h3>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">copy</button>
-          curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/remote-install.sh \<br/>  | bash -s -- --pack context --detect
-        </div>
-      </div>
-
-      <div class="install-block">
-        <h3>▸ Windows PowerShell</h3>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">copy</button>
-          & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/remote-install.ps1))) -Pack context -Detect
-        </div>
-      </div>
-
-      <p class="install-note">
-        <span class="copy-zh">安装脚本从 v1.1.0 pre-release tag 拉取。仅安装 <code>context</code> (fish-trail) pack。V1→V2 数据自动迁移，不影响已有话题。回退：用 <code>master</code> 替代 <code>v1.1.0</code> 重装即可。</span>
-        <span class="copy-en">Install script fetches from v1.1.0 pre-release tag. Installs only the <code>context</code> (fish-trail) pack. V1→V2 data auto-migrates, no impact on existing topics. Rollback: replace <code>v1.1.0</code> with <code>master</code> and reinstall.</span>
-      </p>
-
-      <div class="install-block" style="margin-top: 32px;">
-        <h3><span class="copy-zh">▸ 已安装预览版？一句话升级</span><span class="copy-en">▸ Already on preview? One-line upgrade</span></h3>
-        <div class="code-block">
-          <button class="copy-btn" onclick="copyCode(this)">copy</button>
-          Upgrade PEtFiSh v1.1.0 by following: https://raw.githubusercontent.com/kylecui/petfish.ai/v1.1.0/docs/agent-install-v1.1.0-preview.md
-        </div>
       </div>
     </div>
   </div>
