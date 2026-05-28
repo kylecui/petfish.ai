@@ -1084,6 +1084,17 @@ function Update-InstalledPacks([string]$registryDir, [string]$packName, [string]
         $reg = [PSCustomObject]@{ packs = [PSCustomObject]@{} }
     }
 
+    # v0.4.x-v0.9.x used array format: normalize to dict
+    if ($reg.packs -is [System.Array]) {
+        $newPacks = [PSCustomObject]@{}
+        foreach ($item in $reg.packs) {
+            if ($item -is [string]) {
+                $newPacks | Add-Member -NotePropertyName $item -NotePropertyValue ([PSCustomObject]@{})
+            }
+        }
+        $reg.packs = $newPacks
+    }
+
     $entryObj = [PSCustomObject]$entry
     if ($reg.packs.PSObject.Properties[$packName]) {
         $reg.packs.$packName = $entryObj
@@ -1130,6 +1141,17 @@ function Compare-PackVersion([string]$registryDir, [string]$packName, [string]$m
 
     if (-not $registry.PSObject.Properties['packs']) {
         return "not-installed"
+    }
+
+    # v0.4.x-v0.9.x used array format: normalize to dict
+    if ($registry.packs -is [System.Array]) {
+        $newPacks = [PSCustomObject]@{}
+        foreach ($item in $registry.packs) {
+            if ($item -is [string]) {
+                $newPacks | Add-Member -NotePropertyName $item -NotePropertyValue ([PSCustomObject]@{})
+            }
+        }
+        $registry.packs = $newPacks
     }
 
     $packEntryProp = $registry.packs.PSObject.Properties[$packName]

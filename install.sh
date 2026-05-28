@@ -704,6 +704,10 @@ with open(reg_file, 'r', encoding='utf-8') as f:
     registry = json.load(f)
 
 packs = registry.get('packs') or {}
+# v0.4.x-v0.9.x used array format: normalize to dict
+if isinstance(packs, list):
+    packs = {p: {} for p in packs if isinstance(p, str)}
+    registry['packs'] = packs
 pack_entry = packs.get(pack_name) or {}
 
 # Legacy name lookup: if current name not in registry, check legacy names from manifest
