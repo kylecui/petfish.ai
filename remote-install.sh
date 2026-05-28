@@ -300,6 +300,186 @@ for n in m.get('legacy_names', []):
     fi
 }
 
+# v0.9.x → v1.4 migration: clean up renamed packs, skills, and MCP paths
+migrate_legacy_v0_9() {
+    local target="$1" skills_dir="$2" config_file="$3" rules_dir="$4"
+    [[ -d "$target" ]] || return 0
+
+    python3 -c "
+import json, os, sys, shutil
+
+target = sys.argv[1]
+skills_dir = sys.argv[2]
+config_file = sys.argv[3]
+rules_dir = sys.argv[4]
+
+# Pack ID renames: old_key → new_key
+PACK_RENAMES = {
+    'context-router-skill': 'fish-trail',
+    'companion': 'petfish-companion-skill',
+    'toolchain': 'petfish-toolchain-skill',
+    'project-initializer': 'project-initializer-skill',
+    'anti-sycophancy-calibration': 'anti-sycophancy-calibration-pack',
+    'petfish-style-rewriter': 'petfish-style-skill',
+    'skill-trust-governance': 'trustskills-governance-pack',
+}
+
+# Skill directory renames: old_dir → new_dir
+SKILL_RENAMES = {
+    'context-router': 'fish-trail',
+    'petfish-companion': 'fish-brain',
+    'marketplace-connector': 'fish-market',
+    'project-initializer': 'fish-init',
+    'anti-sycophancy-calibration': 'fish-calibrate',
+    'petfish-style-rewriter': 'fish-style',
+    'skill-trust-governance': 'fish-guard',
+}
+
+# Agents-rules file renames: old_file → new_file
+RULES_RENAMES = {
+    'context-router.md': 'fish-trail.md',
+}
+
+migrated = False
+
+# --- 1. Registry key renames ---
+def find_registry_file(base):
+    for candidate in [
+        os.path.join(base, '.opencode', 'installed-packs.json'),
+        os.path.join(base, '.claude', 'installed-packs.json'),
+        os.path.join(base, '.agents', 'installed-packs.json'),
+    ]:
+        if os.path.isfile(candidate):
+            return candidate
+    return None
+
+for base_dir in [target, os.path.expanduser('~')]:
+    reg_file = find_registry_file(base_dir)
+    if not reg_file or not os.path.isfile(reg_file):
+        continue
+    try:
+        with open(reg_file, 'r', encoding='utf-8') as f:
+            reg = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        continue
+
+    packs = reg.get('packs')
+    if packs is None:
+        continue
+    # Normalize array format
+    if isinstance(packs, list):
+        packs = {p: {} for p in packs if isinstance(p, str)}
+        reg['packs'] = packs
+
+    changed = False
+    for old_key, new_key in PACK_RENAMES.items():
+        if old_key in packs and new_key not in packs:
+            packs[new_key] = packs.pop(old_key)
+            print(f'    ' + chr(8635) + f' Registry: {old_key} -> {new_key}', file=sys.stderr)
+            changed = True
+            migrated = True
+        elif old_key in packs and new_key in packs:
+            # Both exist: remove old, keep new
+            del packs[old_key]
+            print(f'    ' + chr(8635) + f' Registry: removed stale {old_key}', file=sys.stderr)
+            changed = True
+            migrated = True
+
+    if changed:
+        with open(reg_file, 'w', encoding='utf-8') as f:
+            json.dump(reg, f, indent=2, ensure_ascii=False)
+            f.write(chr(10))
+
+# --- 2. Old skill directory cleanup ---
+abs_skills = os.path.join(target, skills_dir) if not os.path.isabs(skills_dir) else skills_dir
+if os.path.isdir(abs_skills):
+    for old_dir, new_dir in SKILL_RENAMES.items():
+        old_path = os.path.join(abs_skills, old_dir)
+        new_path = os.path.join(abs_skills, new_dir)
+        if os.path.isdir(old_path):
+            if os.path.isdir(new_path):
+                # New exists, old is stale — remove old
+                shutil.rmtree(old_path)
+                print(f'    ' + chr(8635) + f' Removed stale skill dir: {old_dir}/', file=sys.stderr)
+                migrated = True
+            else:
+                # Only old exists — rename it
+                os.rename(old_path, new_path)
+                print(f'    ' + chr(8635) + f' Renamed skill dir: {old_dir}/ -> {new_dir}/', file=sys.stderr)
+                migrated = True
+
+# --- 3. Old agents-rules file cleanup ---
+abs_rules = os.path.join(target, rules_dir) if rules_dir and not os.path.isabs(rules_dir) else (rules_dir or '')
+if abs_rules and os.path.isdir(abs_rules):
+    for old_file, new_file in RULES_RENAMES.items():
+        old_path = os.path.join(abs_rules, old_file)
+        new_path = os.path.join(abs_rules, new_file)
+        if os.path.isfile(old_path):
+            if os.path.isfile(new_path):
+                os.remove(old_path)
+                print(f'    ' + chr(8635) + f' Removed stale rules file: {old_file}', file=sys.stderr)
+            else:
+                os.rename(old_path, new_path)
+                print(f'    ' + chr(8635) + f' Renamed rules file: {old_file} -> {new_file}', file=sys.stderr)
+            migrated = True
+
+# --- 4. opencode.json MCP path update ---
+abs_config = os.path.join(target, config_file) if config_file and not os.path.isabs(config_file) else (config_file or '')
+if abs_config and os.path.isfile(abs_config):
+    with open(abs_config, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    new_content = content
+    # Replace context-router references in MCP paths
+    replacements = [
+        ('context-router/mcp', 'fish-trail/mcp'),
+        ('context-router' + chr(47), 'fish-trail' + chr(47)),
+    ]
+    for old_str, new_str in replacements:
+        if old_str in new_content:
+            new_content = new_content.replace(old_str, new_str)
+
+    # Also rename MCP server key if it uses old name
+    try:
+        config = json.loads(new_content)
+        mcp = config.get('mcp', {})
+        if 'context-state' in mcp:
+            srv = mcp['context-state']
+            # Fix command/args paths
+            if isinstance(srv, dict):
+                for field in ['command', 'args']:
+                    val = srv.get(field, '')
+                    if isinstance(val, str) and 'context-router' in val:
+                        srv[field] = val.replace('context-router', 'fish-trail')
+                    elif isinstance(val, list):
+                        srv[field] = [a.replace('context-router', 'fish-trail') if isinstance(a, str) and 'context-router' in a else a for a in val]
+                # Fix cwd and env paths
+                for env_key in ['cwd', 'PETFISH_STATE_DIR']:
+                    env_val = srv.get(env_key, '')
+                    if isinstance(env_val, str) and 'context-router' in env_val:
+                        srv[env_key] = env_val.replace('context-router', 'fish-trail')
+                env = srv.get('env', {})
+                if isinstance(env, dict):
+                    for k, v in env.items():
+                        if isinstance(v, str) and 'context-router' in v:
+                            env[k] = v.replace('context-router', 'fish-trail')
+        updated = json.dumps(config, indent=2, ensure_ascii=False)
+        if updated != new_content:
+            new_content = updated + chr(10)
+    except (json.JSONDecodeError, KeyError):
+        pass
+
+    if new_content != content:
+        with open(abs_config, 'w', encoding='utf-8') as f:
+            f.write(new_content)
+        print(f'    ' + chr(8635) + f' Updated MCP paths in {config_file}', file=sys.stderr)
+        migrated = True
+
+if not migrated:
+    pass  # Silent when nothing to migrate
+" "$target" "$skills_dir" "$config_file" "$rules_dir"
+}
+
 merge_opencode_json() {
     local src_file="$1" dst_file="$2" force="$3" skills_dir="${4:-.opencode/skills}"
 
@@ -1518,6 +1698,9 @@ install_for_platform() {
     local registry_dir
     registry_dir="$(get_platform_registry_dir "$skills_dir")"
 
+    # Migrate legacy v0.9.x artifacts (renamed packs, skills, MCP paths)
+    migrate_legacy_v0_9 "$TARGET" "$skills_dir" "$config_file" "$rules_dir"
+
     echo ""
     echo "  [$platform_name] Installing to $TARGET..."
 
@@ -1840,6 +2023,9 @@ install_global_for_platform() {
     [[ -n "$global_commands_dir" ]] && global_commands_dir="$(expand_home_path "$global_commands_dir")"
     local global_registry_dir
     global_registry_dir="$(get_platform_registry_dir "$global_skills_dir")"
+
+    # Migrate legacy v0.9.x artifacts in global skills dir
+    migrate_legacy_v0_9 "$global_skills_dir" "skills" "" ""
 
     echo ""
     echo "  [$platform_name] Global install to $global_skills_dir..."

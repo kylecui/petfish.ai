@@ -693,6 +693,155 @@ function Remove-InlinePackSection([string]$agentsFile, [string]$packName, [strin
     }
 }
 
+# --- v0.9.x → v1.4 migration ---
+
+function Migrate-LegacyV09(
+    [string]$TargetPath,
+    [string]$SkillsDir,
+    [string]$ConfigFile,
+    [string]$RulesDir
+) {
+    # Pack ID renames (installed-packs.json keys)
+    $packIdRenames = [ordered]@{
+        'context-router-skill'             = 'fish-trail'
+        'companion'                        = 'petfish-companion-skill'
+        'toolchain'                        = 'petfish-toolchain-skill'
+        'project-initializer'              = 'project-initializer-skill'
+        'anti-sycophancy-calibration'      = 'anti-sycophancy-calibration-pack'
+        'petfish-style-rewriter'           = 'petfish-style-skill'
+        'skill-trust-governance'           = 'trustskills-governance-pack'
+    }
+
+    # Skill directory renames (under <SkillsDir>/)
+    $skillDirRenames = [ordered]@{
+        'context-router'                   = 'fish-trail'
+        'petfish-companion'                = 'fish-brain'
+        'marketplace-connector'            = 'fish-market'
+        'project-initializer'              = 'fish-init'
+        'anti-sycophancy-calibration'      = 'fish-calibrate'
+        'petfish-style-rewriter'           = 'fish-style'
+        'skill-trust-governance'           = 'fish-guard'
+    }
+
+    # Agents-rules file renames
+    $rulesFileRenames = [ordered]@{
+        'context-router.md' = 'fish-trail.md'
+    }
+
+    # Compute full skills path and registry dir
+    $fullSkillsPath = if ($SkillsDir -and -not [string]::IsNullOrWhiteSpace($SkillsDir)) {
+        Join-Path $TargetPath $SkillsDir
+    } else { $null }
+
+    $registryDir = if ($fullSkillsPath) { Split-Path -Parent $fullSkillsPath } else { $null }
+
+    # --- 1. Migrate installed-packs.json (rename legacy pack ID keys) ---
+    if ($registryDir) {
+        $regFile = Join-Path $registryDir "installed-packs.json"
+        if (Test-Path $regFile) {
+            try {
+                $reg = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
+
+                # Normalize array format → dict (v0.4.x–v0.9.x used array)
+                if ($reg.packs -is [System.Array]) {
+                    $newPacks = [PSCustomObject]@{}
+                    foreach ($item in $reg.packs) {
+                        if ($item -is [string]) {
+                            $newPacks | Add-Member -NotePropertyName $item -NotePropertyValue ([PSCustomObject]@{})
+                        }
+                    }
+                    $reg.packs = $newPacks
+                }
+
+                if (-not $reg.PSObject.Properties['packs']) {
+                    $reg | Add-Member -NotePropertyName 'packs' -NotePropertyValue ([PSCustomObject]@{})
+                }
+
+                $regChanged = $false
+                foreach ($oldId in $packIdRenames.Keys) {
+                    $newId = $packIdRenames[$oldId]
+                    $hasOld = $reg.packs.PSObject.Properties[$oldId]
+                    $hasNew = $reg.packs.PSObject.Properties[$newId]
+                    if ($hasOld -and -not $hasNew) {
+                        $entry = $reg.packs.$oldId
+                        $reg.packs | Add-Member -NotePropertyName $newId -NotePropertyValue $entry
+                        $reg.packs.PSObject.Properties.Remove($oldId)
+                        Write-Host "  [migrate] installed-packs.json: '$oldId' -> '$newId'" -ForegroundColor DarkYellow
+                        $regChanged = $true
+                    } elseif ($hasOld -and $hasNew) {
+                        $reg.packs.PSObject.Properties.Remove($oldId)
+                        Write-Host "  [migrate] installed-packs.json: removed stale '$oldId'" -ForegroundColor DarkYellow
+                        $regChanged = $true
+                    }
+                }
+
+                if ($regChanged) {
+                    $reg | ConvertTo-Json -Depth 10 | Set-Content $regFile -Encoding UTF8
+                }
+            } catch {
+                # Silently skip registry migration on error
+            }
+        }
+    }
+
+    # --- 2. Rename skill directories ---
+    if ($fullSkillsPath -and (Test-Path $fullSkillsPath)) {
+        foreach ($oldName in $skillDirRenames.Keys) {
+            $newName = $skillDirRenames[$oldName]
+            $oldPath = Join-Path $fullSkillsPath $oldName
+            $newPath = Join-Path $fullSkillsPath $newName
+            if (Test-Path $oldPath) {
+                if (Test-Path $newPath) {
+                    Remove-Item -Path $oldPath -Recurse -Force
+                    Write-Host "  [migrate] skills/$oldName removed (new '$newName' already exists)" -ForegroundColor DarkYellow
+                } else {
+                    Move-Item -Path $oldPath -Destination $newPath
+                    Write-Host "  [migrate] skills/$oldName -> skills/$newName" -ForegroundColor DarkYellow
+                }
+            }
+        }
+    }
+
+    # --- 3. Rename agents-rules files ---
+    if (-not [string]::IsNullOrWhiteSpace($RulesDir)) {
+        $fullRulesPath = Join-Path $TargetPath $RulesDir
+        if (Test-Path $fullRulesPath) {
+            foreach ($oldFile in $rulesFileRenames.Keys) {
+                $newFile = $rulesFileRenames[$oldFile]
+                $oldFilePath = Join-Path $fullRulesPath $oldFile
+                $newFilePath = Join-Path $fullRulesPath $newFile
+                if (Test-Path $oldFilePath) {
+                    if (Test-Path $newFilePath) {
+                        Remove-Item -Path $oldFilePath -Force
+                        Write-Host "  [migrate] agents-rules/$oldFile removed (new '$newFile' already exists)" -ForegroundColor DarkYellow
+                    } else {
+                        Move-Item -Path $oldFilePath -Destination $newFilePath
+                        Write-Host "  [migrate] agents-rules/$oldFile -> agents-rules/$newFile" -ForegroundColor DarkYellow
+                    }
+                }
+            }
+        }
+    }
+
+    # --- 4. Update MCP paths in opencode.json (context-router -> fish-trail) ---
+    if (-not [string]::IsNullOrWhiteSpace($ConfigFile)) {
+        $fullConfigPath = Join-Path $TargetPath $ConfigFile
+        if (Test-Path $fullConfigPath) {
+            try {
+                $raw = Get-Content $fullConfigPath -Raw -Encoding UTF8
+                $updated = $raw -replace 'context-router/mcp', 'fish-trail/mcp'
+                $updated = $updated -replace 'context-router/', 'fish-trail/'
+                if ($updated -ne $raw) {
+                    Set-Content -Path $fullConfigPath -Value $updated -Encoding UTF8
+                    Write-Host "  [migrate] opencode.json: updated context-router paths -> fish-trail" -ForegroundColor DarkYellow
+                }
+            } catch {
+                # Silently skip config migration on error
+            }
+        }
+    }
+}
+
 # --- Uninstall function ---
 
 function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
@@ -1740,6 +1889,8 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
     $script:installed = 0
     $script:skipped = 0
 
+    Migrate-LegacyV09 -TargetPath $targetPath -SkillsDir $cfg.SkillsDir -ConfigFile $cfg.ConfigFile -RulesDir $cfg.RulesDir
+
     foreach ($packName in $packs) {
         # Resolve pack root: community packs live in staging dir, official packs in PacksDir
         $packRoot = if ($packName -like 'community--*' -and $script:CommunityStagingDir -and (Test-Path (Join-Path $script:CommunityStagingDir $packName))) {
@@ -2034,6 +2185,8 @@ function Install-GlobalForPlatform([string]$platformName, [string[]]$packs, [swi
 
     $script:installed = 0
     $script:skipped = 0
+
+    Migrate-LegacyV09 -TargetPath (Split-Path -Parent $targetSkills) -SkillsDir "skills" -ConfigFile "" -RulesDir ""
 
     foreach ($packName in $packs) {
         # Resolve pack root: community packs live in staging dir, official packs in PacksDir
