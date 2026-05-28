@@ -146,5 +146,34 @@ def test_alias_consistency(script):
     missing = CANONICAL_ALIASES - found
     assert not missing, (
         f"{script} missing aliases: {missing}. "
-        f"Found: {sorted(found)}, Expected: {sorted(CANONICAL_ALIASES)}"
+        f"Found: {sorted(found)}, Expected: {sorted(CANICAL_ALIASES)}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Regression: array-format installed-packs.json (v0.4.x-v0.9.x) must not crash
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("script", BASH_SCRIPTS)
+def test_bash_array_registry_normalization(script):
+    """Shell installers must normalize array-format packs to dict (#187)."""
+    content = (REPO_ROOT / script).read_text(encoding="utf-8")
+    # The fix adds: if isinstance(packs, list):
+    assert "isinstance(packs, list)" in content, (
+        f"{script} missing array-format normalization for v0.9.x registry"
+    )
+
+
+@pytest.mark.parametrize("script", PS_SCRIPTS)
+def test_ps1_array_registry_normalization(script):
+    """PowerShell installers must normalize array-format packs to dict (#187)."""
+    content = (REPO_ROOT / script).read_text(encoding="utf-8")
+    # The fix adds: if ($reg.packs -is [System.Array]) (Update) and
+    # if ($registry.packs -is [System.Array]) (Compare)
+    assert "$reg.packs -is [System.Array]" in content, (
+        f"{script} missing array-format normalization in Update-InstalledPacks"
+    )
+    assert "$registry.packs -is [System.Array]" in content, (
+        f"{script} missing array-format normalization in Compare-PackVersion"
     )
