@@ -425,7 +425,11 @@ if not os.path.isfile(reg_file):
 with open(reg_file, 'r', encoding='utf-8') as f:
     reg = json.load(f)
 
-version = ((reg.get('packs') or {}).get(pack_name) or {}).get('version')
+packs = reg.get('packs') or {}
+# v0.4.x-v0.9.x used array format: normalize to dict
+if isinstance(packs, list):
+    packs = {p: {} for p in packs if isinstance(p, str)}
+version = (packs.get(pack_name) or {}).get('version')
 if version:
     print(version)
 PY
