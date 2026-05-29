@@ -572,37 +572,36 @@
           <span class="copy-zh">自动下载安装</span><span class="copy-en">Download &amp; Install</span>
         </div>
         <p>
-          <span class="copy-zh">10 个领域包通过 <strong>petfish-market</strong> 分发。安装命令与核心包完全一致，用户无需关心仓库位置。支持离线回退和镜像加速。</span>
-          <span class="copy-en">10 domain packs distributed via <strong>petfish-market</strong>. Same install command as core packs — users never see the repo difference. Supports offline fallback and mirror acceleration.</span>
+          <span class="copy-zh"><span data-pack-count>10</span> 个领域包通过 <strong>petfish-market</strong> 分发。安装命令与核心包完全一致，用户无需关心仓库位置。支持离线回退和镜像加速。</span>
+          <span class="copy-en"><span data-pack-count>10</span> domain packs distributed via <strong>petfish-market</strong>. Same install command as core packs — users never see the repo difference. Supports offline fallback and mirror acceleration.</span>
         </p>
       </div>
 
       <!-- 3 featured market pack previews -->
-      <div class="packs-row packs-row-3">
-
+      <div class="packs-row packs-row-3" id="featured-market-packs">
+        <!-- Dynamically rendered from index.json by market-data.js -->
+        <noscript>
         <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
           <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
           <div class="pack-desc"><span class="copy-zh">七大研究领域·证据驱动</span><span class="copy-en">7 research domains · evidence-driven</span></div>
           <div class="pack-meta">54 skills</div>
         </div>
-
         <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
           <div class="pack-name">course · <span class="copy-zh">鱼课</span><span class="copy-en">Fish Course</span></div>
           <div class="pack-desc"><span class="copy-zh">课程全生命周期</span><span class="copy-en">Full course lifecycle</span></div>
           <div class="pack-meta">15 skills</div>
         </div>
-
         <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
           <div class="pack-name">deploy · <span class="copy-zh">鱼 Deploy</span><span class="copy-en">Fish Deploy</span></div>
           <div class="pack-desc"><span class="copy-zh">部署·验证·运维·回滚</span><span class="copy-en">Deploy · verify · ops · rollback</span></div>
           <div class="pack-meta">7 skills</div>
         </div>
-
+        </noscript>
       </div>
 
       <!-- View all link -->
       <div class="market-view-all">
-        <a href="/market.html"><span class="copy-zh">查看全部 10 个市场包 →</span><span class="copy-en">View all 10 market packs →</span></a>
+        <a href="/market.html"><span class="copy-zh">查看全部 <span data-pack-count>10</span> 个市场包 →</span><span class="copy-en">View all <span data-pack-count>10</span> market packs →</span></a>
       </div>
     </div>
   </div>
@@ -698,6 +697,7 @@
   </div>
 </footer>
 
+<script src="market-data.js"></script>
 <script>
 function copyCode(btn) {
   const block = btn.parentElement;
@@ -727,7 +727,31 @@ function copyCode(btn) {
   buttons.forEach((btn) => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
   const saved = localStorage.getItem('petfish-lang');
   if (saved) setLanguage(saved);
-})();
+ })();
+</script>
+
+<script src="market-data.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const data = await fetchMarketPacks();
+  if (!data || !data.packs || !data.packs.length) return;
+
+  // Featured packs: top 3 by skill_count
+  const featured = document.getElementById('featured-packs');
+  if (featured) {
+    featured.innerHTML = sortBySize(data.packs).slice(0, 3).map(renderMarketCard).join('');
+  }
+
+  // Update pack counts
+  const z = document.getElementById('market-total-zh');
+  const e = document.getElementById('market-total-en');
+  const vz = document.getElementById('view-all-count-zh');
+  const ve = document.getElementById('view-all-count-en');
+  if (z) z.textContent = data.pack_count;
+  if (e) e.textContent = data.pack_count;
+  if (vz) vz.textContent = data.pack_count;
+  if (ve) ve.textContent = data.pack_count;
+});
 </script>
 
 </body>

@@ -231,38 +231,37 @@ Quality Gate → PASS / CONDITIONAL / FAIL</pre>
         <th><span class="copy-zh">定位</span><span class="copy-en">Purpose</span></th>
         <th><span class="copy-zh">规模</span><span class="copy-en">Scale</span></th>
       </tr>
-      <tr>
-        <td><code>companion</code></td>
-        <td><span class="copy-zh">胖鱼本体——常伴核心（fish-brain 鱼伴 + fish-market 鱼市）</span><span class="copy-en">PEtFiSh core — always-present foundation (fish-brain + fish-market)</span></td>
-        <td>2 skills, 1 cmd</td>
-      </tr>
-      <tr>
-        <td><code>init</code></td>
-        <td><span class="copy-zh">项目初始化向导</span><span class="copy-en">Project initialization wizard</span></td>
-        <td>1 skill, 1 cmd</td>
-      </tr>
-      <tr>
-        <td><code>petfish</code></td>
-        <td><span class="copy-zh">鱼话工程写作风格</span><span class="copy-en">Fish Talk engineering writing style</span></td>
-        <td>1 skill</td>
-      </tr>
-      <tr>
-        <td><code>toolchain</code></td>
-        <td><span class="copy-zh">Skill生命周期工具链——从创作到发布</span><span class="copy-en">Skill lifecycle pipeline — authoring to market publishing</span></td>
-        <td>9 skills</td>
-      </tr>
+      <tbody id="market-table-body">
+        <noscript>
+        <tr><td><code>petfish-style</code></td><td>Writing style (market version)</td><td>1 skill</td></tr>
+        <tr><td><code>context</code></td><td>Topic governance</td><td>1 skill, 31 MCP tools</td></tr>
+        <tr><td><code>calibrate</code></td><td>Anti-sycophancy calibration</td><td>1 skill</td></tr>
+        <tr><td><code>trust</code></td><td>Trust governance</td><td>1 skill</td></tr>
+        <tr><td><code>research</code></td><td>7 research domains</td><td>54 skills</td></tr>
+        <tr><td><code>course</code></td><td>Course development suite</td><td>15 skills</td></tr>
+        <tr><td><code>deploy</code></td><td>Deployment and operations</td><td>7 skills</td></tr>
+        <tr><td><code>testdocs</code></td><td>Test cases and docs</td><td>2 skills</td></tr>
+        <tr><td><code>ppt</code></td><td>Slide design</td><td>2 skills</td></tr>
+        <tr><td><code>reflect</code></td><td>Structured reflection</td><td>1 skill</td></tr>
+        </noscript>
+      </tbody>
     </table>
 
     <p><span class="copy-zh">可选领域包通过 petfish-market 分发。安装器自动查询市场索引，定位独立 GitHub 仓库，下载安装。用户无需关心分发细节——同样的安装命令，自动解析来源。</span><span class="copy-en">Optional domain packs are distributed via petfish-market. The installer automatically queries the market index, locates independent GitHub repos, and downloads. Users don't need to worry about distribution — same install commands, auto-resolved sources.</span></p>
 
-    <h2><span class="copy-zh">10个市场包（通过 petfish-market 分发）</span><span class="copy-en">10 Market Packs (via petfish-market)</span></h2>
+    <h2><span class="copy-zh"><span data-pack-count>10</span>个市场包（通过 petfish-market 分发）</span><span class="copy-en"><span data-pack-count>10</span> Market Packs (via petfish-market)</span></h2>
 
     <table>
+      <thead>
       <tr>
         <th>Alias</th>
         <th><span class="copy-zh">定位</span><span class="copy-en">Purpose</span></th>
         <th><span class="copy-zh">规模</span><span class="copy-en">Scale</span></th>
       </tr>
+      </thead>
+      <tbody id="market-packs-table">
+        <!-- Dynamically rendered from index.json by market-data.js -->
+        <noscript>
       <tr>
         <td><code>petfish-style</code></td>
         <td><span class="copy-zh">鱼话工程写作风格（市场版）</span><span class="copy-en">Fish Talk writing style (market version)</span></td>
@@ -313,6 +312,8 @@ Quality Gate → PASS / CONDITIONAL / FAIL</pre>
         <td><span class="copy-zh">鱼鉴结构化反思</span><span class="copy-en">Fish Mirror structured reflection</span></td>
         <td>1 skill</td>
       </tr>
+        </noscript>
+      </tbody>
     </table>
 
     <h2><span class="copy-zh">为什么是伙伴，不是工具</span><span class="copy-en">Why companion, not tool</span></h2>
@@ -360,6 +361,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
   </div>
 </footer>
 
+<script src="market-data.js"></script>
 <script>
 (function() {
   const body = document.body;
@@ -379,7 +381,24 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
   buttons.forEach((btn) => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
   const saved = localStorage.getItem('petfish-lang');
   if (saved) setLanguage(saved);
-})();
+ })();
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const data = await fetchMarketPacks();
+  if (!data || !data.packs || !data.packs.length) return;
+
+  // Render market table rows
+  const tbody = document.getElementById('market-table-body');
+  if (tbody) {
+    tbody.innerHTML = sortBySize(data.packs).map(renderPitchRow).join('');
+  }
+
+  // Update pack count
+  document.querySelectorAll('[data-pack-count]').forEach(el => {
+    el.textContent = data.pack_count;
+  });
+});
 </script>
 
 </body>
