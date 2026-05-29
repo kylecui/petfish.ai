@@ -1325,7 +1325,8 @@ fi
 rm -f "$TMPDIR/repo.tar.gz"
 
 # GitHub tarballs extract into <owner>-<repo>-<sha>/
-EXTRACT_DIR="$(find "$TMPDIR" -mindepth 1 -maxdepth 1 -type d | head -1)"
+# Exclude community-staging (created early for community pack downloads).
+EXTRACT_DIR="$(find "$TMPDIR" -mindepth 1 -maxdepth 1 -type d -not -name "community-staging" | head -1)"
 if [[ -z "$EXTRACT_DIR" ]]; then
     echo "Error: failed to extract tarball" >&2
     exit 1
