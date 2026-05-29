@@ -188,6 +188,7 @@ petfish_remote/
 | market → petfish.ai | CI clone latest release tag 的 `skill-lint/scripts/lint_skill.py` | market: `.github/workflows/validate-submission.yml` (via gate) |
 | petfish.ai → market | `marketplace_search.py` 查询 `petfish-market/main/index.json` | ai: `packs/.../fish-market/scripts/marketplace_search.py` L159 |
 | petfish.ai → market | `marketplace_search.py` 查询 `petfish.ai/master/community-packs.json` | ai: `packs/.../fish-market/scripts/marketplace_search.py` L120 |
+| remote installer → market | `query_market_index()` / `Query-MarketIndex` 查询 `petfish-market/main/index.json` 解析可选包 | ai: `remote-install.sh` L775, `remote-install.ps1` L158 (v1.4.1起已接入下载路径) |
 | remote → petfish.ai | 通过 `install.ps1/sh` 安装 skills 到 `.opencode/skills/` | remote: `opencode.json`, `.opencode/installed-packs.json` |
 | ai → opencode fork | `patch_opencode.py` 构建本地patch | ai: `scripts/patch_opencode.py` L50 |
 | ai → trustskills | `fish-guard` 通过 `uv add trustskills` 引用 | ai: `packs/optional/trustskills-governance-pack/README.md` |
