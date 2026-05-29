@@ -178,6 +178,7 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 
 ### v1.4 — 市场优先分发
 
+- **v1.4.6**: 本地安装器市场优先下载 — install.sh和install.ps1均支持查询petfish-market自动获取本地缺失的可选包，支持镜像回退和--offline标志。修复#193：bash安装器中社区包状态消息重定向到stderr。
 - **v1.4.5**: 全部9个可选包解耦到独立GitHub仓库（Phase 3+4）。course、research、testdocs、ppt、deploy加入v1.4.3/v1.4.4已解耦的4个单skill包。市场索引更新；所有可选包独立版本管理。`packs/optional/`保留在monorepo作为本地开发暂存区。
 - **v1.4.4**: 修复EXTRACT_DIR回归——从find命令中排除community-staging（#193后续）。Phase 2解耦：fish-reflection、anti-sycophancy、trustskills-governance迁入独立仓库。
 - **v1.4.3**: 修复安装社区包时COMMUNITY_STAGING未绑定变量（#193）。Phase 1试点：petfish-style-skill解耦到kylecui/petfish-pack-petfish-style。
