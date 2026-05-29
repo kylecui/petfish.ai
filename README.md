@@ -335,6 +335,7 @@ petfish.ai/
 ## Version History
 ### v1.4 — Market-First Distribution
 
+- **v1.4.1**: Wire market-first resolution into remote installers. `resolve_pack()` / `Resolve-PackName()` now query petfish-market `index.json` for optional (non-core) packs and cache metadata (`repo`/`ref`/`path`/`version`) for the download phase. Core packs always resolve from the main petfish.ai tarball. Bash installer adds external-repo download support via `MARKET_PACK_DIRS` — when an optional pack's market entry points to a repo other than petfish.ai, it is downloaded separately. Silent fallback to hardcoded ALIASES when market is unreachable.
 - **v1.4.0**: packs/ restructured into `core/` (4 packs: init, companion, petfish, toolchain) and `optional/` (9 packs: course, testdocs, deploy, ppt, calibrate, context, trust, research, reflect). Optional packs distributed via petfish-market with auto-resolution in installers. New toolchain skill `skill-publish` bridges quality-gate PASS → market availability. Remote installers add market query hooks (`query_market_index()` / `Query-MarketIndex`). `catalog_query.py` gains `--install <alias>` flag and market awareness. `marketplace_search.py` prioritizes petfish-market source. petfish-market adds `registry/official/` with 9 official pack entries and `index.json` v2.
 
 ### v1.3 — Module Decomposition: Companion + Toolchain Split
