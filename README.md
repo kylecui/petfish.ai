@@ -335,6 +335,7 @@ petfish.ai/
 ## Version History
 ### v1.4 — Market-First Distribution
 
+- **v1.4.6**: Market-first download in local installers — both install.sh and install.ps1 now query petfish-market for optional packs not found locally, with mirror fallback and --offline flag. Fix #193: redirect community pack status messages to stderr in bash installers.
 - **v1.4.5**: All 9 optional packs decoupled to independent GitHub repos (Phase 3+4). Course, research, testdocs, ppt, deploy join the 4 single-skill packs from v1.4.3/v1.4.4. Market index updated; all packs now independently versioned. `packs/optional/` retained in monorepo as local staging/development location.
 - **v1.4.4**: Fix EXTRACT_DIR regression — exclude community-staging from find command (#193 followup). Phase 2 decoupling: fish-reflection, anti-sycophancy, trustskills-governance → independent repos.
 - **v1.4.3**: Fix COMMUNITY_STAGING unbound variable when installing community packs (#193). Phase 1 pilot: petfish-style-skill decoupled to kylecui/petfish-pack-petfish-style.

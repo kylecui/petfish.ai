@@ -79,6 +79,7 @@
     <div class="nav-links">
       <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
       <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="/market.html"><span class="copy-zh">市场</span><span class="copy-en">Market</span></a>
     </div>
     <div class="lang-toggle">
       <button class="lang-option is-active" type="button" data-lang="zh">中文</button>
@@ -92,7 +93,7 @@
     <a href="/" class="back-link"><span class="copy-zh">← 返回首页</span><span class="copy-en">← Back to home</span></a>
 
     <h1><span class="copy-zh">胖鱼 PEtFiSh — 产品介绍</span><span class="copy-en">PEtFiSh — Product Overview</span></h1>
-    <p class="version">v1.4.0 · 2026-05</p>
+    <p class="version">v1.4.6 · 2026-05</p>
 
     <div class="quote">
       <span class="copy-zh">
@@ -222,7 +223,7 @@ Quality Gate → PASS / CONDITIONAL / FAIL</pre>
       </tr>
     </table>
 
-    <h2><span class="copy-zh">4个核心包 + 9个可选包（通过市场获取）</span><span class="copy-en">4 Core + 9 Optional (via Market)</span></h2>
+    <h2><span class="copy-zh">4个核心包（随仓库发货）</span><span class="copy-en">4 Core Packs (shipped with petfish.ai)</span></h2>
 
     <table>
       <tr>
@@ -236,24 +237,56 @@ Quality Gate → PASS / CONDITIONAL / FAIL</pre>
         <td>2 skills, 1 cmd</td>
       </tr>
       <tr>
+        <td><code>init</code></td>
+        <td><span class="copy-zh">项目初始化向导</span><span class="copy-en">Project initialization wizard</span></td>
+        <td>1 skill, 1 cmd</td>
+      </tr>
+      <tr>
+        <td><code>petfish</code></td>
+        <td><span class="copy-zh">鱼话工程写作风格</span><span class="copy-en">Fish Talk engineering writing style</span></td>
+        <td>1 skill</td>
+      </tr>
+      <tr>
+        <td><code>toolchain</code></td>
+        <td><span class="copy-zh">Skill生命周期工具链——从创作到发布</span><span class="copy-en">Skill lifecycle pipeline — authoring to market publishing</span></td>
+        <td>9 skills</td>
+      </tr>
+    </table>
+
+    <p><span class="copy-zh">可选领域包通过 petfish-market 分发。安装器自动查询市场索引，定位独立 GitHub 仓库，下载安装。用户无需关心分发细节——同样的安装命令，自动解析来源。</span><span class="copy-en">Optional domain packs are distributed via petfish-market. The installer automatically queries the market index, locates independent GitHub repos, and downloads. Users don't need to worry about distribution — same install commands, auto-resolved sources.</span></p>
+
+    <h2><span class="copy-zh">10个市场包（通过 petfish-market 分发）</span><span class="copy-en">10 Market Packs (via petfish-market)</span></h2>
+
+    <table>
+      <tr>
+        <th>Alias</th>
+        <th><span class="copy-zh">定位</span><span class="copy-en">Purpose</span></th>
+        <th><span class="copy-zh">规模</span><span class="copy-en">Scale</span></th>
+      </tr>
+      <tr>
+        <td><code>petfish-style</code></td>
+        <td><span class="copy-zh">鱼话工程写作风格（市场版）</span><span class="copy-en">Fish Talk writing style (market version)</span></td>
+        <td>1 skill</td>
+      </tr>
+      <tr>
         <td><code>context</code></td>
         <td><span class="copy-zh">鱼迹话题治理器——守护核心</span><span class="copy-en">Fish Trail topic governance — guarding core</span></td>
         <td>1 skill, 31 MCP tools</td>
       </tr>
       <tr>
         <td><code>calibrate</code></td>
-        <td><span class="copy-zh">鱼刺反迎合校准——秉正核心</span><span class="copy-en">Fishbone anti-sycophancy calibration — no-compromise core</span></td>
+        <td><span class="copy-zh">鱼刺反迎合校准——秉正核心</span><span class="copy-en">Fishbone anti-sycophancy — no-compromise core</span></td>
         <td>1 skill</td>
       </tr>
       <tr>
         <td><code>trust</code></td>
-        <td><span class="copy-zh">鱼鳞Skill可信度治理——可信核心</span><span class="copy-en">Fish Scale skill trust governance — verified-trust core</span></td>
+        <td><span class="copy-zh">鱼鳞Skill可信度治理——可信核心</span><span class="copy-en">Fish Scale trust governance — verified-trust core</span></td>
         <td>1 skill</td>
       </tr>
       <tr>
-        <td><code>init</code></td>
-        <td><span class="copy-zh">项目初始化向导</span><span class="copy-en">Project initialization wizard</span></td>
-        <td>1 skill, 1 cmd</td>
+        <td><code>research</code></td>
+        <td><span class="copy-zh">鱼渊——科研、产品、规划等七大领域</span><span class="copy-en">Fish Depth — scientific, product, planning + 4 more</span></td>
+        <td>54 skills</td>
       </tr>
       <tr>
         <td><code>course</code></td>
@@ -266,11 +299,6 @@ Quality Gate → PASS / CONDITIONAL / FAIL</pre>
         <td>7 skills</td>
       </tr>
       <tr>
-        <td><code>petfish</code></td>
-        <td><span class="copy-zh">鱼话工程写作风格</span><span class="copy-en">Fish Talk engineering writing style</span></td>
-        <td>1 skill</td>
-      </tr>
-      <tr>
         <td><code>testdocs</code></td>
         <td><span class="copy-zh">测试用例与文档</span><span class="copy-en">Test cases and documentation</span></td>
         <td>2 skills</td>
@@ -281,19 +309,9 @@ Quality Gate → PASS / CONDITIONAL / FAIL</pre>
         <td>2 skills</td>
       </tr>
       <tr>
-        <td><code>research</code></td>
-        <td><span class="copy-zh">研究工作台——科研、产品、规划等七大领域</span><span class="copy-en">Research workbench — scientific, product, planning + 4 more domains</span></td>
-        <td>54 skills</td>
-      </tr>
-      <tr>
         <td><code>reflect</code></td>
-        <td><span class="copy-zh">鱼鉴结构化反思——捕获失败原因与纠正措施</span><span class="copy-en">Fish Mirror structured reflection — capture what went wrong and corrective actions</span></td>
+        <td><span class="copy-zh">鱼鉴结构化反思</span><span class="copy-en">Fish Mirror structured reflection</span></td>
         <td>1 skill</td>
-      </tr>
-      <tr>
-        <td><code>toolchain</code></td>
-        <td><span class="copy-zh">Skill生命周期工具链——从创作到发布9个skill</span><span class="copy-en">Skill lifecycle pipeline — 9 skills from authoring to market publishing</span></td>
-        <td>9 skills</td>
       </tr>
     </table>
 

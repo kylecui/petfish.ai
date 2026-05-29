@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <title>Market — 胖鱼 PEtFiSh</title>
+  <meta name="description" content="petfish-market: 10 domain-specific skill packs for AI agents. Research, course, deploy, and more — install with a single command." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --bg-card:   #161b22;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --text-muted:#8b949e;
+      --accent:    #39d353;
+      --accent2:   #58a6ff;
+      --accent3:   #f0883e;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif:'Noto Serif SC', serif;
+      --radius:    8px;
+      --max-w:     900px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.lang-zh .copy-en { display: none; }
+    body.lang-en .copy-zh { display: none; }
+
+    a { color: var(--accent2); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,17,23,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); padding: 12px 0;
+    }
+    .nav .container { display: flex; align-items: center; gap: 24px; }
+    .nav-logo { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text); }
+    .nav-logo img { width: 28px; height: 28px; }
+    .nav-links { display: flex; gap: 16px; margin-left: auto; font-size: 13px; }
+    .nav-links a { color: var(--text-muted); }
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+    .lang-toggle { display: flex; gap: 4px; }
+    .lang-option {
+      background: none; border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text-muted); font-size: 12px; padding: 2px 8px; cursor: pointer;
+      font-family: var(--font-sans);
+    }
+    .lang-option:hover { color: var(--text); border-color: var(--text-muted); }
+    .lang-option.is-active { color: var(--accent); border-color: var(--accent); }
+
+    /* Hero */
+    .hero { padding: 96px 0 72px; text-align: center; }
+    .hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 16px; }
+    .hero h1 .accent { color: var(--accent); }
+    .hero p { font-size: 17px; color: var(--text-muted); max-width: 640px; margin: 0 auto; }
+    .hero .fish-row { font-family: var(--font-mono); font-size: 28px; color: var(--accent); margin-bottom: 24px; opacity: 0.6; }
+
+    /* Flow diagram */
+    .flow-section { padding: 48px 0 72px; border-top: 1px solid var(--border); }
+    .flow-section h2 { font-size: 24px; text-align: center; margin-bottom: 32px; }
+    .flow-diagram {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      flex-wrap: wrap; font-family: var(--font-mono); font-size: 13px;
+    }
+    .flow-step {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 20px; text-align: center; min-width: 140px;
+    }
+    .flow-step .step-num { color: var(--accent); font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+    .flow-step .step-label { color: var(--text); }
+    .flow-arrow { color: var(--accent); font-size: 20px; font-weight: 700; }
+
+    /* Pack grid */
+    .packs-section { padding: 48px 0 72px; border-top: 1px solid var(--border); }
+    .packs-section h2 { font-size: 24px; text-align: center; margin-bottom: 12px; }
+    .packs-section > p { text-align: center; color: var(--text-muted); margin-bottom: 32px; }
+    .pack-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .pack-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 20px; position: relative; transition: border-color 0.2s;
+    }
+    .pack-card:hover { border-color: var(--accent); }
+    .pack-card .pack-name {
+      font-weight: 600; font-size: 15px; margin-bottom: 8px;
+      font-family: var(--font-mono);
+    }
+    .pack-card .pack-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+    .pack-card .pack-meta {
+      font-size: 12px; font-family: var(--font-mono); color: var(--text-muted); opacity: 0.7;
+    }
+    .pack-card[data-accent]::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .pack-card[data-accent="blue"]::before { background: var(--accent2); }
+    .pack-card[data-accent="cyan"]::before { background: #79c0ff; }
+    .pack-card[data-accent="orange"]::before { background: var(--accent3); }
+    .pack-card[data-accent="purple"]::before { background: #a371f7; }
+    .pack-card[data-accent="pink"]::before { background: #f778ba; }
+    .pack-card[data-accent="green"]::before { background: var(--accent); }
+
+    /* Developer section */
+    .dev-section { padding: 48px 0 72px; border-top: 1px solid var(--border); }
+    .dev-section h2 { font-size: 24px; text-align: center; margin-bottom: 12px; }
+    .dev-section > p { text-align: center; color: var(--text-muted); margin-bottom: 32px; }
+    .dev-steps { counter-reset: devstep; }
+    .dev-step {
+      counter-increment: devstep;
+      display: flex; gap: 20px; margin-bottom: 24px; align-items: flex-start;
+    }
+    .dev-step::before {
+      content: counter(devstep);
+      font-family: var(--font-mono); font-size: 24px; font-weight: 700;
+      color: var(--accent); min-width: 36px; text-align: center; padding-top: 2px;
+    }
+    .dev-step h3 { font-size: 16px; margin-bottom: 4px; }
+    .dev-step p { font-size: 13px; color: var(--text-muted); }
+    .dev-step code {
+      font-family: var(--font-mono); font-size: 12px; background: var(--bg);
+      padding: 2px 6px; border-radius: 4px;
+    }
+
+    /* Install CTA */
+    .cta-section { padding: 48px 0 72px; text-align: center; border-top: 1px solid var(--border); }
+    .cta-section h2 { font-size: 24px; margin-bottom: 16px; }
+    .cta-section p { color: var(--text-muted); margin-bottom: 24px; }
+    .cta-section pre {
+      display: inline-block; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 12px 20px; font-family: var(--font-mono);
+      font-size: 13px; text-align: left;
+    }
+
+    /* Footer */
+    footer { padding: 48px 0; text-align: center; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
+    footer .fish-row { font-family: var(--font-mono); color: var(--accent); margin-bottom: 12px; opacity: 0.5; }
+    footer .links { display: flex; gap: 16px; justify-content: center; margin-top: 12px; }
+    footer .links a { color: var(--text-muted); }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .pack-grid { grid-template-columns: 1fr; }
+      .flow-diagram { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .hero h1 { font-size: 28px; }
+    }
+    @media (min-width: 701px) and (max-width: 900px) {
+      .pack-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body class="lang-zh">
+
+<nav class="nav">
+  <div class="container">
+    <a href="/" class="nav-logo"><img src="assets/petfish-icon-256.png" alt="" /><span>><(((^> 胖鱼 PEtFiSh</span></a>
+    <div class="nav-links">
+      <a href="/"><span class="copy-zh">首页</span><span class="copy-en">Home</span></a>
+      <a href="/market.html"><span class="copy-zh">市场</span><span class="copy-en">Market</span></a>
+      <a href="/blog.html">Blog</a>
+      <a href="https://docs.petfish.ai"><span class="copy-zh">文档</span><span class="copy-en">Docs</span></a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-option is-active" data-lang="zh">中</button>
+      <button class="lang-option" data-lang="en">EN</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="fish-row">><(((^></div>
+  <h1>
+    <span class="copy-zh"><span class="accent">petfish-market</span> 能力市场</span>
+    <span class="copy-en"><span class="accent">petfish-market</span> Pack Registry</span>
+  </h1>
+  <p>
+    <span class="copy-zh">10 个领域扩展包，一个命令安装。安装器自动查询市场索引、定位独立仓库、下载并安装——与核心包体验完全一致。</span>
+    <span class="copy-en">10 domain packs, one command to install. The installer auto-queries the market index, locates the independent repo, downloads and installs — identical experience to core packs.</span>
+  </p>
+</div>
+
+<!-- How it works -->
+<section class="flow-section">
+  <div class="container">
+    <h2><span class="copy-zh">工作原理</span><span class="copy-en">How It Works</span></h2>
+    <div class="flow-diagram">
+      <div class="flow-step">
+        <div class="step-num">01</div>
+        <div class="step-label"><span class="copy-zh">安装器</span><span class="copy-en">Installer</span></div>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="step-num">02</div>
+        <div class="step-label"><span class="copy-zh">查询市场索引</span><span class="copy-en">Query Market Index</span></div>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="step-num">03</div>
+        <div class="step-label"><span class="copy-zh">定位独立仓库</span><span class="copy-en">Locate Repo</span></div>
+      </div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">
+        <div class="step-num">04</div>
+        <div class="step-label"><span class="copy-zh">下载 · 安装 · 就绪</span><span class="copy-en">Download · Install · Ready</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pack cards -->
+<section class="packs-section">
+  <div class="container">
+    <h2><span class="copy-zh">10 个市场包</span><span class="copy-en">10 Market Packs</span></h2>
+    <p>
+      <span class="copy-zh">通过 petfish-market 分发 · 支持离线回退和镜像加速</span>
+      <span class="copy-en">Distributed via petfish-market · offline fallback &amp; mirror acceleration supported</span>
+    </p>
+    <div class="pack-grid">
+
+      <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
+        <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
+        <div class="pack-desc"><span class="copy-zh">七大研究领域·证据驱动研究工作台</span><span class="copy-en">7 research domains · evidence-driven workbench</span></div>
+        <div class="pack-meta">54 skills</div>
+      </div>
+
+      <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
+        <div class="pack-name">course · <span class="copy-zh">鱼课</span><span class="copy-en">Fish Course</span></div>
+        <div class="pack-desc"><span class="copy-zh">课程全生命周期：提纲·正文·实验·QA·QC</span><span class="copy-en">Full course lifecycle: outline · content · labs · QA · QC</span></div>
+        <div class="pack-meta">15 skills</div>
+      </div>
+
+      <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
+        <div class="pack-name">deploy · <span class="copy-zh">鱼 Deploy</span><span class="copy-en">Fish Deploy</span></div>
+        <div class="pack-desc"><span class="copy-zh">部署·验证·运维·回滚</span><span class="copy-en">Deploy · verify · ops · rollback</span></div>
+        <div class="pack-meta">7 skills</div>
+      </div>
+
+      <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
+        <div class="pack-name">context · <span class="copy-zh">鱼迹</span><span class="copy-en">Fish Trail</span></div>
+        <div class="pack-desc"><span class="copy-zh">话题治理·上下文隔离·污染检测</span><span class="copy-en">Topic governance · context isolation · contamination scoring</span></div>
+        <div class="pack-meta">1 skill · 31 MCP tools</div>
+      </div>
+
+      <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
+        <div class="pack-name">trust · <span class="copy-zh">鱼鳞</span><span class="copy-en">Fish Scale</span></div>
+        <div class="pack-desc"><span class="copy-zh">Skill可信度·6维风险·红线策略</span><span class="copy-en">Trust governance · 6 risk dims · red lines</span></div>
+        <div class="pack-meta">1 skill</div>
+      </div>
+
+      <div class="pack-card" data-accent="purple" style="border-color: #a371f7;">
+        <div class="pack-name">calibrate · <span class="copy-zh">鱼刺</span><span class="copy-en">Fishbone</span></div>
+        <div class="pack-desc"><span class="copy-zh">反迎合·决策校准·评分维度先行</span><span class="copy-en">Anti-sycophancy · decision calibration · rubric-first</span></div>
+        <div class="pack-meta">1 skill</div>
+      </div>
+
+      <div class="pack-card" data-accent="pink" style="border-color: #f778ba;">
+        <div class="pack-name">petfish-style · <span class="copy-zh">鱼话</span><span class="copy-en">Fish Talk</span></div>
+        <div class="pack-desc"><span class="copy-zh">工程写作·去AI味·结构化表达（市场版）</span><span class="copy-en">Engineering writing · no AI slop (market edition)</span></div>
+        <div class="pack-meta">1 skill</div>
+      </div>
+
+      <div class="pack-card" data-accent="green">
+        <div class="pack-name">testdocs</div>
+        <div class="pack-desc"><span class="copy-zh">测试用例·使用文档</span><span class="copy-en">Test cases · usage docs</span></div>
+        <div class="pack-meta">2 skills</div>
+      </div>
+
+      <div class="pack-card">
+        <div class="pack-name">ppt · <span class="copy-zh">演示</span><span class="copy-en">Slides</span></div>
+        <div class="pack-desc"><span class="copy-zh">PPT/PPTX 创建·审阅·QA</span><span class="copy-en">PPT/PPTX creation · review · QA</span></div>
+        <div class="pack-meta">2 skills</div>
+      </div>
+
+      <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
+        <div class="pack-name">reflect · <span class="copy-zh">鱼思</span><span class="copy-en">Fish Reflect</span></div>
+        <div class="pack-desc"><span class="copy-zh">结构化反思·经验沉淀</span><span class="copy-en">Structured reflection · lessons captured</span></div>
+        <div class="pack-meta">1 skill</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Developer section -->
+<section class="dev-section">
+  <div class="container">
+    <h2><span class="copy-zh">开发者：发布你的包到市场</span><span class="copy-en">Developers: Publish Your Pack to Market</span></h2>
+    <p>
+      <span class="copy-zh">任何开发者都可以将 skill 包发布到 petfish-market。质量门禁确保每一条都有最低质量保障。</span>
+      <span class="copy-en">Any developer can publish skill packs to petfish-market. Quality gate ensures every entry meets minimum quality standards.</span>
+    </p>
+    <div class="dev-steps">
+      <div class="dev-step">
+        <div>
+          <h3><span class="copy-zh">构造你的 Skill</span><span class="copy-en">Build Your Skill</span></h3>
+          <p><span class="copy-zh">使用 <code>/petfish create my-skill</code> 生成标准目录结构</span><span class="copy-en">Use <code>/petfish create my-skill</code> to scaffold standard directory structure</span></p>
+        </div>
+      </div>
+      <div class="dev-step">
+        <div>
+          <h3><span class="copy-zh">通过质量门禁</span><span class="copy-en">Pass Quality Gate</span></h3>
+          <p><span class="copy-zh">运行 <code>/petfish gate .opencode/skills/my-skill/</code> — Lint ≥80 → Security Risk ≤0.5 → 无 CRITICAL → PASS</span><span class="copy-en">Run <code>/petfish gate .opencode/skills/my-skill/</code> — Lint ≥80 → Security Risk ≤0.5 → No CRITICAL → PASS</span></p>
+        </div>
+      </div>
+      <div class="dev-step">
+        <div>
+          <h3><span class="copy-zh">发布到市场</span><span class="copy-en">Publish to Market</span></h3>
+          <p><span class="copy-zh">运行 <code>/petfish publish .opencode/skills/my-skill/</code> — 注册到 petfish-market，用户立即可安装</span><span class="copy-en">Run <code>/petfish publish .opencode/skills/my-skill/</code> — register on petfish-market, instantly installable by users</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2><span class="copy-zh">一键安装任意市场包</span><span class="copy-en">Install Any Market Pack</span></h2>
+    <p>
+      <span class="copy-zh">与核心包使用相同的安装命令，安装器自动解析来源</span>
+      <span class="copy-en">Same command as core packs — installer resolves the source automatically</span>
+    </p>
+    <pre><span class="copy-zh"># 安装研究包</span><span class="copy-en"># Install research pack</span>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack research
+
+<span class="copy-zh"># 安装全部市场包</span><span class="copy-en"># Install all packs</span>
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack all</pre>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="fish-row">><(((^></div>
+    <div><span class="copy-zh">胖鱼 PEtFiSh — 常伴·守护·可信·秉正</span><span class="copy-en">PEtFiSh — Always Present · Guarding · Verified Trust · No Compromise</span></div>
+    <div class="links">
+      <a href="/">Home</a>
+      <a href="https://docs.petfish.ai">Docs</a>
+      <a href="https://github.com/kylecui/petfish.ai">GitHub</a>
+      <a href="https://github.com/kylecui/petfish-market">Market Repo</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const btns = document.querySelectorAll('.lang-option');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      document.body.className = 'lang-' + btn.dataset.lang;
+    });
+  });
+</script>
+</body>
+</html>
