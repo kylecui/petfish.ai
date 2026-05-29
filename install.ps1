@@ -53,7 +53,8 @@ param(
     [switch]$Global,
     [switch]$Force,
     [switch]$List,
-    [switch]$Uninstall
+    [switch]$Uninstall,
+    [switch]$Offline
 )
 
 $ErrorActionPreference = "Stop"
@@ -103,10 +104,16 @@ $PlatformExplicitlyPassed = $PSBoundParameters.ContainsKey("Platform")
 $ScriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD.Path }
 $PacksDir = Join-Path $ScriptRoot "packs"
 
+# --- Market support (v1.4: optional packs sourced from petfish-market) ---
+$script:MarketMeta     = @{}  # alias/name → market index pack object
+$script:MarketPackDirs = @{}  # pack full name → extracted local staging dir
+
 # Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
 function Find-PackDir([string]$name) {
-    $corePath = Join-Path $PacksDir "core" $name
-    $optionalPath = Join-Path $PacksDir "optional" $name
+    # Market-downloaded optional packs take priority over local staging copies
+    if ($script:MarketPackDirs.ContainsKey($name)) { return $script:MarketPackDirs[$name] }
+    $corePath = Join-Path (Join-Path $PacksDir "core") $name
+    $optionalPath = Join-Path (Join-Path $PacksDir "optional") $name
     if (Test-Path $corePath) { return $corePath }
     if (Test-Path $optionalPath) { return $optionalPath }
     return (Join-Path $PacksDir $name)
@@ -1793,6 +1800,128 @@ with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') a
     return $packDirName
 }
 
+# --- Core pack classification ---
+# Core packs are always sourced from local packs/core/.
+# Optional packs are market-first when online; local packs/optional/ is the staging fallback.
+$CorePacks = @("project-initializer-skill", "petfish-companion-skill", "petfish-toolchain-skill", "fish-trail")
+
+function Test-CorePackName([string]$packName) {
+    return $CorePacks -contains $packName
+}
+
+function Test-CoreAlias([string]$alias) {
+    if (-not $Aliases.ContainsKey($alias)) { return $false }
+    return Test-CorePackName $Aliases[$alias]
+}
+
+# --- Market index query ---
+# Queries petfish-market index.json for a pack by alias or canonical name.
+# Returns the matching pack object, or $null if not found / unavailable / offline.
+function Query-MarketIndex([string]$PackAlias) {
+    if ($Offline) { return $null }
+    $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+    try {
+        $data = Invoke-RestMethod -Uri $marketUrl -TimeoutSec 10 -ErrorAction Stop
+        foreach ($pack in $data.packs) {
+            if ($pack.alias -contains $PackAlias -or $pack.name -eq $PackAlias) {
+                return $pack
+            }
+        }
+    } catch {
+        # Market index unavailable — silent fallback to local packs/optional/
+    }
+    return $null
+}
+
+# --- Download an optional pack from its independent GitHub repo ---
+# Uses Invoke-WebRequest + tar (both built into Windows 10+/PowerShell 5+).
+# Extracts to a temp dir and stores the path in $script:MarketPackDirs[$packName].
+function Download-MarketPack([string]$packName) {
+    $meta = $script:MarketMeta[$packName]
+    if (-not $meta) { return $false }
+
+    $repo   = $meta.repo
+    $ref    = if ($meta.ref)  { $meta.ref  } else { "main" }
+    $subdir = if ($meta.path) { $meta.path } else { "" }
+
+    $isTag = $ref -match '^v?\d+\.\d+(\.\d+)?(-[a-zA-Z0-9]+)?(\+[a-zA-Z0-9]+)?$'
+    $archivePath = if ($isTag) { "archive/refs/tags/$ref.tar.gz" } else { "archive/refs/heads/$ref.tar.gz" }
+    $tarUrl = "https://github.com/$repo/$archivePath"
+
+    $tmpPackDir = Join-Path ([System.IO.Path]::GetTempPath()) "petfish_market_$(Get-Random)"
+    New-Item -ItemType Directory -Path $tmpPackDir -Force | Out-Null
+
+    $tarFile = Join-Path $tmpPackDir "pack.tar.gz"
+    Write-Host "  [market] Downloading $packName from $repo@$ref..." -ForegroundColor DarkCyan
+
+    $mirrorPrefixes = @(
+        "",
+        "https://ghfast.top/https://",
+        "https://mirror.ghproxy.com/https://"
+    )
+
+    $downloaded = $false
+    foreach ($prefix in $mirrorPrefixes) {
+        $uri = "${prefix}${tarUrl}"
+        try {
+            Invoke-WebRequest -Uri $uri -OutFile $tarFile -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
+            $downloaded = $true
+            break
+        } catch {
+            # Try next mirror
+        }
+    }
+
+    if (-not $downloaded) {
+        Write-Warning "  [market] Failed to download $packName from all mirrors. Falling back to local packs/optional/."
+        Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
+        return $false
+    }
+
+    # Extract with tar (built-in on Windows 10+)
+    try {
+        & tar -xzf $tarFile -C $tmpPackDir 2>$null
+    } catch {
+        Write-Warning "  [market] tar extraction failed for $packName. Falling back to local packs/optional/."
+        Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
+        return $false
+    }
+
+    # Find extracted root dir (the GitHub archive top-level folder)
+    $extractRoot = Get-ChildItem -Path $tmpPackDir -Directory | Where-Object { $_.Name -ne "pack.tar.gz" } | Select-Object -First 1
+    if (-not $extractRoot) {
+        Write-Warning "  [market] Could not locate extracted directory for $packName."
+        Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
+        return $false
+    }
+
+    # Locate the pack directory: if subdir is specified, go into it; else look for packName subdir
+    $packRoot = $extractRoot.FullName
+    if ($subdir -and (Test-Path (Join-Path $packRoot $subdir))) {
+        $packRoot = Join-Path $packRoot $subdir
+    } elseif (Test-Path (Join-Path $packRoot $packName)) {
+        $packRoot = Join-Path $packRoot $packName
+    }
+    # Also check packs/optional/<packName> layout
+    $candidatePath = Join-Path (Join-Path (Join-Path $packRoot "packs") "optional") $packName
+    if (Test-Path $candidatePath) { $packRoot = $candidatePath }
+
+    $script:MarketPackDirs[$packName] = $packRoot
+    Write-Host "  [market] $packName extracted to $packRoot" -ForegroundColor DarkGreen
+    return $true
+}
+
+# Cleanup temp dirs created by Download-MarketPack
+function Remove-MarketTmpDirs {
+    foreach ($dir in $script:MarketPackDirs.Values) {
+        # Walk up to the temp root (two levels above the pack dir or one, depending on layout)
+        $tmpRoot = Split-Path (Split-Path $dir -Parent) -Parent
+        if ($tmpRoot -like "*petfish_market_*" -and (Test-Path $tmpRoot)) {
+            Remove-Item -Path $tmpRoot -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 function Remove-CommunityStagingDir {
     if ($script:CommunityStagingDir -and (Test-Path $script:CommunityStagingDir)) {
         Remove-Item -Path $script:CommunityStagingDir -Recurse -Force -ErrorAction SilentlyContinue
@@ -1803,14 +1932,57 @@ function Get-PackFullName([string]$name) {
     if (Test-CommunityPack $name) {
         return (Download-CommunityPack $name)
     }
-    if ($Aliases.ContainsKey($name)) { return $Aliases[$name] }
-    if ((Test-Path (Join-Path $PacksDir "core" $name)) -or (Test-Path (Join-Path $PacksDir "optional" $name))) { return $name }
+    if ($Aliases.ContainsKey($name)) {
+        $packName = $Aliases[$name]
+        # For optional (non-core) packs, try to fetch market metadata for later download
+        if (-not (Test-CorePackName $packName) -and -not $script:MarketMeta.ContainsKey($packName)) {
+            $marketPack = Query-MarketIndex $name
+            if ($marketPack) { $script:MarketMeta[$packName] = $marketPack }
+        }
+        return $packName
+    }
+    # Direct pack name: check local dirs first, then market
+    if ((Test-Path (Join-Path (Join-Path $PacksDir "core") $name)) -or (Test-Path (Join-Path (Join-Path $PacksDir "optional") $name))) {
+        return $name
+    }
+    # Not found locally — try market (optional pack from independent repo)
+    if (-not (Test-CorePackName $name) -and -not $script:MarketMeta.ContainsKey($name)) {
+        $marketPack = Query-MarketIndex $name
+        if ($marketPack) {
+            $script:MarketMeta[$name] = $marketPack
+            return $name
+        }
+    } elseif ($script:MarketMeta.ContainsKey($name)) {
+        return $name
+    }
     Write-Error "Unknown pack: '$name'. Use -List to see available packs."
     exit 1
 }
 
 function Get-AllPacks {
-    Get-ChildItem -Path (Join-Path $PacksDir "core"), (Join-Path $PacksDir "optional") -Directory | ForEach-Object { $_.Name }
+    $corePath     = Join-Path $PacksDir "core"
+    $optionalPath = Join-Path $PacksDir "optional"
+    $paths = @($corePath, $optionalPath) | Where-Object { Test-Path $_ }
+    $localPacks = if ($paths) {
+        @(Get-ChildItem -Path $paths -Directory -ErrorAction SilentlyContinue | ForEach-Object { $_.Name })
+    } else { @() }
+    # When online, also merge optional packs from market that are not already present locally
+    if (-not $Offline) {
+        $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+        try {
+            $data = Invoke-RestMethod -Uri $marketUrl -TimeoutSec 10 -ErrorAction Stop
+            foreach ($pack in $data.packs) {
+                $pName = $pack.name
+                if ($pName -and $localPacks -notcontains $pName) {
+                    $script:MarketMeta[$pName] = $pack
+                    $localPacks += $pName
+                }
+            }
+        } catch {
+            # Market unavailable — use only local packs
+        }
+    }
+    return $localPacks
 }
 
 function Show-PackList {
@@ -1833,7 +2005,7 @@ function Show-PackList {
     Write-Host ""
 
     # Show installed community packs from target registry
-    $regFile = Join-Path $Target ".opencode" "installed-packs.json"
+    $regFile = Join-Path (Join-Path $Target ".opencode") "installed-packs.json"
     if (Test-Path $regFile) {
         try {
             $reg = Get-Content $regFile -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -2324,6 +2496,47 @@ $packsToInstall = if ($Pack -eq "all") {
     $Pack -split ',' | ForEach-Object { Get-PackFullName $_.Trim() }
 }
 
+# When -Pack all is used, Get-PackFullName is not called per-pack, so populate market
+# metadata here for all optional packs not already in $script:MarketMeta.
+foreach ($packName in $packsToInstall) {
+    if (-not (Test-CorePackName $packName) -and -not $script:MarketMeta.ContainsKey($packName)) {
+        $marketPack = Query-MarketIndex $packName
+        if ($marketPack) { $script:MarketMeta[$packName] = $marketPack }
+    }
+}
+
+# Log and download optional packs resolved from petfish-market
+foreach ($packName in $packsToInstall) {
+    if ($script:MarketMeta.ContainsKey($packName)) {
+        $meta = $script:MarketMeta[$packName]
+        Write-Host "  [market] $packName v$($meta.version) — $($meta.repo)@$($meta.ref)" -ForegroundColor DarkCyan
+    }
+}
+
+foreach ($packName in $packsToInstall) {
+    if ($script:MarketMeta.ContainsKey($packName) -and -not $script:MarketPackDirs.ContainsKey($packName)) {
+        # Only download if not already available locally in packs/optional/
+        $localOptional = Join-Path (Join-Path $PacksDir "optional") $packName
+        if (Test-Path $localOptional) {
+            # Local copy exists — use it, no download needed
+            $script:MarketPackDirs[$packName] = $localOptional
+            Write-Host "  [market] $packName found locally at packs/optional/ — skipping download" -ForegroundColor DarkGray
+        } else {
+            Download-MarketPack $packName | Out-Null
+        }
+    }
+}
+
+
+# Log market-resolved metadata
+foreach ($packName in $packsToInstall) {
+    if ($script:MarketMeta.ContainsKey($packName)) {
+        $meta = $script:MarketMeta[$packName]
+        $ref = if ($meta.ref) { $meta.ref } else { "main" }
+        Write-Host "  [market] $packName v$($meta.version) — $($meta.repo)@$ref" -ForegroundColor DarkCyan
+    }
+}
+
 $packItems = ($Pack -split ',') | ForEach-Object { $_.Trim() }
 if (($packItems -contains "init" -or $packItems -contains "project-initializer-skill") -and -not $GlobalExplicitlyPassed -and -not $TargetExplicitlyPassed) {
     $Global = $true
@@ -2367,3 +2580,7 @@ foreach ($p in $platforms) {
 if ($script:DetectedPlatforms.Count -gt 0 -and -not $Global) {
     New-SecondaryInstructions $Target -ForceOverwrite:$Force -detectedPlatforms $script:DetectedPlatforms
 }
+
+# --- Cleanup community and market temp dirs ---
+Remove-CommunityStagingDir
+Remove-MarketTmpDirs
