@@ -236,6 +236,27 @@
     .packs-row-3 .pack-card { width: 250px; }
     .packs-row-5 .pack-card { width: 160px; }
 
+    /* Market intro card */
+    .market-intro-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; margin-bottom: 24px; text-align: center;
+    }
+    .market-intro-card p { margin: 12px 0 0; font-size: 14px; color: var(--text-muted); }
+    .market-intro-card p strong { color: var(--accent); }
+    .market-flow {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); flex-wrap: wrap;
+    }
+    .flow-arrow { color: var(--accent); font-weight: 600; }
+    .market-view-all {
+      text-align: center; margin-top: 20px;
+    }
+    .market-view-all a {
+      color: var(--accent); font-weight: 600; font-size: 15px; text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .market-view-all a:hover { opacity: 0.8; }
+
     /* Top accent bar on core cards */
     .pack-card[data-accent]::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
@@ -346,6 +367,7 @@
       <a href="#pillars"><span class="copy-zh">理念</span><span class="copy-en">Philosophy</span></a>
       <a href="#how"><span class="copy-zh">运作</span><span class="copy-en">How</span></a>
       <a href="#packs"><span class="copy-zh">能力</span><span class="copy-en">Capabilities</span></a>
+      <a href="market.html"><span class="copy-zh">市场</span><span class="copy-en">Market</span></a>
       <a href="#install"><span class="copy-zh">安装</span><span class="copy-en">Install</span></a>
       <a href="pitch.html"><span class="copy-zh">产品介绍</span><span class="copy-en">Product</span></a>
       <a href="whitepaper.html"><span class="copy-zh">白皮书</span><span class="copy-en">Whitepaper</span></a>
@@ -490,8 +512,8 @@
   <div class="container">
     <h2><span class="copy-zh">核心能力 + 无限扩展</span><span class="copy-en">Core Capabilities + Unlimited Extension</span></h2>
     <p>
-      <span class="copy-zh">胖鱼有四个核心能力包，随仓库直接分发。此外提供九个领域扩展包，通过 petfish-market 分发，安装命令自动解析。不够用？胖鱼可以搜索第三方市场、从任意仓库挖掘、甚至帮你直接构造新的能力包。</span>
-      <span class="copy-en">PEtFiSh has four core packs shipped directly. Plus nine optional domain packs distributed via petfish-market — install commands resolve automatically. Not enough? PEtFiSh can search third-party markets, mine any repo, or help you build new capability packs from scratch.</span>
+      <span class="copy-zh">胖鱼有四个核心能力包，随仓库直接分发。此外提供十个领域扩展包，通过 <a href="/market.html">petfish-market</a> 分发——安装命令自动解析，体验与核心包一致。不够用？胖鱼可以搜索第三方市场、从任意仓库挖掘、甚至帮你直接构造新的能力包。</span>
+      <span class="copy-en">PEtFiSh has four core packs shipped directly. Plus ten domain packs distributed via <a href="/market.html">petfish-market</a> — install commands resolve automatically, same experience as core. Not enough? PEtFiSh can search third-party markets, mine any repo, or help you build new capability packs from scratch.</span>
     </p>
     <!-- Row 1: 胖鱼 (1) -->
     <div class="packs-tier">
@@ -534,28 +556,29 @@
 
     <div class="tier-connector"></div>
 
-    <!-- Row 3: 领域扩展包 (9) — via petfish-market -->
+    <!-- Row 3: Market Packs intro + featured previews -->
     <div class="packs-tier">
-      <div class="packs-tier-label"><span class="copy-zh">领域扩展包</span><span class="copy-en">Optional Packs — via petfish-market</span></div>
-      <div class="packs-row packs-row-5">
+      <div class="packs-tier-label"><span class="copy-zh">市场扩展包</span><span class="copy-en">Market Packs — via petfish-market</span></div>
 
-        <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
-          <div class="pack-name">context · <span class="copy-zh">鱼迹</span><span class="copy-en">Fish Trail</span></div>
-          <div class="pack-desc"><span class="copy-zh">话题治理·上下文隔离</span><span class="copy-en">Topic governance · context isolation</span></div>
-          <div class="pack-meta">1 skill · 31 MCP tools</div>
+      <!-- Market intro card -->
+      <div class="market-intro-card">
+        <div class="market-flow">
+          <span class="copy-zh">安装器</span><span class="copy-en">Installer</span>
+          <span class="flow-arrow">→</span>
+          <span class="copy-zh">查询市场索引</span><span class="copy-en">Query Market Index</span>
+          <span class="flow-arrow">→</span>
+          <span class="copy-zh">定位独立仓库</span><span class="copy-en">Locate Repo</span>
+          <span class="flow-arrow">→</span>
+          <span class="copy-zh">自动下载安装</span><span class="copy-en">Download &amp; Install</span>
         </div>
+        <p>
+          <span class="copy-zh">10 个领域包通过 <strong>petfish-market</strong> 分发。安装命令与核心包完全一致，用户无需关心仓库位置。支持离线回退和镜像加速。</span>
+          <span class="copy-en">10 domain packs distributed via <strong>petfish-market</strong>. Same install command as core packs — users never see the repo difference. Supports offline fallback and mirror acceleration.</span>
+        </p>
+      </div>
 
-        <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
-          <div class="pack-name">trust · <span class="copy-zh">鱼鳞</span><span class="copy-en">Fish Scale</span></div>
-          <div class="pack-desc"><span class="copy-zh">Skill可信度·6维风险</span><span class="copy-en">Trust governance · 6 risk dims</span></div>
-          <div class="pack-meta">1 skill</div>
-        </div>
-
-        <div class="pack-card" data-accent="purple" style="border-color: #a371f7;">
-          <div class="pack-name">calibrate · <span class="copy-zh">鱼刺</span><span class="copy-en">Fishbone</span></div>
-          <div class="pack-desc"><span class="copy-zh">反迎合·校准</span><span class="copy-en">Anti-sycophancy calibration</span></div>
-          <div class="pack-meta">1 skill</div>
-        </div>
+      <!-- 3 featured market pack previews -->
+      <div class="packs-row packs-row-3">
 
         <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
           <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
@@ -563,36 +586,23 @@
           <div class="pack-meta">54 skills</div>
         </div>
 
-        <div class="pack-card">
-          <div class="pack-name">course</div>
-          <div class="pack-desc"><span class="copy-zh">课程开发</span><span class="copy-en">Course dev</span></div>
+        <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
+          <div class="pack-name">course · <span class="copy-zh">鱼课</span><span class="copy-en">Fish Course</span></div>
+          <div class="pack-desc"><span class="copy-zh">课程全生命周期</span><span class="copy-en">Full course lifecycle</span></div>
           <div class="pack-meta">15 skills</div>
         </div>
 
-        <div class="pack-card">
-          <div class="pack-name">deploy</div>
-          <div class="pack-desc"><span class="copy-zh">部署运维</span><span class="copy-en">Deploy &amp; ops</span></div>
+        <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
+          <div class="pack-name">deploy · <span class="copy-zh">鱼 Deploy</span><span class="copy-en">Fish Deploy</span></div>
+          <div class="pack-desc"><span class="copy-zh">部署·验证·运维·回滚</span><span class="copy-en">Deploy · verify · ops · rollback</span></div>
           <div class="pack-meta">7 skills</div>
         </div>
 
-        <div class="pack-card">
-          <div class="pack-name">testdocs</div>
-          <div class="pack-desc"><span class="copy-zh">测试文档</span><span class="copy-en">Test &amp; docs</span></div>
-          <div class="pack-meta">2 skills</div>
-        </div>
+      </div>
 
-        <div class="pack-card">
-          <div class="pack-name">ppt</div>
-          <div class="pack-desc"><span class="copy-zh">演示文稿</span><span class="copy-en">Presentations</span></div>
-          <div class="pack-meta">2 skills</div>
-        </div>
-
-        <div class="pack-card">
-          <div class="pack-name">reflect</div>
-          <div class="pack-desc"><span class="copy-zh">结构化反思</span><span class="copy-en">Reflection</span></div>
-          <div class="pack-meta">1 skill</div>
-        </div>
-
+      <!-- View all link -->
+      <div class="market-view-all">
+        <a href="/market.html"><span class="copy-zh">查看全部 10 个市场包 →</span><span class="copy-en">View all 10 market packs →</span></a>
       </div>
     </div>
   </div>
