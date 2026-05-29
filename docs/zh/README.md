@@ -178,6 +178,10 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 
 ### v1.4 — 市场优先分发
 
+- **v1.4.5**: 全部9个可选包解耦到独立GitHub仓库（Phase 3+4）。course、research、testdocs、ppt、deploy加入v1.4.3/v1.4.4已解耦的4个单skill包。市场索引更新；所有可选包独立版本管理。`packs/optional/`保留在monorepo作为本地开发暂存区。
+- **v1.4.4**: 修复EXTRACT_DIR回归——从find命令中排除community-staging（#193后续）。Phase 2解耦：fish-reflection、anti-sycophancy、trustskills-governance迁入独立仓库。
+- **v1.4.3**: 修复安装社区包时COMMUNITY_STAGING未绑定变量（#193）。Phase 1试点：petfish-style-skill解耦到kylecui/petfish-pack-petfish-style。
+- **v1.4.2**: 文档同步——README + REPO-LANDSCAPE.md依赖表更新。
 - **v1.4.1**: 远程安装器完成market-first解析接入。`resolve_pack()` / `Resolve-PackName()` 对可选包查询petfish-market `index.json`，缓存元数据（`repo`/`ref`/`path`/`version`）供下载阶段使用。核心包始终从petfish.ai主tarball解析。Bash安装器新增外部仓库下载支持（`MARKET_PACK_DIRS`）——当可选包的市场条目指向petfish.ai以外的仓库时，自动单独下载。市场不可达时静默回退到硬编码ALIASES。
 - **v1.4.0**: packs/重构为`core/`（4个核心包：init、companion、petfish、toolchain）和`optional/`（9个可选包：course、testdocs、deploy、ppt、calibrate、context、trust、research、reflect）。可选包通过petfish-market分发，安装器自动解析。新增工具链skill `skill-publish`连接质量门禁PASS与市场发布。远程安装器增加市场查询钩子（`query_market_index()` / `Query-MarketIndex`）。`catalog_query.py`新增`--install <alias>`标志和市场感知。`marketplace_search.py`优先petfish-market源。petfish-market新增`registry/official/`（9个官方pack条目）和`index.json` v2。
 
