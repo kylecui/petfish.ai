@@ -1,0 +1,61 @@
+{
+  "skill_name": "series-style-governor",
+  "evals": [
+    {
+      "id": "baseline-extract",
+      "prompt": "请以 evals/files/01-baseline.md 为基准，抽取系列书风格画像。",
+      "expected_output": "生成包含叙事结构、标题层级、术语候选、Markdown排版规则和中文英文排版规则的style-profile.json。",
+      "files": ["evals/files/01-baseline.md"],
+      "assertions": [
+        "The output includes a style-profile.json file.",
+        "The profile records the baseline path.",
+        "The profile includes a Chinese-English spacing rule.",
+        "The profile includes structure and terminology sections."
+      ]
+    },
+    {
+      "id": "audit-style-drift",
+      "prompt": "请检查 evals/files/ 下的两篇Markdown是否存在风格、术语和排版漂移。",
+      "expected_output": "生成style-audit-report.md，指出第二篇中的CJK-English空格和术语漂移。",
+      "files": ["evals/files/01-baseline.md", "evals/files/02-drift.md"],
+      "assertions": [
+        "The report identifies the baseline document.",
+        "The report contains file-level findings.",
+        "The report flags Chinese-English spacing drift.",
+        "The report separates safe fixes from review-needed changes."
+      ]
+    },
+    {
+      "id": "conservative-rewrite",
+      "prompt": "请把 evals/files/02-drift.md 按第一篇风格做保守归一化，但不要改变事实和观点。",
+      "expected_output": "生成保守改写稿，至少修正CJK-English空格，并给出rewrite-report.md。",
+      "files": ["evals/files/01-baseline.md", "evals/files/02-drift.md"],
+      "assertions": [
+        "The rewritten output preserves the original claims.",
+        "The rewritten output normalizes CJK-English spacing when safe.",
+        "The rewrite report states that semantic rewriting requires review.",
+        "The original file is not overwritten unless explicitly requested."
+      ]
+    },
+    {
+      "id": "no-trigger-single-edit",
+      "prompt": "帮我润色这段话：今天天气不错。",
+      "should_trigger": false,
+      "expected_output": "Does not activate series-style governance for a single-sentence edit request.",
+      "assertions": [
+        "The response does not generate a style-profile.json.",
+        "The response does not audit cross-document consistency."
+      ]
+    },
+    {
+      "id": "no-trigger-research",
+      "prompt": "帮我研究一下AI安全治理的最新进展。",
+      "should_trigger": false,
+      "expected_output": "Does not activate series-style governance for a research request.",
+      "assertions": [
+        "The response does not follow the series-style audit workflow.",
+        "The response routes to research skills instead."
+      ]
+    }
+  ]
+}
