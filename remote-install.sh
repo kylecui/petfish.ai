@@ -846,7 +846,7 @@ download_community_pack() {
     local github_ref="${ref:-main}"
     local tarball_url="https://github.com/${owner}/${repo}/archive/refs/heads/${github_ref}.tar.gz"
 
-    echo "  [community] Downloading ${owner}/${repo} (ref: ${github_ref})..."
+    echo "  [community] Downloading ${owner}/${repo} (ref: ${github_ref})..." >&2
 
     local dl_tmp
     dl_tmp="$(mktemp -d)"
@@ -865,7 +865,7 @@ download_community_pack() {
             fi
             if [[ "$http_code" == "429" || "$http_code" == "403" ]] && [[ $attempt -lt 3 ]]; then
                 local wait=$((2 ** attempt))
-                echo "  [community] Rate limited (HTTP $http_code), retrying in ${wait}s... (attempt $attempt/3)"
+                echo "  [community] Rate limited (HTTP $http_code), retrying in ${wait}s... (attempt $attempt/3)" >&2
                 sleep "$wait"
                 rm -f "$dl_tmp/archive.tar.gz"
             else
@@ -880,7 +880,7 @@ download_community_pack() {
                 -O "$dl_tmp/archive.tar.gz" "$tarball_url" 2>/dev/null && dl_ok=true && break || true
             if [[ $attempt -lt 3 ]]; then
                 local wait=$((2 ** attempt))
-                echo "  [community] wget download failed, retrying in ${wait}s... (attempt $attempt/3)"
+                echo "  [community] wget download failed, retrying in ${wait}s... (attempt $attempt/3)" >&2
                 sleep "$wait"
                 rm -f "$dl_tmp/archive.tar.gz"
             fi
@@ -903,7 +903,7 @@ download_community_pack() {
             rm -rf "$dl_tmp"
             exit 1
         fi
-        echo "  [community] Tarball download failed, falling back to git clone..."
+        echo "  [community] Tarball download failed, falling back to git clone..." >&2
         local clone_url="https://github.com/${owner}/${repo}.git"
         if [[ -n "$GITHUB_TOKEN" ]]; then
             clone_url="https://${GITHUB_TOKEN}@github.com/${owner}/${repo}.git"
@@ -913,7 +913,7 @@ download_community_pack() {
             git clone --depth 1 ${ref:+--branch "$ref"} "$clone_url" "$staged_pack" 2>/dev/null && clone_ok=true && break
             if [[ $attempt -lt 3 ]]; then
                 local wait=$((2 ** attempt))
-                echo "  [community] git clone failed, retrying in ${wait}s... (attempt $attempt/3)"
+                echo "  [community] git clone failed, retrying in ${wait}s... (attempt $attempt/3)" >&2
                 sleep "$wait"
                 rm -rf "$staged_pack"
             fi
@@ -977,7 +977,7 @@ with open(os.path.join(pack_dir, 'pack-manifest.json'), 'w', encoding='utf-8') a
     json.dump(manifest, f, indent=2, ensure_ascii=False)
     f.write(chr(10))
 " "$staged_pack" "$owner" "$repo"
-        echo "  [community] Generated pack-manifest.json"
+        echo "  [community] Generated pack-manifest.json" >&2
     fi
 
     # --- Version compatibility check ---
@@ -1016,7 +1016,7 @@ print('yes' if cur >= req else 'no')
     # --- Trust scan (if --trust-scan flag is set) ---
     if $TRUST_SCAN; then
         if [[ -d "$staged_pack/.opencode/skills" ]]; then
-            echo "  [community] Running trust scan on $owner/$repo ..."
+            echo "  [community] Running trust scan on $owner/$repo ..." >&2
             local trust_script=""
             # Look for trust_scan.py in the installer's repo cache or known location
             # The script is bundled with the trustskills-governance-pack
@@ -1068,7 +1068,7 @@ except:
                     rm -rf "$staged_pack"
                     exit 1
                 else
-                    echo "  [community] ✅ Trust scan passed (max risk: $max_risk)"
+                    echo "  [community] ✅ Trust scan passed (max risk: $max_risk)" >&2
                 fi
             fi
         fi
