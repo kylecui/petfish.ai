@@ -1,0 +1,23 @@
+preferred_terms:
+  AI智能体:
+    aliases:
+      - AI Agent
+      - Agent
+      - 智能代理
+    rule: "中文正文中优先使用AI智能体；首次出现可写作AI智能体（AI Agent）。"
+  控制平面:
+    aliases:
+      - Control Plane
+      - 控制层
+    rule: "架构语境中统一使用控制平面。"
+  数据平面:
+    aliases:
+      - Data Plane
+      - 执行平面
+      - 转发平面
+    rule: "网络或系统架构中优先使用数据平面；如强调执行职责，可解释为策略执行平面。"
+forbidden_terms:
+  赋能:
+    reason: "容易空泛，除非上下文明确说明机制。"
+  深度融合:
+    reason: "可用，但需要具体说明融合对象和机制。"

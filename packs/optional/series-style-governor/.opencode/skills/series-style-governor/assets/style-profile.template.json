@@ -1,0 +1,47 @@
+{
+  "profile_version": "0.1.0",
+  "baseline": {
+    "path": "",
+    "mode": "fixed",
+    "created_at": ""
+  },
+  "language_profile": {
+    "primary_language": "zh-CN",
+    "secondary_language": "en",
+    "tone": [],
+    "cjk_english_spacing": "no-space",
+    "punctuation": "zh-full-width-for-chinese",
+    "preferred_sentence_density": "medium"
+  },
+  "structure_profile": {
+    "heading_numbering": "unknown",
+    "max_heading_depth": 3,
+    "intro_required": false,
+    "summary_section_pattern": [],
+    "common_section_sequence": [],
+    "figure_caption_pattern": "",
+    "table_caption_pattern": ""
+  },
+  "terminology_profile": {
+    "preferred_terms": {},
+    "forbidden_terms": {},
+    "abbreviation_rules": {}
+  },
+  "markdown_layout_profile": {
+    "blank_line_after_heading": true,
+    "blank_line_before_heading": true,
+    "list_marker": "-",
+    "ordered_list_marker": "1.",
+    "code_fence_style": "triple-backtick-with-language-when-known",
+    "table_alignment": "github-flavored-markdown",
+    "image_syntax": "markdown-image"
+  },
+  "rewrite_policy": {
+    "default_mode": "conservative",
+    "preserve_citations": true,
+    "preserve_claims": true,
+    "preserve_examples": true,
+    "auto_fix_allowed": ["heading-numbering", "term-alias-unambiguous", "cjk-english-spacing", "blank-lines", "list-marker"],
+    "review_required": ["paragraph-move", "definition-rewrite", "claim-emphasis-change"]
+  }
+}

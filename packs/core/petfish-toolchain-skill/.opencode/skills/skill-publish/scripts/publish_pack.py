@@ -36,6 +36,7 @@ PACK_ALIASES: dict[str, str] = {
     "anti-sycophancy-calibration-pack": "calibrate",
     "trustskills-governance-pack": "trust",
     "fish-reflection-pack": "reflect",
+    "series-style-governor-pack": "series-style",
 }
 
 

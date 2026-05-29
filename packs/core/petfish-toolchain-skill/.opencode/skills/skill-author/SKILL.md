@@ -1,13 +1,15 @@
 ---
 name: skill-author
 description: >
-  Generate/scaffold new OpenCode or Claude skills from scratch. Trigger on
-  “create a skill”, “generate skill”, “new skill”, “write a skill”, “skill for
-  X”. Produces valid skill directory + SKILL.md (role/activation/workflow/
-  boundaries), references/scripts/assets/evals as needed, enforces name rules,
-  states assumptions, and runs skill-lint validation when available.
+  Production-grade skill authoring. Create, improve, refactor, or extract
+  OpenCode/Claude skills with precise activation, executable workflows,
+  evals, templates, and quality gates. Trigger on "create a skill",
+  "generate skill", "new skill", "write a skill", "improve skill",
+  "add evals", "refactor skill boundaries", "extract workflow into skill",
+  "skill for X". Produces SKILL.md, references, assets, scripts, evals
+  with toolchain handoff to lint/audit/gate/optimize.
 metadata:
-  version: 0.2.0
+  version: 0.3.0
   author: petfish-team
 ---
 
@@ -15,98 +17,133 @@ metadata:
 
 ## Role
 
-You are a skill scaffolding specialist. Your job is to turn a user's idea into
-an installable, valid skill directory with a concise `SKILL.md`, supporting
-references, optional scripts, and basic eval structure.
+You are a production-grade skill author. Turn user intent, examples, domain
+rules, and expected outcomes into reusable, testable, maintainable skill
+packages. Optimize for precise activation, clear boundaries, executable
+workflow, progressive disclosure, concrete output contracts, and eval-driven
+improvement.
 
-## Intake Questions
+## Authoring Modes
 
-Ask the user these three questions before you scaffold anything:
+Determine mode before proceeding:
 
-1. What does the skill do?
-2. What user requests or trigger phrases should activate it?
-3. What tools does it need?
+| Mode | When |
+|------|------|
+| `new-skill` | User wants a skill from scratch |
+| `improve-existing-skill` | User wants to strengthen an existing skill |
+| `extract-from-workflow` | User has a methodology/workflow to formalize |
+| `add-evals` | User wants evals for an existing skill |
+| `refactor-boundaries` | User wants to split/merge/refactor skill scope |
 
-If anything is missing, make the smallest reasonable assumption and state it.
+## Intake Ladder
+
+### Minimum (always collect)
+
+- Goal: what problem does this skill solve?
+- Triggers: what user requests activate it?
+- Deliverables: what should it produce?
+
+### Quality (collect when possible)
+
+- Domain rules agent would not know
+- Success examples or ideal outputs
+- Failure examples or past mistakes
+- Adjacent skills that handle related tasks
+- Automation level: interactive vs auto
+- Evidence requirements: citations, logs, file refs
+
+### Production (collect for publish-grade skills)
+
+- Scripts needed? Templates needed? Evals needed?
+- Security boundaries required?
+- Pack manifest or remote install integration needed?
+
+If input is incomplete, make the smallest safe assumption and mark it
+`[assumption]` or `[needs-user-input]`.
+
+## Skill Type Taxonomy
+
+| Type | Signature | Examples |
+|------|-----------|---------|
+| `automation` | Script/command-driven | lint, deploy, format |
+| `workflow` | Multi-stage process | project-init, code-review |
+| `knowledge` | Domain rules/heuristics | style-guide, compliance |
+| `writing` | Content creation/editing | article-writer, rewriter |
+| `review` | Assessment/scoring | QA-auditor, security-review |
+| `research` | Evidence collection/synthesis | source-discovery, survey |
+| `project` | Repo/task management | initializer, governance |
+| `hybrid` | Multiple types combined | course-author (writing+workflow) |
+
+See `references/skill-type-taxonomy.md` for detailed profiles.
+
+## Required Content Sections
+
+Every SKILL.md must include these sections (empty placeholder = not done):
+
+- **Domain Rules**: rules the agent would violate if it didn't know them
+- **Decision Points**: where the workflow branches
+- **Execution Modes**: interactive / auto / review-only
+- **Output Contracts**: what files/fields/sections must be delivered
+- **Anti-patterns**: known failure modes
+- **Handoff & Boundaries**: what this skill owns vs does not own
+
+See `references/authoring-methodology.md` for how to extract each section.
 
 ## Workflow
 
-1. Identify the skill type: `automation`, `workflow`, or `knowledge`.
-2. Create this structure:
+1. Determine authoring mode from user request.
+2. Collect intake (minimum → quality → production).
+3. Extract domain knowledge: rules, examples, anti-patterns, edge cases.
+4. Design activation: should-trigger + should-not-trigger + near-miss boundaries.
+   See `references/description-design.md` and `references/eval-design.md`.
+5. Design structure: SKILL.md core + references for detail + assets for templates
+   + scripts only when they reduce repeated fragile work + evals for testing.
+6. Generate files using appropriate template from `assets/`.
+7. Run Authoring Quality Gate (see `references/quality-gate.md`).
+8. Return delivery summary: files created, assumptions, validation result,
+   recommended next iteration.
 
-```text
-skill-name/
-├── SKILL.md
-├── references/
-├── scripts/
-├── assets/
-└── evals/
-```
+## Toolchain Handoff
 
-3. Validate the name before writing:
-   - 1-64 characters
-   - lowercase letters, numbers, hyphens only
-   - no leading/trailing hyphen
-   - must match the directory name
-4. Generate frontmatter with:
-   - `name`
-   - `description`
-   - optional fields only when they add real value
-5. Write the `SKILL.md` body with these parts:
-   - role definition
-   - activation conditions and workflow steps
-   - tool usage patterns
-   - output format
-   - behavior boundaries (`must do` / `must not do`)
-6. Add `references/` content only when it provides reusable knowledge that does
-   not duplicate the main `SKILL.md`.
-7. Add `scripts/` only when the skill benefits from executable helpers. Scripts
-   must include `--help`, clear errors, and relative path handling.
-8. Add `evals/evals.json` when the skill behavior can be checked with prompt
-   examples or assertions.
-9. Run `skill-lint` if available and report the result.
+After authoring, recommend or invoke:
 
-## Tool Usage Patterns
-
-- Use `Read` to inspect nearby skills, local conventions, and references.
-- Use `Write` to create or update scaffold files.
-- Use a shell/command tool only for optional validation such as `skill-lint`.
-
-## Output Format
-
-Return a short delivery summary with:
-
-- skill name and type
-- assumptions you made
-- files created
-- validation result
-
-## Quality Rules
-
-- The description must say both **what** the skill does and **when** to use it.
-- Trigger phrases must be concrete, not vague placeholders.
-- Keep `SKILL.md` concise and actionable.
-- `references/` should add reusable knowledge, not restate the main skill.
-- Scripts should be cross-platform, use relative paths, and fail clearly.
+1. `skill-lint` — structural validity check
+2. `skill-description-optimizer` — if activation is broad or vague
+3. `skill-trigger-evaluator` — when eval prompts are available
+4. `quality-gate` — before publishing
+5. `skill-security-auditor` — if scripts, shell, network, or file mutation involved
 
 ## Must Do
 
-- Generate a valid directory structure.
-- Keep `name` and directory name identical.
-- Keep descriptions under 1024 characters.
-- Create an eval example when it is practical to test the skill.
-- Mention assumptions whenever user input is incomplete.
+- Validate name: 1-64 chars, lowercase/numbers/hyphens, no leading/trailing hyphen,
+  matches directory name.
+- Keep description under 1024 chars with what/when/boundary/near-miss.
+- Keep SKILL.md under 500 lines; put detail in references.
+- Generate at least 3 should-trigger and 2 should-not-trigger evals.
+- Define explicit handoff boundaries with adjacent skills.
+- Mark uncertain information with `[assumption]` or `[needs-user-input]`.
 
 ## Must Not Do
 
-- Do not create files outside the requested skill directory.
-- Do not use vague descriptions such as "helps with X".
-- Do not duplicate `SKILL.md` content inside `references/`.
+- Do not create files outside the skill directory.
+- Do not use vague descriptions like "helps with X".
+- Do not duplicate SKILL.md content in references.
 - Do not hardcode absolute paths in scripts.
-- Do not skip validation when `skill-lint` is available.
+- Do not ship evals as empty arrays.
+- Do not skip quality gate before delivery.
 
 ## References
 
-- `references/skill-spec.md`
-- `references/templates.md`
-- `scripts/generate_skill.py`
+- `references/skill-spec.md` — frontmatter and directory spec
+- `references/authoring-methodology.md` — how to extract domain knowledge
+- `references/skill-type-taxonomy.md` — type profiles and examples
+- `references/description-design.md` — writing precise descriptions
+- `references/eval-design.md` — designing trigger and output evals
+- `references/handoff-boundary-design.md` — defining skill boundaries
+- `references/quality-gate.md` — authoring quality checklist
+- `assets/skill-md-template.md` — generic SKILL.md template
+- `assets/evals-template.json` — evals with trigger/non-trigger examples
+- `assets/writing-skill-template.md` — writing-type skill template
+- `assets/workflow-skill-template.md` — workflow-type skill template
+- `assets/review-skill-template.md` — review-type skill template
+- `scripts/generate_skill.py` — scaffold generator script

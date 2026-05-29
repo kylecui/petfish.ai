@@ -1,0 +1,57 @@
+{
+  "skill_name": "{{SKILL_NAME}}",
+  "version": "0.1.0",
+  "evals": [
+    {
+      "id": "trigger-primary-task",
+      "prompt": "{{MOST_OBVIOUS_USER_REQUEST}}",
+      "should_trigger": true,
+      "expected_output": "{{WHAT_THE_SKILL_SHOULD_DO}}",
+      "assertions": [
+        "{{ASSERTION_ABOUT_WORKFLOW_FOLLOWED}}",
+        "{{ASSERTION_ABOUT_REQUIRED_OUTPUT_INCLUDED}}",
+        "{{ASSERTION_ABOUT_BOUNDARY_RESPECTED}}"
+      ]
+    },
+    {
+      "id": "trigger-secondary-task",
+      "prompt": "{{LESS_COMMON_BUT_VALID_REQUEST}}",
+      "should_trigger": true,
+      "expected_output": "{{SECONDARY_EXPECTED_BEHAVIOR}}",
+      "assertions": [
+        "{{ASSERTION_1}}",
+        "{{ASSERTION_2}}"
+      ]
+    },
+    {
+      "id": "trigger-edge-case",
+      "prompt": "{{UNUSUAL_BUT_CORRECT_ACTIVATION}}",
+      "should_trigger": true,
+      "expected_output": "{{EDGE_CASE_HANDLING}}",
+      "assertions": [
+        "{{ASSERTION_ABOUT_EDGE_CASE_HANDLED}}",
+        "{{ASSERTION_ABOUT_NO_UNEXPECTED_SIDE_EFFECT}}"
+      ]
+    },
+    {
+      "id": "no-trigger-adjacent-task",
+      "prompt": "{{SIMILAR_TASK_BELONGING_TO_ANOTHER_SKILL}}",
+      "should_trigger": false,
+      "expected_output": "Does not activate this skill's workflow.",
+      "assertions": [
+        "Response does not follow this skill's main workflow stages.",
+        "Response does not produce this skill's output contract."
+      ]
+    },
+    {
+      "id": "no-trigger-generic-request",
+      "prompt": "{{VAGUE_REQUEST_THAT_SHOULD_NOT_MATCH}}",
+      "should_trigger": false,
+      "expected_output": "Does not activate this skill.",
+      "assertions": [
+        "Response does not enter this skill's domain-specific workflow.",
+        "Response does not reference this skill's domain rules."
+      ]
+    }
+  ]
+}
