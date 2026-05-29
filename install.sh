@@ -957,6 +957,38 @@ declare -A ALIASES=(
     [toolchain]="petfish-toolchain-skill"
 )
 
+# --- Core pack classification ---
+# Core packs are always sourced from local packs/core/.
+# Optional packs are market-first (petfish-market index), with local fallback.
+CORE_ALIASES=("init" "companion" "toolchain" "fish-trail")
+
+is_core_alias() {
+    local alias="$1"
+    for core in "${CORE_ALIASES[@]}"; do
+        [[ "$alias" == "$core" ]] && return 0
+    done
+    return 1
+}
+
+# Core pack names (used to guard pack-name-level checks).
+CORE_PACK_NAMES=("project-initializer-skill" "petfish-companion-skill" "petfish-toolchain-skill" "fish-trail")
+
+is_core_pack_name() {
+    local pack_name="$1"
+    for core in "${CORE_PACK_NAMES[@]}"; do
+        [[ "$pack_name" == "$core" ]] && return 0
+    done
+    return 1
+}
+
+# Associative array: pack_name → raw JSON from petfish-market index.
+# Populated by resolve_pack() for optional (non-core) packs.
+declare -A MARKET_META
+
+# Associative array: pack_name → extracted dir root (non-local market packs).
+# Populated during download phase when a market pack has an external repo.
+declare -A MARKET_PACK_DIRS
+
 # --- Defaults ---
 PACK=""
 TARGET="."
@@ -969,11 +1001,16 @@ LIST=false
 GLOBAL=false
 UNINSTALL=false
 COMMUNITY_STAGING_DIR=""
+MARKET_STAGING_DIR=""
 PLATFORMS_TEMP=""
+OFFLINE=false
 
 cleanup_community_staging() {
     if [[ -n "$COMMUNITY_STAGING_DIR" && -d "$COMMUNITY_STAGING_DIR" ]]; then
         rm -rf "$COMMUNITY_STAGING_DIR"
+    fi
+    if [[ -n "$MARKET_STAGING_DIR" && -d "$MARKET_STAGING_DIR" ]]; then
+        rm -rf "$MARKET_STAGING_DIR"
     fi
     if [[ -n "$PLATFORMS_TEMP" && -f "$PLATFORMS_TEMP" ]]; then
         rm -f "$PLATFORMS_TEMP"
@@ -1200,7 +1237,104 @@ if not isinstance(m.get('skills'), list):
     echo "$pack_dir_name"
 }
 
-# --- Parse args ---
+# --- Market index query ---
+# Queries petfish-market index.json for a pack by alias or pack name.
+# Echoes the matching pack JSON on success; returns 1 if not found or unavailable.
+query_market_index() {
+    local pack_alias="$1"
+    local market_url="https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+    local data
+    data="$(curl -fsSL --max-time 10 "$market_url" 2>/dev/null)" || return 1
+    python3 -c "
+import json, sys
+alias = sys.argv[1]
+data = json.loads(sys.argv[2])
+for pack in data.get('packs', []):
+    if alias in pack.get('alias', []) or pack.get('name') == alias:
+        print(json.dumps(pack))
+        sys.exit(0)
+sys.exit(1)
+" "$pack_alias" "$data" 2>/dev/null
+}
+
+# --- Download market-sourced optional pack from external repo ---
+# Usage: download_market_pack <pack_name>
+# Reads MARKET_META[pack_name] for repo/ref.
+# Stores extracted dir root in MARKET_PACK_DIRS[pack_name].
+# Returns 0 on success, 1 on failure.
+download_market_pack() {
+    local pack_name="$1"
+    [[ -z "${MARKET_META[$pack_name]+x}" ]] && return 1
+
+    local _m_repo _m_ref
+    _m_repo="$(python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+    print(d.get('repo', ''))
+except Exception:
+    pass
+" "${MARKET_META[$pack_name]}" 2>/dev/null)" || _m_repo=""
+
+    _m_ref="$(python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+    print(d.get('ref', 'main'))
+except Exception:
+    print('main')
+" "${MARKET_META[$pack_name]}" 2>/dev/null)" || _m_ref="main"
+
+    [[ -z "$_m_repo" ]] && return 1
+
+    # Check if another pack from the same external repo was already downloaded.
+    local _m_stage=""
+    local _k
+    for _k in "${!MARKET_PACK_DIRS[@]}"; do
+        local _kj="${MARKET_META[$_k]:-}"
+        if [[ -n "$_kj" ]]; then
+            local _kr _kref
+            _kr="$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('repo',''))" "$_kj" 2>/dev/null)" || _kr=""
+            _kref="$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('ref','main'))" "$_kj" 2>/dev/null)" || _kref="main"
+            if [[ "$_kr" == "$_m_repo" && "$_kref" == "$_m_ref" ]]; then
+                _m_stage="${MARKET_PACK_DIRS[$_k]}"
+                break
+            fi
+        fi
+    done
+
+    if [[ -z "$_m_stage" ]]; then
+        echo "  [market] Downloading ${pack_name} from ${_m_repo}@${_m_ref}..."
+        local _m_tmpdir
+        _m_tmpdir="$(mktemp -d)"
+        MARKET_STAGING_DIR="$_m_tmpdir"
+        local _m_url="https://github.com/${_m_repo}/tarball/${_m_ref}"
+        local _m_ok=false
+        local _m_code
+        for _attempt in 1 2 3; do
+            _m_code="$(curl -fsSL -w '%{http_code}' -o "$_m_tmpdir/archive.tar.gz" "$_m_url" 2>/dev/null)" || true
+            if [[ "$_m_code" == "200" && -f "$_m_tmpdir/archive.tar.gz" ]]; then
+                tar xz -C "$_m_tmpdir" < "$_m_tmpdir/archive.tar.gz" && _m_ok=true && break
+            fi
+            if [[ "$_m_code" == "429" || "$_m_code" == "403" ]] && [[ $_attempt -lt 3 ]]; then
+                sleep $((2 ** _attempt))
+                rm -f "$_m_tmpdir/archive.tar.gz"
+            else
+                break
+            fi
+        done
+        rm -f "$_m_tmpdir/archive.tar.gz"
+        if $_m_ok; then
+            _m_stage="$(find "$_m_tmpdir" -mindepth 1 -maxdepth 1 -type d | head -1)"
+        else
+            echo "  [market] WARN: failed to download ${pack_name} from ${_m_repo}@${_m_ref}" >&2
+            return 1
+        fi
+    fi
+
+    [[ -n "$_m_stage" ]] && MARKET_PACK_DIRS["$pack_name"]="$_m_stage"
+    return 0
+}
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --pack)
@@ -1217,10 +1351,12 @@ while [[ $# -gt 0 ]]; do
         --uninstall) UNINSTALL=true; shift ;;
         --force)    FORCE=true; shift ;;
         --list)     LIST=true; shift ;;
+        --offline)  OFFLINE=true; shift ;;
         -h|--help)
-            echo "Usage: $0 --pack <name|all> [--target <path>] [--platform <opencode|claude|codex|cursor|copilot|windsurf|antigravity|universal|all|primary|ide|cli>] [--detect] [--global] [--uninstall] [--force] [--list]"
+            echo "Usage: $0 --pack <name|all> [--target <path>] [--platform <opencode|claude|codex|cursor|copilot|windsurf|antigravity|universal|all|primary|ide|cli>] [--detect] [--global] [--uninstall] [--force] [--list] [--offline]"
             echo "胖鱼 PEtFiSh AI Worker's Companion — Self-adaptive Skill Installer"
             echo "Aliases: course, testdocs, deploy, petfish, companion, ppt, init, trust, research"
+            echo "  --offline   Skip petfish-market queries; only install packs found locally."
             exit 0 ;;
         *) echo "Unknown option: $1" >&2; exit 1 ;;
     esac
@@ -1704,9 +1840,35 @@ resolve_pack() {
         pack_dir_name="$(download_community_pack "$name")"
         echo "$pack_dir_name"
     elif [[ -n "${ALIASES[$name]+x}" ]]; then
-        echo "${ALIASES[$name]}"
+        local pack_name="${ALIASES[$name]}"
+        # For optional (non-core) packs not found locally: query market if online
+        if ! is_core_alias "$name" && ! is_core_pack_name "$pack_name" && ! $OFFLINE; then
+            if [[ ! -d "$PACKS_DIR/core/$pack_name" && ! -d "$PACKS_DIR/optional/$pack_name" ]]; then
+                local _mj
+                _mj="$(query_market_index "$name" 2>/dev/null)" || true
+                if [[ -n "$_mj" ]]; then
+                    MARKET_META["$pack_name"]="$_mj"
+                fi
+            fi
+        fi
+        echo "$pack_name"
     elif [[ -d "$PACKS_DIR/core/$name" ]] || [[ -d "$PACKS_DIR/optional/$name" ]]; then
         echo "$name"
+    elif ! $OFFLINE && ! is_core_pack_name "$name"; then
+        # Not found locally and not core: try market by pack name directly
+        local _mj
+        _mj="$(query_market_index "$name" 2>/dev/null)" || true
+        if [[ -n "$_mj" ]]; then
+            local _resolved_name
+            _resolved_name="$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('name',''))" "$_mj" 2>/dev/null)" || _resolved_name=""
+            if [[ -n "$_resolved_name" ]]; then
+                MARKET_META["$_resolved_name"]="$_mj"
+                echo "$_resolved_name"
+                return
+            fi
+        fi
+        echo "Unknown pack: '$name'. Use --list to see available packs." >&2
+        exit 1
     else
         echo "Unknown pack: '$name'. Use --list to see available packs." >&2
         exit 1
@@ -1714,8 +1876,33 @@ resolve_pack() {
 }
 
 # Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
+# For packs downloaded from an external market-sourced repo (MARKET_PACK_DIRS),
+# uses the path declared in the market index metadata.
 find_pack_dir() {
     local name="$1"
+    # External-repo market packs: use the path from market metadata.
+    if [[ -n "${MARKET_PACK_DIRS[$name]+x}" && -n "${MARKET_PACK_DIRS[$name]}" ]]; then
+        local meta_path
+        meta_path="$(python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+    print(d.get('path', ''))
+except Exception:
+    pass
+" "${MARKET_META[$name]}" 2>/dev/null)" || meta_path=""
+        if [[ -n "$meta_path" && -d "${MARKET_PACK_DIRS[$name]}/$meta_path" ]]; then
+            echo "${MARKET_PACK_DIRS[$name]}/$meta_path"
+            return
+        fi
+        # Fallback: walk extracted tree for the pack dir name.
+        local found_dir
+        found_dir="$(find "${MARKET_PACK_DIRS[$name]}" -maxdepth 4 -type d -name "$name" | head -1)"
+        if [[ -n "$found_dir" ]]; then
+            echo "$found_dir"
+            return
+        fi
+    fi
     if [[ -d "$PACKS_DIR/core/$name" ]]; then
         echo "$PACKS_DIR/core/$name"
     elif [[ -d "$PACKS_DIR/optional/$name" ]]; then
@@ -1730,8 +1917,26 @@ get_all_packs() {
     for dir in "$PACKS_DIR"/core/* "$PACKS_DIR"/optional/*; do
         [[ -d "$dir" ]] || continue
         basename "$dir"
-    done | sort
-}
+    done
+    # When online, also include optional packs from market not present locally.
+    if ! $OFFLINE; then
+        local _market_data
+        _market_data="$(curl -fsSL --max-time 10 "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json" 2>/dev/null)" || true
+        if [[ -n "$_market_data" ]]; then
+            python3 -c "
+import json, sys
+try:
+    data = json.loads(sys.argv[1])
+    for pack in data.get('packs', []):
+        name = pack.get('name', '')
+        if name:
+            print(name)
+except Exception:
+    pass
+" "$_market_data" 2>/dev/null || true
+        fi
+    fi
+} | sort -u
 
 show_list() {
     echo ""
@@ -2890,6 +3095,32 @@ else
             INSTALLS_INIT=true
         fi
         PACKS+=("$(resolve_pack "$_item")")
+    done
+fi
+
+# For --pack all, resolve_pack() was not called per item, so market metadata must be
+# populated here for all non-core packs. Falls back silently if market is unreachable.
+if [[ "$PACK" == "all" ]] && ! $OFFLINE; then
+    for _all_pack in "${PACKS[@]}"; do
+        is_community_pack "$_all_pack" && continue
+        is_core_pack_name "$_all_pack" && continue
+        [[ -n "${MARKET_META[$_all_pack]+x}" ]] && continue
+        _all_mj="$(query_market_index "$_all_pack" 2>/dev/null)" || true
+        [[ -n "$_all_mj" ]] && MARKET_META["$_all_pack"]="$_all_mj"
+    done
+fi
+
+# --- Download market-sourced optional packs from external repos ---
+# For each optional pack with market metadata, check if it lives in a repo other
+# than the local packs/ directory. If so, download that tarball separately.
+if ! $OFFLINE; then
+    for _mpack in "${PACKS[@]}"; do
+        is_community_pack "$_mpack" && continue
+        [[ -z "${MARKET_META[$_mpack]+x}" ]] && continue
+        is_core_pack_name "$_mpack" && continue
+        # Skip if already present locally
+        [[ -d "$PACKS_DIR/core/$_mpack" || -d "$PACKS_DIR/optional/$_mpack" ]] && continue
+        download_market_pack "$_mpack" || true
     done
 fi
 
