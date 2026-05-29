@@ -1237,6 +1237,13 @@ resolve_pack() {
 INSTALLS_INIT=false
 declare -A COMMUNITY_PACK_DIRS  # Maps community spec -> local dir name
 declare -A MARKET_PACK_DIRS     # Maps pack_name -> extracted dir root (non-main-repo market packs)
+
+# --- Create TMPDIR early so community pack downloads work during resolution ---
+TMPDIR="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR"' EXIT
+COMMUNITY_STAGING="$TMPDIR/community-staging"
+mkdir -p "$COMMUNITY_STAGING"
+
 if [[ "$PACK" == "all" ]]; then
     PACKS=("${ALL_PACKS[@]}")
 else
@@ -1285,9 +1292,6 @@ if ! $GLOBAL; then
 fi
 
 # --- Download tarball ---
-TMPDIR="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR"' EXIT
-
 TARBALL_URL="https://github.com/$REPO/tarball/$BRANCH"
 AUTH_HEADER=""
 if [[ -n "${GITHUB_TOKEN:-}" ]]; then
@@ -1326,10 +1330,6 @@ if [[ -z "$EXTRACT_DIR" ]]; then
     echo "Error: failed to extract tarball" >&2
     exit 1
 fi
-
-# Create community staging AFTER extraction so find doesn't pick it up
-COMMUNITY_STAGING="$TMPDIR/community-staging"
-mkdir -p "$COMMUNITY_STAGING"
 
 PACKS_DIR="$EXTRACT_DIR/packs"
 
