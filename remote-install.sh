@@ -768,10 +768,25 @@ is_core_alias() {
     return 1
 }
 
-# --- Market index query (hook for future market-first resolution) ---
-# Queries petfish-market index.json for a pack by alias.
+# Core pack names, derived from CORE_ALIASES (used to guard pack-name-level checks).
+CORE_PACK_NAMES=("project-initializer-skill" "petfish-companion-skill" "petfish-toolchain-skill" "fish-trail")
+
+is_core_pack_name() {
+    local pack_name="$1"
+    for core in "${CORE_PACK_NAMES[@]}"; do
+        [[ "$pack_name" == "$core" ]] && return 0
+    done
+    return 1
+}
+
+# Associative array: pack_name → raw JSON from petfish-market index.
+# Populated by resolve_pack() for optional (non-core) packs.
+# Used by the download phase to determine repo/ref/path overrides.
+declare -A MARKET_META
+
+# --- Market index query ---
+# Queries petfish-market index.json for a pack by alias or pack name.
 # Echoes the matching pack JSON on success; returns 1 if not found or unavailable.
-# NOTE: Not yet wired into the download path — value is in metadata discovery.
 query_market_index() {
     local pack_alias="$1"
     local market_url="https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
@@ -1191,22 +1206,37 @@ resolve_pack() {
         echo "$name"
         return
     fi
+    local pack_name=""
     if [[ -n "${ALIASES[$name]+x}" ]]; then
-        echo "${ALIASES[$name]}"
+        pack_name="${ALIASES[$name]}"
     else
         for p in "${ALL_PACKS[@]}"; do
             if [[ "$p" == "$name" ]]; then
-                echo "$name"
-                return
+                pack_name="$name"
+                break
             fi
         done
+    fi
+    if [[ -z "$pack_name" ]]; then
         echo "Unknown pack: '$name'. Available: course, testdocs, deploy, petfish, companion, ppt, init, trust, all, or community/<owner>/<repo>[/<ref>]" >&2
         exit 1
     fi
+    # Market-first resolution for optional (non-core) packs.
+    # Query petfish-market index and cache metadata in MARKET_META for the download phase.
+    # Falls back silently to main tarball if market is unreachable or pack not found.
+    if ! is_core_alias "$name" && ! is_core_pack_name "$pack_name"; then
+        local _mj
+        _mj="$(query_market_index "$name" 2>/dev/null)" || true
+        if [[ -n "$_mj" ]]; then
+            MARKET_META["$pack_name"]="$_mj"
+        fi
+    fi
+    echo "$pack_name"
 }
 
 INSTALLS_INIT=false
 declare -A COMMUNITY_PACK_DIRS  # Maps community spec -> local dir name
+declare -A MARKET_PACK_DIRS     # Maps pack_name -> extracted dir root (non-main-repo market packs)
 if [[ "$PACK" == "all" ]]; then
     PACKS=("${ALL_PACKS[@]}")
 else
@@ -1228,6 +1258,18 @@ else
             COMMUNITY_PACK_DIRS["$local_resolved"]="$local_dir_name"
         fi
         PACKS+=("$local_resolved")
+    done
+fi
+
+# For --pack all, resolve_pack() was not called per item, so market metadata must be
+# populated here for all non-core packs. Falls back silently if market is unreachable.
+if [[ "$PACK" == "all" ]]; then
+    for _all_pack in "${PACKS[@]}"; do
+        is_community_pack "$_all_pack" && continue
+        is_core_pack_name "$_all_pack" && continue
+        [[ -n "${MARKET_META[$_all_pack]+x}" ]] && continue  # already resolved
+        _all_mj="$(query_market_index "$_all_pack" 2>/dev/null)" || true
+        [[ -n "$_all_mj" ]] && MARKET_META["$_all_pack"]="$_all_mj"
     done
 fi
 
@@ -1291,9 +1333,113 @@ mkdir -p "$COMMUNITY_STAGING"
 
 PACKS_DIR="$EXTRACT_DIR/packs"
 
-# Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
+# --- Download market-sourced optional packs from external repos ---
+# For each optional pack with market metadata, check if it lives in a repo other than
+# the main petfish.ai tarball.  If so, download that tarball separately and stage it
+# under TMPDIR so find_pack_dir() can locate it via MARKET_PACK_DIRS.
+#
+# Currently ALL optional packs resolve to kylecui/petfish.ai (same repo as the main
+# tarball), so this loop is effectively a no-op today — it is the hook that makes
+# independent-repo distribution work when future packs move to their own repos.
+for _mpack in "${PACKS[@]}"; do
+    is_community_pack "$_mpack" && continue
+    [[ -z "${MARKET_META[$_mpack]+x}" ]] && continue
+
+    _m_repo="$(python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+    print(d.get('repo', ''))
+except Exception:
+    pass
+" "${MARKET_META[$_mpack]}" 2>/dev/null)" || _m_repo=""
+
+    # Same repo as main tarball → pack is already in the extracted tree; skip.
+    [[ "$_m_repo" == "$REPO" || -z "$_m_repo" ]] && continue
+
+    _m_ref="$(python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+    print(d.get('ref', 'main'))
+except Exception:
+    print('main')
+" "${MARKET_META[$_mpack]}" 2>/dev/null)" || _m_ref="main"
+
+    # Check whether another pack from the same external repo was already downloaded.
+    _m_stage=""
+    for _k in "${!MARKET_PACK_DIRS[@]}"; do
+        _kj="${MARKET_META[$_k]:-}"
+        if [[ -n "$_kj" ]]; then
+            _kr="$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('repo',''))" "$_kj" 2>/dev/null)" || _kr=""
+            _kref="$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('ref','main'))" "$_kj" 2>/dev/null)" || _kref="main"
+            if [[ "$_kr" == "$_m_repo" && "$_kref" == "$_m_ref" ]]; then
+                _m_stage="${MARKET_PACK_DIRS[$_k]}"
+                break
+            fi
+        fi
+    done
+
+    if [[ -z "$_m_stage" ]]; then
+        echo "  [market] Downloading ${_mpack} from ${_m_repo}@${_m_ref}..."
+        _m_tmpdir="$(mktemp -d)"
+        _m_url="https://github.com/${_m_repo}/tarball/${_m_ref}"
+        _m_ok=false
+        for _attempt in 1 2 3; do
+            if [[ -n "$AUTH_HEADER" ]]; then
+                _m_code="$(curl -fsSL -w '%{http_code}' -H "$AUTH_HEADER" -o "$_m_tmpdir/archive.tar.gz" "$_m_url" 2>/dev/null)" || true
+            else
+                _m_code="$(curl -fsSL -w '%{http_code}' -o "$_m_tmpdir/archive.tar.gz" "$_m_url" 2>/dev/null)" || true
+            fi
+            if [[ "$_m_code" == "200" && -f "$_m_tmpdir/archive.tar.gz" ]]; then
+                tar xz -C "$_m_tmpdir" < "$_m_tmpdir/archive.tar.gz" && _m_ok=true && break
+            fi
+            if [[ "$_m_code" == "429" || "$_m_code" == "403" ]] && [[ $_attempt -lt 3 ]]; then
+                sleep $((2 ** _attempt))
+                rm -f "$_m_tmpdir/archive.tar.gz"
+            else
+                break
+            fi
+        done
+        rm -f "$_m_tmpdir/archive.tar.gz"
+        if $_m_ok; then
+            _m_stage="$(find "$_m_tmpdir" -mindepth 1 -maxdepth 1 -type d | head -1)"
+        else
+            echo "  [market] WARN: failed to download ${_mpack} from ${_m_repo}@${_m_ref}; falling back to main tarball." >&2
+        fi
+    fi
+
+    [[ -n "$_m_stage" ]] && MARKET_PACK_DIRS["$_mpack"]="$_m_stage"
+done
+
+# Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/).
+# For packs downloaded from an external market-sourced repo (MARKET_PACK_DIRS),
+# uses the path declared in the market index metadata.
 find_pack_dir() {
     local name="$1"
+    # External-repo market packs: use the path from market metadata.
+    if [[ -n "${MARKET_PACK_DIRS[$name]+x}" && -n "${MARKET_PACK_DIRS[$name]}" ]]; then
+        local meta_path
+        meta_path="$(python3 -c "
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+    print(d.get('path', ''))
+except Exception:
+    pass
+" "${MARKET_META[$name]}" 2>/dev/null)" || meta_path=""
+        if [[ -n "$meta_path" && -d "${MARKET_PACK_DIRS[$name]}/$meta_path" ]]; then
+            echo "${MARKET_PACK_DIRS[$name]}/$meta_path"
+            return
+        fi
+        # Fallback: walk extracted tree for the pack dir name.
+        local found_dir
+        found_dir="$(find "${MARKET_PACK_DIRS[$name]}" -maxdepth 4 -type d -name "$name" | head -1)"
+        if [[ -n "$found_dir" ]]; then
+            echo "$found_dir"
+            return
+        fi
+    fi
     if [[ -d "$PACKS_DIR/core/$name" ]]; then
         echo "$PACKS_DIR/core/$name"
     elif [[ -d "$PACKS_DIR/optional/$name" ]]; then

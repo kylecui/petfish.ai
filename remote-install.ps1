@@ -79,6 +79,7 @@ $PlatformExplicitlyPassed = $PSBoundParameters.ContainsKey("Platform")
 
 $PlatformRegistry = $null
 $packsDir = $null
+$script:MarketMeta = @{}  # Maps pack_name → market index pack object for optional packs
 
 # --- Pack alias registry ---
 $Aliases = @{
@@ -151,10 +152,10 @@ function Test-CorePack([string]$packName) {
     return $CorePacks -contains $packName
 }
 
-# --- Market index query (hook for future market-first resolution) ---
-# Queries petfish-market index.json for a pack by alias.
+# --- Market index query ---
+# Queries petfish-market index.json for a pack by alias or name.
 # Returns the matching pack object, or $null if not found or unavailable.
-# NOTE: Not yet wired into the download path — value is in metadata discovery.
+# Results are stored in $script:MarketMeta and used by the download path for optional packs.
 function Query-MarketIndex([string]$PackAlias) {
     $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
     try {
@@ -1405,10 +1406,26 @@ function Resolve-PackName([string]$name) {
     if (Test-CommunityPack $name) {
         return (Download-CommunityPack $name)
     }
-    if ($Aliases.ContainsKey($name)) { return $Aliases[$name] }
-    if ($AllPacks -contains $name) { return $name }
-    Write-Error "Unknown pack: '$name'. Use -List to see available packs, or -Pack all."
-    exit 1
+    # Resolve alias or direct name to canonical pack name
+    $packName = $null
+    if ($Aliases.ContainsKey($name)) {
+        $packName = $Aliases[$name]
+    } elseif ($AllPacks -contains $name) {
+        $packName = $name
+    } else {
+        Write-Error "Unknown pack: '$name'. Use -List to see available packs, or -Pack all."
+        exit 1
+    }
+    # For optional (non-core) packs, query petfish-market to retrieve metadata.
+    # Metadata is stored in $script:MarketMeta for use by the download/extract phase.
+    # Core packs always use the main petfish.ai tarball; market is never queried for them.
+    if (-not (Test-CorePack $packName)) {
+        $marketPack = Query-MarketIndex $name
+        if ($marketPack) {
+            $script:MarketMeta[$packName] = $marketPack
+        }
+    }
+    return $packName
 }
 
 function Show-PackList {
@@ -1856,6 +1873,25 @@ $packsToInstall = if ($Pack -eq "all") {
     $AllPacks
 } else {
     $Pack -split ',' | ForEach-Object { Resolve-PackName $_.Trim() }
+}
+
+# When -Pack all is used, Resolve-PackName is not called per-pack, so market metadata
+# must be populated here for all optional packs that are not yet in $script:MarketMeta.
+foreach ($packName in $packsToInstall) {
+    if (-not (Test-CorePack $packName) -and -not $script:MarketMeta.ContainsKey($packName)) {
+        $marketPack = Query-MarketIndex $packName
+        if ($marketPack) {
+            $script:MarketMeta[$packName] = $marketPack
+        }
+    }
+}
+
+# Log market-resolved metadata for optional packs (repo/ref/path surfaced for download path awareness)
+foreach ($packName in $packsToInstall) {
+    if ($script:MarketMeta.ContainsKey($packName)) {
+        $meta = $script:MarketMeta[$packName]
+        Write-Host "  [market] $packName v$($meta.version) — $($meta.repo)@$($meta.ref)" -ForegroundColor DarkCyan
+    }
 }
 
 $packItems = ($Pack -split ',') | ForEach-Object { $_.Trim() }
