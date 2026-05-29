@@ -228,73 +228,66 @@
 <!-- Pack cards -->
 <section class="packs-section">
   <div class="container">
-    <h2><span class="copy-zh">10 个市场包</span><span class="copy-en">10 Market Packs</span></h2>
+    <h2><span class="copy-zh"><span data-pack-count>10</span> 个市场包</span><span class="copy-en"><span data-pack-count>10</span> Market Packs</span></h2>
     <p>
       <span class="copy-zh">通过 petfish-market 分发 · 支持离线回退和镜像加速</span>
       <span class="copy-en">Distributed via petfish-market · offline fallback &amp; mirror acceleration supported</span>
     </p>
-    <div class="pack-grid">
-
+    <div class="pack-grid" id="market-packs">
+      <!-- Dynamically rendered from index.json by market-data.js -->
+      <noscript>
+      <!-- Static fallback when JS is disabled or fetch fails -->
       <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
         <div class="pack-name">research · <span class="copy-zh">鱼渊</span><span class="copy-en">Fish Depth</span></div>
         <div class="pack-desc"><span class="copy-zh">七大研究领域·证据驱动研究工作台</span><span class="copy-en">7 research domains · evidence-driven workbench</span></div>
         <div class="pack-meta">54 skills</div>
       </div>
-
       <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
         <div class="pack-name">course · <span class="copy-zh">鱼课</span><span class="copy-en">Fish Course</span></div>
         <div class="pack-desc"><span class="copy-zh">课程全生命周期：提纲·正文·实验·QA·QC</span><span class="copy-en">Full course lifecycle: outline · content · labs · QA · QC</span></div>
         <div class="pack-meta">15 skills</div>
       </div>
-
       <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
         <div class="pack-name">deploy · <span class="copy-zh">鱼 Deploy</span><span class="copy-en">Fish Deploy</span></div>
         <div class="pack-desc"><span class="copy-zh">部署·验证·运维·回滚</span><span class="copy-en">Deploy · verify · ops · rollback</span></div>
         <div class="pack-meta">7 skills</div>
       </div>
-
       <div class="pack-card" data-accent="blue" style="border-color: var(--accent2);">
         <div class="pack-name">context · <span class="copy-zh">鱼迹</span><span class="copy-en">Fish Trail</span></div>
         <div class="pack-desc"><span class="copy-zh">话题治理·上下文隔离·污染检测</span><span class="copy-en">Topic governance · context isolation · contamination scoring</span></div>
         <div class="pack-meta">1 skill · 31 MCP tools</div>
       </div>
-
       <div class="pack-card" data-accent="orange" style="border-color: var(--accent3);">
         <div class="pack-name">trust · <span class="copy-zh">鱼鳞</span><span class="copy-en">Fish Scale</span></div>
         <div class="pack-desc"><span class="copy-zh">Skill可信度·6维风险·红线策略</span><span class="copy-en">Trust governance · 6 risk dims · red lines</span></div>
         <div class="pack-meta">1 skill</div>
       </div>
-
       <div class="pack-card" data-accent="purple" style="border-color: #a371f7;">
         <div class="pack-name">calibrate · <span class="copy-zh">鱼刺</span><span class="copy-en">Fishbone</span></div>
         <div class="pack-desc"><span class="copy-zh">反迎合·决策校准·评分维度先行</span><span class="copy-en">Anti-sycophancy · decision calibration · rubric-first</span></div>
         <div class="pack-meta">1 skill</div>
       </div>
-
       <div class="pack-card" data-accent="pink" style="border-color: #f778ba;">
         <div class="pack-name">petfish-style · <span class="copy-zh">鱼话</span><span class="copy-en">Fish Talk</span></div>
         <div class="pack-desc"><span class="copy-zh">工程写作·去AI味·结构化表达（市场版）</span><span class="copy-en">Engineering writing · no AI slop (market edition)</span></div>
         <div class="pack-meta">1 skill</div>
       </div>
-
       <div class="pack-card" data-accent="green">
         <div class="pack-name">testdocs</div>
         <div class="pack-desc"><span class="copy-zh">测试用例·使用文档</span><span class="copy-en">Test cases · usage docs</span></div>
         <div class="pack-meta">2 skills</div>
       </div>
-
       <div class="pack-card">
         <div class="pack-name">ppt · <span class="copy-zh">演示</span><span class="copy-en">Slides</span></div>
         <div class="pack-desc"><span class="copy-zh">PPT/PPTX 创建·审阅·QA</span><span class="copy-en">PPT/PPTX creation · review · QA</span></div>
         <div class="pack-meta">2 skills</div>
       </div>
-
       <div class="pack-card" data-accent="cyan" style="border-color: #79c0ff;">
         <div class="pack-name">reflect · <span class="copy-zh">鱼思</span><span class="copy-en">Fish Reflect</span></div>
         <div class="pack-desc"><span class="copy-zh">结构化反思·经验沉淀</span><span class="copy-en">Structured reflection · lessons captured</span></div>
         <div class="pack-meta">1 skill</div>
       </div>
-
+      </noscript>
     </div>
   </div>
 </section>
@@ -361,6 +354,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
   </div>
 </footer>
 
+<script src="market-data.js"></script>
 <script>
   const btns = document.querySelectorAll('.lang-option');
   btns.forEach(btn => {
@@ -370,6 +364,8 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
       document.body.className = 'lang-' + btn.dataset.lang;
     });
   });
+
+  // Dynamic market packs — handled by market-data.js autoInit
 </script>
 </body>
 </html>
