@@ -581,6 +581,12 @@ if os.path.isfile(reg_file):
 else:
     reg = {'packs': {}}
 
+# v0.4.x-v0.9.x used array format: normalize to dict
+packs = reg.get('packs') or {}
+if isinstance(packs, list):
+    packs = {p: {} for p in packs if isinstance(p, str)}
+    reg['packs'] = packs
+
 reg['packs'][pack_name] = entry
 with open(reg_file, 'w') as f:
     json.dump(reg, f, indent=2, ensure_ascii=False)
