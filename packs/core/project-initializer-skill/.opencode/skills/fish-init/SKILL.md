@@ -4,8 +4,8 @@ description: Initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.
 license: Proprietary. Adapt for internal use.
 compatibility: Designed for OpenCode project-level skills. Optional script requires Python 3.10+; uv is recommended for Python development projects.
 metadata:
-  version: "1.0.0"
-  author: "Kyle Cui / ChatGPT"
+  version: "1.1.0"
+  author: "petfish-team"
   workflow: "safe-project-initialization"
 ---
 
@@ -113,7 +113,7 @@ Available domains for custom: scientific, product, planning, learning, decision,
 
 Map the selection to `init_research_project.py --type <category>`. For custom, also pass `--domains <selected>`.
 
-This question is asked for ANY profile whose recommended packs include `research`. Check the Profile → Pack Mapping table to determine eligibility.
+This question is asked for ANY profile whose resolved packs include `research`. Check the profile semantics in Section 11 to determine eligibility.
 
 ### 3. Directory Safety Check
 
@@ -359,48 +359,77 @@ In chat, summarize briefly and mention that no existing files were overwritten u
 
 ### 11. Auto-Install Skill Packs (Post-Initialization)
 
-After `init_project.py` completes successfully, automatically install recommended skill packs from the petfish.ai repository using the remote installer.
+After `init_project.py` completes successfully, recommend and install skill packs from the petfish.ai ecosystem.
 
-#### Profile → Pack Mapping
+**IMPORTANT**: Do NOT use hardcoded pack lists or counts. Query the live registry at runtime. New packs are added regularly and this skill must not go stale.
 
-| Profile | Recommended Packs |
-|---|---|
-| `minimal` | `petfish` |
-| `course` | `course`, `petfish` |
-| `code` | `deploy`, `petfish`, `testdocs` |
-| `ops` | `deploy`, `petfish` |
-| `security` | `deploy`, `petfish`, `testdocs`, `trust` |
-| `research` | `petfish`, `research` |
-| `writing` | `petfish`, `ppt` |
-| `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research` |
+#### Pack Discovery (Dynamic)
+
+1. Call `skill-registry list_available_packs` to get all installable packs (core + optional + community).
+2. Call `skill-registry list_installed_packs` to check what is already installed at the target.
+3. Use the profile semantics below to determine which packs to recommend.
+4. Present the recommendation and ask the user to confirm, add, or remove packs.
+5. If `skill-registry` MCP is unavailable, fall back to the profile semantics as defaults.
+
+#### Profile Semantics (Needs, Not Pack Names)
+
+Profiles define the project's NEEDS. The agent resolves these needs against the current registry at runtime. This means new packs added to the registry are automatically discoverable without any SKILL.md changes.
+
+| Profile | Semantic Needs | Typical Resolution |
+|---|---|---|
+| `minimal` | Writing style only | petfish |
+| `course` | Course development + style | course, petfish |
+| `code` | Development, testing, deployment, style | deploy, testdocs, petfish |
+| `ops` | Operations, deployment, style | deploy, petfish |
+| `security` | Security governance, testing, deployment, style | deploy, testdocs, trust, petfish |
+| `research` | Research workbench, style | research, petfish |
+| `writing` | Writing, presentations, style | ppt, petfish |
+| `skills-package` | Style, testing (for skill QA) | petfish, testdocs |
+| `comprehensive` | All available packs | (resolved from full registry — install everything) |
+
+For `comprehensive`: install ALL packs returned by `list_available_packs`.
+For other profiles: match semantic needs to pack descriptions from the registry. If unsure whether a pack fits a need, include it in the optional list for user review.
+
+#### Research Domain Clarification
+
+If the resolved recommendation includes the `research` pack, trigger the Research Domain Clarification (section 2) before installing. This ensures the research workspace is scaffolded with the correct domain focus regardless of which profile was originally selected.
+
+#### No Profile / Custom Intent
+
+If no standard profile fits, or the user provides a custom description:
+1. Extract 2-3 domain keywords from the user's intent
+2. Call `skill-registry search_skills` for each keyword
+3. Collect unique parent packs from matched skills
+4. Present matched packs first, then remaining available packs as optional
+5. Ask user to confirm
 
 #### Pack Customization
 
-Before installing, present the recommended pack list and ask if the user wants to add or remove packs:
+Before installing, present the recommendation and ask the user to confirm:
 
-```text
-Based on your profile, these packs will be installed:
-  [list from mapping above]
-
-Available packs not included: [remaining packs from full catalog]
-
-Would you like to add or remove any packs? (Enter pack names, or "proceed" to continue)
 ```
+Based on your profile, these packs will be installed:
+  ✅ [matched packs — one line each with pack name and short description]
 
-If the user adds `research` (or any profile already includes it), trigger the Research Domain Clarification (section 2) before proceeding with installation. This ensures the research workspace is scaffolded with the correct domain focus regardless of which profile was originally selected.
+Available but not recommended for your profile:
+  📦 [remaining packs from registry]
+
+Would you like to add or remove any packs? (Enter pack names, or "proceed")
+```
 
 #### Procedure
 
-1. After initialization, inform the user: "正在安装推荐的petfish技能包..."
+1. After initialization, inform the user: "正在安装推荐的petfish技能包..." / "Installing recommended petfish skill packs..."
 2. Detect the platform: if the project has `.agents/` directory, use `--platform antigravity`; if `.opencode/`, use `--platform opencode`; if both, use `--platform all`.
-3. Run the remote installer for each recommended pack. On Windows (PowerShell):
+3. Run the remote installer for each confirmed pack.
+
+Windows (PowerShell):
 
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <pack_alias> -Target <project_dir> -Platform <detected_platform>
 ```
 
-On macOS/Linux/WSL (Bash):
+macOS/Linux/WSL (Bash):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <pack_alias> --target <project_dir> --platform <detected_platform>
@@ -549,10 +578,12 @@ If any steps were skipped, briefly list the manual commands the user can run lat
 
 PEtFiSh packs are divided into two categories:
 
-- **Core packs** (4): companion, toolchain, init, context — always installed from petfish.ai
-- **Optional packs** (9): research, course, deploy, ppt, testdocs, petfish, calibrate, trust, reflect — distributed via petfish-market
+- **Core packs**: companion, toolchain, init, petfish — always installed from petfish.ai
+- **Optional packs**: research, course, deploy, ppt, testdocs, calibrate, trust, reflect, and others — distributed via petfish-market
 
-Profile → Pack mapping remains the same. The install command (`/petfish install <alias>`) handles core/optional routing transparently.
+**Do NOT hardcode pack counts** — new packs are added regularly. Use `skill-registry list_available_packs` for the current list.
+
+Profile → Pack mapping is resolved dynamically via profile semantics (Section 11). The install command (`/petfish install <alias>`) handles core/optional routing transparently.
 
 ## Available Files
 
