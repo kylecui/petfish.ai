@@ -109,6 +109,7 @@ $Aliases = @{
     "fish-reflect"   = "fish-reflection-pack"
     "fish-brain"     = "petfish-companion-skill"
     "toolchain"      = "petfish-toolchain-skill"
+    "series-style"   = "series-style-governor"
 }
 
 $AllPacks = @(
@@ -124,7 +125,8 @@ $AllPacks = @(
     "anti-sycophancy-calibration-pack",
     "fish-trail",
     "research-skill-pack",
-    "fish-reflection-pack"
+    "fish-reflection-pack",
+    "series-style-governor"
 )
 
 $PackDisplayOrder = @(
@@ -140,7 +142,8 @@ $PackDisplayOrder = @(
     @{ Name = "anti-sycophancy-calibration-pack"; Alias = "calibrate, fish-calibrate" },
     @{ Name = "fish-trail"; Alias = "context, fish-trail" },
     @{ Name = "research-skill-pack"; Alias = "research, fish-research" },
-    @{ Name = "fish-reflection-pack"; Alias = "reflect, fish-reflect" }
+    @{ Name = "fish-reflection-pack"; Alias = "reflect, fish-reflect" },
+    @{ Name = "series-style-governor"; Alias = "series-style" }
 )
 
 # --- Core pack classification ---
@@ -382,6 +385,7 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
         "fish-trail"                         = "fish-trail.md"
         "research-skill-pack"                = "research.md"
         "fish-reflection-pack"               = "fish-reflection.md"
+        "series-style-governor"              = "series-style-governor.md"
     }
     $l1Name = $L1Map[$packName]
     if (-not $l1Name) { return }
@@ -1514,7 +1518,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
             $hasL1 = $false
             if ($platformName -eq "opencode") {
-                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","petfish-toolchain-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
+                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","petfish-toolchain-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack","series-style-governor")
                 $hasL1 = $L1Packs -contains $packName
             }
 

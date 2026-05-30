@@ -211,11 +211,19 @@ def scaffold_skill(
     base_dir = os.path.abspath(output_dir)
     os.makedirs(base_dir, exist_ok=True)
     skill_dir = os.path.join(base_dir, name)
-    if os.path.exists(skill_dir):
-        raise FileExistsError(f"Target skill directory already exists: {skill_dir}")
     dirs = {k: os.path.join(skill_dir, k) for k in ("references", "scripts", "assets", "evals")}
-    for d in (skill_dir, *dirs.values()):
-        os.makedirs(d, exist_ok=False)
+
+    if mode in ("new-skill", "extract-from-workflow"):
+        if os.path.exists(skill_dir):
+            raise FileExistsError(f"Target skill directory already exists: {skill_dir}")
+        for d in (skill_dir, *dirs.values()):
+            os.makedirs(d, exist_ok=False)
+    else:
+        # improve-existing-skill, add-evals, refactor-boundaries — target must exist
+        if not os.path.exists(skill_dir):
+            raise FileNotFoundError(f"Target skill directory does not exist: {skill_dir}")
+        for d in dirs.values():
+            os.makedirs(d, exist_ok=True)
 
     created = []
     assumptions = []
