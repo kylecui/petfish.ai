@@ -160,6 +160,7 @@ write_pack_rules_file() {
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;
         fish-reflection-pack)              l1_name="fish-reflection.md" ;;
+        series-style-governor)             l1_name="series-style-governor.md" ;;
         *) return ;;
     esac
 
@@ -752,8 +753,9 @@ declare -A ALIASES=(
     [fish-reflect]="fish-reflection-pack"
     [fish-brain]="petfish-companion-skill"
     [toolchain]="petfish-toolchain-skill"
+    [series-style]="series-style-governor"
 )
-ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "petfish-toolchain-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack")
+ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "petfish-toolchain-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack" "series-style-governor")
 
 # --- Core pack classification ---
 # Core packs are always sourced from the petfish.ai tarball.
@@ -1916,7 +1918,7 @@ install_for_platform() {
             local has_l1=false
             if [[ "$platform_name" == "opencode" ]]; then
                 case "$pack_name" in
-                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|petfish-toolchain-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack)
+                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|petfish-toolchain-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack|series-style-governor)
                         has_l1=true ;;
                 esac
             fi

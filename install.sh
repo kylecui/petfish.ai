@@ -381,6 +381,7 @@ write_pack_rules_file() {
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;
         fish-reflection-pack)              l1_name="fish-reflection.md" ;;
+        series-style-governor)             l1_name="series-style-governor.md" ;;
         *) return ;;
     esac
 
@@ -955,6 +956,7 @@ declare -A ALIASES=(
     [fish-reflect]="fish-reflection-pack"
     [fish-brain]="petfish-companion-skill"
     [toolchain]="petfish-toolchain-skill"
+    [series-style]="series-style-governor"
 )
 
 # --- Core pack classification ---
@@ -1913,17 +1915,18 @@ except Exception:
 }
 
 get_all_packs() {
-    local dir
+    local dir _result=""
     for dir in "$PACKS_DIR"/core/* "$PACKS_DIR"/optional/*; do
         [[ -d "$dir" ]] || continue
-        basename "$dir"
+        _result+="$(basename "$dir")"$'\n'
     done
     # When online, also include optional packs from market not present locally.
     if ! $OFFLINE; then
         local _market_data
         _market_data="$(curl -fsSL --max-time 10 "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json" 2>/dev/null)" || true
         if [[ -n "$_market_data" ]]; then
-            python3 -c "
+            local _market_packs
+            _market_packs="$(python3 -c "
 import json, sys
 try:
     data = json.loads(sys.argv[1])
@@ -1933,10 +1936,12 @@ try:
             print(name)
 except Exception:
     pass
-" "$_market_data" 2>/dev/null || true
+" "$_market_data" 2>/dev/null)" || true
+            [[ -n "$_market_packs" ]] && _result+="$_market_packs"$'\n'
         fi
     fi
-} | sort -u
+    echo -n "$_result" | sort -u
+}
 
 show_list() {
     echo ""
@@ -2088,7 +2093,7 @@ install_for_platform() {
             local has_l1=false
             if [[ "$platform_name" == "opencode" ]]; then
                 case "$pack_name" in
-                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|petfish-toolchain-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack)
+                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|petfish-toolchain-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack|series-style-governor)
                         has_l1=true ;;
                 esac
             fi

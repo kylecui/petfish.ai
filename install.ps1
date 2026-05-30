@@ -368,6 +368,7 @@ $Aliases = @{
     "fish-reflect"   = "fish-reflection-pack"
     "fish-brain"     = "petfish-companion-skill"
     "toolchain"      = "petfish-toolchain-skill"
+    "series-style"   = "series-style-governor"
 }
 
 # --- Platform path configuration ---
@@ -580,6 +581,7 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
         "fish-trail"                         = "fish-trail.md"
         "research-skill-pack"                = "research.md"
         "fish-reflection-pack"               = "fish-reflection.md"
+        "series-style-governor"              = "series-style-governor.md"
     }
     $l1Name = $L1Map[$packName]
     if (-not $l1Name) { return }
