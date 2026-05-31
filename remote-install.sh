@@ -799,7 +799,10 @@ import json, sys
 alias = sys.argv[1]
 data = json.loads(sys.argv[2])
 for pack in data.get('packs', []):
-    if alias in pack.get('alias', []) or pack.get('name') == alias:
+    aliases = pack.get('alias', []) or pack.get('aliases', []) or []
+    if isinstance(aliases, str):
+        aliases = [aliases]
+    if alias in aliases or pack.get('name') == alias:
         print(json.dumps(pack))
         sys.exit(0)
 sys.exit(1)
@@ -1220,6 +1223,17 @@ resolve_pack() {
         done
     fi
     if [[ -z "$pack_name" ]]; then
+        local _mj
+        _mj="$(query_market_index "$name" 2>/dev/null)" || true
+        if [[ -n "$_mj" ]]; then
+            local _resolved_name
+            _resolved_name="$(python3 -c "import json,sys; d=json.loads(sys.argv[1]); print(d.get('name',''))" "$_mj" 2>/dev/null)" || _resolved_name=""
+            if [[ -n "$_resolved_name" ]]; then
+                MARKET_META["$_resolved_name"]="$_mj"
+                echo "$_resolved_name"
+                return
+            fi
+        fi
         echo "Unknown pack: '$name'. Available: course, testdocs, deploy, petfish, companion, ppt, init, trust, all, or community/<owner>/<repo>[/<ref>]" >&2
         exit 1
     fi
@@ -1270,17 +1284,16 @@ else
     done
 fi
 
-# For --pack all, resolve_pack() was not called per item, so market metadata must be
-# populated here for all non-core packs. Falls back silently if market is unreachable.
-if [[ "$PACK" == "all" ]]; then
-    for _all_pack in "${PACKS[@]}"; do
-        is_community_pack "$_all_pack" && continue
-        is_core_pack_name "$_all_pack" && continue
-        [[ -n "${MARKET_META[$_all_pack]+x}" ]] && continue  # already resolved
-        _all_mj="$(query_market_index "$_all_pack" 2>/dev/null)" || true
-        [[ -n "$_all_mj" ]] && MARKET_META["$_all_pack"]="$_all_mj"
-    done
-fi
+# Populate market metadata for all non-core packs. This is required even when
+# resolve_pack() queried the market because command substitution runs in a
+# subshell and cannot preserve MARKET_META side effects.
+for _resolved_pack in "${PACKS[@]}"; do
+    is_community_pack "$_resolved_pack" && continue
+    is_core_pack_name "$_resolved_pack" && continue
+    [[ -n "${MARKET_META[$_resolved_pack]+x}" ]] && continue
+    _resolved_mj="$(query_market_index "$_resolved_pack" 2>/dev/null)" || true
+    [[ -n "$_resolved_mj" ]] && MARKET_META["$_resolved_pack"]="$_resolved_mj"
+done
 
 if $INSTALLS_INIT && ! $GLOBAL && ! $TARGET_EXPLICIT && [[ "$TARGET" == "." ]]; then
     GLOBAL=true
@@ -1432,7 +1445,12 @@ except Exception:
     pass
 " "${MARKET_META[$name]}" 2>/dev/null)" || meta_path=""
         if [[ -n "$meta_path" && -d "${MARKET_PACK_DIRS[$name]}/$meta_path" ]]; then
-            echo "${MARKET_PACK_DIRS[$name]}/$meta_path"
+            local meta_dir="${MARKET_PACK_DIRS[$name]}/$meta_path"
+            if [[ "$(basename "$meta_dir")" == ".opencode" ]]; then
+                echo "$(dirname "$meta_dir")"
+            else
+                echo "$meta_dir"
+            fi
             return
         fi
         # Fallback: walk extracted tree for the pack dir name.
