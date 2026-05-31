@@ -80,6 +80,7 @@ $PlatformExplicitlyPassed = $PSBoundParameters.ContainsKey("Platform")
 $PlatformRegistry = $null
 $packsDir = $null
 $script:MarketMeta = @{}  # Maps pack_name → market index pack object for optional packs
+$script:MarketPackDirs = @{}  # Maps pack_name → downloaded pack root for external market packs
 
 # --- Pack alias registry ---
 $Aliases = @{
@@ -110,6 +111,7 @@ $Aliases = @{
     "fish-brain"     = "petfish-companion-skill"
     "toolchain"      = "petfish-toolchain-skill"
     "series-style"   = "series-style-governor-pack"
+    "fat-slim"       = "petfish-pack-fat-slim-writer"
 }
 
 $AllPacks = @(
@@ -156,22 +158,140 @@ function Test-CorePack([string]$packName) {
 }
 
 # --- Market index query ---
+# Retrieves petfish-market index.json with mirror and curl.exe fallback.
+function Get-MarketIndexData {
+    $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+    $mirrorPrefixes = @(
+        "",
+        "https://ghfast.top/https://",
+        "https://mirror.ghproxy.com/https://"
+    )
+    foreach ($prefix in $mirrorPrefixes) {
+        $uri = "${prefix}${marketUrl}"
+        $data = $null
+        try {
+            $data = Invoke-RestMethod -Uri $uri -TimeoutSec 30 -ErrorAction Stop
+        } catch {
+            try {
+                $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+                if ($curl) {
+                    $raw = & curl.exe -fsSL --max-time 30 $uri 2>$null
+                    if ($LASTEXITCODE -eq 0 -and $raw) {
+                        $data = ($raw -join "`n") | ConvertFrom-Json
+                    }
+                }
+            } catch {
+                $data = $null
+            }
+        }
+        if (-not $data) { continue }
+        return $data
+    }
+    return $null
+}
+
 # Queries petfish-market index.json for a pack by alias or name.
 # Returns the matching pack object, or $null if not found or unavailable.
 # Results are stored in $script:MarketMeta and used by the download path for optional packs.
 function Query-MarketIndex([string]$PackAlias) {
-    $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
-    try {
-        $data = Invoke-RestMethod -Uri $marketUrl -TimeoutSec 10 -ErrorAction Stop
-        foreach ($pack in $data.packs) {
-            if ($pack.alias -contains $PackAlias -or $pack.name -eq $PackAlias) {
+    $data = Get-MarketIndexData
+    if (-not $data) { return $null }
+        foreach ($pack in @($data.packs)) {
+            $aliases = @()
+            if ($pack.PSObject.Properties['alias']) {
+                foreach ($a in @($pack.alias)) {
+                    if ($null -ne $a -and -not [string]::IsNullOrWhiteSpace("$a")) { $aliases += "$a" }
+                }
+            }
+            if ($pack.PSObject.Properties['aliases']) {
+                foreach ($a in @($pack.aliases)) {
+                    if ($null -ne $a -and -not [string]::IsNullOrWhiteSpace("$a")) { $aliases += "$a" }
+                }
+            }
+            if ($aliases -contains $PackAlias -or "$($pack.name)" -eq $PackAlias) {
                 return $pack
             }
         }
-    } catch {
-        # Market index unavailable — silent fallback
-    }
     return $null
+}
+
+# --- Download an optional pack from its independent GitHub repo ---
+# Extracts to a temp dir and stores the pack root in $script:MarketPackDirs[$packName].
+function Download-MarketPack([string]$packName) {
+    $meta = $script:MarketMeta[$packName]
+    if (-not $meta) { return $false }
+
+    $repo   = $meta.repo
+    $ref    = if ($meta.ref)  { $meta.ref  } else { "main" }
+    $subdir = if ($meta.path) { $meta.path } else { "" }
+
+    $isTag = $ref -match '^v?\d+\.\d+(\.\d+)?(-[a-zA-Z0-9]+)?(\+[a-zA-Z0-9]+)?$'
+    $archivePath = if ($isTag) { "archive/refs/tags/$ref.zip" } else { "archive/refs/heads/$ref.zip" }
+    $archiveUrl = "https://github.com/$repo/$archivePath"
+
+    $tmpPackDir = Join-Path ([System.IO.Path]::GetTempPath()) "petfish_market_$(Get-Random)"
+    New-Item -ItemType Directory -Path $tmpPackDir -Force | Out-Null
+
+    $zipFile = Join-Path $tmpPackDir "pack.zip"
+    Write-Host "  [market] Downloading $packName from $repo@$ref..." -ForegroundColor DarkCyan
+
+    $mirrorPrefixes = @(
+        "",
+        "https://ghfast.top/https://",
+        "https://mirror.ghproxy.com/https://"
+    )
+
+    $downloaded = $false
+    foreach ($prefix in $mirrorPrefixes) {
+        $uri = "${prefix}${archiveUrl}"
+        try {
+            Invoke-WebRequest -Uri $uri -OutFile $zipFile -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
+            $downloaded = $true
+            break
+        } catch {
+            # Try next mirror
+        }
+    }
+
+    if (-not $downloaded) {
+        Write-Warning "  [market] Failed to download $packName from all mirrors. Falling back to main repo pack path."
+        Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
+        return $false
+    }
+
+    try {
+        Expand-Archive -Path $zipFile -DestinationPath $tmpPackDir -Force
+    } catch {
+        Write-Warning "  [market] archive extraction failed for $packName. Falling back to main repo pack path."
+        Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
+        return $false
+    }
+
+    $extractRoot = Get-ChildItem -Path $tmpPackDir -Directory | Select-Object -First 1
+    if (-not $extractRoot) {
+        Write-Warning "  [market] Could not locate extracted directory for $packName."
+        Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
+        return $false
+    }
+
+    # Resolve market metadata path to the pack root (the directory containing .opencode/),
+    # not the .opencode content directory itself.
+    $packRoot = $extractRoot.FullName
+    if ($subdir -and (Test-Path (Join-Path $packRoot $subdir))) {
+        $packRoot = Join-Path $packRoot $subdir
+    } elseif (Test-Path (Join-Path $packRoot $packName)) {
+        $packRoot = Join-Path $packRoot $packName
+    }
+    if ((Split-Path $packRoot -Leaf) -eq ".opencode") {
+        $packRoot = Split-Path $packRoot -Parent
+    }
+
+    $candidatePath = Join-Path (Join-Path (Join-Path $packRoot "packs") "optional") $packName
+    if (Test-Path $candidatePath) { $packRoot = $candidatePath }
+
+    $script:MarketPackDirs[$packName] = $packRoot
+    Write-Host "  [market] $packName extracted to $packRoot" -ForegroundColor DarkGreen
+    return $true
 }
 
 # --- Platform path configuration ---
@@ -1417,6 +1537,12 @@ function Resolve-PackName([string]$name) {
     } elseif ($AllPacks -contains $name) {
         $packName = $name
     } else {
+        $marketPack = Query-MarketIndex $name
+        if ($marketPack) {
+            $packName = if ($marketPack.PSObject.Properties['name']) { "$($marketPack.name)" } else { $name }
+            $script:MarketMeta[$packName] = $marketPack
+            return $packName
+        }
         Write-Error "Unknown pack: '$name'. Use -List to see available packs, or -Pack all."
         exit 1
     }
@@ -1874,7 +2000,18 @@ if (-not $Pack) {
 }
 
 $packsToInstall = if ($Pack -eq "all") {
-    $AllPacks
+    $all = @($AllPacks)
+    $marketData = Get-MarketIndexData
+    if ($marketData) {
+        foreach ($pack in @($marketData.packs)) {
+            $pName = "$($pack.name)"
+            if ($pName -and $all -notcontains $pName) {
+                $script:MarketMeta[$pName] = $pack
+                $all += $pName
+            }
+        }
+    }
+    $all
 } else {
     $Pack -split ',' | ForEach-Object { Resolve-PackName $_.Trim() }
 }
@@ -1992,6 +2129,12 @@ try {
 
     # Find the actual on-disk path for a pack directory name (v1.4: core/ + optional/)
     function Get-PackDirPath([string]$name) {
+        if ($script:MarketPackDirs.ContainsKey($name)) { return $script:MarketPackDirs[$name] }
+        if ($script:MarketMeta.ContainsKey($name)) {
+            if ((Download-MarketPack $name) -and $script:MarketPackDirs.ContainsKey($name)) {
+                return $script:MarketPackDirs[$name]
+            }
+        }
         $corePath = Join-Path $packsDir "core" $name
         $optionalPath = Join-Path $packsDir "optional" $name
         if (Test-Path $corePath) { return $corePath }

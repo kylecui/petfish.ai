@@ -369,6 +369,7 @@ $Aliases = @{
     "fish-brain"     = "petfish-companion-skill"
     "toolchain"      = "petfish-toolchain-skill"
     "series-style"   = "series-style-governor-pack"
+    "fat-slim"       = "petfish-pack-fat-slim-writer"
 }
 
 # --- Platform path configuration ---
@@ -1817,26 +1818,65 @@ function Test-CoreAlias([string]$alias) {
 }
 
 # --- Market index query ---
-# Queries petfish-market index.json for a pack by alias or canonical name.
-# Returns the matching pack object, or $null if not found / unavailable / offline.
-function Query-MarketIndex([string]$PackAlias) {
+# Retrieves petfish-market index.json with mirror and curl.exe fallback.
+function Get-MarketIndexData {
     if ($Offline) { return $null }
     $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
-    try {
-        $data = Invoke-RestMethod -Uri $marketUrl -TimeoutSec 10 -ErrorAction Stop
-        foreach ($pack in $data.packs) {
-            if ($pack.alias -contains $PackAlias -or $pack.name -eq $PackAlias) {
-                return $pack
+    $mirrorPrefixes = @(
+        "",
+        "https://ghfast.top/https://",
+        "https://mirror.ghproxy.com/https://"
+    )
+    foreach ($prefix in $mirrorPrefixes) {
+        $uri = "${prefix}${marketUrl}"
+        $data = $null
+        try {
+            $data = Invoke-RestMethod -Uri $uri -TimeoutSec 30 -ErrorAction Stop
+        } catch {
+            try {
+                $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+                if ($curl) {
+                    $raw = & curl.exe -fsSL --max-time 30 $uri 2>$null
+                    if ($LASTEXITCODE -eq 0 -and $raw) {
+                        $data = ($raw -join "`n") | ConvertFrom-Json
+                    }
+                }
+            } catch {
+                $data = $null
             }
         }
-    } catch {
-        # Market index unavailable — silent fallback to local packs/optional/
+        if (-not $data) { continue }
+        return $data
     }
     return $null
 }
 
+# Queries petfish-market index.json for a pack by alias or canonical name.
+# Returns the matching pack object, or $null if not found / unavailable / offline.
+function Query-MarketIndex([string]$PackAlias) {
+    $data = Get-MarketIndexData
+    if (-not $data) { return $null }
+        foreach ($pack in @($data.packs)) {
+            $aliases = @()
+            if ($pack.PSObject.Properties['alias']) {
+                foreach ($a in @($pack.alias)) {
+                    if ($null -ne $a -and -not [string]::IsNullOrWhiteSpace("$a")) { $aliases += "$a" }
+                }
+            }
+            if ($pack.PSObject.Properties['aliases']) {
+                foreach ($a in @($pack.aliases)) {
+                    if ($null -ne $a -and -not [string]::IsNullOrWhiteSpace("$a")) { $aliases += "$a" }
+                }
+            }
+            if ($aliases -contains $PackAlias -or "$($pack.name)" -eq $PackAlias) {
+                return $pack
+            }
+        }
+    return $null
+}
+
 # --- Download an optional pack from its independent GitHub repo ---
-# Uses Invoke-WebRequest + tar (both built into Windows 10+/PowerShell 5+).
+# Uses Invoke-WebRequest + Expand-Archive to avoid Windows tar path issues.
 # Extracts to a temp dir and stores the path in $script:MarketPackDirs[$packName].
 function Download-MarketPack([string]$packName) {
     $meta = $script:MarketMeta[$packName]
@@ -1847,13 +1887,13 @@ function Download-MarketPack([string]$packName) {
     $subdir = if ($meta.path) { $meta.path } else { "" }
 
     $isTag = $ref -match '^v?\d+\.\d+(\.\d+)?(-[a-zA-Z0-9]+)?(\+[a-zA-Z0-9]+)?$'
-    $archivePath = if ($isTag) { "archive/refs/tags/$ref.tar.gz" } else { "archive/refs/heads/$ref.tar.gz" }
-    $tarUrl = "https://github.com/$repo/$archivePath"
+    $archivePath = if ($isTag) { "archive/refs/tags/$ref.zip" } else { "archive/refs/heads/$ref.zip" }
+    $archiveUrl = "https://github.com/$repo/$archivePath"
 
     $tmpPackDir = Join-Path ([System.IO.Path]::GetTempPath()) "petfish_market_$(Get-Random)"
     New-Item -ItemType Directory -Path $tmpPackDir -Force | Out-Null
 
-    $tarFile = Join-Path $tmpPackDir "pack.tar.gz"
+    $zipFile = Join-Path $tmpPackDir "pack.zip"
     Write-Host "  [market] Downloading $packName from $repo@$ref..." -ForegroundColor DarkCyan
 
     $mirrorPrefixes = @(
@@ -1864,9 +1904,9 @@ function Download-MarketPack([string]$packName) {
 
     $downloaded = $false
     foreach ($prefix in $mirrorPrefixes) {
-        $uri = "${prefix}${tarUrl}"
+        $uri = "${prefix}${archiveUrl}"
         try {
-            Invoke-WebRequest -Uri $uri -OutFile $tarFile -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
+            Invoke-WebRequest -Uri $uri -OutFile $zipFile -UseBasicParsing -TimeoutSec 60 -ErrorAction Stop
             $downloaded = $true
             break
         } catch {
@@ -1880,29 +1920,33 @@ function Download-MarketPack([string]$packName) {
         return $false
     }
 
-    # Extract with tar (built-in on Windows 10+)
     try {
-        & tar -xzf $tarFile -C $tmpPackDir 2>$null
+        Expand-Archive -Path $zipFile -DestinationPath $tmpPackDir -Force
     } catch {
-        Write-Warning "  [market] tar extraction failed for $packName. Falling back to local packs/optional/."
+        Write-Warning "  [market] archive extraction failed for $packName. Falling back to local packs/optional/."
         Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
         return $false
     }
 
     # Find extracted root dir (the GitHub archive top-level folder)
-    $extractRoot = Get-ChildItem -Path $tmpPackDir -Directory | Where-Object { $_.Name -ne "pack.tar.gz" } | Select-Object -First 1
+    $extractRoot = Get-ChildItem -Path $tmpPackDir -Directory | Select-Object -First 1
     if (-not $extractRoot) {
         Write-Warning "  [market] Could not locate extracted directory for $packName."
         Remove-Item -Path $tmpPackDir -Recurse -Force -ErrorAction SilentlyContinue
         return $false
     }
 
-    # Locate the pack directory: if subdir is specified, go into it; else look for packName subdir
+    # Locate the pack directory: if subdir is specified, go into it; else look for packName subdir.
+    # Market metadata path must resolve to the pack root (the directory containing .opencode/),
+    # not the .opencode content directory itself.
     $packRoot = $extractRoot.FullName
     if ($subdir -and (Test-Path (Join-Path $packRoot $subdir))) {
         $packRoot = Join-Path $packRoot $subdir
     } elseif (Test-Path (Join-Path $packRoot $packName)) {
         $packRoot = Join-Path $packRoot $packName
+    }
+    if ((Split-Path $packRoot -Leaf) -eq ".opencode") {
+        $packRoot = Split-Path $packRoot -Parent
     }
     # Also check packs/optional/<packName> layout
     $candidatePath = Join-Path (Join-Path (Join-Path $packRoot "packs") "optional") $packName
@@ -1951,8 +1995,9 @@ function Get-PackFullName([string]$name) {
     if (-not (Test-CorePackName $name) -and -not $script:MarketMeta.ContainsKey($name)) {
         $marketPack = Query-MarketIndex $name
         if ($marketPack) {
-            $script:MarketMeta[$name] = $marketPack
-            return $name
+            $resolvedName = if ($marketPack.PSObject.Properties['name']) { "$($marketPack.name)" } else { $name }
+            $script:MarketMeta[$resolvedName] = $marketPack
+            return $resolvedName
         }
     } elseif ($script:MarketMeta.ContainsKey($name)) {
         return $name
@@ -1970,9 +2015,8 @@ function Get-AllPacks {
     } else { @() }
     # When online, also merge optional packs from market that are not already present locally
     if (-not $Offline) {
-        $marketUrl = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
-        try {
-            $data = Invoke-RestMethod -Uri $marketUrl -TimeoutSec 10 -ErrorAction Stop
+        $data = Get-MarketIndexData
+        if ($data) {
             foreach ($pack in $data.packs) {
                 $pName = $pack.name
                 if ($pName -and $localPacks -notcontains $pName) {
@@ -1980,8 +2024,6 @@ function Get-AllPacks {
                     $localPacks += $pName
                 }
             }
-        } catch {
-            # Market unavailable — use only local packs
         }
     }
     return $localPacks
