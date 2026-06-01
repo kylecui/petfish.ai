@@ -49,7 +49,7 @@ if ($Uninstall) {
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Write-Host "[胖鱼 PEtFiSh] uv not found. Installing uv (required for Python-based skills)..." -ForegroundColor Yellow
     try {
-        $uvInstallScript = (Invoke-RestMethod https://astral.sh/uv/install.ps1)
+        $uvInstallScript = (Invoke-RestMethod https://astral.sh/uv/install.ps1 -TimeoutSec 30)
         $uvBlock = [scriptblock]::Create($uvInstallScript)
         & $uvBlock 2>$null
         # Refresh PATH to pick up newly installed uv
@@ -1312,7 +1312,7 @@ function Download-CommunityPack([string]$spec) {
     if ($token) { $headers["Authorization"] = "token $token" }
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
-            Invoke-WebRequest -Uri $tarballUrl -OutFile $archivePath -Headers $headers -UseBasicParsing -ErrorAction Stop
+            Invoke-WebRequest -Uri $tarballUrl -OutFile $archivePath -Headers $headers -UseBasicParsing -ErrorAction Stop -TimeoutSec 60
             $dlOk = $true
             break
         } catch {
@@ -2076,7 +2076,7 @@ try {
         param([hashtable]$Params, [int]$MaxAttempts = 3, [string]$Description = "file")
         for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
             try {
-                Invoke-WebRequest @Params -UseBasicParsing -ErrorAction Stop
+                Invoke-WebRequest @Params -UseBasicParsing -ErrorAction Stop -TimeoutSec 20
                 return $true
             } catch {
                 if ($attempt -lt $MaxAttempts) {
