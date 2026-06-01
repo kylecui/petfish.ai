@@ -2007,6 +2007,9 @@ function Get-PackFullName([string]$name) {
 }
 
 function Get-AllPacks {
+    if (-not (Test-Path $PacksDir)) {
+        Write-Warning "Packs directory not found: $PacksDir (running from outside repo root?)"
+    }
     $corePath     = Join-Path $PacksDir "core"
     $optionalPath = Join-Path $PacksDir "optional"
     $paths = @($corePath, $optionalPath) | Where-Object { Test-Path $_ }
