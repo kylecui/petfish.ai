@@ -143,15 +143,15 @@ mine → author → lint → audit → gate → publish → optimize → eval
 ## Profile → Auto-Install Mapping
 | Profile | Auto-installed Packs |
 |---|---|
-| `minimal` | `petfish` |
-| `course` | `course`, `petfish` |
-| `code` | `deploy`, `petfish`, `testdocs` |
-| `ops` | `deploy`, `petfish` |
-| `security` | `deploy`, `petfish`, `testdocs`, `trust` |
-| `research` | `petfish`, `research` |
-| `writing` | `petfish`, `ppt` |
-| `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect` |
+| `minimal` | `context`, `petfish` |
+| `course` | `context`, `course`, `petfish` |
+| `code` | `context`, `deploy`, `petfish`, `testdocs` |
+| `ops` | `context`, `deploy`, `petfish` |
+| `security` | `context`, `deploy`, `petfish`, `testdocs`, `trust` |
+| `research` | `context`, `petfish`, `research` |
+| `writing` | `context`, `petfish`, `ppt` |
+| `skills-package` | `context`, `petfish`, `testdocs` |
+| `comprehensive` | `context`, `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `research`, `reflect` |
 
 ---
 

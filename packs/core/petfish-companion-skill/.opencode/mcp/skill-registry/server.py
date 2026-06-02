@@ -358,14 +358,14 @@ class SkillRegistryServer:
 
         # Built-in fallback from README Profile → Auto-Install Mapping table
         return {
-            "minimal": ["petfish"],
-            "course": ["course", "petfish"],
-            "code": ["deploy", "petfish", "testdocs"],
-            "ops": ["deploy", "petfish"],
-            "security": ["deploy", "petfish", "testdocs", "trust"],
-            "research": ["petfish", "research"],
-            "writing": ["petfish", "ppt"],
-            "skills-package": ["petfish", "testdocs"],
+            "minimal": ["context", "petfish"],
+            "course": ["context", "course", "petfish"],
+            "code": ["context", "deploy", "petfish", "testdocs"],
+            "ops": ["context", "deploy", "petfish"],
+            "security": ["context", "deploy", "petfish", "testdocs", "trust"],
+            "research": ["context", "petfish", "research"],
+            "writing": ["context", "petfish", "ppt"],
+            "skills-package": ["context", "petfish", "testdocs"],
             "comprehensive": [
                 "course",
                 "deploy",
