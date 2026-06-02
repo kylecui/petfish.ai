@@ -126,7 +126,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `petfish` | Writing style and rewrite guidance | Global default |
 | `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
 
-## 9 Optional Packs (via petfish-market)
+## 10 Optional Packs (via petfish-market)
 > Optional packs are distributed through [petfish-market](https://github.com/kylecui/petfish-market). Install commands resolve automatically — no user-visible difference.
 | Alias | Purpose | Scale |
 |---|---|---|
@@ -139,19 +139,20 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `trust` | Skill trust governance and policy checks | Project |
 | `research` | Research workbench — evidence-backed scientific, product, and planning research | Project |
 | `reflect` | Structured reflection — capture what went wrong, why, and corrective actions | Project |
+| `doc-reader` | Document-to-Markdown conversion — PDF/DOCX/XLSX/HTML/PPTX reading via markitdown | Project |
 
 ## Profile → Auto-Install Mapping
 | Profile | Auto-installed Packs |
 |---|---|
 | `minimal` | `context`, `petfish` |
-| `course` | `context`, `course`, `petfish` |
+| `course` | `context`, `course`, `doc-reader`, `petfish` |
 | `code` | `context`, `deploy`, `petfish`, `testdocs` |
 | `ops` | `context`, `deploy`, `petfish` |
 | `security` | `context`, `deploy`, `petfish`, `testdocs`, `trust` |
-| `research` | `context`, `petfish`, `research` |
+| `research` | `context`, `doc-reader`, `petfish`, `research` |
 | `writing` | `context`, `petfish`, `ppt` |
 | `skills-package` | `context`, `petfish`, `testdocs` |
-| `comprehensive` | `context`, `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `research`, `reflect` |
+| `comprehensive` | `context`, `course`, `deploy`, `doc-reader`, `petfish`, `ppt`, `testdocs`, `trust`, `research`, `reflect` |
 
 ---
 
@@ -312,7 +313,7 @@ petfish.ai/
 │   │           ├── skill-description-optimizer/  # description tuning
 │   │           ├── skill-trigger-evaluator/      # trigger testing
 │   │           └── skill-usage-tracker/          # usage analytics
-│   └── optional/                                 # 9 optional packs, distributed via petfish-market
+│   └── optional/                                 # 10 optional packs, distributed via petfish-market
 │       ├── opencode-course-skills-pack/          # course
 │       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
 │       ├── repo-deploy-ops-skill-pack/           # deploy
@@ -321,7 +322,8 @@ petfish.ai/
 │       ├── fish-trail/                           # context
 │       ├── trustskills-governance-pack/          # trust
 │       ├── research-skill-pack/                  # research
-│       └── fish-reflection-pack/                 # reflect
+│       ├── fish-reflection-pack/                 # reflect
+│       └── doc-reader-skill/                     # doc-reader
 ├── platforms.json                                # platform registry
 ├── install.ps1                                   # local PowerShell installer
 ├── install.sh                                    # local shell installer

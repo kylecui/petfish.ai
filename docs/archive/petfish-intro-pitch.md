@@ -30,7 +30,7 @@
 
 ---
 
-## 13个Skill Pack（4个核心 + 9个可选）
+## 14个Skill Pack（4个核心 + 10个可选）
 
 > 核心pack（init、companion、petfish、toolchain）随petfish.ai分发。可选pack通过petfish-market获取。
 
@@ -47,6 +47,8 @@
 | `calibrate` | 反迎合决策校准 | 1 |
 | `context` | 话题治理与上下文隔离 | 1 |
 | `research` | 研究工作台——七大领域，证据驱动 | 50 |
+| `reflect` | 结构化反思——捕获失败原因与纠正措施 | 1 |
+| `doc-reader` | 文档转Markdown——PDF/DOCX/XLSX/HTML/PPTX阅读 | 1 |
 
 安装时传入`--detect`，胖鱼自动识别你用的是哪个AI平台，把skill放到正确的目录。
 

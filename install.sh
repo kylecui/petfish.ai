@@ -957,6 +957,7 @@ declare -A ALIASES=(
     [fish-brain]="petfish-companion-skill"
     [toolchain]="petfish-toolchain-skill"
     [series-style]="series-style-governor-pack"
+    [doc-reader]="doc-reader-skill"
 )
 
 # --- Core pack classification ---

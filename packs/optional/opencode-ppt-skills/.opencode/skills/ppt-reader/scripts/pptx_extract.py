@@ -273,7 +273,7 @@ def make_markdown(data: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def extract(path: Path) -> dict[str, Any]:
+def extract(path: Path, use_markitdown: bool = False) -> dict[str, Any]:
     if not path.exists():
         raise FileNotFoundError(f"Input file not found: {path}")
     if path.suffix.lower() not in {".pptx", ".pptm"}:
@@ -287,7 +287,7 @@ def extract(path: Path) -> dict[str, Any]:
         slides = [extract_slide(zf, slide_part, i + 1) for i, slide_part in enumerate(order)]
         if len({s["title"] for s in slides if s["title"]}) < len([s for s in slides if s["title"]]):
             issues.append("duplicate-title-candidates")
-        return {
+        data = {
             "file": str(path),
             "slide_count": len(slides),
             "metadata": read_metadata(zf),
@@ -296,6 +296,18 @@ def extract(path: Path) -> dict[str, Any]:
             "issues": issues,
         }
 
+    if use_markitdown:
+        try:
+            from markitdown import MarkItDown
+            md = MarkItDown()
+            result = md.convert(str(path))
+            data["markitdown_text"] = result.text_content
+        except ImportError:
+            # markitdown not installed — skip silently, existing functionality unaffected
+            pass
+
+    return data
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Extract structured content from a PPTX file.")
@@ -303,10 +315,11 @@ def main() -> int:
     parser.add_argument("--out", type=Path, help="Write JSON inventory to this path")
     parser.add_argument("--markdown", type=Path, help="Write Markdown summary to this path")
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON to stdout")
+    parser.add_argument("--markitdown", action="store_true", help="Use markitdown for supplementary text extraction (tables, charts)")
     args = parser.parse_args()
 
     try:
-        data = extract(args.input)
+        data = extract(args.input, use_markitdown=args.markitdown)
     except Exception as exc:  # noqa: BLE001
         print(f"Error: {exc}", file=sys.stderr)
         return 2

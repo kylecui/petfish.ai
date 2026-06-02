@@ -370,6 +370,7 @@ $Aliases = @{
     "toolchain"      = "petfish-toolchain-skill"
     "series-style"   = "series-style-governor-pack"
     "fat-slim"       = "petfish-pack-fat-slim-writer"
+    "doc-reader"     = "doc-reader-skill"
 }
 
 # --- Platform path configuration ---

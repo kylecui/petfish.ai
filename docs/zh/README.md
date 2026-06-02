@@ -108,7 +108,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `petfish` | 工程写作风格 | 1 skill |
 | `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
 
-## 9个可选包（通过 petfish-market 获取）
+## 10个可选包（通过 petfish-market 获取）
 > 可选包通过 [petfish-market](https://github.com/kylecui/petfish-market) 分发。安装命令自动解析，用户无感知。
 
 | 别名 | 定位 | 规模 |
@@ -122,6 +122,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `ppt` | PPT设计 | 2 skills |
 | `research` | 研究工作台——科研、产品、规划等8个领域 | 54 skills |
 | `reflect` | 结构化反思——捕获失败原因与纠正措施 | 1 skill |
+| `doc-reader` | 文档转Markdown——PDF/DOCX/XLSX/HTML/PPTX阅读 | 1 skill |
 
 ---
 

@@ -754,8 +754,9 @@ declare -A ALIASES=(
     [fish-brain]="petfish-companion-skill"
     [toolchain]="petfish-toolchain-skill"
     [series-style]="series-style-governor-pack"
+    [doc-reader]="doc-reader-skill"
 )
-ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "petfish-toolchain-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack" "series-style-governor-pack")
+ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "petfish-toolchain-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack" "series-style-governor-pack" "doc-reader-skill")
 
 # --- Core pack classification ---
 # Core packs are always sourced from the petfish.ai tarball.

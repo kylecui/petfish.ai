@@ -289,13 +289,13 @@ def query_market(alias: str) -> dict | None:
 
 PROFILES = {
     "minimal": ["petfish"],
-    "course": ["course", "petfish"],
+    "course": ["course", "petfish", "doc-reader"],
     "code": ["deploy", "petfish", "testdocs"],
     "ops": ["deploy", "petfish"],
     "security": ["deploy", "petfish", "testdocs", "trust"],
     "writing": ["petfish", "ppt"],
     "skills-package": ["petfish", "testdocs"],
-    "research": ["petfish", "research"],
+    "research": ["petfish", "research", "doc-reader"],
     "comprehensive": [
         "course",
         "deploy",
@@ -306,6 +306,7 @@ PROFILES = {
         "context",
         "research",
         "reflect",
+        "doc-reader",
     ],
 }
 

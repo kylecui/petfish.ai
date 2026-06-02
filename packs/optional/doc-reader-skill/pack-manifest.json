@@ -1,0 +1,16 @@
+{
+  "name": "doc-reader-skill",
+  "version": "1.0.0",
+  "legacy_names": [],
+  "description": "统一文档读取 — PDF/DOCX/XLSX/HTML/PPTX/EPUB转Markdown，基于markitdown",
+  "compatibility": "opencode",
+  "skill_count": 1,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": ["doc-reader"],
+  "commands": [],
+  "agents": [],
+  "requires": ["uv"],
+  "optional_requires": [],
+  "license": "MIT"
+}

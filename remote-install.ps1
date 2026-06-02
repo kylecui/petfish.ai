@@ -112,6 +112,7 @@ $Aliases = @{
     "toolchain"      = "petfish-toolchain-skill"
     "series-style"   = "series-style-governor-pack"
     "fat-slim"       = "petfish-pack-fat-slim-writer"
+    "doc-reader"     = "doc-reader-skill"
 }
 
 $AllPacks = @(
@@ -128,7 +129,8 @@ $AllPacks = @(
     "fish-trail",
     "research-skill-pack",
     "fish-reflection-pack",
-    "series-style-governor-pack"
+    "series-style-governor-pack",
+    "doc-reader-skill"
 )
 
 $PackDisplayOrder = @(
@@ -145,7 +147,8 @@ $PackDisplayOrder = @(
     @{ Name = "fish-trail"; Alias = "context, fish-trail" },
     @{ Name = "research-skill-pack"; Alias = "research, fish-research" },
     @{ Name = "fish-reflection-pack"; Alias = "reflect, fish-reflect" },
-    @{ Name = "series-style-governor-pack"; Alias = "series-style" }
+    @{ Name = "series-style-governor-pack"; Alias = "series-style" },
+    @{ Name = "doc-reader-skill"; Alias = "doc-reader" }
 )
 
 # --- Core pack classification ---

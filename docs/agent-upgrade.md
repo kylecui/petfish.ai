@@ -71,8 +71,8 @@ Same as install guide:
 - **Market-aware installers** — remote installers (`remote-install.sh`, `remote-install.ps1`) query petfish-market for optional pack downloads; no user-visible command change
 - **`catalog_query.py`** — `--install <alias>` flag with market awareness; auto-resolves optional pack sources
 - **`marketplace_search.py`** — prioritizes petfish-market as primary search source
-- **petfish-market** — `registry/official/` with 9 official pack entries; `index.json` v2
-- **Pack count** — 4 core packs (init, companion, petfish, toolchain) + 9 optional packs via market
+- **petfish-market** — `registry/official/` with 10 official pack entries; `index.json` v2
+- **Pack count** — 4 core packs (init, companion, petfish, toolchain) + 10 optional packs via market
 
 ### Migration steps for v1.4.x:
 
