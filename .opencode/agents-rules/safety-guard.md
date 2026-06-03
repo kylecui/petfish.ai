@@ -73,3 +73,19 @@ chmod 777
 - Agent 输出中**不得包含**API key、token、密码、私钥等敏感信息
 - 发现敏感信息泄露时，立即停止当前操作，提醒用户
 - 不得将凭证写入日志、commit message、PR description 或任何文本文件
+
+---
+
+## 命令输出截断限制
+
+以下管道模式**禁止使用**，因为会丢失原始输出的诊断信息：
+
+```text
+<command> | tail -<n>
+<command> | head -<n>
+<command> | grep <pattern>
+<command> | awk '{print $<n>}'
+<command> | sed -n '<n>p'
+```
+
+**规则**：命令必须直接执行并获取完整输出。需要过滤时，先获取完整输出，再通过Read/Grep工具在输出文件中搜索。详见AGENTS.md"命令输出完整性纪律"。

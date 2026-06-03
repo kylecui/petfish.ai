@@ -309,6 +309,68 @@ Only the full plan+Momus flow applies to tasks with **3+ steps or 3+ files**. Si
 
 ---
 
+## 命令输出完整性纪律（强制）
+
+### 规则
+
+- **禁止**在bash命令中使用管道截断原始输出（`| grep`、`| tail -N`、`| head -N`、`| awk '{print}'`、`| sed -n`等）
+- 所有命令必须直接执行，获取完整stdout+stderr
+- 如果需要搜索输出中的特定内容：
+  1. 先运行命令，让工具获取完整输出
+  2. 输出过大时工具会自动截断并写入临时文件，用Read/Grep工具在该文件中搜索
+  3. 不在命令层面通过管道提前过滤
+
+### 原因
+
+管道截断在三个层面破坏agent的诊断能力：
+
+1. **信息丢失**：构建错误通常在输出开头，`| tail -20`直接丢弃。agent看到"最后20行看起来正常"就报告成功，实际编译失败。
+2. **退出码失效**：管道链`cmd | grep`中，`grep`无匹配返回exit 1，掩盖了`cmd`本身的成功；反过来`cmd`失败但`grep`碰巧匹配，则掩盖了失败。
+3. **循环反复**：agent看不到真实输出，无法定位问题，只能反复运行同一命令（`make`→`make`→`make`），每次都因相同原因失败却看不出来。
+
+这不是token节约问题——工具已内置输出大小限制和文件写入机制。管道截断绕过了这些保护，在agent和真实输出之间插入了不可靠的滤镜。
+
+此规则源自Claude Code Issue #39945的教训：`node generate-files.js 2>&1 | tail -3`，脚本崩溃但最后3行正常，agent误判为成功。
+
+### 允许的管道
+
+以下管道模式不违反本规则，因为它们不截断原始输出：
+
+- `cmd 2>&1` — 合并stdout/stderr（不截断）
+- `cmd > file 2>&1` — 重定向到文件（完整保存后再分析）
+- `cmd1 && cmd2` — 链式执行（各自独立输出）
+
+### 禁止的管道模式
+
+| 模式 | 替代方案 |
+|------|---------|
+| `make \| tail -20` | `make`（完整输出），再用Read/Grep搜索 |
+| `npm test \| grep PASS` | `npm test`（完整输出），再用Grep搜索 |
+| `docker logs \| grep error` | `docker logs`（完整输出），再用Grep搜索 |
+| `kubectl get \| awk '{print $1}'` | `kubectl get`（完整输出），再提取特定列 |
+
+### 示例
+
+**错误 — 管道截断导致误判成功：**
+
+```bash
+# Agent运行: make | tail -5
+# 输出: 5行看似正常的编译信息
+# Agent结论: "编译成功"
+# 实际: 第3行已有error，但被tail丢弃
+```
+
+**正确 — 完整输出后分析：**
+
+```bash
+# Agent运行: make
+# 工具获取完整输出（可能截断并写入临时文件）
+# Agent用Grep搜索"error:"或"FAIL"
+# Agent定位到第3行error并修复
+```
+
+---
+
 ## Todo创建纪律（强制）
 
 Todo系统追踪的是agent可自主完成的工作，不是用户决策或外部事件。
