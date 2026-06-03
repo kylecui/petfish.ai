@@ -2587,8 +2587,17 @@ foreach ($packName in $packsToInstall) {
 
 $packItems = ($Pack -split ',') | ForEach-Object { $_.Trim() }
 if (($packItems -contains "init" -or $packItems -contains "project-initializer-skill") -and -not $GlobalExplicitlyPassed -and -not $TargetExplicitlyPassed) {
-    $Global = $true
-    Write-Host "  [info] init pack defaults to global install. Use -Target to install locally." -ForegroundColor DarkCyan
+    # Split: init goes global, rest stays local (fix #215)
+    $script:InitPacks = @()
+    $script:OtherPacks = @()
+    foreach ($pn in $packsToInstall) {
+        if ($pn -eq "project-initializer-skill") {
+            $script:InitPacks += $pn
+        } else {
+            $script:OtherPacks += $pn
+        }
+    }
+    $script:SkipInstallLoop = $true
 }
 
 # --- Resolve target ---
@@ -2616,11 +2625,26 @@ if (-not $Global) {
 # --- Install for selected platform(s) ---
 $platforms = Get-PlatformsForSelection $Platform
 
-foreach ($p in $platforms) {
-    if ($Global) {
-        Install-GlobalForPlatform $p $packsToInstall -ForceInstall:$Force
-    } else {
-        Install-ForPlatform $p $packsToInstall $Target -ForceInstall:$Force
+if ($script:SkipInstallLoop) {
+    # Split install: init globally, rest locally (fix #215)
+    if ($script:InitPacks.Count -gt 0) {
+        Write-Host "  [info] init pack defaults to global install. Use -Target to install locally." -ForegroundColor DarkCyan
+        foreach ($sp in $platforms) {
+            Install-GlobalForPlatform $sp $script:InitPacks -ForceInstall:$Force
+        }
+    }
+    if ($script:OtherPacks.Count -gt 0) {
+        foreach ($sp in $platforms) {
+            Install-ForPlatform $sp $script:OtherPacks $Target -ForceInstall:$Force
+        }
+    }
+} else {
+    foreach ($p in $platforms) {
+        if ($Global) {
+            Install-GlobalForPlatform $p $packsToInstall -ForceInstall:$Force
+        } else {
+            Install-ForPlatform $p $packsToInstall $Target -ForceInstall:$Force
+        }
     }
 }
 

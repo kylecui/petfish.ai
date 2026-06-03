@@ -1002,6 +1002,7 @@ DETECT=false
 FORCE=false
 LIST=false
 GLOBAL=false
+SKIP_INSTALL_LOOP=false
 UNINSTALL=false
 COMMUNITY_STAGING_DIR=""
 MARKET_STAGING_DIR=""
@@ -3140,8 +3141,17 @@ if ! $OFFLINE; then
 fi
 
 if $INSTALLS_INIT && ! $GLOBAL && ! $TARGET_EXPLICIT && [[ "$TARGET" == "." ]]; then
-    GLOBAL=true
-    echo "  [info] init pack defaults to global install. Use --target to install locally."
+    # Split: init goes global, rest stays local (fix #215)
+    INIT_PACKS=()
+    OTHER_PACKS=()
+    for _sp in "${PACKS[@]}"; do
+        if [[ "$_sp" == "project-initializer-skill" ]]; then
+            INIT_PACKS+=("$_sp")
+        else
+            OTHER_PACKS+=("$_sp")
+        fi
+    done
+    SKIP_INSTALL_LOOP=true
 fi
 
 # --- Resolve target ---
@@ -3171,16 +3181,29 @@ declare -a PLATFORMS
 mapfile -t PLATFORMS < <(get_platforms_for_selection "$PLATFORM")
 
 # --- Install for selected platform(s) ---
-if $GLOBAL; then
+if [[ "${SKIP_INSTALL_LOOP:-false}" == "true" ]]; then
+    # Split install: init globally, rest locally (fix #215)
+    if (( ${#INIT_PACKS[@]} > 0 )); then
+        echo "  [info] init pack defaults to global install. Use --target to install locally."
+        for platform_name in "${PLATFORMS[@]}"; do
+            install_global_for_platform "$platform_name" "${INIT_PACKS[@]}"
+        done
+    fi
+    if (( ${#OTHER_PACKS[@]} > 0 )); then
+        for platform_name in "${PLATFORMS[@]}"; do
+            install_for_platform "$platform_name" "${OTHER_PACKS[@]}"
+        done
+    fi
+elif $GLOBAL; then
     for platform_name in "${PLATFORMS[@]}"; do
         install_global_for_platform "$platform_name" "${PACKS[@]}"
     done
     exit 0
+else
+    for platform_name in "${PLATFORMS[@]}"; do
+        install_for_platform "$platform_name" "${PACKS[@]}"
+    done
 fi
-
-for platform_name in "${PLATFORMS[@]}"; do
-    install_for_platform "$platform_name" "${PACKS[@]}"
-done
 
 # --- Generate instruction files for secondary detected platforms ---
 if (( ${#DETECTED_PLATFORMS[@]} > 0 )) && ! $GLOBAL; then
