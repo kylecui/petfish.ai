@@ -294,6 +294,34 @@ def find_empty_contrast(text: str) -> list[str]:
     return issues
 
 
+def find_heading_issues(text: str) -> list[str]:
+    """Detect heading format issues in Chinese Markdown."""
+    issues: list[str] = []
+
+    for i, line in enumerate(text.split("\n"), 1):
+        stripped = line.strip()
+        if not stripped.startswith("#"):
+            continue
+        # Only check H2-H4
+        level = len(stripped) - len(stripped.lstrip("#"))
+        if level < 2 or level > 4:
+            continue
+
+        # Issue: section number + Chinese without space
+        if re.search(r'\d+(?:\.\d+)+[\u4e00-\u9fff(（]', stripped):
+            issues.append(f"L{i}: missing space after section number in heading: {stripped[:80]}")
+
+        # Issue: Chinese ordinal + text without space
+        if re.search(r'第[一二三四五六七八九十百零]+(?:节|部分|章|篇|模块|单元)[\u4e00-\u9fffA-Za-z0-9(（]', stripped):
+            issues.append(f"L{i}: missing space after Chinese ordinal in heading: {stripped[:80]}")
+
+        # Issue: fullwidth space in heading
+        if '\u3000' in stripped:
+            issues.append(f"L{i}: fullwidth space (U+3000) in heading: {stripped[:80]}")
+
+    return issues
+
+
 def check(text: str) -> dict:
     global _LAST_EXTRA_ISSUES
 
@@ -306,6 +334,7 @@ def check(text: str) -> dict:
     dash_abuse = find_dash_abuse(text)
     triplet_patterns = find_triplet_patterns(text)
     empty_contrast = find_empty_contrast(text)
+    heading_issues = find_heading_issues(text)
 
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip()]
     has_closure = False
@@ -336,6 +365,7 @@ def check(text: str) -> dict:
     score -= min(len(dash_abuse) * 3, 15)
     score -= min(len(triplet_patterns) * 4, 16)
     score -= min(len(empty_contrast) * 5, 15)
+    score -= min(len(heading_issues) * 4, 20)
     if connector_count == 0 and len(sentences) >= 3:
         score -= 10
     if not has_closure and len(paragraphs) >= 2:
@@ -347,6 +377,7 @@ def check(text: str) -> dict:
         "dash_abuse": dash_abuse,
         "triplet_patterns": triplet_patterns,
         "empty_contrast": empty_contrast,
+        "heading_issues": heading_issues,
     }
 
     return {
@@ -366,6 +397,7 @@ def check(text: str) -> dict:
             "dash_abuse": dash_abuse,
             "triplet_patterns": triplet_patterns,
             "empty_contrast": empty_contrast,
+            "heading_issues": heading_issues,
         },
         "recommendations": build_recommendations(
             ai_terms,
@@ -386,6 +418,7 @@ def build_recommendations(
     dash_abuse = _LAST_EXTRA_ISSUES.get("dash_abuse", [])
     triplet_patterns = _LAST_EXTRA_ISSUES.get("triplet_patterns", [])
     empty_contrast = _LAST_EXTRA_ISSUES.get("empty_contrast", [])
+    heading_issues = _LAST_EXTRA_ISSUES.get("heading_issues", [])
 
     if ai_terms:
         recs.append(
@@ -418,6 +451,10 @@ def build_recommendations(
     if empty_contrast:
         recs.append(
             "Review 'not X but Y' structures. Remove or rewrite if the Y-part lacks specific mechanism, object, or outcome."
+        )
+    if heading_issues:
+        recs.append(
+            "Fix heading format: add space after section numbers and Chinese ordinals, replace fullwidth spaces with halfwidth."
         )
     if connector_count == 0:
         recs.append(

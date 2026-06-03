@@ -5,6 +5,11 @@
 # ///
 """Normalize Petfish-style Chinese-English technical writing.
 
+Handles:
+- Heading spacing normalization (section numbers, Chinese ordinals, fullwidth spaces)
+- Punctuation cleanup
+- Chinese-English compact spacing
+
 Usage:
   uv run scripts/normalize_text.py --text "接入层支持 Webhook 挂载。"
   uv run scripts/normalize_text.py --file input.md --output output.md
@@ -123,9 +128,46 @@ def normalize_punctuation(text: str) -> str:
     return text
 
 
+def normalize_headings(text: str) -> str:
+    """Fix heading spacing issues in Markdown files.
+
+    Handles:
+    1. Number+Chinese without space: "### 1.1威胁数据" → "### 1.1 威胁数据"
+    2. Chinese ordinal+text without space: "## 第一部分AI基础" → "## 第一部分 AI基础"
+    3. Fullwidth space U+3000 in headings → halfwidth space
+    """
+
+    # Fix: section number (1.1, 1.1.1, etc.) + Chinese/paren without space
+    text = re.sub(
+        rf'^(#{{2,4}}\s+\d+(?:\.\d+)+)([\u4e00-\u9fff(（])',
+        r'\1 \2',
+        text,
+        flags=re.MULTILINE,
+    )
+
+    # Fix: Chinese ordinal (第X节/部分/章/篇/模块/单元) + text without space
+    text = re.sub(
+        rf'^(#{{2,4}}\s+(?:第[一二三四五六七八九十百零]+(?:节|部分|章|篇|模块|单元)))([\u4e00-\u9fffA-Za-z0-9(（])',
+        r'\1 \2',
+        text,
+        flags=re.MULTILINE,
+    )
+
+    # Fix: fullwidth space U+3000 → halfwidth in headings
+    def replace_fullwidth(match: re.Match) -> str:
+        return match.group(0).replace('\u3000', ' ')
+    text = re.sub(r'^#{1,6}\s+.*', replace_fullwidth, text, flags=re.MULTILINE)
+
+    return text
+
+
 def normalize(text: str) -> str:
     text = normalize_punctuation(text)
     text = normalize_zh_en_spacing(text)
+    # Headings last: section number + Chinese spacing is a specific override
+    # that must come after the general zh-en spacing rule (which would
+    # otherwise collapse the intentional space after section numbers).
+    text = normalize_headings(text)
     return text
 
 
