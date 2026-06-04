@@ -59,6 +59,18 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# --- UTF-8 output encoding ---
+# Ensure console output uses UTF-8. Non-UTF-8 code pages (e.g., 437, 1252) cause
+# Chinese text from market index and pack manifests to render as garbled Mojibake.
+# This is a no-op when the console already uses UTF-8 (code page 65001).
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+} catch {
+    # Silently continue if encoding setup fails (e.g., non-interactive host)
+}
+
 # --- uv availability check & auto-install ---
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Write-Host "[胖鱼 PEtFiSh] uv not found. Installing uv (required for Python-based skills)..." -ForegroundColor Yellow

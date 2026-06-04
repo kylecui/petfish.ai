@@ -12,6 +12,15 @@
 #
 set -euo pipefail
 
+# --- UTF-8 locale enforcement ---
+# Ensure the script and child processes (python3, curl) use UTF-8.
+# Non-UTF-8 locales (e.g., LANG=C, Windows CMD with code page 437) cause
+# Chinese text from market index and pack manifests to render as garbled Mojibake.
+# This is a no-op when the locale is already UTF-8.
+export LANG="${LANG:-en_US.UTF-8}"
+export LC_ALL="${LC_ALL:-en_US.UTF-8}"
+export PYTHONIOENCODING="${PYTHONIOENCODING:-utf-8}"
+
 # --- uv availability check & auto-install ---
 if ! command -v uv &>/dev/null; then
     echo "[胖鱼 PEtFiSh] uv not found. Installing uv (required for Python-based skills)..."

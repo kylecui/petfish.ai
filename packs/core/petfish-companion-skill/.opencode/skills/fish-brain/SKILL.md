@@ -168,7 +168,16 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
 - 网络不可用时静默跳过，不阻塞正常工作
 - 用户拒绝后，本次会话不再提示升级
 
-### 2.7 节制规则
+### 2.7 Status Display Rules
+
+When displaying pack status (installed, available, version comparison), **always use English labels**. Do not construct Chinese status labels like "未在远程仓库发布" or "本地独占" — these get garbled in non-UTF-8 terminals (Mojibake). Use:
+- **"local only"** instead of "本地独占"
+- **"not in remote catalog"** instead of "未在远程仓库发布"
+- **"available update"** instead of "可更新"
+
+This applies to all agent-constructed status text, not just the scripts (which already use English + emoji).
+
+### 2.8 节制规则
 
 - 每个领域/关键词每session最多推荐1次
 - 不确定是否为缺口时，倾向于不触发（宁静默不打扰）

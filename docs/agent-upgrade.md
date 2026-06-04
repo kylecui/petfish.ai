@@ -336,6 +336,7 @@ Already has fish-trail naming. Run Step 3 with `--force` to pick up the latest s
 - **MCP server won't start**: Check that `uv` is installed and the path in `opencode.json` points to `.opencode/skills/fish-trail/mcp/context-state/server.py` (not the old context-router path).
 - **Topic data missing after upgrade**: The auto-migration only runs once. If `.ai-context/` was deleted before the server migrated it, data is lost. Check `.petfish/fish-trail/` for your topics.
 - **AGENTS.md has duplicate pack markers**: If both old (`context-router-skill`) and new (`fish-trail`) markers exist, remove the old ones manually.
+- **Chinese text appears garbled (Mojibake)**: Your terminal is not using UTF-8 encoding. Fix: `export LANG=en_US.UTF-8` (Linux/macOS) or `chcp 65001` (Windows). The installers set UTF-8 automatically, but AI agent output may still be garbled if the terminal itself is misconfigured.
 
 ---
 

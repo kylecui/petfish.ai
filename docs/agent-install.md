@@ -255,6 +255,17 @@ curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
 
 ---
 
+## UTF-8 Terminal Requirement
+
+PEtFiSh pack descriptions and status messages may contain Chinese text. If these appear garbled (e.g., `æªå¨è¿ç¨` instead of Chinese characters), your terminal is using a non-UTF-8 encoding.
+
+**Fix:**
+- **Linux/macOS**: Ensure `LANG` is set to a UTF-8 locale: `export LANG=en_US.UTF-8`
+- **Windows PowerShell**: Set the console code page to UTF-8: `chcp 65001`
+- The installers automatically set UTF-8 locale, but the AI agent's output may still be garbled if the terminal itself is not configured for UTF-8.
+
+---
+
 ## About PEtFiSh
 
 **GitHub**: https://github.com/kylecui/petfish.ai
