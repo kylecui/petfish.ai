@@ -21,7 +21,9 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -86,6 +88,62 @@ CORE_PACKS = {
 }
 
 CORE_ALIASES = {"init", "companion", "toolchain", "fish-trail"}
+
+# ---------------------------------------------------------------------------
+# Phase 3: Distribution constants
+# ---------------------------------------------------------------------------
+MARKET_INDEX_URL = (
+    "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+)
+MIRROR_PREFIXES = [
+    "",
+    "https://ghfast.top/https://",
+    "https://mirror.ghproxy.com/https://",
+]
+REPO_TARBALL_URL = "https://github.com/{owner}/{repo}/tarball/{ref}"
+REPO_ARCHIVE_URL = (
+    "https://github.com/{owner}/{repo}/archive/refs/heads/{ref}.tar.gz"
+)
+
+# Module-level staging state for market/community downloads
+_market_meta: dict[str, dict] = {}  # pack_name → market metadata dict
+_market_pack_dirs: dict[str, Path] = {}  # pack_name → extracted staging Path
+_community_staging_dir: tempfile.TemporaryDirectory | None = None
+_market_staging_dir: tempfile.TemporaryDirectory | None = None
+
+
+def _get_community_staging() -> Path:
+    """Return (creating if needed) the community staging directory."""
+    global _community_staging_dir
+    if _community_staging_dir is None:
+        _community_staging_dir = tempfile.TemporaryDirectory(prefix="petfish-community-")
+    return Path(_community_staging_dir.name)
+
+
+def _get_market_staging() -> Path:
+    """Return (creating if needed) the market staging directory."""
+    global _market_staging_dir
+    if _market_staging_dir is None:
+        _market_staging_dir = tempfile.TemporaryDirectory(prefix="petfish-market-")
+    return Path(_market_staging_dir.name)
+
+
+def _cleanup_staging():
+    """Clean up all staging temp directories."""
+    global _community_staging_dir, _market_staging_dir
+    if _community_staging_dir is not None:
+        try:
+            _community_staging_dir.cleanup()
+        except Exception:
+            pass
+        _community_staging_dir = None
+    if _market_staging_dir is not None:
+        try:
+            _market_staging_dir.cleanup()
+        except Exception:
+            pass
+        _market_staging_dir = None
+
 
 # ---------------------------------------------------------------------------
 # Hardcoded platforms.json fallback
@@ -455,17 +513,428 @@ def find_all_packs() -> list[str]:
     return packs
 
 
+# ---------------------------------------------------------------------------
+# Phase 3: Network helpers
+# ---------------------------------------------------------------------------
+def fetch_url_with_mirrors(
+    url: str, timeout: int = 30, github_token: str | None = None
+) -> bytes | None:
+    """Try URL directly, then via mirrors. Return response body bytes."""
+    headers: dict[str, str] = {}
+    if github_token:
+        headers["Authorization"] = f"token {github_token}"
+
+    for prefix in MIRROR_PREFIXES:
+        full_url = f"{prefix}{url}"
+        try:
+            req = Request(full_url, headers=headers)
+            with urlopen(req, timeout=timeout) as resp:
+                return resp.read()
+        except (URLError, HTTPError, OSError):
+            continue
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Market index query
+# ---------------------------------------------------------------------------
+def query_market_index(
+    pack_alias: str, github_token: str | None = None
+) -> dict | None:
+    """Query petfish-market index.json for optional pack metadata.
+    Returns matching pack dict or None."""
+    raw = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10, github_token=github_token)
+    if raw is None:
+        return None
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return None
+
+    for pack in data.get("packs", []):
+        aliases = pack.get("alias", []) or pack.get("aliases", []) or []
+        if isinstance(aliases, str):
+            aliases = [aliases]
+        if pack_alias in aliases or pack.get("name") == pack_alias:
+            return pack
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Tarball download with retry
+# ---------------------------------------------------------------------------
+def download_tarball(
+    url: str,
+    dest_dir: Path,
+    github_token: str | None = None,
+    max_retries: int = 3,
+) -> bool:
+    """Download and extract a GitHub tarball. Returns True on success."""
+    import io
+
+    headers: dict[str, str] = {}
+    if github_token:
+        headers["Authorization"] = f"token {github_token}"
+
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    archive_path = dest_dir / "archive.tar.gz"
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            req = Request(url, headers=headers)
+            with urlopen(req, timeout=30) as resp:
+                if resp.status == 200:
+                    archive_path.write_bytes(resp.read())
+                    break
+                else:
+                    log_warn(f"HTTP {resp.status} downloading tarball")
+                    if resp.status in (429, 403) and attempt < max_retries:
+                        wait = 2 ** attempt
+                        log(f"Rate limited, retrying in {wait}s... (attempt {attempt}/{max_retries})")
+                        time.sleep(wait)
+                        archive_path.unlink(missing_ok=True)
+                        continue
+                    return False
+        except HTTPError as e:
+            if e.code in (429, 403) and attempt < max_retries:
+                wait = 2 ** attempt
+                log(f"Rate limited (HTTP {e.code}), retrying in {wait}s... (attempt {attempt}/{max_retries})")
+                time.sleep(wait)
+                archive_path.unlink(missing_ok=True)
+                continue
+            log_warn(f"HTTP error downloading tarball: {e}")
+            return False
+        except (URLError, OSError) as e:
+            log_warn(f"Network error downloading tarball: {e}")
+            return False
+    else:
+        return False
+
+    # Extract tarball
+    if not archive_path.is_file():
+        return False
+    try:
+        with tarfile.open(archive_path, "r:gz") as tf:
+            tf.extractall(dest_dir)
+        archive_path.unlink(missing_ok=True)
+        return True
+    except (tarfile.TarError, OSError) as e:
+        log_warn(f"Failed to extract tarball: {e}")
+        archive_path.unlink(missing_ok=True)
+        return False
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Git clone fallback
+# ---------------------------------------------------------------------------
+def download_git_clone(
+    repo_url: str,
+    dest_dir: Path,
+    ref: str | None = None,
+    github_token: str | None = None,
+    max_retries: int = 3,
+) -> bool:
+    """Fall back to git clone when tarball fails. Returns True on success."""
+    # Embed token in URL if provided
+    clone_url = repo_url
+    if github_token and "github.com" in repo_url:
+        clone_url = repo_url.replace("https://", f"https://{github_token}@")
+
+    cmd = ["git", "clone", "--depth", "1"]
+    if ref:
+        cmd += ["--branch", ref]
+    cmd += [clone_url, str(dest_dir)]
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=120
+            )
+            if result.returncode == 0:
+                return True
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                log(f"git clone failed, retrying in {wait}s... (attempt {attempt}/{max_retries})")
+                time.sleep(wait)
+                if dest_dir.is_dir():
+                    shutil.rmtree(dest_dir, ignore_errors=True)
+        except (subprocess.TimeoutExpired, OSError) as e:
+            if attempt < max_retries:
+                wait = 2 ** attempt
+                log(f"git clone error: {e}, retrying in {wait}s... (attempt {attempt}/{max_retries})")
+                time.sleep(wait)
+                if dest_dir.is_dir():
+                    shutil.rmtree(dest_dir, ignore_errors=True)
+            else:
+                log_warn(f"git clone failed after {max_retries} attempts: {e}")
+                return False
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Community pack download
+# ---------------------------------------------------------------------------
+def _parse_community_spec(spec: str) -> tuple[str, str, str | None]:
+    """Parse 'community/owner/repo[/ref]' → (owner, repo, ref|None)."""
+    parts = spec.split("/")
+    if len(parts) < 3 or parts[0] != "community":
+        return ("", "", None)
+    owner = parts[1]
+    repo = parts[2]
+    ref = parts[3] if len(parts) >= 4 else None
+    return (owner, repo, ref)
+
+
+def download_community_pack(
+    spec: str, github_token: str | None = None
+) -> tuple[str, Path] | None:
+    """Download a community skill from GitHub.
+    Returns (pack_dir_name, staging_path) or None on failure."""
+    owner, repo, ref = _parse_community_spec(spec)
+    if not owner or not repo:
+        log_error(f"Invalid community pack spec '{spec}'. Expected: community/<owner>/<repo>[/<ref>]")
+        return None
+
+    pack_dir_name = f"community--{owner}--{repo}"
+    staging = _get_community_staging()
+    staged_pack = staging / pack_dir_name
+
+    if staged_pack.is_dir():
+        # Already downloaded in this run
+        return (pack_dir_name, staged_pack)
+
+    github_ref = ref or "main"
+    tarball_url = REPO_ARCHIVE_URL.format(owner=owner, repo=repo, ref=github_ref)
+    log(f"[community] Downloading {owner}/{repo} (ref: {github_ref})...")
+
+    dl_tmp = Path(tempfile.mkdtemp(prefix="petfish-dl-"))
+    dl_ok = False
+
+    # Try tarball download first
+    if download_tarball(tarball_url, dl_tmp, github_token=github_token):
+        # Find extracted directory
+        extracted = None
+        for child in dl_tmp.iterdir():
+            if child.is_dir() and child.name != "archive.tar.gz":
+                extracted = child
+                break
+        if extracted:
+            shutil.move(str(extracted), str(staged_pack))
+            dl_ok = True
+        else:
+            log_warn("Failed to extract community pack tarball")
+
+    if not dl_ok:
+        # Fall back to git clone
+        log("[community] Tarball download failed, falling back to git clone...")
+        clone_url = f"https://github.com/{owner}/{repo}.git"
+        if download_git_clone(clone_url, staged_pack, ref=ref, github_token=github_token):
+            dl_ok = True
+        else:
+            log_error(f"Failed to download community pack {owner}/{repo}")
+            shutil.rmtree(dl_tmp, ignore_errors=True)
+            return None
+
+    shutil.rmtree(dl_tmp, ignore_errors=True)
+
+    # Validate: must have .opencode/ directory
+    if not (staged_pack / ".opencode").is_dir():
+        log_error(f"Community pack {owner}/{repo} has no .opencode/ directory. Not a valid skill pack.")
+        shutil.rmtree(staged_pack, ignore_errors=True)
+        return None
+
+    # Check for at least one of skills/, commands/, agents/
+    has_content = (
+        (staged_pack / ".opencode" / "skills").is_dir()
+        or (staged_pack / ".opencode" / "commands").is_dir()
+        or (staged_pack / ".opencode" / "agents").is_dir()
+    )
+    if not has_content:
+        log_error(f"Community pack {owner}/{repo} .opencode/ has no skills/, commands/, or agents/. Not a valid skill pack.")
+        shutil.rmtree(staged_pack, ignore_errors=True)
+        return None
+
+    # Generate a minimal pack-manifest.json if missing
+    manifest_file = staged_pack / "pack-manifest.json"
+    if not manifest_file.is_file():
+        skills = []
+        commands = []
+        agents = []
+        skills_path = staged_pack / ".opencode" / "skills"
+        if skills_path.is_dir():
+            skills = sorted(d.name for d in skills_path.iterdir() if d.is_dir())
+        commands_path = staged_pack / ".opencode" / "commands"
+        if commands_path.is_dir():
+            commands = sorted(f.name for f in commands_path.iterdir() if f.is_file())
+        agents_path = staged_pack / ".opencode" / "agents"
+        if agents_path.is_dir():
+            agents = sorted(d.name for d in agents_path.iterdir() if d.is_dir())
+        auto_manifest = {
+            "name": pack_dir_name,
+            "version": "0.0.0",
+            "description": f"Community pack from {owner}/{repo}",
+            "skills": skills,
+            "commands": commands,
+            "agents": agents,
+            "skill_count": len(skills),
+            "command_count": len(commands),
+            "agent_count": len(agents),
+        }
+        manifest_file.write_text(
+            json.dumps(auto_manifest, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    return (pack_dir_name, staged_pack)
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Market pack download
+# ---------------------------------------------------------------------------
+def download_market_pack(
+    pack_name: str, github_token: str | None = None
+) -> Path | None:
+    """Download an optional pack from a market-sourced external repo.
+    Returns the extracted root dir or None."""
+    meta = _market_meta.get(pack_name)
+    if not meta:
+        return None
+
+    repo = meta.get("repo", "")
+    ref = meta.get("ref", "main")
+    if not repo:
+        return None
+
+    # Dedup: check if same repo+ref already downloaded
+    for existing_name, existing_dir in _market_pack_dirs.items():
+        existing_meta = _market_meta.get(existing_name, {})
+        if existing_meta.get("repo") == repo and existing_meta.get("ref", "main") == ref:
+            _market_pack_dirs[pack_name] = existing_dir
+            return existing_dir
+
+    log(f"[market] Downloading {pack_name} from {repo}@{ref}...")
+    staging = _get_market_staging()
+    tarball_url = REPO_TARBALL_URL.format(
+        owner=repo.split("/")[0], repo=repo.split("/")[-1], ref=ref
+    )
+    dl_tmp = Path(tempfile.mkdtemp(prefix="petfish-market-dl-"))
+
+    dl_ok = False
+    extracted_dir = None
+
+    if download_tarball(tarball_url, dl_tmp, github_token=github_token):
+        # Find extracted directory
+        for child in dl_tmp.iterdir():
+            if child.is_dir() and child.name != "archive.tar.gz":
+                extracted_dir = child
+                break
+        if extracted_dir:
+            dl_ok = True
+
+    if not dl_ok:
+        # Fall back to git clone
+        log("[market] Tarball download failed, falling back to git clone...")
+        clone_url = f"https://github.com/{repo}.git"
+        clone_dest = dl_tmp / "clone"
+        if download_git_clone(clone_url, clone_dest, ref=ref, github_token=github_token):
+            extracted_dir = clone_dest
+            dl_ok = True
+
+    if not dl_ok or extracted_dir is None:
+        log_warn(f"Failed to download {pack_name} from {repo}@{ref}")
+        shutil.rmtree(dl_tmp, ignore_errors=True)
+        return None
+
+    # Move to staging
+    staging_dest = staging / extracted_dir.name
+    if extracted_dir != staging_dest:
+        if staging_dest.is_dir():
+            shutil.rmtree(staging_dest, ignore_errors=True)
+        shutil.move(str(extracted_dir), str(staging_dest))
+
+    _market_pack_dirs[pack_name] = staging_dest
+    return staging_dest
+
+
+# ---------------------------------------------------------------------------
+# Phase 3: Enhanced pack directory resolution
+# ---------------------------------------------------------------------------
+def find_pack_dir_enhanced(
+    pack_name: str,
+    offline: bool = False,
+    github_token: str | None = None,
+) -> Path | None:
+    """Find pack directory with market fallback for optional packs.
+    1. Check community staging
+    2. Check local packs/core/ and packs/optional/
+    3. If not offline and not core, query market and download
+    """
+    # Community packs are in community staging
+    if pack_name.startswith("community--"):
+        staging = _get_community_staging()
+        candidate = staging / pack_name
+        if candidate.is_dir():
+            return candidate
+        return None
+
+    # Local packs
+    for subdir in ("core", "optional"):
+        candidate = SCRIPT_ROOT / "packs" / subdir / pack_name
+        if candidate.is_dir():
+            return candidate
+
+    # Offline: no network fallback
+    if offline:
+        return None
+
+    # Core packs should always be local — no market fallback
+    if is_core_pack(pack_name):
+        return None
+
+    # Try market for optional packs
+    meta = query_market_index(pack_name, github_token=github_token)
+    if meta:
+        _market_meta[pack_name] = meta
+        staging = download_market_pack(pack_name, github_token=github_token)
+        if staging:
+            # Resolve the actual pack dir within the extracted archive
+            meta_path = meta.get("path", "")
+            if meta_path:
+                pack_path = staging / meta_path
+                if pack_path.is_dir():
+                    if pack_path.name == ".opencode":
+                        return pack_path.parent
+                    return pack_path
+            # Walk the extracted tree for the pack dir name
+            for child in staging.rglob(pack_name):
+                if child.is_dir() and (child / ".opencode").is_dir():
+                    return child
+                if child.is_dir() and (child / "pack-manifest.json").is_file():
+                    return child
+            # Return staging root itself if it has .opencode
+            if (staging / ".opencode").is_dir():
+                return staging
+            return staging
+
+    return None
+
+
 def resolve_pack_names(raw: str) -> list[str]:
     """Resolve comma-separated pack specifiers to canonical names."""
     tokens = [t.strip() for t in raw.split(",") if t.strip()]
     if not tokens:
         return []
     if len(tokens) == 1 and tokens[0] == "all":
-        return find_all_packs()
+        local_packs = find_all_packs()
+        # When not offline, also include market packs
+        # (resolve_pack_names is called before offline is known, so we just return local)
+        return local_packs
     result = []
     for token in tokens:
         if token.startswith("community/"):
-            log_warn(f"Community packs not yet supported: {token}")
+            # Community packs are handled by download_community_pack
+            # We keep the original spec as the identifier
+            result.append(token)
             continue
         canonical = resolve_pack_alias(token)
         result.append(canonical)
@@ -1077,13 +1546,28 @@ def translate_instructions(
 # ---------------------------------------------------------------------------
 # List packs
 # ---------------------------------------------------------------------------
-def list_packs():
+def list_packs(offline: bool = False, github_token: str | None = None):
     """List all available packs."""
     packs = find_all_packs()
     if not packs:
         banner("No packs found. Are you running from a cloned repo?")
         return
-    banner(f"Available packs ({len(packs)}):")
+
+    # When online, also query market for packs not present locally
+    market_packs: list[dict] = []
+    if not offline:
+        raw = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10, github_token=github_token)
+        if raw:
+            try:
+                data = json.loads(raw)
+                for pack in data.get("packs", []):
+                    if pack.get("name") not in packs:
+                        market_packs.append(pack)
+            except (json.JSONDecodeError, ValueError):
+                pass
+
+    total = len(packs) + len(market_packs)
+    banner(f"Available packs ({total}):")
     for pack_name in packs:
         pack_dir = find_pack_dir(pack_name)
         manifest = load_manifest(pack_dir) if pack_dir else None
@@ -1097,6 +1581,18 @@ def list_packs():
                 break
         core_tag = " [core]" if is_core_pack(pack_name) else ""
         print(f"  {bold(pack_name)}{core_tag} v{version}{alias}")
+        if desc:
+            print(f"    {desc[:80]}")
+
+    for pack in market_packs:
+        name = pack.get("name", "?")
+        version = pack.get("version", "?")
+        aliases = pack.get("alias", []) or pack.get("aliases", []) or []
+        if isinstance(aliases, str):
+            aliases = [aliases]
+        alias_str = f" (alias: {', '.join(aliases)})" if aliases else ""
+        print(f"  {bold(name)} [remote] v{version}{alias_str}")
+        desc = pack.get("description", "")
         if desc:
             print(f"    {desc[:80]}")
 
@@ -1132,15 +1628,17 @@ def install_single_pack(
     plat_name: str = "opencode",
     platforms_data: dict | None = None,
     use_global: bool = False,
+    offline: bool = False,
+    github_token: str | None = None,
 ) -> bool:
     """Install a single pack. Returns True on success."""
-    # Find pack directory
-    pack_dir = find_pack_dir(pack_name)
+    # Find pack directory (with market fallback)
+    pack_dir = find_pack_dir_enhanced(pack_name, offline=offline, github_token=github_token)
     if pack_dir is None:
         # Check if it's a remote-only pack
         packs_root = SCRIPT_ROOT / "packs"
         if not packs_root.is_dir():
-            log_error("No packs/ directory found. Remote mode not yet implemented.")
+            log_error("No packs/ directory found and remote download failed.")
             return False
         log_error(f"Pack not found: {pack_name}")
         return False
@@ -1399,7 +1897,7 @@ def main():
 
     # Handle --list
     if args.list:
-        list_packs()
+        list_packs(offline=args.offline, github_token=args.github_token)
         return 0
 
     # Handle --uninstall (Phase 4 stub)
@@ -1465,9 +1963,10 @@ def main():
     reg_path = find_registry_path(target, plat_dirs)
     registry = load_registry(reg_path)
 
-    # Check for remote mode
-    if not (SCRIPT_ROOT / "packs").is_dir():
-        log_error("No packs/ directory found. Remote mode not yet implemented.")
+    # Check for remote mode (no local packs/ dir)
+    has_local_packs = (SCRIPT_ROOT / "packs").is_dir()
+    if not has_local_packs and args.offline:
+        log_error("No packs/ directory found and --offline prevents network downloads.")
         log_error("Clone the repo first: git clone https://github.com/kylecui/petfish.ai.git")
         return 1
 
@@ -1475,15 +1974,41 @@ def main():
     success_count = 0
     for pack_name in pack_names:
         try:
-            if install_single_pack(
+            # Community packs: download first, then install as the staged name
+            if pack_name.startswith("community/"):
+                result = download_community_pack(pack_name, github_token=args.github_token)
+                if result is None:
+                    log_error(f"Failed to download community pack: {pack_name}")
+                    continue
+                staged_name, staged_path = result
+                # Temporarily make find_pack_dir_enhanced find the community pack
+                install_ok = install_single_pack(
+                    staged_name, target, plat_dirs, args.force, reg_path, registry,
+                    plat_name=plat_name,
+                    platforms_data=platforms_data,
+                    use_global=args.global_install,
+                    offline=args.offline,
+                    github_token=args.github_token,
+                )
+                if install_ok:
+                    success_count += 1
+                continue
+
+            install_ok = install_single_pack(
                 pack_name, target, plat_dirs, args.force, reg_path, registry,
                 plat_name=plat_name,
                 platforms_data=platforms_data,
                 use_global=args.global_install,
-            ):
+                offline=args.offline,
+                github_token=args.github_token,
+            )
+            if install_ok:
                 success_count += 1
         except Exception as exc:
             log_error(f"{pack_name}: {exc}")
+
+    # Cleanup staging directories
+    _cleanup_staging()
 
     # Save registry
     if success_count > 0:
