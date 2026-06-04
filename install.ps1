@@ -71,11 +71,15 @@ try {
     # Silently continue if encoding setup fails (e.g., non-interactive host)
 }
 
+# --- Suppress progress bar for non-interactive downloads ---
+# PS progress bar blocks pipeline and causes hangs in non-interactive hosts.
+$ProgressPreference = 'SilentlyContinue'
+
 # --- uv availability check & auto-install ---
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     Write-Host "[胖鱼 PEtFiSh] uv not found. Installing uv (required for Python-based skills)..." -ForegroundColor Yellow
     try {
-        $uvInstallScript = (Invoke-RestMethod https://astral.sh/uv/install.ps1)
+        $uvInstallScript = (Invoke-RestMethod https://astral.sh/uv/install.ps1 -TimeoutSec 30)
         $uvBlock = [scriptblock]::Create($uvInstallScript)
         & $uvBlock 2>$null
         # Refresh PATH to pick up newly installed uv
@@ -600,7 +604,7 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
     $l1Name = $L1Map[$packName]
     if (-not $l1Name) { return }
 
-    $rulesDir = Join-Path $targetDir ".opencode" "agents-rules"
+    $rulesDir = Join-Path (Join-Path $targetDir ".opencode") "agents-rules"
     if (-not (Test-Path $rulesDir)) {
         New-Item -ItemType Directory -Path $rulesDir -Force | Out-Null
     }
@@ -620,10 +624,10 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
 # Install system-prompt-rules plugin file to .opencode/plugin/ (v0.11.0+)
 # Only for OpenCode platform when L1 packs are present.
 function Install-PluginFile([string]$sourceRoot, [string]$targetDir) {
-    $srcPluginDir = Join-Path $sourceRoot "lib" "plugin"
+    $srcPluginDir = Join-Path (Join-Path $sourceRoot "lib") "plugin"
     if (-not (Test-Path $srcPluginDir)) { return }
 
-    $pluginDir = Join-Path $targetDir ".opencode" "plugin"
+    $pluginDir = Join-Path (Join-Path $targetDir ".opencode") "plugin"
     if (-not (Test-Path $pluginDir)) {
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
     }
@@ -976,7 +980,7 @@ function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
         "fish-reflection-pack"               = "fish-reflection.md"
     }
     if ($L1Map.ContainsKey($packName)) {
-        $rulesFile = Join-Path $targetPath ".opencode" "agents-rules" $L1Map[$packName]
+        $rulesFile = Join-Path (Join-Path (Join-Path $targetPath ".opencode") "agents-rules") $L1Map[$packName]
         if (Test-Path $rulesFile) {
             Remove-Item -Path $rulesFile -Force
             Write-Host "    - .opencode/agents-rules/$($L1Map[$packName])" -ForegroundColor DarkYellow
@@ -1671,7 +1675,7 @@ function Download-CommunityPack([string]$spec) {
     if ($token) { $headers["Authorization"] = "token $token" }
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         try {
-            Invoke-WebRequest -Uri $tarballUrl -OutFile $archivePath -Headers $headers -UseBasicParsing -ErrorAction Stop
+            Invoke-WebRequest -Uri $tarballUrl -OutFile $archivePath -Headers $headers -UseBasicParsing -ErrorAction Stop -TimeoutSec 60 -TimeoutSec 60
             $dlOk = $true
             break
         } catch {
@@ -2173,7 +2177,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 # Also deploy any extra agents-rules files from the pack
                 $extraRulesDir = Join-Path $packOpenCode "agents-rules"
                 if (Test-Path $extraRulesDir) {
-                    $targetRulesDir = Join-Path $Target ".opencode" "agents-rules"
+                    $targetRulesDir = Join-Path (Join-Path $Target ".opencode") "agents-rules"
                     New-Item -ItemType Directory -Path $targetRulesDir -Force | Out-Null
                     Get-ChildItem -Path $extraRulesDir -Filter "*.md" | ForEach-Object {
                         Copy-Item $_.FullName (Join-Path $targetRulesDir $_.Name) -Force
@@ -2216,7 +2220,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Deploy MCP server files from pack's .opencode/mcp/ to target
             $mcpSourceDir = Join-Path $packOpenCode "mcp"
             if (Test-Path $mcpSourceDir) {
-                $targetMcpDir = Join-Path $targetPath ".opencode" "mcp"
+                $targetMcpDir = Join-Path (Join-Path $targetPath ".opencode") "mcp"
                 Get-ChildItem -Path $mcpSourceDir -Directory | ForEach-Object {
                     $mcpName = $_.Name
                     $targetMcp = Join-Path $targetMcpDir $mcpName
@@ -2319,9 +2323,9 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
 
         # --- Copy Claude hooks (if platform is claude and pack has hooks) ---
         if ($platformName -eq "claude") {
-            $srcHooks = Join-Path $packRoot ".claude" "hooks"
+            $srcHooks = Join-Path (Join-Path $packRoot ".claude") "hooks"
             if (Test-Path $srcHooks) {
-                $targetHooks = Join-Path $targetPath ".claude" "hooks"
+                $targetHooks = Join-Path (Join-Path $targetPath ".claude") "hooks"
                 if (-not (Test-Path $targetHooks)) { New-Item -ItemType Directory -Path $targetHooks -Force | Out-Null }
                 foreach ($hookFile in (Get-ChildItem $srcHooks -File)) {
                     $dstHook = Join-Path $targetHooks $hookFile.Name
@@ -2336,7 +2340,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 }
 
                 # --- Merge hooks into .claude/settings.json ---
-                $claudeSettings = Join-Path $targetPath ".claude" "settings.json"
+                $claudeSettings = Join-Path (Join-Path $targetPath ".claude") "settings.json"
                 $hooksConfig = @{
                     hooks = @{
                         UserPromptSubmit = @(@{ hooks = @(@{ type = "command"; command = "bash .claude/hooks/fish-trail-gateway.sh"; timeout = 5 }) })

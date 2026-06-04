@@ -31,6 +31,10 @@ try {
     # Silently continue if encoding setup fails (e.g., non-interactive host)
 }
 
+# --- Suppress progress bar for non-interactive downloads ---
+# PS progress bar blocks pipeline and causes hangs in non-interactive hosts.
+$ProgressPreference = 'SilentlyContinue'
+
 # --- Version resolution ---
 # Auto-detection of the latest release tag was removed because:
 # 1. Piped scripts cannot detect the source URL — auto-detect overrides tagged URLs
@@ -525,7 +529,7 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
     $l1Name = $L1Map[$packName]
     if (-not $l1Name) { return }
 
-    $rulesDir = Join-Path $targetDir ".opencode" "agents-rules"
+    $rulesDir = Join-Path (Join-Path $targetDir ".opencode") "agents-rules"
     if (-not (Test-Path $rulesDir)) {
         New-Item -ItemType Directory -Path $rulesDir -Force | Out-Null
     }
@@ -545,10 +549,10 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
 # Install system-prompt-rules plugin file to .opencode/plugin/ (v0.11.0+)
 # Only for OpenCode platform when L1 packs are present.
 function Install-PluginFile([string]$sourceRoot, [string]$targetDir) {
-    $srcPluginDir = Join-Path $sourceRoot "lib" "plugin"
+    $srcPluginDir = Join-Path (Join-Path $sourceRoot "lib") "plugin"
     if (-not (Test-Path $srcPluginDir)) { return }
 
-    $pluginDir = Join-Path $targetDir ".opencode" "plugin"
+    $pluginDir = Join-Path (Join-Path $targetDir ".opencode") "plugin"
     if (-not (Test-Path $pluginDir)) {
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
     }
@@ -673,9 +677,9 @@ function Migrate-LegacyV09([string]$TargetPath, [string]$SkillsDir, [string]$Con
     foreach ($baseDir in $baseDirs) {
         $regFile = $null
         foreach ($candidate in @(
-            (Join-Path $baseDir '.opencode' 'installed-packs.json'),
-            (Join-Path $baseDir '.claude'   'installed-packs.json'),
-            (Join-Path $baseDir '.agents'   'installed-packs.json')
+            (Join-Path (Join-Path $baseDir '.opencode') 'installed-packs.json'),
+            (Join-Path (Join-Path $baseDir '.claude')   'installed-packs.json'),
+            (Join-Path (Join-Path $baseDir '.agents')   'installed-packs.json')
         )) {
             if (Test-Path $candidate -PathType Leaf) { $regFile = $candidate; break }
         }
@@ -1484,12 +1488,12 @@ except: print('yes')
 
     # Trust scan (if requested)
     if ($TrustScan) {
-        $skillsDir = Join-Path $stagedPack ".opencode" "skills"
+        $skillsDir = Join-Path (Join-Path $stagedPack ".opencode") "skills"
         if (Test-Path $skillsDir) {
             $trustScript = $null
             $candidates = @(
-                (Join-Path $env:USERPROFILE ".opencode" "skills" "skill-trust-governance" "scripts" "trust_scan.py"),
-                (Join-Path "." ".opencode" "skills" "skill-trust-governance" "scripts" "trust_scan.py")
+                (Join-Path (Join-Path (Join-Path (Join-Path (Join-Path $env:USERPROFILE ".opencode") "skills") "skill-trust-governance") "scripts") "trust_scan.py"),
+                (Join-Path (Join-Path (Join-Path (Join-Path (Join-Path "." ".opencode") "skills") "skill-trust-governance") "scripts") "trust_scan.py")
             )
             foreach ($c in $candidates) {
                 if (Test-Path $c) { $trustScript = $c; break }
@@ -1667,7 +1671,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 # Also deploy any extra agents-rules files from the pack
                 $extraRulesDir = Join-Path $packOpencode "agents-rules"
                 if (Test-Path $extraRulesDir) {
-                    $targetRulesDir = Join-Path $Target ".opencode" "agents-rules"
+                    $targetRulesDir = Join-Path (Join-Path $Target ".opencode") "agents-rules"
                     New-Item -ItemType Directory -Path $targetRulesDir -Force | Out-Null
                     Get-ChildItem -Path $extraRulesDir -Filter "*.md" | ForEach-Object {
                         Copy-Item $_.FullName (Join-Path $targetRulesDir $_.Name) -Force
@@ -1706,7 +1710,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Deploy MCP server files from pack's .opencode/mcp/ to target
             $mcpSourceDir = Join-Path $packOpenCode "mcp"
             if (Test-Path $mcpSourceDir) {
-                $targetMcpDir = Join-Path $targetPath ".opencode" "mcp"
+                $targetMcpDir = Join-Path (Join-Path $targetPath ".opencode") "mcp"
                 Get-ChildItem -Path $mcpSourceDir -Directory | ForEach-Object {
                     $mcpName = $_.Name
                     $targetMcp = Join-Path $targetMcpDir $mcpName
@@ -1805,9 +1809,9 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
 
         # --- Copy Claude hooks (if platform is claude and pack has hooks) ---
         if ($platformName -eq "claude") {
-            $srcHooks = Join-Path $packRoot ".claude" "hooks"
+            $srcHooks = Join-Path (Join-Path $packRoot ".claude") "hooks"
             if (Test-Path $srcHooks) {
-                $targetHooks = Join-Path $targetPath ".claude" "hooks"
+                $targetHooks = Join-Path (Join-Path $targetPath ".claude") "hooks"
                 if (-not (Test-Path $targetHooks)) { New-Item -ItemType Directory -Path $targetHooks -Force | Out-Null }
                 foreach ($hookFile in (Get-ChildItem $srcHooks -File)) {
                     $dstHook = Join-Path $targetHooks $hookFile.Name
@@ -1822,7 +1826,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
                 }
 
                 # --- Merge hooks into .claude/settings.json ---
-                $claudeSettings = Join-Path $targetPath ".claude" "settings.json"
+                $claudeSettings = Join-Path (Join-Path $targetPath ".claude") "settings.json"
                 $hooksConfig = @{
                     hooks = @{
                         UserPromptSubmit = @(@{ hooks = @(@{ type = "command"; command = "bash .claude/hooks/fish-trail-gateway.sh"; timeout = 5 }) })
@@ -2159,8 +2163,8 @@ try {
                 return $script:MarketPackDirs[$name]
             }
         }
-        $corePath = Join-Path $packsDir "core" $name
-        $optionalPath = Join-Path $packsDir "optional" $name
+        $corePath = Join-Path (Join-Path $packsDir "core") $name
+        $optionalPath = Join-Path (Join-Path $packsDir "optional") $name
         if (Test-Path $corePath) { return $corePath }
         if (Test-Path $optionalPath) { return $optionalPath }
         return (Join-Path $packsDir $name)
