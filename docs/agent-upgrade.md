@@ -55,7 +55,38 @@ Same as install guide:
 
 ---
 
-## Step 2: Understand what's changing (v1.3.x → v1.4.x)
+## Step 2: Understand what's changing (v1.4.x → v1.5.x)
+
+### Breaking changes to be aware of:
+
+| Change | Impact | Auto-handled? |
+|--------|--------|---------------|
+| 4 shell installers deprecated in favor of `install.py` | Install command changes from shell to `uv run` | ✅ Yes — `install.py` has full feature parity |
+| `uv run <url>` is the new primary install method | Requires `uv` (already required for MCP servers and skills) | ✅ Yes — existing `uv` requirement covers this |
+
+### New features in v1.5.x:
+
+- **`install.py`** — unified Python installer replacing 4 shell scripts (install.sh, install.ps1, remote-install.sh, remote-install.ps1)
+- **Zero external dependencies** — stdlib only (urllib, tarfile, json, subprocess)
+- **Community packs** — `community/owner/repo[/ref]` syntax for installing from any GitHub repo
+- **`--offline`** flag — install from local `packs/` without network
+- **`--github-token`** — private repo access and rate limit avoidance
+- **Uninstall** — `--uninstall --pack <alias>` removes skills, config, registry entries
+- **Mirror fallback** — `ghfast.top` → `ghproxy.com` for China networks
+- **v0.9→v1.4 auto-migration** — renames old pack/skill/MCP paths on install
+
+### Migration steps for v1.5.x:
+
+1. Re-run the installer with the new command:
+   ```bash
+   uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force --platform <PLATFORM>
+   ```
+2. Core packs install as before. Optional packs resolve via petfish-market automatically.
+3. Old v0.9.x artifacts (renamed packs, skills, MCP paths) are auto-migrated during install.
+
+---
+
+## Step 2b: Understand what's changing (v1.3.x → v1.4.x)
 
 ### Breaking changes to be aware of:
 

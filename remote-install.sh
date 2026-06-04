@@ -2,6 +2,11 @@
 #
 # 胖鱼 PEtFiSh - Remote installer for AI coding platform skill packs from GitHub.
 #
+# ⚠ DEPRECATED: This shell installer is superseded by install.py (unified Python installer).
+#   Use the new one-liner instead:
+#     uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias>
+#   This script will be removed in a future release. Please migrate to install.py.
+#
 # Usage (curl one-liner):
 #   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack course
 #   curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --platform claude

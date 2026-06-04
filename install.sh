@@ -2,6 +2,11 @@
 #
 # Install 胖鱼 PEtFiSh skill packs into a target project or global skills directory.
 #
+# ⚠ DEPRECATED: This shell installer is superseded by install.py (unified Python installer).
+#   The new installer supports all platforms with a single file and is distributed via:
+#     uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias>
+#   This script will be removed in a future release. Please migrate to install.py.
+#
 # Usage:
 #   ./install.sh --pack course --target ~/my-project
 #   ./install.sh --pack all --platform antigravity

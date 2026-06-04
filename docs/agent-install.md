@@ -94,39 +94,34 @@ Ask which packs they want. If they include `research`, ask the research domain f
 
 ### 3a: Install init + companion together
 
-**Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --platform <PLATFORM>
-```
-
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Platform <PLATFORM>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --platform <PLATFORM>
 ```
 
 Replace `<PLATFORM>` with the platform you detected in Step 1 (e.g. `codex`, `opencode`, `claude`, etc.).
 
 Run this command and verify it succeeds.
 
-> **Note**: The install script automatically downloads from the **latest stable release**. No need to specify a version — you always get the latest verified build.
+> **Note**: The installer automatically downloads optional packs from **petfish-market**. No need to specify a version — you always get the latest verified build. Core packs are bundled in the repo.
 
 ### 3b: Install the packs based on the user's choice from Step 2
 
 For each pack the user selected, run:
 
-**Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <ALIAS> --platform <PLATFORM>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <ALIAS> --platform <PLATFORM>
 ```
 
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <ALIAS> -Platform <PLATFORM>
+Or install multiple packs at once:
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <ALIAS1>,<ALIAS2>,<ALIAS3> --platform <PLATFORM>
 ```
 
 Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc.) and `<PLATFORM>` with the platform from Step 1.
 
 > **Core vs Optional**: Core packs (init, companion, petfish, toolchain) download directly from the petfish.ai release. Optional packs (course, research, etc.) resolve via petfish-market — same command, same experience. The installer queries the market index automatically when a pack is not found in the core set.
+
+> **Legacy shell installers** (install.sh, install.ps1, remote-install.sh, remote-install.ps1) are deprecated. If `uv` is not available, see the legacy commands in the README.
 
 ---
 

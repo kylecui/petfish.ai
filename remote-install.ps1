@@ -1,4 +1,9 @@
 # 胖鱼 PEtFiSh - Remote installer for AI coding platform skill packs from GitHub.
+# ⚠ DEPRECATED: This PowerShell installer is superseded by install.py (unified Python installer).
+#   Use the new command instead:
+#     uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias>
+#   This script will be removed in a future release. Please migrate to install.py.
+#
 # Usage: & ([scriptblock]::Create((irm <url>))) -Pack course [-Platform opencode] [-Target .] [-Force] [-Global]
 [CmdletBinding()]
 param(

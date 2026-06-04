@@ -2,6 +2,11 @@
 .SYNOPSIS
     胖鱼 PEtFiSh - Install skill packs for supported AI coding platforms.
 
+⚠ DEPRECATED: This PowerShell installer is superseded by install.py (unified Python installer).
+  Use the new command instead:
+    uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias>
+  This script will be removed in a future release. Please migrate to install.py.
+
 .DESCRIPTION
     Copies skills, commands, and agents from one or more skill packs
     into the target project or global skills directories. Supports OpenCode,

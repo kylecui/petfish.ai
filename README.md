@@ -37,12 +37,19 @@ Not a toolbox. A companion. Tools get called. PEtFiSh is always there.
 Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
 
-**Windows PowerShell**
+**Unified Python installer (recommended)**
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
+```
+
+**Legacy shell installers (deprecated)**
+
+Windows PowerShell:
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
 ```
 
-**macOS / Linux / WSL**
+macOS / Linux / WSL:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --detect
 ```
@@ -171,7 +178,31 @@ mine → author → lint → audit → gate → publish → optimize → eval
 ---
 
 ## Install Commands
-### Remote Install
+
+### Unified Python Installer (Recommended)
+```bash
+# Remote one-liner (requires uv)
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> [--target .] [--platform opencode] [--detect] [--force] [--global]
+
+# List available packs
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --list
+
+# Offline install from cloned repo
+uv run ./install.py --pack <alias> --offline
+
+# With GitHub token (private repos / rate limit)
+uv run ./install.py --pack <alias> --github-token $GITHUB_TOKEN
+
+# Uninstall
+uv run ./install.py --uninstall --pack <alias> --target .
+```
+
+Supports all 8 platforms, 28 pack aliases, community packs (`community/owner/repo`), mirror fallback for China networks, and full uninstall.
+
+### Legacy Shell Installers (Deprecated)
+
+> ⚠ The shell installers (`install.sh`, `install.ps1`, `remote-install.sh`, `remote-install.ps1`) are deprecated in favor of `install.py`. They will be removed in a future release.
+
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> [-Target .] [-Platform opencode] [-Detect] [-Force] [-Global]
 ```
@@ -180,33 +211,14 @@ mine → author → lint → audit → gate → publish → optimize → eval
 curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias> [--target .] [--platform opencode] [--detect] [--force] [--global]
 ```
 
-### Local Install
-```powershell
-.\install.ps1 -Pack <alias> [-Target path] [-Platform opencode|claude|codex|cursor|copilot|windsurf|antigravity|all|primary|ide|cli] [-Detect] [-Force] [-Global]
-.\install.ps1 -List
-```
-
-```bash
-./install.sh --pack <alias> [--target path] [--platform <platform|group>] [--detect] [--force] [--global]
-./install.sh --list
-```
-
-### Private Repo Example
-```bash
-curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-  https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack course
-```
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack course -GitHubToken $env:GITHUB_TOKEN
-```
-
 ### Offline / Network-Restricted Install
 
 1. Clone or download the repo: `git clone https://github.com/kylecui/petfish.ai.git`
-2. Transfer to target machine (USB, SCP, internal share)
-3. Run local installer:
+2. Run the unified installer:
+   ```bash
+   uv run ./install.py --pack <alias> --offline
+   ```
+   Or use the legacy local installers:
    ```powershell
    .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
    ```
@@ -214,11 +226,11 @@ curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
    ./install.sh --pack <alias> --platform <PLATFORM> --target .
    ```
 
-The local installer needs no internet — it scans `packs/` locally. `platforms.json` is recommended but optional (hardcoded fallback exists).
+The installer works offline — it scans `packs/` locally. `platforms.json` is recommended but optional (hardcoded fallback exists).
 
-For China network: remote installer (v0.11.12+) auto-falls back to `ghfast.top` → `ghproxy.com` mirrors with 3 retries.
+For China network: mirror fallback via `ghfast.top` → `ghproxy.com` with 3 retries.
 
-See [docs/agent-install.md](docs/agent-install.md) for full offline install instructions.
+See [docs/agent-install.md](docs/agent-install.md) for full install instructions.
 
 ---
 
@@ -228,6 +240,11 @@ Run `/petfish upgrade` to see the upgrade command for your OS, or re-run the ins
 Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
 ```
 
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
+```
+
+Legacy shell upgrade:
 ```powershell
 & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
 ```
@@ -325,16 +342,21 @@ petfish.ai/
 │       ├── fish-reflection-pack/                 # reflect
 │       └── doc-reader-skill/                     # doc-reader
 ├── platforms.json                                # platform registry
-├── install.ps1                                   # local PowerShell installer
-├── install.sh                                    # local shell installer
-├── remote-install.ps1                            # remote PowerShell installer
-├── remote-install.sh                             # remote shell installer
+├── install.py                                    # unified Python installer (recommended)
+├── install.ps1                                   # local PowerShell installer (deprecated)
+├── install.sh                                    # local shell installer (deprecated)
+├── remote-install.ps1                            # remote PowerShell installer (deprecated)
+├── remote-install.sh                             # remote shell installer (deprecated)
 └── README.md
 ```
 
 ---
 
 ## Version History
+### v1.5 — Unified Python Installer
+
+- **v1.5.0**: Replace 4 shell installers (install.sh, install.ps1, remote-install.sh, remote-install.ps1) with single `install.py` distributed via `uv run <url>`. Zero external dependencies (stdlib only). Full feature parity: 8 platforms, 28 pack aliases, AGENTS.md marker merge, opencode.json deep merge, L1 rules files, plugin/MCP deployment, instruction translation, market download, community packs, mirror fallback, uninstall, v0.9→v1.4 migration, Claude Code hooks. Shell installers deprecated with migration notices.
+
 ### v1.4 — Market-First Distribution
 
 - **v1.4.6**: Market-first download in local installers — both install.sh and install.ps1 now query petfish-market for optional packs not found locally, with mirror fallback and --offline flag. Fix #193: redirect community pack status messages to stderr in bash installers.

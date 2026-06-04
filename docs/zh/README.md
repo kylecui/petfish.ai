@@ -40,14 +40,14 @@
 ## 快速开始
 
 ```bash
-# macOS / Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack init,companion --detect
+# 推荐方式（统一Python安装器）
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
 ```
 
-```powershell
-# Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
+```bash
+# 旧版Shell安装器（已废弃）
+curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
+  | bash -s -- --pack init,companion --detect
 ```
 
 装完输入 `/initproject`——胖鱼问你项目类型，自动装上匹配的能力包。
@@ -148,6 +148,11 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 运行 `/petfish upgrade` 查看适合当前OS的升级命令，或直接重跑安装命令加 `--force`：
 
 ```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
+```
+
+旧版Shell升级（已废弃）：
+```bash
 curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
   | bash -s -- --pack all --force
 ```
@@ -176,6 +181,10 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v1.5 — 统一Python安装器
+
+- **v1.5.0**: 用单个`install.py`替换4个Shell安装器（install.sh、install.ps1、remote-install.sh、remote-install.ps1），通过`uv run <url>`分发。零外部依赖（仅stdlib）。完整功能对等：8个平台、28个别名、AGENTS.md标记合并、opencode.json深度合并、L1规则文件、plugin/MCP部署、指令翻译、市场下载、社区包、镜像回退、卸载、v0.9→v1.4迁移、Claude Code hooks。Shell安装器标记为废弃。
 
 ### v1.4 — 市场优先分发
 
