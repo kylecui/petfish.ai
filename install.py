@@ -1695,6 +1695,10 @@ def install_single_pack(
     if is_opencode and not use_global:
         deploy_mcp_servers(pack_opencode, target)
 
+    # Step 3.5: Install Claude Code hooks (if Claude platform and pack has hooks)
+    if plat_name == "claude" and not use_global:
+        install_claude_hooks(pack_dir, target, force)
+
     # Step 4: Merge AGENTS.md (primary platform instructions)
     agents_src = pack_dir / "AGENTS.md"
     instructions_file = plat_dirs.get("instructions_file")
@@ -1799,6 +1803,621 @@ def _remove_inline_section(agents_file: Path, pack_name: str, legacy_names: list
 
 
 # ---------------------------------------------------------------------------
+# Phase 4: Remove AGENTS.md rules-file reference row
+# ---------------------------------------------------------------------------
+def _remove_rules_file_reference(agents_file: Path, l1_name: str):
+    """Remove the table row referencing l1_name from AGENTS.md."""
+    if not agents_file.is_file():
+        return
+    text = agents_file.read_text(encoding="utf-8")
+    pattern = re.compile(
+        rf"^\|[^\n]*{re.escape(l1_name)}[^\n]*\|\s*\n?", re.MULTILINE
+    )
+    new_text = pattern.sub("", text)
+    if new_text != text:
+        new_text = re.sub(r"\n{3,}", "\n\n", new_text).rstrip() + "\n"
+        agents_file.write_text(new_text, encoding="utf-8")
+        log_success(f"AGENTS.md (removed rules-file reference for {l1_name})")
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Remove unique opencode.json config entries
+# ---------------------------------------------------------------------------
+def remove_unique_config_entries(
+    pack_name: str,
+    pack_example: Path,
+    config_file: Path,
+    packs_dir: Path,
+    registry: dict,
+):
+    """Remove config entries that ONLY this pack contributed.
+
+    Checks ALL other installed packs' manifests before deleting keys.
+    Critical: prevents removing shared config entries (M6 risk).
+    """
+    if not pack_example.is_file() or not config_file.is_file():
+        return
+
+    try:
+        pack_cfg = json.loads(pack_example.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return
+
+    installed = list((registry.get("packs") or {}).keys())
+
+    # Collect all keys claimed by OTHER installed packs
+    other_claims: dict[str, set] = {}
+    for other in installed:
+        if other == pack_name:
+            continue
+        # Look in local packs dirs
+        other_example = None
+        for subdir in ("core", "optional"):
+            candidate = packs_dir / subdir / other / "opencode.example.json"
+            if candidate.is_file():
+                other_example = candidate
+                break
+        if other_example is None:
+            continue
+        try:
+            other_cfg = json.loads(other_example.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        for p1, v1 in (other_cfg or {}).items():
+            if isinstance(v1, dict):
+                s = other_claims.setdefault(p1, set())
+                for p2 in v1.keys():
+                    s.add(p2)
+
+    try:
+        dst = json.loads(config_file.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return
+
+    changed = False
+    for p1, v1 in (pack_cfg or {}).items():
+        if not isinstance(v1, dict):
+            continue
+        if not isinstance(dst.get(p1), dict):
+            continue
+        claimed = other_claims.get(p1, set())
+        for p2 in v1.keys():
+            if p2 in claimed:
+                continue
+            if p2 in dst[p1]:
+                del dst[p1][p2]
+                changed = True
+
+    if changed:
+        config_file.write_text(
+            json.dumps(dst, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+        log_success(f"{config_file.name} (removed unique entries from this pack)")
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Uninstall pack
+# ---------------------------------------------------------------------------
+def uninstall_pack(
+    pack_alias: str,
+    target: Path,
+    plat_dirs: dict,
+    platforms_data: dict,
+    script_root: Path,
+    offline: bool,
+    github_token: str | None = None,
+) -> int:
+    """Uninstall a pack. Returns number of items removed."""
+    # Resolve pack name from alias
+    is_community = pack_alias.startswith("community/")
+    if is_community:
+        owner, repo, _ = _parse_community_spec(pack_alias)
+        if not owner or not repo:
+            log_error(f"Invalid community pack spec: {pack_alias}")
+            return 0
+        pack_name = f"community--{owner}--{repo}"
+        manifest = None
+        legacy_names = []
+    else:
+        pack_name = resolve_pack_alias(pack_alias)
+        pack_dir = find_pack_dir(pack_name)
+        if pack_dir is None:
+            log_error(f"Pack not found: {pack_name}")
+            return 0
+        manifest = load_manifest(pack_dir)
+        if manifest is None:
+            log_error(f"No pack-manifest.json for {pack_name}")
+            return 0
+        legacy_names = manifest.get("legacy_names", [])
+
+    # Find registry
+    reg_path = find_registry_path(target, plat_dirs)
+    if not reg_path.is_file():
+        log_error(f"No installed-packs.json found at {reg_path}. Nothing to uninstall.")
+        return 0
+    registry = load_registry(reg_path)
+
+    # Check if installed (including legacy names)
+    packs = registry.get("packs", {})
+    is_installed = pack_name in packs
+    if not is_installed:
+        for ln in legacy_names:
+            if ln in packs:
+                is_installed = True
+                break
+    if not is_installed:
+        log_error(f"Pack '{pack_alias}' ({pack_name}) is not installed. Nothing to uninstall.")
+        return 0
+
+    print(f"\n  Uninstalling pack: {pack_name} (alias: {pack_alias})", file=sys.stderr)
+    removed = 0
+
+    # Read skills/commands/agents list
+    if is_community:
+        entry = packs.get(pack_name) or {}
+        skills_list = entry.get("skills", [])
+        commands_list = entry.get("commands", [])
+        agents_list = entry.get("agents", [])
+    else:
+        skills_list = (manifest or {}).get("skills", [])
+        commands_list = (manifest or {}).get("commands", [])
+        agents_list = (manifest or {}).get("agents", [])
+
+    # Remove skill directories
+    skills_dir = plat_dirs.get("skills_dir")
+    if skills_dir:
+        for skill_name in skills_list:
+            skill_dir = Path(skills_dir) / skill_name
+            if skill_dir.is_dir():
+                shutil.rmtree(skill_dir, ignore_errors=True)
+                log(f"    - skills/{skill_name}")
+                removed += 1
+
+    # Remove command files/directories
+    commands_dir = plat_dirs.get("commands_dir")
+    if commands_dir:
+        for cmd in commands_list:
+            cmd_dir = Path(commands_dir) / cmd
+            cmd_file = Path(commands_dir) / f"{cmd}.md"
+            if cmd_dir.is_dir():
+                shutil.rmtree(cmd_dir, ignore_errors=True)
+                log(f"    - commands/{cmd}")
+                removed += 1
+            elif cmd_file.is_file():
+                cmd_file.unlink(missing_ok=True)
+                log(f"    - commands/{cmd}.md")
+                removed += 1
+
+    # Remove agent directories
+    agents_dir = plat_dirs.get("agents_dir")
+    if agents_dir:
+        for agent_name in agents_list:
+            agent_dir = Path(agents_dir) / agent_name
+            if agent_dir.is_dir():
+                shutil.rmtree(agent_dir, ignore_errors=True)
+                log(f"    - agents/{agent_name}")
+                removed += 1
+
+    # Remove AGENTS.md inline section
+    instructions_file = plat_dirs.get("instructions_file")
+    if instructions_file:
+        inst_path = Path(instructions_file) if Path(instructions_file).is_absolute() else target / instructions_file
+        _remove_inline_section(inst_path, pack_name, legacy_names)
+
+    # Remove L1 rules file and its AGENTS.md reference row
+    l1_name = L1_PACK_MAP.get(pack_name)
+    if l1_name:
+        rules_file = target / ".opencode" / "agents-rules" / l1_name
+        if rules_file.is_file():
+            rules_file.unlink(missing_ok=True)
+            log(f"    - .opencode/agents-rules/{l1_name}")
+            removed += 1
+
+        if instructions_file:
+            inst_path = Path(instructions_file) if Path(instructions_file).is_absolute() else target / instructions_file
+            _remove_rules_file_reference(inst_path, l1_name)
+
+    # Remove unique opencode.json entries
+    config_file_rel = plat_dirs.get("config_file")
+    if config_file_rel and not is_community:
+        config_path = Path(config_file_rel) if Path(config_file_rel).is_absolute() else target / config_file_rel
+        pack_dir_found = find_pack_dir(pack_name)
+        if pack_dir_found:
+            pack_example = pack_dir_found / "opencode.example.json"
+            packs_root = script_root / "packs"
+            remove_unique_config_entries(
+                pack_name, pack_example, config_path, packs_root, registry
+            )
+
+    # Remove registry entry (pack_name + legacy_names)
+    changed = False
+    if pack_name in packs:
+        del packs[pack_name]
+        changed = True
+    for ln in legacy_names:
+        if ln in packs:
+            del packs[ln]
+            changed = True
+    if changed:
+        registry["packs"] = packs
+        save_registry(reg_path, registry)
+        log_success("installed-packs.json (registry updated)")
+        removed += 1
+
+    print(f"\n  Uninstall complete: {removed} items removed.", file=sys.stderr)
+    return removed
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Global uninstall
+# ---------------------------------------------------------------------------
+def uninstall_global_pack(
+    pack_alias: str,
+    plat_dirs: dict,
+    platforms_data: dict,
+    script_root: Path,
+    offline: bool,
+    github_token: str | None = None,
+) -> int:
+    """Uninstall a pack from global directory. Returns number of items removed."""
+    is_community = pack_alias.startswith("community/")
+    if is_community:
+        owner, repo, _ = _parse_community_spec(pack_alias)
+        if not owner or not repo:
+            log_error(f"Invalid community pack spec: {pack_alias}")
+            return 0
+        pack_name = f"community--{owner}--{repo}"
+        manifest = None
+        legacy_names = []
+    else:
+        pack_name = resolve_pack_alias(pack_alias)
+        pack_dir = find_pack_dir(pack_name)
+        if pack_dir is None:
+            log_error(f"Pack not found: {pack_name}")
+            return 0
+        manifest = load_manifest(pack_dir)
+        if manifest is None:
+            log_error(f"No pack-manifest.json for {pack_name}")
+            return 0
+        legacy_names = manifest.get("legacy_names", [])
+
+    # Get global skills dir
+    skills_dir = plat_dirs.get("skills_dir")
+    if not skills_dir:
+        log_warn("This platform does not support global skill installation. Nothing to uninstall.")
+        return 0
+
+    # Find global registry
+    skills_dir_path = Path(skills_dir)
+    reg_path = skills_dir_path.parent / "installed-packs.json"
+    if not reg_path.is_file():
+        log_error(f"No installed-packs.json found at {reg_path}. Nothing to uninstall.")
+        return 0
+    registry = load_registry(reg_path)
+
+    # Check if installed
+    packs = registry.get("packs", {})
+    is_installed = pack_name in packs
+    if not is_installed:
+        for ln in legacy_names:
+            if ln in packs:
+                is_installed = True
+                break
+    if not is_installed:
+        log_error(f"Pack '{pack_alias}' ({pack_name}) is not installed globally. Nothing to uninstall.")
+        return 0
+
+    print(f"\n  Uninstalling pack (global): {pack_name} (alias: {pack_alias})", file=sys.stderr)
+    removed = 0
+
+    # Read skills/commands list
+    if is_community:
+        entry = packs.get(pack_name) or {}
+        skills_list = entry.get("skills", [])
+        commands_list = entry.get("commands", [])
+    else:
+        skills_list = (manifest or {}).get("skills", [])
+        commands_list = (manifest or {}).get("commands", [])
+
+    # Remove skills from global dir
+    for skill_name in skills_list:
+        skill_dir = skills_dir_path / skill_name
+        if skill_dir.is_dir():
+            shutil.rmtree(skill_dir, ignore_errors=True)
+            log(f"    - skills/{skill_name}")
+            removed += 1
+
+    # Remove commands from global dir
+    commands_dir = plat_dirs.get("commands_dir")
+    if commands_dir:
+        commands_dir_path = Path(commands_dir)
+        for cmd in commands_list:
+            cmd_dir = commands_dir_path / cmd
+            cmd_file = commands_dir_path / f"{cmd}.md"
+            if cmd_dir.is_dir():
+                shutil.rmtree(cmd_dir, ignore_errors=True)
+                log(f"    - commands/{cmd}")
+                removed += 1
+            elif cmd_file.is_file():
+                cmd_file.unlink(missing_ok=True)
+                log(f"    - commands/{cmd}.md")
+                removed += 1
+
+    # Remove registry entry
+    changed = False
+    if pack_name in packs:
+        del packs[pack_name]
+        changed = True
+    for ln in legacy_names:
+        if ln in packs:
+            del packs[ln]
+            changed = True
+    if changed:
+        registry["packs"] = packs
+        save_registry(reg_path, registry)
+        log_success("installed-packs.json (registry updated)")
+        removed += 1
+
+    print(f"\n  Uninstall complete: {removed} items removed.", file=sys.stderr)
+    return removed
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: Claude Code hooks installation
+# ---------------------------------------------------------------------------
+def install_claude_hooks(pack_dir: Path, target: Path, force: bool):
+    """Install Claude Code hooks from pack's .claude/hooks/ directory."""
+    src_hooks = pack_dir / ".claude" / "hooks"
+    if not src_hooks.is_dir():
+        return
+
+    target_hooks = target / ".claude" / "hooks"
+    target_hooks.mkdir(parents=True, exist_ok=True)
+
+    for hook_file in src_hooks.iterdir():
+        if not hook_file.is_file():
+            continue
+        dst_hook = target_hooks / hook_file.name
+        if dst_hook.is_file() and not force:
+            log_warn(f"hooks/{hook_file.name} (exists, use --force to overwrite)")
+            continue
+        shutil.copy2(hook_file, dst_hook)
+        # Make executable on Unix
+        if os.name != "nt":
+            try:
+                os.chmod(dst_hook, 0o755)
+            except OSError:
+                pass
+        log_success(f"hooks/{hook_file.name}")
+
+    # Merge hooks into settings.json
+    settings_file = target / ".claude" / "settings.json"
+    merge_claude_hooks(settings_file)
+
+
+def merge_claude_hooks(settings_file: Path):
+    """Merge fish-trail hooks into .claude/settings.json."""
+    hooks_config = {
+        "hooks": {
+            "UserPromptSubmit": [
+                {"hooks": [{"type": "command", "command": "bash .claude/hooks/fish-trail-gateway.sh", "timeout": 5}]}
+            ],
+            "PreCompact": [
+                {"hooks": [{"type": "command", "command": "bash .claude/hooks/fish-trail-precompact.sh", "timeout": 5}]}
+            ],
+            "PostCompact": [
+                {"hooks": [{"type": "command", "command": "bash .claude/hooks/fish-trail-postcompact.sh", "timeout": 5}]}
+            ],
+        }
+    }
+
+    if settings_file.is_file():
+        try:
+            settings = json.loads(settings_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, ValueError):
+            settings = {}
+    else:
+        settings_file.parent.mkdir(parents=True, exist_ok=True)
+        settings = {}
+
+    if "hooks" not in settings:
+        settings["hooks"] = {}
+
+    for event_name, event_groups in hooks_config["hooks"].items():
+        if event_name not in settings["hooks"]:
+            settings["hooks"][event_name] = event_groups
+        else:
+            # Check existing commands to avoid duplicates
+            existing_commands = set()
+            for group in settings["hooks"][event_name]:
+                for hook in group.get("hooks", []):
+                    cmd = hook.get("command")
+                    if cmd:
+                        existing_commands.add(cmd)
+
+            for group in event_groups:
+                for hook in group.get("hooks", []):
+                    if hook.get("command") and hook["command"] not in existing_commands:
+                        settings["hooks"][event_name].append(group)
+                        break
+
+    settings_file.write_text(
+        json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    log_success(".claude/settings.json (hooks merged)")
+
+
+# ---------------------------------------------------------------------------
+# Phase 4: v0.9.x → v1.4.x Migration
+# ---------------------------------------------------------------------------
+PACK_RENAMES = {
+    "context-router-skill": "fish-trail",
+    "companion": "petfish-companion-skill",
+    "toolchain": "petfish-toolchain-skill",
+    "project-initializer": "project-initializer-skill",
+    "anti-sycophancy-calibration": "anti-sycophancy-calibration-pack",
+    "petfish-style-rewriter": "petfish-style-skill",
+    "skill-trust-governance": "trustskills-governance-pack",
+}
+
+SKILL_RENAMES = {
+    "context-router": "fish-trail",
+    "petfish-companion": "fish-brain",
+    "marketplace-connector": "fish-market",
+    "project-initializer": "fish-init",
+    "anti-sycophancy-calibration": "fish-calibrate",
+    "petfish-style-rewriter": "fish-style",
+    "skill-trust-governance": "fish-guard",
+}
+
+RULES_RENAMES = {
+    "context-router.md": "fish-trail.md",
+}
+
+
+def migrate_legacy_v0_9(target: Path, skills_dir_rel: str, config_file_rel: str, rules_dir_rel: str | None):
+    """Migrate v0.9.x → v1.4.x artifacts (renamed packs, skills, MCP paths)."""
+    if not target.is_dir():
+        return
+
+    migrated = False
+
+    def find_registry_file(base: Path) -> Path | None:
+        for candidate in [
+            base / ".opencode" / "installed-packs.json",
+            base / ".claude" / "installed-packs.json",
+            base / ".agents" / "installed-packs.json",
+        ]:
+            if candidate.is_file():
+                return candidate
+        return None
+
+    # Check target dir and home dir for registries
+    home = Path.home()
+    for base_dir in [target, home]:
+        reg_file = find_registry_file(base_dir)
+        if not reg_file or not reg_file.is_file():
+            continue
+        try:
+            reg = json.loads(reg_file.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+
+        packs = reg.get("packs")
+        if packs is None:
+            continue
+        # Convert old array format to dict
+        if isinstance(packs, list):
+            packs = {p: {} for p in packs if isinstance(p, str)}
+            reg["packs"] = packs
+
+        changed = False
+        for old_key, new_key in PACK_RENAMES.items():
+            if old_key in packs and new_key not in packs:
+                packs[new_key] = packs.pop(old_key)
+                log(f"    ↻ Registry: {old_key} -> {new_key}")
+                changed = True
+                migrated = True
+            elif old_key in packs and new_key in packs:
+                del packs[old_key]
+                log(f"    ↻ Registry: removed stale {old_key}")
+                changed = True
+                migrated = True
+
+        if changed:
+            reg_file.write_text(
+                json.dumps(reg, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+
+    # Rename skill directories on disk
+    abs_skills = target / skills_dir_rel if not Path(skills_dir_rel).is_absolute() else Path(skills_dir_rel)
+    if abs_skills.is_dir():
+        for old_dir, new_dir in SKILL_RENAMES.items():
+            old_path = abs_skills / old_dir
+            new_path = abs_skills / new_dir
+            if old_path.is_dir():
+                if new_path.is_dir():
+                    shutil.rmtree(old_path, ignore_errors=True)
+                    log(f"    ↻ Removed stale skill dir: {old_dir}/")
+                else:
+                    old_path.rename(new_path)
+                    log(f"    ↻ Renamed skill dir: {old_dir}/ -> {new_dir}/")
+                migrated = True
+
+    # Rename rules files on disk
+    if rules_dir_rel:
+        abs_rules = target / rules_dir_rel if not Path(rules_dir_rel).is_absolute() else Path(rules_dir_rel)
+        if abs_rules.is_dir():
+            for old_file, new_file in RULES_RENAMES.items():
+                old_path = abs_rules / old_file
+                new_path = abs_rules / new_file
+                if old_path.is_file():
+                    if new_path.is_file():
+                        old_path.unlink(missing_ok=True)
+                        log(f"    ↻ Removed stale rules file: {old_file}")
+                    else:
+                        old_path.rename(new_path)
+                        log(f"    ↻ Renamed rules file: {old_file} -> {new_file}")
+                    migrated = True
+
+    # Update MCP paths in config files
+    if config_file_rel:
+        abs_config = target / config_file_rel if not Path(config_file_rel).is_absolute() else Path(config_file_rel)
+        if abs_config.is_file():
+            content = abs_config.read_text(encoding="utf-8")
+            new_content = content
+            for old_str, new_str in [
+                ("context-router/mcp", "fish-trail/mcp"),
+                ("context-router/", "fish-trail/"),
+            ]:
+                if old_str in new_content:
+                    new_content = new_content.replace(old_str, new_str)
+
+            # Also update MCP server config
+            try:
+                config = json.loads(new_content)
+                mcp = config.get("mcp", {})
+                if "context-state" in mcp:
+                    srv = mcp["context-state"]
+                    if isinstance(srv, dict):
+                        for field in ["command", "args"]:
+                            val = srv.get(field, "")
+                            if isinstance(val, str) and "context-router" in val:
+                                srv[field] = val.replace("context-router", "fish-trail")
+                            elif isinstance(val, list):
+                                srv[field] = [
+                                    a.replace("context-router", "fish-trail")
+                                    if isinstance(a, str) and "context-router" in a else a
+                                    for a in val
+                                ]
+                        for env_key in ["cwd", "PETFISH_STATE_DIR"]:
+                            env_val = srv.get(env_key, "")
+                            if isinstance(env_val, str) and "context-router" in env_val:
+                                srv[env_key] = env_val.replace("context-router", "fish-trail")
+                        env = srv.get("env", {})
+                        if isinstance(env, dict):
+                            for k, v in env.items():
+                                if isinstance(v, str) and "context-router" in v:
+                                    env[k] = v.replace("context-router", "fish-trail")
+                    updated = json.dumps(config, indent=2, ensure_ascii=False)
+                    if updated != new_content:
+                        new_content = updated + "\n"
+            except (json.JSONDecodeError, KeyError):
+                pass
+
+            if new_content != content:
+                abs_config.write_text(new_content, encoding="utf-8")
+                log(f"    ↻ Updated MCP paths in {config_file_rel}")
+                migrated = True
+
+    if migrated:
+        banner("Legacy v0.9.x artifacts migrated to v1.4.x")
+
+
+# ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 def build_parser() -> argparse.ArgumentParser:
@@ -1858,7 +2477,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--uninstall",
         action="store_true",
-        help="Remove a pack (not yet implemented)",
+        help="Remove a pack",
     )
     parser.add_argument(
         "--offline",
@@ -1900,10 +2519,45 @@ def main():
         list_packs(offline=args.offline, github_token=args.github_token)
         return 0
 
-    # Handle --uninstall (Phase 4 stub)
+    # Handle --uninstall
     if args.uninstall:
-        print("Uninstall not yet implemented. Use Phase 4.", file=sys.stderr)
-        return 1
+        pack_spec = args.pack or args.pack_positional
+        if not pack_spec:
+            log_error("No pack specified for uninstall. Use --pack <alias> --uninstall.")
+            return 1
+
+        pack_names = resolve_pack_names(pack_spec)
+        if not pack_names:
+            log_error("No valid packs specified.")
+            return 1
+
+        target = Path(args.target).resolve()
+        if not target.is_dir():
+            log_error(f"Target directory does not exist: {target}")
+            return 1
+
+        if args.detect:
+            plat_name = detect_platform(target, platforms_data)
+        else:
+            plat_names = resolve_platform_name(args.platform, platforms_data)
+            plat_name = plat_names[0] if len(plat_names) == 1 else "opencode"
+
+        plat_dirs = get_platform_dirs(plat_name, platforms_data, args.global_install, target)
+        total_removed = 0
+        for pack_alias in pack_names:
+            if args.global_install:
+                total_removed += uninstall_global_pack(
+                    pack_alias, plat_dirs, platforms_data, SCRIPT_ROOT,
+                    offline=args.offline, github_token=args.github_token,
+                )
+            else:
+                total_removed += uninstall_pack(
+                    pack_alias, target, plat_dirs, platforms_data, SCRIPT_ROOT,
+                    offline=args.offline, github_token=args.github_token,
+                )
+
+        banner(f"Uninstall done: {total_removed} total items removed")
+        return 0
 
     # Handle --detect only (no pack specified)
     pack_spec = args.pack or args.pack_positional
@@ -1961,6 +2615,20 @@ def main():
 
     # Find registry path
     reg_path = find_registry_path(target, plat_dirs)
+    registry = load_registry(reg_path)
+
+    # Run v0.9.x → v1.4.x migration
+    skills_dir_rel = plat_dirs.get("skills_dir", ".opencode/skills")
+    if skills_dir_rel and Path(skills_dir_rel).is_absolute():
+        try:
+            skills_dir_rel = str(Path(skills_dir_rel).relative_to(target))
+        except ValueError:
+            skills_dir_rel = str(skills_dir_rel)
+    config_file_rel = plat_dirs.get("config_file") or ""
+    rules_dir_rel = ".opencode/agents-rules"
+    migrate_legacy_v0_9(target, skills_dir_rel, config_file_rel, rules_dir_rel)
+
+    # Reload registry after migration may have modified it on disk
     registry = load_registry(reg_path)
 
     # Check for remote mode (no local packs/ dir)
