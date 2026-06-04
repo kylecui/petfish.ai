@@ -728,6 +728,353 @@ def install_pack_files(
 
 
 # ---------------------------------------------------------------------------
+# Phase 2: AGENTS.md marker merge
+# ---------------------------------------------------------------------------
+L1_PACK_MAP: dict[str, str] = {
+    "opencode-course-skills-pack": "course-skills.md",
+    "repo-deploy-ops-skill-pack": "deploy-ops.md",
+    "petfish-style-skill": "petfish-style.md",
+    "petfish-companion-skill": "petfish-companion.md",
+    "petfish-toolchain-skill": "petfish-companion.md",  # shares same rules file
+    "anti-sycophancy-calibration-pack": "anti-sycophancy.md",
+    "fish-trail": "fish-trail.md",
+    "research-skill-pack": "research.md",
+    "fish-reflection-pack": "fish-reflection.md",
+    "series-style-governor-pack": "series-style-governor.md",
+}
+
+
+def merge_agents_md(
+    src_file: Path, dst_file: Path, pack_name: str, force: bool, manifest: dict | None = None
+) -> str:
+    """Merge pack AGENTS.md into target AGENTS.md using marker sections.
+    Returns: 'created', 'exists', 'updated', or 'merged'"""
+    begin_marker = f"<!-- BEGIN pack: {pack_name} -->"
+    end_marker = f"<!-- END pack: {pack_name} -->"
+
+    src_content = src_file.read_text(encoding="utf-8")
+    # Strip existing markers from source if present (safety net)
+    src_content = src_content.replace(begin_marker + "\n", "").replace(begin_marker, "")
+    src_content = src_content.replace(end_marker + "\n", "").replace(end_marker, "")
+    src_content = src_content.strip()
+
+    wrapped = f"{begin_marker}\n{src_content}\n{end_marker}"
+
+    # If dst doesn't exist: create
+    if not dst_file.is_file():
+        dst_file.parent.mkdir(parents=True, exist_ok=True)
+        dst_file.write_text(wrapped + "\n", encoding="utf-8")
+        return "created"
+
+    dst_text = dst_file.read_text(encoding="utf-8")
+
+    # Collect legacy names from manifest
+    legacy_names: list[str] = []
+    if manifest and isinstance(manifest.get("legacy_names"), list):
+        legacy_names = manifest["legacy_names"]
+
+    # Check if current marker OR any legacy marker exists in dst
+    found_current = begin_marker in dst_text
+    found_legacy = False
+    for ln in legacy_names:
+        if f"<!-- BEGIN pack: {ln} -->" in dst_text:
+            found_legacy = True
+            break
+
+    if found_current or found_legacy:
+        if not force:
+            return "exists"
+
+        # Replace current name and all legacy name sections
+        all_names = [pack_name] + legacy_names
+        first_pos = len(dst_text)
+        found_any = False
+
+        for name in all_names:
+            bm = re.escape(f"<!-- BEGIN pack: {name} -->")
+            em = re.escape(f"<!-- END pack: {name} -->")
+            pattern = bm + r".*?" + em
+            matches = list(re.finditer(pattern, dst_text, flags=re.DOTALL))
+            if matches:
+                if matches[0].start() < first_pos:
+                    first_pos = matches[0].start()
+                found_any = True
+                dst_text = re.sub(pattern, "", dst_text, flags=re.DOTALL)
+
+        if found_any:
+            dst_text = dst_text.strip()
+            first_pos = min(first_pos, len(dst_text))
+            dst_text = (
+                dst_text[:first_pos].rstrip()
+                + "\n\n"
+                + wrapped
+                + "\n\n"
+                + dst_text[first_pos:].lstrip()
+            )
+
+        # Clean up 3+ blank lines → 2 blank lines
+        dst_text = re.sub(r"\n{3,}", "\n\n", dst_text).strip() + "\n"
+        dst_file.write_text(dst_text, encoding="utf-8")
+        return "updated"
+
+    # Not found: append
+    dst_file.write_text(dst_text.rstrip() + f"\n\n{wrapped}\n", encoding="utf-8")
+    return "merged"
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: Write L1 rules file
+# ---------------------------------------------------------------------------
+def write_pack_rules_file(src_file: Path, target: Path, pack_name: str):
+    """Write AGENTS.md content (stripped of markers) to .opencode/agents-rules/."""
+    l1_name = L1_PACK_MAP.get(pack_name)
+    if not l1_name:
+        return
+
+    rules_dir = target / ".opencode" / "agents-rules"
+    rules_dir.mkdir(parents=True, exist_ok=True)
+
+    content = src_file.read_text(encoding="utf-8")
+    # Strip BEGIN/END markers for any possible pack name
+    content = re.sub(r"^<!-- BEGIN pack: .+? -->$\n?", "", content, flags=re.MULTILINE)
+    content = re.sub(r"^<!-- END pack: .+? -->$\n?", "", content, flags=re.MULTILINE)
+    content = content.strip() + "\n"
+
+    rules_file = rules_dir / l1_name
+    # Backup existing rules file before overwriting
+    if rules_file.is_file():
+        ts = datetime.now().strftime("%Y%m%d%H%M%S")
+        shutil.copy2(rules_file, rules_dir / f"{l1_name}.{ts}.bak")
+
+    rules_file.write_text(content, encoding="utf-8")
+    log_success(f".opencode/agents-rules/{l1_name}")
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: Deploy extra agents-rules from pack's .opencode/agents-rules/
+# ---------------------------------------------------------------------------
+def deploy_extra_agents_rules(pack_opencode: Path, target: Path):
+    """Copy pack's .opencode/agents-rules/*.md files to target."""
+    src_rules = pack_opencode / "agents-rules"
+    if not src_rules.is_dir():
+        return
+    dst_rules = target / ".opencode" / "agents-rules"
+    dst_rules.mkdir(parents=True, exist_ok=True)
+    for f in src_rules.glob("*.md"):
+        if f.is_file():
+            shutil.copy2(f, dst_rules / f.name)
+            log_success(f".opencode/agents-rules/{f.name}")
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: Plugin deployment
+# ---------------------------------------------------------------------------
+def install_plugin_files(source_root: Path, target: Path):
+    """Deploy lib/plugin/*.ts to target/.opencode/plugin/ (skip topic-detector.ts)."""
+    src_plugin_dir = source_root / "lib" / "plugin"
+    if not src_plugin_dir.is_dir():
+        return
+    dst_plugin_dir = target / ".opencode" / "plugin"
+    dst_plugin_dir.mkdir(parents=True, exist_ok=True)
+
+    for src in src_plugin_dir.glob("*.ts"):
+        if not src.is_file():
+            continue
+        # topic-detector.ts is inlined into system-prompt-context-inject.ts (#160/#161)
+        # and must NOT be deployed as a standalone plugin (causes constructor crash)
+        if src.name == "topic-detector.ts":
+            continue
+        shutil.copy2(src, dst_plugin_dir / src.name)
+        log_success(f".opencode/plugin/{src.name}")
+
+
+def register_plugin_in_config(config_file: Path):
+    """Register plugin tuples in opencode.json (idempotent)."""
+    if not config_file.is_file():
+        return
+
+    with open(config_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if "plugin" not in data:
+        data["plugin"] = []
+
+    plugins_to_register = [
+        [".opencode/plugin/system-prompt-rules.ts", {"mode": "all"}],
+        [".opencode/plugin/system-prompt-context-inject.ts", {"maxTopics": 5, "maxSummaryLen": 200}],
+    ]
+
+    changed = False
+    for plugin_tuple in plugins_to_register:
+        plugin_path = plugin_tuple[0]
+        already_exists = any(
+            isinstance(entry, list) and len(entry) >= 1 and entry[0] == plugin_path
+            for entry in data["plugin"]
+        )
+        if not already_exists:
+            data["plugin"].append(plugin_tuple)
+            changed = True
+
+    if changed:
+        with open(config_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        log_success("opencode.json (plugins registered)")
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: opencode.json deep merge
+# ---------------------------------------------------------------------------
+def merge_opencode_json(
+    src_file: Path, dst_file: Path, force: bool, skills_dir: str = ".opencode/skills"
+) -> str:
+    """Deep merge opencode.example.json into opencode.json.
+    Returns: 'created', 'merged'"""
+    with open(src_file, "r", encoding="utf-8") as f:
+        src = json.load(f)
+
+    # Replace .opencode/skills/ with actual skills_dir path
+    normalized = skills_dir.rstrip("/\\") or ".opencode/skills"
+    # Normalize to forward slashes for JSON
+    normalized_fwd = normalized.replace("\\", "/")
+    src_str = json.dumps(src, ensure_ascii=False)
+    src_str = src_str.replace(".opencode/skills/", normalized_fwd + "/")
+    src = json.loads(src_str)
+
+    if not dst_file.is_file():
+        dst_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(dst_file, "w", encoding="utf-8") as f:
+            json.dump(src, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        return "created"
+
+    with open(dst_file, "r", encoding="utf-8") as f:
+        dst = json.load(f)
+
+    ATOMIC_L2 = {"mcp"}
+
+    def deep_merge(s, d, force_flag, parent_key=""):
+        for k, v in s.items():
+            if k not in d:
+                d[k] = v
+            elif parent_key in ATOMIC_L2 and force_flag:
+                d[k] = v
+            elif isinstance(v, dict) and isinstance(d[k], dict):
+                deep_merge(v, d[k], force_flag, parent_key=k)
+            elif force_flag:
+                d[k] = v
+
+    deep_merge(src, dst, force)
+    with open(dst_file, "w", encoding="utf-8") as f:
+        json.dump(dst, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    return "merged"
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: MCP server deployment
+# ---------------------------------------------------------------------------
+def deploy_mcp_servers(pack_opencode: Path, target: Path):
+    """Copy pack's .opencode/mcp/*/ directories to target/.opencode/mcp/*/."""
+    src_mcp = pack_opencode / "mcp"
+    if not src_mcp.is_dir():
+        return
+    dst_mcp = target / ".opencode" / "mcp"
+    dst_mcp.mkdir(parents=True, exist_ok=True)
+    for mcp_dir in src_mcp.iterdir():
+        if mcp_dir.is_dir():
+            target_dir = dst_mcp / mcp_dir.name
+            target_dir.mkdir(parents=True, exist_ok=True)
+            for item in mcp_dir.iterdir():
+                if item.is_file():
+                    shutil.copy2(item, target_dir / item.name)
+                elif item.is_dir():
+                    dst_sub = target_dir / item.name
+                    if dst_sub.is_dir():
+                        shutil.rmtree(dst_sub)
+                    shutil.copytree(item, dst_sub)
+            log_success(f".opencode/mcp/{mcp_dir.name}/")
+
+
+# ---------------------------------------------------------------------------
+# Phase 2: Instruction translation for secondary platforms
+# ---------------------------------------------------------------------------
+PLATFORM_HEADERS: dict[str, str] = {
+    "claude": "# CLAUDE.md — PEtFiSh Agent Instructions\n\n> Auto-generated from AGENTS.md by PEtFiSh installer.\n\n",
+    "codex": "# AGENTS.md — PEtFiSh Agent Instructions\n\n> Auto-generated from AGENTS.md by PEtFiSh installer.\n\n",
+    "copilot": "# GitHub Copilot Instructions — PEtFiSh Agent Instructions\n\n> Auto-generated from AGENTS.md by PEtFiSh installer.\n\n",
+    "windsurf": "# Windsurf Rules — PEtFiSh Agent Instructions\n\n> Auto-generated from AGENTS.md by PEtFiSh installer.\n\n",
+}
+
+
+def translate_rename_with_header(src_content: str, platform_name: str) -> str:
+    """Prepend platform-specific header and copy content."""
+    header = PLATFORM_HEADERS.get(platform_name, "")
+    return header + src_content
+
+
+def translate_wrap_as_mdc(src_content: str) -> str:
+    """Wrap content in Cursor .mdc format."""
+    return f"---\ndescription: PEtFiSh Agent Instructions\nalwaysApply: true\n---\n\n{src_content}\n"
+
+
+def condense_content(content: str, max_tokens: int) -> str:
+    """Approximate token counting (1 token ≈ 4 chars) and trim if needed."""
+    max_chars = max_tokens * 4
+    if len(content) <= max_chars:
+        return content
+    return content[:max_chars] + "\n\n... (content truncated to fit token limit)"
+
+
+def translate_instructions(
+    src_agents: Path, target: Path, platform_name: str, platforms_data: dict, force: bool
+):
+    """Translate AGENTS.md instructions for secondary platforms."""
+    plat_info = platforms_data.get("platforms", {}).get(platform_name, {})
+    translation = plat_info.get("instructions_translation")
+    if not translation:
+        return
+
+    if not src_agents.is_file():
+        return
+
+    src_content = src_agents.read_text(encoding="utf-8")
+    method = translation.get("method", "")
+    target_rel = translation.get("target", "")
+
+    if not target_rel or not method:
+        return
+
+    dst_file = target / target_rel
+
+    if method == "rename_with_header":
+        translated = translate_rename_with_header(src_content, platform_name)
+    elif method == "wrap_as_mdc":
+        translated = translate_wrap_as_mdc(src_content)
+    else:
+        return
+
+    # Apply condensation if platform has token limit
+    condense_cfg = plat_info.get("condense")
+    if condense_cfg:
+        max_tokens = condense_cfg.get("max_tokens", 0)
+        if max_tokens > 0:
+            translated = condense_content(translated, max_tokens)
+
+    # Use marker-based merge for the translated content
+    # For secondary platforms, we write the translated AGENTS.md content using markers
+    if not dst_file.is_file():
+        dst_file.parent.mkdir(parents=True, exist_ok=True)
+        dst_file.write_text(translated, encoding="utf-8")
+        log_success(f"{target_rel} (created)")
+    elif force:
+        dst_file.write_text(translated, encoding="utf-8")
+        log_success(f"{target_rel} (updated)")
+    else:
+        log_warn(f"{target_rel} already exists (use --force to update)")
+
+
+# ---------------------------------------------------------------------------
 # List packs
 # ---------------------------------------------------------------------------
 def list_packs():
@@ -782,6 +1129,9 @@ def install_single_pack(
     force: bool,
     reg_path: Path,
     registry: dict,
+    plat_name: str = "opencode",
+    platforms_data: dict | None = None,
+    use_global: bool = False,
 ) -> bool:
     """Install a single pack. Returns True on success."""
     # Find pack directory
@@ -789,7 +1139,7 @@ def install_single_pack(
     if pack_dir is None:
         # Check if it's a remote-only pack
         packs_root = SCRIPT_ROOT / "packs"
-        if not (SCRIPT_ROOT / "packs").is_dir():
+        if not packs_root.is_dir():
             log_error("No packs/ directory found. Remote mode not yet implemented.")
             return False
         log_error(f"Pack not found: {pack_name}")
@@ -820,11 +1170,89 @@ def install_single_pack(
     # Perform installation
     banner(f"Installing {pack_name} v{source_ver} ...")
 
+    pack_opencode = pack_dir / ".opencode"
+    is_opencode = plat_name == "opencode"
+    is_l1_pack = pack_name in L1_PACK_MAP
+    skills_dir = plat_dirs.get("skills_dir")
+
+    # Step 1: Copy skills/agents/commands (existing Phase 0+1)
     installed_skills, installed_commands, installed_agents = install_pack_files(
         pack_dir, target, plat_dirs, force, manifest
     )
 
-    # Update registry
+    # Step 2: Write L1 rules file (opencode platform only, for L1 packs)
+    if is_opencode and is_l1_pack and not use_global:
+        agents_src = pack_dir / "AGENTS.md"
+        if agents_src.is_file():
+            write_pack_rules_file(agents_src, target, pack_name)
+
+        # Deploy extra agents-rules files from the pack
+        deploy_extra_agents_rules(pack_opencode, target)
+
+        # Install plugin files (idempotent, runs for each L1 pack)
+        # Plugin registration in config deferred until after opencode.json merge (Step 5)
+        install_plugin_files(SCRIPT_ROOT, target)
+
+    # Step 3: Deploy MCP servers
+    if is_opencode and not use_global:
+        deploy_mcp_servers(pack_opencode, target)
+
+    # Step 4: Merge AGENTS.md (primary platform instructions)
+    agents_src = pack_dir / "AGENTS.md"
+    instructions_file = plat_dirs.get("instructions_file")
+
+    if agents_src.is_file() and instructions_file and not use_global:
+        inst_path = Path(instructions_file) if Path(instructions_file).is_absolute() else target / instructions_file
+
+        if is_opencode and is_l1_pack:
+            # L1 packs on opencode: skip inline merge (handled by rules files above)
+            # Remove old inline section if present (v0.10.x → v0.11.x migration)
+            if inst_path.is_file():
+                _remove_inline_section(inst_path, pack_name, legacy_names)
+        else:
+            # Non-opencode or non-L1 packs: merge inline
+            result = merge_agents_md(agents_src, inst_path, pack_name, force, manifest)
+            if result == "created":
+                log_success(f"{instructions_file} (created)")
+            elif result == "merged":
+                log_success(f"{instructions_file} (merged)")
+            elif result == "updated":
+                log_success(f"{instructions_file} (updated)")
+            elif result == "exists":
+                log_warn(f"{instructions_file} (pack section exists, use --force to update)")
+
+    # Step 5: Merge opencode.json (if opencode platform)
+    config_file_rel = plat_dirs.get("config_file") if plat_dirs else None
+    example_json = pack_dir / "opencode.example.json"
+
+    if is_opencode and config_file_rel and example_json.is_file() and not use_global:
+        dst_config = Path(config_file_rel) if Path(config_file_rel).is_absolute() else target / config_file_rel
+        skills_dir_str = str(skills_dir) if skills_dir else ".opencode/skills"
+        # Make skills_dir relative to target if it's a subpath
+        if skills_dir and str(skills_dir).startswith(str(target)):
+            skills_dir_str = str(Path(skills_dir).relative_to(target))
+        result = merge_opencode_json(example_json, dst_config, force, skills_dir_str)
+        if result == "created":
+            log_success(f"{config_file_rel} (created from example)")
+        elif result == "merged":
+            log_success(f"{config_file_rel} (merged)")
+
+    # Step 5.5: Register plugins in config (must be AFTER config merge to avoid overwrite)
+    if is_opencode and is_l1_pack and not use_global:
+        config_file = plat_dirs.get("config_file")
+        if config_file:
+            register_plugin_in_config(Path(config_file) if Path(config_file).is_absolute() else target / config_file)
+
+    # Step 6: Translate instructions for secondary platforms
+    if platforms_data and not use_global and instructions_file:
+        src_agents = target / instructions_file if not Path(instructions_file).is_absolute() else Path(instructions_file)
+        if not is_opencode:
+            translate_instructions(
+                src_agents if src_agents.is_file() else agents_src,
+                target, plat_name, platforms_data, force
+            )
+
+    # Step 7: Update registry
     update_registry(
         registry,
         pack_name,
@@ -847,6 +1275,29 @@ def install_single_pack(
     log_success(f"{pack_name} v{source_ver}: {summary}")
 
     return True
+
+
+def _remove_inline_section(agents_file: Path, pack_name: str, legacy_names: list[str]):
+    """Remove old inline pack section from AGENTS.md (v0.10.x → v0.11.x migration)."""
+    if not agents_file.is_file():
+        return
+
+    text = agents_file.read_text(encoding="utf-8")
+    all_names = [pack_name] + legacy_names
+    changed = False
+
+    for name in all_names:
+        bm = re.escape(f"<!-- BEGIN pack: {name} -->")
+        em = re.escape(f"<!-- END pack: {name} -->")
+        pattern = bm + r".*?" + em
+        new_text = re.sub(pattern, "", text, flags=re.DOTALL)
+        if new_text != text:
+            text = new_text
+            changed = True
+
+    if changed:
+        text = re.sub(r"\n{3,}", "\n\n", text).strip() + "\n"
+        agents_file.write_text(text, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -1025,7 +1476,10 @@ def main():
     for pack_name in pack_names:
         try:
             if install_single_pack(
-                pack_name, target, plat_dirs, args.force, reg_path, registry
+                pack_name, target, plat_dirs, args.force, reg_path, registry,
+                plat_name=plat_name,
+                platforms_data=platforms_data,
+                use_global=args.global_install,
             ):
                 success_count += 1
         except Exception as exc:
