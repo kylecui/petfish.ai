@@ -2639,19 +2639,109 @@ def main():
         return 1
 
     # Install each pack
+    # Fix #215: When init is mixed with other packs, split the install —
+    # init goes global, rest stays local. Only when:
+    #   - not explicitly --global
+    #   - not explicitly --target (other than default ".")
+    #   - target is "." (cwd, the default)
+    target_explicit = args.target != "."
+    INIT_PACK_NAME = "project-initializer-skill"
+    should_split = (
+        not args.global_install
+        and not target_explicit
+        and str(target) == str(Path(".").resolve())
+        and any(p == INIT_PACK_NAME for p in pack_names)
+    )
+
     success_count = 0
-    for pack_name in pack_names:
-        try:
-            # Community packs: download first, then install as the staged name
-            if pack_name.startswith("community/"):
-                result = download_community_pack(pack_name, github_token=args.github_token)
-                if result is None:
-                    log_error(f"Failed to download community pack: {pack_name}")
+
+    if should_split:
+        init_packs = [p for p in pack_names if p == INIT_PACK_NAME]
+        other_packs = [p for p in pack_names if p != INIT_PACK_NAME]
+        log_info("init pack defaults to global install. Use --target to install locally.")
+
+        # Install init globally
+        global_plat_dirs = get_platform_dirs(plat_name, platforms_data, True, target)
+        global_skills_dir = global_plat_dirs.get("skills_dir")
+        if global_skills_dir:
+            Path(global_skills_dir).mkdir(parents=True, exist_ok=True)
+            global_reg_path = find_registry_path(target, global_plat_dirs)
+            global_registry = load_registry(global_reg_path)
+            for pack_name in init_packs:
+                try:
+                    install_ok = install_single_pack(
+                        pack_name, target, global_plat_dirs, args.force,
+                        global_reg_path, global_registry,
+                        plat_name=plat_name,
+                        platforms_data=platforms_data,
+                        use_global=True,
+                        offline=args.offline,
+                        github_token=args.github_token,
+                    )
+                    if install_ok:
+                        success_count += 1
+                except Exception as exc:
+                    log_error(f"{pack_name}: {exc}")
+            save_registry(global_reg_path, global_registry)
+
+        # Install rest locally
+        for pack_name in other_packs:
+            try:
+                if pack_name.startswith("community/"):
+                    result = download_community_pack(pack_name, github_token=args.github_token)
+                    if result is None:
+                        log_error(f"Failed to download community pack: {pack_name}")
+                        continue
+                    staged_name, staged_path = result
+                    install_ok = install_single_pack(
+                        staged_name, target, plat_dirs, args.force, reg_path, registry,
+                        plat_name=plat_name,
+                        platforms_data=platforms_data,
+                        use_global=False,
+                        offline=args.offline,
+                        github_token=args.github_token,
+                    )
+                    if install_ok:
+                        success_count += 1
                     continue
-                staged_name, staged_path = result
-                # Temporarily make find_pack_dir_enhanced find the community pack
+
                 install_ok = install_single_pack(
-                    staged_name, target, plat_dirs, args.force, reg_path, registry,
+                    pack_name, target, plat_dirs, args.force, reg_path, registry,
+                    plat_name=plat_name,
+                    platforms_data=platforms_data,
+                    use_global=False,
+                    offline=args.offline,
+                    github_token=args.github_token,
+                )
+                if install_ok:
+                    success_count += 1
+            except Exception as exc:
+                log_error(f"{pack_name}: {exc}")
+    else:
+        # Normal install: all packs to the same target (global or local)
+        for pack_name in pack_names:
+            try:
+                # Community packs: download first, then install as the staged name
+                if pack_name.startswith("community/"):
+                    result = download_community_pack(pack_name, github_token=args.github_token)
+                    if result is None:
+                        log_error(f"Failed to download community pack: {pack_name}")
+                        continue
+                    staged_name, staged_path = result
+                    install_ok = install_single_pack(
+                        staged_name, target, plat_dirs, args.force, reg_path, registry,
+                        plat_name=plat_name,
+                        platforms_data=platforms_data,
+                        use_global=args.global_install,
+                        offline=args.offline,
+                        github_token=args.github_token,
+                    )
+                    if install_ok:
+                        success_count += 1
+                    continue
+
+                install_ok = install_single_pack(
+                    pack_name, target, plat_dirs, args.force, reg_path, registry,
                     plat_name=plat_name,
                     platforms_data=platforms_data,
                     use_global=args.global_install,
@@ -2660,20 +2750,8 @@ def main():
                 )
                 if install_ok:
                     success_count += 1
-                continue
-
-            install_ok = install_single_pack(
-                pack_name, target, plat_dirs, args.force, reg_path, registry,
-                plat_name=plat_name,
-                platforms_data=platforms_data,
-                use_global=args.global_install,
-                offline=args.offline,
-                github_token=args.github_token,
-            )
-            if install_ok:
-                success_count += 1
-        except Exception as exc:
-            log_error(f"{pack_name}: {exc}")
+            except Exception as exc:
+                log_error(f"{pack_name}: {exc}")
 
     # Cleanup staging directories
     _cleanup_staging()
