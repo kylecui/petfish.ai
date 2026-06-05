@@ -185,36 +185,25 @@ This installs the external trust governance engine for behavioral analysis of sk
 
 If the user's environment cannot access GitHub (firewall, air-gapped, China network issues), use local install instead of remote.
 
-### Option 1: Pre-download and run locally
+### Option 1: Clone the repo and run locally
 
-1. On a machine with network access, download these files to the same directory:
-   - `install.ps1` (or `install.sh`)
-   - `platforms.json`
-   - The target pack directory under `packs/` (e.g. `packs/petfish-style-skill/`)
-
-   The easiest way is to clone the entire repo:
+1. Clone the repo on a machine with network access:
    ```bash
    git clone https://github.com/kylecui/petfish.ai.git
    ```
 
-2. Transfer the files (or the whole repo) to the target machine via USB, internal file share, or SCP.
+2. Transfer the repo to the target machine via USB, internal file share, or SCP.
 
-3. Run the local installer:
-   **PowerShell:**
-   ```powershell
-   .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
-   ```
-
-   **Bash:**
+3. Run the unified installer in offline mode:
    ```bash
-   ./install.sh --pack <alias> --platform <PLATFORM> --target .
+   uv run ./install.py --pack <alias> --platform <PLATFORM> --offline
    ```
 
-   > The local installer scans the `packs/` directory dynamically — no internet access needed. `platforms.json` provides platform metadata; if missing, the installer falls back to hardcoded defaults.
+   > The installer scans `packs/core/` and `packs/optional/` locally — no internet access needed. `platforms.json` provides platform metadata; if missing, the installer falls back to hardcoded defaults.
 
 ### Option 2: Mirror-enhanced remote install (China network)
 
-The remote installer (`remote-install.ps1` v0.11.12+) includes automatic mirror fallback for China network environments:
+The unified installer (`install.py`) includes automatic mirror fallback for China network environments:
 
 - Tries the original GitHub URL first
 - Falls back to `ghfast.top` mirror
@@ -227,23 +216,15 @@ No extra flags needed — mirror fallback is automatic on download failure.
 
 If the repo is private or rate-limited:
 
-**Bash:**
 ```bash
-curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-  https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack <alias> --platform <PLATFORM>
-```
-
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> -Platform <PLATFORM> -GitHubToken $env:GITHUB_TOKEN
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform <PLATFORM> --github-token $GITHUB_TOKEN
 ```
 
 ### Minimum files for local install
 
 | File | Required | Notes |
 |------|----------|-------|
-| `install.ps1` or `install.sh` | Yes | Main installer script |
+| `install.py` | Yes | Unified Python installer |
 | `platforms.json` | Recommended | Platform metadata; fallback defaults exist if missing |
 | `packs/<pack-dir>/` | Yes | At least the pack you want to install |
 | `packs/<pack-dir>/pack-manifest.json` | Yes | Pack metadata read by installer |
@@ -265,4 +246,4 @@ PEtFiSh pack descriptions and status messages may contain Chinese text. If these
 
 **GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
-**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track. 4 core packs + 10 optional packs via petfish-market.
+**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track. 4 core packs + 10 optional packs via petfish-market. Unified Python installer (`install.py`) distributed via `uv run <url>`.

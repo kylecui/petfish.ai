@@ -171,16 +171,10 @@ Same as install guide:
 
 ## Step 3: Upgrade all installed packs
 
-You can run `/petfish upgrade` to see the upgrade command for your OS, or run the remote installer with `--force` flag directly:
+You can run `/petfish upgrade` to see the upgrade command for your OS, or run the unified installer with `--force` flag directly:
 
-**Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force --platform <PLATFORM>
-```
-
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force -Platform <PLATFORM>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force --platform <PLATFORM>
 ```
 
 Replace `<PLATFORM>` with the detected platform (e.g. `opencode`, `claude`, `codex`, etc.).
@@ -188,6 +182,11 @@ Replace `<PLATFORM>` with the detected platform (e.g. `opencode`, `claude`, `cod
 > **What `--force` does**: Re-installs all packs even if they appear current. This ensures renamed packs (like context-router-skill → fish-trail) get properly migrated.
 
 > **What `--pack all` does**: Installs/upgrades every available pack. If the user only wants specific packs, replace `all` with a comma-separated list (e.g. `companion,context,petfish`).
+
+> **Legacy shell upgrade** (deprecated, use `install.py` instead):
+> ```bash
+> curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force --platform <PLATFORM>
+> ```
 
 ---
 
@@ -375,4 +374,4 @@ Already has fish-trail naming. Run Step 3 with `--force` to pick up the latest s
 
 **GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
-**What's new in v1.4.x**: packs/ split into core/ + optional/, skill-publish, market-first distribution for optional packs, petfish-market registry with 9 official entries
+**What's new in v1.5.x**: Unified Python installer (`install.py`) replacing 4 shell scripts, core pack remote download, `--offline` mode, `--uninstall`, community packs, mirror fallback for China networks

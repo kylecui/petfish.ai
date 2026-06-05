@@ -11,7 +11,7 @@
 **Your AI Companion**
 From first commit to final delivery, PEtFiSh is always there.
 ```text
-><(((^>  PEtFiSh v1.4
+><(((^>  PEtFiSh v1.5
 
 Always Present   Companion Gateway in every interaction
 Guarding         Sense gaps, guard context, block pollution

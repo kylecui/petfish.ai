@@ -638,24 +638,16 @@
     </div>
 
     <div class="install-block">
-      <h3>▸ macOS / Linux / WSL</h3>
+      <h3><span class="copy-zh">▸ 统一安装命令（所有平台）</span><span class="copy-en">▸ Unified install command (all platforms)</span></h3>
       <div class="code-block">
         <button class="copy-btn" onclick="copyCode(this)">copy</button>
-        curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \<br/>  | bash -s -- --pack all --detect
-      </div>
-    </div>
-
-    <div class="install-block">
-      <h3>▸ Windows PowerShell</h3>
-      <div class="code-block">
-        <button class="copy-btn" onclick="copyCode(this)">copy</button>
-        & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "all" -Detect
+        uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
       </div>
     </div>
 
     <p class="install-note">
-      <span class="copy-zh">安装脚本自动获取最新稳定release版本。装完后输入 <code>/initproject</code> —— 胖鱼询问项目类型，自动安装匹配的Skill Pack，完成配置向导。从此刻起，伙伴已就位。</span>
-      <span class="copy-en">Install script auto-resolves the latest stable release. After install, type <code>/initproject</code> — PEtFiSh asks your project type, auto-installs matching skill packs, completes setup wizard. From this moment, your companion is in place.</span>
+      <span class="copy-zh">安装脚本自动获取最新稳定版本。装完后输入 <code>/initproject</code> —— 胖鱼询问项目类型，自动安装匹配的Skill Pack，完成配置向导。从此刻起，伙伴已就位。<br/><strong>旧版Shell安装器（install.sh / install.ps1）已废弃。</strong></span>
+      <span class="copy-en">Install script auto-resolves the latest stable version. After install, type <code>/initproject</code> — PEtFiSh asks your project type, auto-installs matching skill packs, completes setup wizard. From this moment, your companion is in place.<br/><strong>Legacy shell installers (install.sh / install.ps1) are deprecated.</strong></span>
     </p>
 
     <div class="install-block" style="margin-top: 32px;">
