@@ -37,6 +37,7 @@ PACK_ALIASES: dict[str, str] = {
     "trustskills-governance-pack": "trust",
     "fish-reflection-pack": "reflect",
     "series-style-governor-pack": "series-style",
+    "doc-reader-skill": "doc-reader",
 }
 
 
@@ -99,7 +100,7 @@ def build_registry_entry(
         "skill_count": manifest.get("skill_count", 0),
         "command_count": manifest.get("command_count", 0),
         "agent_count": manifest.get("agent_count", 0),
-        "license": "Apache-2.0",
+        "license": manifest.get("license", "Apache-2.0"),
         "author": "petfish-team",
         "platforms": ["opencode"],
         "gate_result": {},
