@@ -110,6 +110,8 @@ _market_meta: dict[str, dict] = {}  # pack_name → market metadata dict
 _market_pack_dirs: dict[str, Path] = {}  # pack_name → extracted staging Path
 _community_staging_dir: tempfile.TemporaryDirectory | None = None
 _market_staging_dir: tempfile.TemporaryDirectory | None = None
+_core_repo_staging_dir: tempfile.TemporaryDirectory | None = None
+_core_repo_extracted: Path | None = None  # cached extraction root
 
 
 def _get_community_staging() -> Path:
@@ -130,7 +132,7 @@ def _get_market_staging() -> Path:
 
 def _cleanup_staging():
     """Clean up all staging temp directories."""
-    global _community_staging_dir, _market_staging_dir
+    global _community_staging_dir, _market_staging_dir, _core_repo_staging_dir
     if _community_staging_dir is not None:
         try:
             _community_staging_dir.cleanup()
@@ -143,11 +145,69 @@ def _cleanup_staging():
         except Exception:
             pass
         _market_staging_dir = None
+    if _core_repo_staging_dir is not None:
+        try:
+            _core_repo_staging_dir.cleanup()
+        except Exception:
+            pass
+        _core_repo_staging_dir = None
 
 
-# ---------------------------------------------------------------------------
-# Hardcoded platforms.json fallback
-# ---------------------------------------------------------------------------
+def _ensure_core_repo_extracted(github_token: str | None = None) -> Path | None:
+    """Download and extract the kylecui/petfish.ai repo once.
+    Returns the root of the extracted repo (containing packs/core/ etc.),
+    or None on failure. Cached for the lifetime of the process."""
+    global _core_repo_staging_dir, _core_repo_extracted
+    if _core_repo_extracted is not None and _core_repo_extracted.is_dir():
+        return _core_repo_extracted
+
+    _core_repo_staging_dir = tempfile.TemporaryDirectory(prefix="petfish-core-")
+    staging = Path(_core_repo_staging_dir.name)
+    tarball_url = REPO_ARCHIVE_URL.format(
+        owner="kylecui", repo="petfish.ai", ref="master"
+    )
+    log("[core] Downloading petfish.ai repo for core packs...")
+
+    dl_ok = False
+    if download_tarball(tarball_url, staging, github_token=github_token):
+        # Find the extracted directory (GitHub tarballs extract to owner-repo-ref/)
+        for child in staging.iterdir():
+            if child.is_dir() and child.name != "archive.tar.gz":
+                _core_repo_extracted = child
+                dl_ok = True
+                break
+
+    if not dl_ok:
+        # Fall back to git clone
+        log("[core] Tarball download failed, falling back to git clone...")
+        clone_dest = staging / "petfish-ai-clone"
+        clone_url = "https://github.com/kylecui/petfish.ai.git"
+        if download_git_clone(clone_url, clone_dest, ref="master", github_token=github_token):
+            _core_repo_extracted = clone_dest
+            dl_ok = True
+
+    if not dl_ok:
+        log_warn("[core] Failed to download petfish.ai repo for core packs")
+        _core_repo_staging_dir.cleanup()
+        _core_repo_staging_dir = None
+        return None
+
+    return _core_repo_extracted
+
+
+def find_core_pack_remote(
+    pack_name: str, github_token: str | None = None
+) -> Path | None:
+    """Find a core pack by downloading the petfish.ai repo.
+    Returns the pack directory path or None."""
+    repo_root = _ensure_core_repo_extracted(github_token=github_token)
+    if repo_root is None:
+        return None
+    for subdir in ("core", "optional"):
+        candidate = repo_root / "packs" / subdir / pack_name
+        if candidate.is_dir():
+            return candidate
+    return None
 HARDCODED_PLATFORMS: dict = {
     "platforms": {
         "opencode": {
@@ -887,9 +947,10 @@ def find_pack_dir_enhanced(
     if offline:
         return None
 
-    # Core packs should always be local — no market fallback
+    # Core packs: try downloading the petfish.ai repo if no local packs/ dir
     if is_core_pack(pack_name):
-        return None
+        log(f"[core] Pack '{pack_name}' not found locally, downloading from petfish.ai repo...")
+        return find_core_pack_remote(pack_name, github_token=github_token)
 
     # Try market for optional packs
     meta = query_market_index(pack_name, github_token=github_token)
@@ -2658,7 +2719,7 @@ def main():
     if should_split:
         init_packs = [p for p in pack_names if p == INIT_PACK_NAME]
         other_packs = [p for p in pack_names if p != INIT_PACK_NAME]
-        log_info("init pack defaults to global install. Use --target to install locally.")
+        log("init pack defaults to global install. Use --target to install locally.")
 
         # Install init globally
         global_plat_dirs = get_platform_dirs(plat_name, platforms_data, True, target)
