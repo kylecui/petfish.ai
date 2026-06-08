@@ -987,9 +987,33 @@ def resolve_pack_names(raw: str) -> list[str]:
         return []
     if len(tokens) == 1 and tokens[0] == "all":
         local_packs = find_all_packs()
-        # When not offline, also include market packs
-        # (resolve_pack_names is called before offline is known, so we just return local)
-        return local_packs
+        if local_packs:
+            return local_packs
+        # Remote mode: no local packs/ dir (SCRIPT_ROOT is temp dir with only the
+        # downloaded script). Download core repo + query market index to discover
+        # all available packs.
+        result: list[str] = []
+        core_root = _ensure_core_repo_extracted()
+        if core_root:
+            for subdir in ("core", "optional"):
+                base = core_root / "packs" / subdir
+                if base.is_dir():
+                    for child in sorted(base.iterdir()):
+                        if child.is_dir() and (child / "pack-manifest.json").is_file():
+                            result.append(child.name)
+        # Also query market index for optional packs (may include packs not in
+        # the core repo snapshot, or community packs)
+        raw = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10)
+        if raw:
+            try:
+                data = json.loads(raw)
+                for pack in data.get("packs", []):
+                    name = pack.get("name")
+                    if name and name not in result:
+                        result.append(name)
+            except (json.JSONDecodeError, ValueError):
+                pass
+        return result
     result = []
     for token in tokens:
         if token.startswith("community/"):
@@ -1610,9 +1634,19 @@ def translate_instructions(
 def list_packs(offline: bool = False, github_token: str | None = None):
     """List all available packs."""
     packs = find_all_packs()
-    if not packs:
-        banner("No packs found. Are you running from a cloned repo?")
-        return
+
+    # Remote mode: no local packs/ dir. Try downloading core repo to discover
+    # core packs before falling through to market index query.
+    if not packs and not offline:
+        core_root = _ensure_core_repo_extracted(github_token=github_token)
+        if core_root:
+            for subdir in ("core", "optional"):
+                base = core_root / "packs" / subdir
+                if base.is_dir():
+                    for child in sorted(base.iterdir()):
+                        if child.is_dir() and (child / "pack-manifest.json").is_file():
+                            if child.name not in packs:
+                                packs.append(child.name)
 
     # When online, also query market for packs not present locally
     market_packs: list[dict] = []
@@ -1626,6 +1660,10 @@ def list_packs(offline: bool = False, github_token: str | None = None):
                         market_packs.append(pack)
             except (json.JSONDecodeError, ValueError):
                 pass
+
+    if not packs and not market_packs:
+        banner("No packs found. Are you running from a cloned repo?")
+        return
 
     total = len(packs) + len(market_packs)
     banner(f"Available packs ({total}):")
