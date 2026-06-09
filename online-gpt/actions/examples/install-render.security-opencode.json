@@ -1,0 +1,16 @@
+{
+  "operationId": "renderInstallCommand",
+  "request": {
+    "packs": ["context", "deploy", "petfish", "testdocs", "trust"],
+    "platform": "opencode",
+    "target": ".",
+    "scope": "project",
+    "operation": "install"
+  },
+  "expected_result_level": "command_rendered",
+  "expected_notes": [
+    "The action renders a command only.",
+    "It must not claim local installation occurred.",
+    "Verification should mention .opencode/skills and AGENTS.md."
+  ]
+}
