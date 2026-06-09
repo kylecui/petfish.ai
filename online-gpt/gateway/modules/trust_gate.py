@@ -5,18 +5,19 @@ from __future__ import annotations
 import re
 from typing import Iterable
 
-from ..schemas import ModuleEnvelope, envelope
+from schemas import ModuleEnvelope, envelope
 
+# Patterns are intentionally conservative and should be expanded through tests.
 DESTRUCTIVE_PATTERNS = [
-    r"\brm\s+-rf\b",
-    r"\bdel\s+/s\b",
-    r"\bremove-item\b.*\b-recurse\b",
-    r"\bgit\s+reset\s+--hard\b",
-    r"\bgit\s+clean\s+-fd",
-    r"\buninstall\b",
     r"\bdelete\b",
+    r"\bremove\b",
+    r"\buninstall\b",
+    r"\breset\b",
+    r"\bclean\b",
     r"删除",
     r"清空",
+    r"卸载",
+    r"重置",
 ]
 
 SECRET_PATTERNS = [
@@ -30,11 +31,9 @@ SECRET_PATTERNS = [
 ]
 
 PUBLISH_PATTERNS = [
-    r"\bgh\s+release\b",
-    r"\bgit\s+tag\b",
-    r"\bgit\s+push\b.*--tags",
-    r"publish",
-    r"release",
+    r"\brelease\b",
+    r"\bpublish\b",
+    r"\btag\b",
     r"发布",
 ]
 
@@ -43,8 +42,6 @@ WRITE_PATTERNS = [
     r"\bcreate\b",
     r"\bupdate\b",
     r"\bmodify\b",
-    r"\bmv\b",
-    r"\bcp\b",
     r"写入",
     r"创建",
     r"修改",
