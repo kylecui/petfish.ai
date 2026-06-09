@@ -19,10 +19,16 @@ I'm setting up PEtFiSh for you. Let me ask a few questions first.
 ## Step 1: Detect environment
 
 1. Detect the operating system:
-   - If macOS or Linux or WSL → use **Bash** commands
-   - If Windows → use **PowerShell** commands
+   - If macOS or Linux or WSL → **Bash** is available
+   - If Windows → **PowerShell** is available
 
-2. Detect the current AI platform by checking for these files in the project root:
+2. Check that `uv` is installed:
+   ```bash
+   uv --version
+   ```
+   If `uv` is not found, install it from https://docs.astral.sh/uv/getting-started/installation/ before continuing.
+
+3. Detect the current AI platform by checking for these files in the project root:
    - `.opencode/` or `opencode.json` → **opencode**
    - `.claude/` or `CLAUDE.md` → **claude**
    - `.codex/` → **codex**
@@ -91,39 +97,45 @@ Ask which packs they want. If they include `research`, ask the research domain f
 
 ## Step 3: Install
 
-### 3a: Install init + companion together
+### 3a: Install init + companion (global)
 
-**Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --platform <PLATFORM>
-```
-
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Platform <PLATFORM>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --platform <PLATFORM> --global
 ```
 
 Replace `<PLATFORM>` with the platform you detected in Step 1 (e.g. `codex`, `opencode`, `claude`, etc.).
 
 Run this command and verify it succeeds.
 
-> **Note**: The install script automatically downloads from the **latest stable release**. No need to specify a version — you always get the latest verified build.
+> **Note**: The install script automatically downloads from the **latest stable release**. No need to specify a version — you always get the latest verified build. The script includes automatic mirror fallback (`ghfast.top`, `ghproxy.com`) for China network environments.
 
 ### 3b: Install the packs based on the user's choice from Step 2
 
-For each pack the user selected, run:
+Install all selected packs in one command:
 
-**Bash:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <ALIAS> --platform <PLATFORM>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <ALIAS1,ALIAS2,...> --platform <PLATFORM>
 ```
 
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <ALIAS> -Platform <PLATFORM>
+Replace `<ALIAS1,ALIAS2,...>` with a comma-separated list of the packs the user selected (e.g. `course,petfish` for the course profile, or `deploy,petfish,testdocs` for the code profile).
+
+Example — **course** profile:
+
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack course,petfish --platform opencode
 ```
 
-Replace `<ALIAS>` with each pack alias (e.g., `course`, `deploy`, `petfish`, etc.) and `<PLATFORM>` with the platform from Step 1.
+Example — **code** profile (init + companion already installed in 3a):
+
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs --platform claude
+```
+
+Example — **comprehensive** profile (all packs at once, init+companion already done):
+
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack course,deploy,petfish,ppt,testdocs,trust,context,research,reflect --platform opencode
+```
 
 > **Core vs Optional**: Core packs (init, companion, petfish, toolchain) download directly from the petfish.ai release. Optional packs (course, research, etc.) resolve via petfish-market — same command, same experience. The installer queries the market index automatically when a pack is not found in the core set.
 
@@ -178,79 +190,44 @@ This installs the external trust governance engine for behavioral analysis of sk
 
 ## Troubleshooting
 
-- If `curl` is not found: suggest `wget -qO- <url> | bash -s -- <args>` as alternative
-- If PowerShell execution policy blocks the script: suggest `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
-- If the install says "uv not found": suggest installing uv from https://docs.astral.sh/uv/getting-started/installation/
-- If platform auto-detection fails or picks the wrong platform: detection is marker-based (looks for `.opencode/`, `.claude/`, `.codex/`, etc.). As an AI agent, you should always use `--platform <name>` explicitly instead of `--detect` — you know your own runtime platform
+- **`uv` not found**: Install uv from https://docs.astral.sh/uv/getting-started/installation/
+- **`uv run` fails to fetch `install.py`**: The script includes automatic mirror fallback (`ghfast.top` → `ghproxy.com`). If all mirrors fail, see the Offline / Network-Restricted section below.
+- **Platform auto-detection picks the wrong platform**: As an AI agent, you should always use `--platform <name>` explicitly instead of `--detect` — you know your own runtime platform.
+- **PEP 723 bootstrap is slow on first run**: `uv run` resolves inline script metadata on first invocation. Subsequent runs are cached. If timeout occurs, retry once.
+- **Permission denied on `--global`**: The global install directory may need to be created. The installer handles this automatically; if it fails, check `uv` permissions.
 
 ---
 
 ## Offline / Network-Restricted Install
 
-If the user's environment cannot access GitHub (firewall, air-gapped, China network issues), use local install instead of remote.
+If the user's environment cannot access GitHub (firewall, air-gapped, China network issues), use one of these options.
 
-### Option 1: Pre-download and run locally
+### Option 1: Clone and run locally
 
-1. On a machine with network access, download these files to the same directory:
-   - `install.ps1` (or `install.sh`)
-   - `platforms.json`
-   - The target pack directory under `packs/` (e.g. `packs/petfish-style-skill/`)
-
-   The easiest way is to clone the entire repo:
+1. On a machine with network access, clone the repo:
    ```bash
    git clone https://github.com/kylecui/petfish.ai.git
    ```
 
-2. Transfer the files (or the whole repo) to the target machine via USB, internal file share, or SCP.
+2. Transfer the cloned repo to the target machine via USB, internal file share, or SCP.
 
-3. Run the local installer:
-   **PowerShell:**
-   ```powershell
-   .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
-   ```
-
-   **Bash:**
+3. Run the installer locally with `--offline`:
    ```bash
-   ./install.sh --pack <alias> --platform <PLATFORM> --target .
+   cd petfish.ai
+   uv run ./install.py --pack <alias> --platform <PLATFORM> --offline
    ```
 
-   > The local installer scans the `packs/` directory dynamically — no internet access needed. `platforms.json` provides platform metadata; if missing, the installer falls back to hardcoded defaults.
+   The `--offline` flag forces the installer to use only local files — no network requests, no mirror fallback.
 
-### Option 2: Mirror-enhanced remote install (China network)
+### Option 2: GitHub token for private repo or rate limiting
 
-The remote installer (`remote-install.ps1` v0.11.12+) includes automatic mirror fallback for China network environments:
+If the repo is private or rate-limited, set `GITHUB_TOKEN` in the environment:
 
-- Tries the original GitHub URL first
-- Falls back to `ghfast.top` mirror
-- Falls back to `ghproxy.com` mirror
-- Retries up to 3 times with exponential backoff
-
-No extra flags needed — mirror fallback is automatic on download failure.
-
-### Option 3: Private repo with GitHub token
-
-If the repo is private or rate-limited:
-
-**Bash:**
 ```bash
-curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-  https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack <alias> --platform <PLATFORM>
+GITHUB_TOKEN=xxx uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform <PLATFORM>
 ```
 
-**PowerShell:**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> -Platform <PLATFORM> -GitHubToken $env:GITHUB_TOKEN
-```
-
-### Minimum files for local install
-
-| File | Required | Notes |
-|------|----------|-------|
-| `install.ps1` or `install.sh` | Yes | Main installer script |
-| `platforms.json` | Recommended | Platform metadata; fallback defaults exist if missing |
-| `packs/<pack-dir>/` | Yes | At least the pack you want to install |
-| `packs/<pack-dir>/pack-manifest.json` | Yes | Pack metadata read by installer |
+The installer reads `GITHUB_TOKEN` from the environment and uses it for all GitHub API and download requests.
 
 ---
 
