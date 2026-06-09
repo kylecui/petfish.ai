@@ -2,6 +2,24 @@
 
 This checklist records repository work that should be complete before local testing, GPT Builder configuration, and Gateway staging begin.
 
+## Current review status
+
+Status: **BLOCKED**
+
+Do not tag or publish the `online-gpt/` RC until `REVIEW-BLOCKERS.md` is resolved.
+
+Blocking file:
+
+```text
+REVIEW-BLOCKERS.md
+```
+
+Primary blocker:
+
+```text
+online-gpt/gateway/modules/profiler.py control-flow issue: profile_project() may return None for normal P0/P1 profiling.
+```
+
 ## Product principle
 
 - [x] GPT version is independently operable.
@@ -29,11 +47,13 @@ PRIORITY-GUARDRAIL.md
 - [x] Production readiness checklist documented.
 - [x] Documentation index updated.
 - [x] README points to RC runbooks.
+- [ ] Review blockers resolved.
 
 Files:
 
 ```text
 RELEASE-CANDIDATE.md
+REVIEW-BLOCKERS.md
 GPT-BUILDER-RUNBOOK.md
 GATEWAY-DEPLOYMENT-RUNBOOK.md
 PRODUCTION-READINESS-CHECKLIST.md
@@ -108,7 +128,7 @@ GATEWAY-DEPLOYMENT-RUNBOOK.md
 
 - [x] Router.
 - [x] Catalog.
-- [x] Profiler.
+- [ ] Profiler blocker resolved.
 - [x] Installer command renderer.
 - [x] Skill Workbench.
 - [x] Trust Gate.
@@ -174,6 +194,7 @@ ADAPTER-ACCEPTANCE.md
 - [x] Known limitations.
 - [x] Completion note.
 - [x] Priority audit report.
+- [ ] Local test plan first-release OpenAPI references updated to gateway-only schema.
 
 Files:
 
@@ -191,6 +212,7 @@ PRIORITY-AUDIT.md
 
 These are intentionally not completed through remote repository edits:
 
+- [ ] Resolve `REVIEW-BLOCKERS.md`.
 - [ ] Python syntax compilation from fresh local clone.
 - [ ] Local dispatcher smoke run from fresh local clone.
 - [ ] Local HTTP gateway run from fresh local clone.
@@ -207,6 +229,7 @@ These are intentionally not completed through remote repository edits:
 Use:
 
 ```text
+REVIEW-BLOCKERS.md
 LOCAL-TEST-PLAN.md
 LOCAL-TEST-QUICKSTART.md
 GPT-BUILDER-RUNBOOK.md
@@ -216,8 +239,8 @@ PRODUCTION-READINESS-CHECKLIST.md
 
 ## Completion statement
 
-All repository-side development and documentation work for the current online-gpt RC phase is complete in `dev`.
+Repository-side release preparation materials exist, but the current `online-gpt/` RC is blocked by review findings.
 
-The remaining work is validation from a fresh local clone, GPT Builder configuration, and Gateway staging/production deployment.
+The next required action is to fix `REVIEW-BLOCKERS.md`, rerun the specified tests, and update local test notes.
 
 P2 Adapter results must not be used to override or replace P0/P1 acceptance results.
