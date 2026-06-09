@@ -6,6 +6,12 @@ BASE_URL="${BASE_URL:-http://127.0.0.1:8787}"
 echo "== healthz =="
 curl -sS "$BASE_URL/healthz" | python -m json.tool
 
+echo "== v1 health =="
+curl -sS "$BASE_URL/v1/health" | python -m json.tool
+
+echo "== v1 version =="
+curl -sS "$BASE_URL/v1/version" | python -m json.tool
+
 echo "== route =="
 curl -sS -X POST "$BASE_URL/v1/kernel/route" \
   -H 'Content-Type: application/json' \

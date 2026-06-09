@@ -66,16 +66,7 @@ def profile_project(
             },
     )
 
-
-def _is_online_review_project(text: str, platform: str | None) -> bool:
-    """Detect online code review project requests."""
-    online = platform == "online" or any(k in text for k in [
-        "chatgpt project", "chatgpt-only", "online project", "在线项目", "只在 chatgpt",
-    ])
-    review = any(k in text for k in [
-        "review", "code review", "pr", "pull request", "diff", "审查", "代码审查", "评审",
-    ])
-    return online and review
+    # ---- generic profile classification ----
 
     if any(k in text for k in ["security", "安全", "audit", "policy", "trust", "remote", "遥控", "执行"]):
         packs.add("trust")
@@ -132,3 +123,14 @@ def _is_online_review_project(text: str, platform: str | None) -> bool:
             ],
         },
     )
+
+
+def _is_online_review_project(text: str, platform: str | None) -> bool:
+    """Detect online code review project requests."""
+    online = platform == "online" or any(k in text for k in [
+        "chatgpt project", "chatgpt-only", "online project", "在线项目", "只在 chatgpt",
+    ])
+    review = any(k in text for k in [
+        "review", "code review", "pr", "pull request", "diff", "审查", "代码审查", "评审",
+    ])
+    return online and review

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -21,6 +22,11 @@ if str(GATEWAY_DIR) not in sys.path:
 
 from app import dispatch  # noqa: E402
 from schemas import envelope  # noqa: E402
+
+ENV = os.environ.get("PETFISH_GATEWAY_ENV", "dev")
+VERSION = os.environ.get("PETFISH_GATEWAY_VERSION", "0.1.0")
+GIT_REF = os.environ.get("PETFISH_GATEWAY_GIT_REF", "dev")
+REMOTE_EXEC_ENABLED = os.environ.get("PETFISH_REMOTE_EXECUTE_ENABLED", "false").lower() == "true"
 
 ROUTE_TO_OPERATION = {
     "/healthz": "healthz",
@@ -41,10 +47,21 @@ class GatewayHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler API
         if self.path in ("/healthz", "/v1/health"):
-            self._write_json(200, {"ok": True, "service": "petfish-online-gateway"})
+            self._write_json(200, {
+                "ok": True,
+                "service": "petfish-online-gateway",
+                "mode": "gateway-only",
+                "remote_execute_enabled": REMOTE_EXEC_ENABLED,
+            })
             return
         if self.path == "/v1/version":
-            self._write_json(200, {"ok": True, "service": "petfish-online-gateway", "version": "0.1.0"})
+            self._write_json(200, {
+                "ok": True,
+                "service": "petfish-online-gateway",
+                "version": VERSION,
+                "source": "kylecui/petfish.ai",
+                "git_ref": GIT_REF,
+            })
             return
         self._write_json(404, _error("gateway", "not_found", f"Unknown GET path: {self.path}"))
 
