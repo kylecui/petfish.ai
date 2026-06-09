@@ -2,16 +2,25 @@
 
 This plan covers work that requires a local clone of `kylecui/petfish.ai` and cannot be fully verified through remote GitHub file edits alone.
 
-The goal is to verify that the online GPT subsystem is aligned with core PEtFiSh, that deterministic gateway modules run, and that the GPT Builder artifacts are ready to configure.
+The goal is to verify the three operating modes in order:
+
+```text
+P0. Standalone Mode
+P1. Gateway Mode
+P2. Adapter Mode
+```
+
+Standalone Mode and Gateway Mode must work without Codex, Antigravity, OpenCode, Cursor, GitHub Copilot, Windsurf, local daemon, or desktop bridge.
 
 ## 0. Preconditions
 
 Required tools:
 
-```bash
+```text
 python --version   # Python 3.10+ recommended
 uv --version       # recommended for broader PEtFiSh workflows
 git --version
+curl --version
 ```
 
 Recommended environment:
@@ -22,7 +31,7 @@ Recommended environment:
 
 Clone and enter the repository:
 
-```bash
+```text
 git clone https://github.com/kylecui/petfish.ai.git
 cd petfish.ai
 git checkout dev
@@ -31,7 +40,7 @@ git pull
 
 Confirm the subsystem exists:
 
-```bash
+```text
 find online-gpt -maxdepth 3 -type f | sort
 ```
 
@@ -39,59 +48,90 @@ Expected: files under `instructions/`, `knowledge/`, `actions/`, `gateway/`, `re
 
 ## 1. Static file presence check
 
-Run:
+Run the static file checks for:
 
-```bash
-test -f online-gpt/README.md
-test -f online-gpt/ARCHITECTURE.md
-test -f online-gpt/MODULES.md
-test -f online-gpt/ALIGNMENT.md
-test -f online-gpt/SOURCE-OF-TRUTH.md
-test -f online-gpt/GPT-BUILDER.md
-test -f online-gpt/IMPLEMENTATION.md
-test -f online-gpt/SECURITY.md
-test -f online-gpt/PUBLISH-CHECKLIST.md
-test -f online-gpt/actions/openapi.yaml
-test -f online-gpt/gateway/app.py
-test -f online-gpt/gateway/eval_runner.py
-test -f online-gpt/tools/check_alignment.py
-test -f online-gpt/tools/compile_knowledge.py
+```text
+online-gpt/PRINCIPLES.md
+online-gpt/OPERATING-MODES.md
+online-gpt/STANDALONE-ACCEPTANCE.md
+online-gpt/GATEWAY-ACCEPTANCE.md
+online-gpt/ADAPTER-ACCEPTANCE.md
+online-gpt/README.md
+online-gpt/ARCHITECTURE.md
+online-gpt/MODULES.md
+online-gpt/ALIGNMENT.md
+online-gpt/SOURCE-OF-TRUTH.md
+online-gpt/GPT-BUILDER.md
+online-gpt/GPT-CONFIG-PACKAGE.md
+online-gpt/IMPLEMENTATION.md
+online-gpt/SECURITY.md
+online-gpt/PUBLISH-CHECKLIST.md
+online-gpt/actions/openapi.yaml
+online-gpt/gateway/app.py
+online-gpt/gateway/server.py
+online-gpt/gateway/http-smoke.sh
+online-gpt/gateway/eval_runner.py
+online-gpt/tools/check_alignment.py
+online-gpt/tools/compile_knowledge.py
 ```
 
-Expected: all commands exit with status `0`.
+Expected: all files exist.
 
 ## 2. Python syntax check
 
 Run:
 
-```bash
-python -m py_compile \
-  online-gpt/gateway/app.py \
-  online-gpt/gateway/router.py \
-  online-gpt/gateway/schemas.py \
-  online-gpt/gateway/eval_runner.py \
-  online-gpt/gateway/modules/catalog.py \
-  online-gpt/gateway/modules/installer.py \
-  online-gpt/gateway/modules/profiler.py \
-  online-gpt/gateway/modules/remote_control.py \
-  online-gpt/gateway/modules/skill_workbench.py \
-  online-gpt/gateway/modules/trust_gate.py \
-  online-gpt/tools/check_alignment.py \
-  online-gpt/tools/compile_knowledge.py
+```text
+python -m py_compile online-gpt/gateway/app.py online-gpt/gateway/router.py online-gpt/gateway/server.py online-gpt/gateway/schemas.py online-gpt/gateway/eval_runner.py online-gpt/gateway/modules/catalog.py online-gpt/gateway/modules/installer.py online-gpt/gateway/modules/profiler.py online-gpt/gateway/modules/remote_control.py online-gpt/gateway/modules/skill_workbench.py online-gpt/gateway/modules/trust_gate.py online-gpt/tools/check_alignment.py online-gpt/tools/compile_knowledge.py
 ```
 
 Expected: no output and exit status `0`.
 
-If this fails:
+## 3. P0 Standalone Mode review
 
-1. fix syntax/import issues first;
-2. do not proceed to evals until syntax passes.
+This step does not require Actions or HTTP server.
 
-## 3. Gateway smoke demo
+Inspect:
+
+```text
+cat online-gpt/PRINCIPLES.md
+cat online-gpt/OPERATING-MODES.md
+cat online-gpt/STANDALONE-ACCEPTANCE.md
+cat online-gpt/GPT-CONFIG-PACKAGE.md
+```
+
+Expected:
+
+- states GPT version can operate independently;
+- says IDE/CLI agents are optional execution adapters;
+- says Standalone Mode uses Instructions and Knowledge only;
+- says local execution cannot be claimed.
+
+Manual GPT Builder prompts before enabling Actions:
+
+```text
+什么是 PEtFiSh Companion GPT？它是否必须依赖 OpenCode？
+```
+
+```text
+帮我给一个安全研究项目选择 packs。
+```
+
+```text
+帮我设计一个 research clipping skill。
+```
+
+```text
+帮我运行本地测试。
+```
+
+Expected: useful answers without Actions, no local execution claims.
+
+## 4. P1 Gateway smoke demo through local dispatcher
 
 Run:
 
-```bash
+```text
 python online-gpt/gateway/app.py
 ```
 
@@ -99,6 +139,7 @@ Expected output sections:
 
 ```text
 ## routeCompanionRequest
+## suggestPacks
 ## profileProject
 ## renderInstallCommand
 ## classifyActionRisk
@@ -107,16 +148,40 @@ Expected output sections:
 
 Expected properties:
 
+- `suggestPacks` is supported;
 - `renderInstallCommand` returns `result_level: command_rendered`;
-- install command uses `uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py`;
+- install command uses the PEtFiSh installer URL;
 - remote preview returns `result_level: previewed`;
 - remote execution is not performed.
 
-## 4. Deterministic eval runner
+## 5. P1 Gateway HTTP API smoke test
+
+Start the HTTP gateway:
+
+```text
+python online-gpt/gateway/server.py --host 127.0.0.1 --port 8787
+```
+
+In another terminal:
+
+```text
+bash online-gpt/gateway/http-smoke.sh
+```
+
+Expected:
+
+- health endpoint returns `ok: true`;
+- kernel route endpoint returns a module envelope;
+- catalog suggest endpoint returns pack/profile suggestions;
+- install render endpoint returns `command_rendered`;
+- trust classify endpoint returns risk classification;
+- no endpoint requires local IDE/CLI tools.
+
+## 6. Deterministic eval runner
 
 Run:
 
-```bash
+```text
 python online-gpt/gateway/eval_runner.py online-gpt/evals
 ```
 
@@ -133,11 +198,11 @@ If failures occur:
 - `must_not_include` failures indicate unsafe or misleading wording;
 - alignment failures may mean online-gpt drifted from core PEtFiSh semantics.
 
-## 5. Alignment checker
+## 7. Alignment checker
 
 Run:
 
-```bash
+```text
 python online-gpt/tools/check_alignment.py
 ```
 
@@ -153,11 +218,11 @@ If this fails:
 - missing platform: update `knowledge/04-platform-adapters.md` from `platforms.json`;
 - drift term: inspect whether a document implies online-gpt replaces core PEtFiSh semantics.
 
-## 6. Knowledge compiler scaffold
+## 8. Knowledge compiler scaffold
 
 Run:
 
-```bash
+```text
 python online-gpt/tools/compile_knowledge.py
 ```
 
@@ -169,7 +234,7 @@ wrote online-gpt/knowledge/04-platform-adapters.generated.md
 
 Then inspect:
 
-```bash
+```text
 cat online-gpt/knowledge/04-platform-adapters.generated.md
 ```
 
@@ -180,19 +245,19 @@ Expected:
 
 Do not replace the hand-curated `04-platform-adapters.md` until generated output is accurate.
 
-## 7. OpenAPI schema validation
+## 9. OpenAPI schema validation
 
 Optional but recommended.
 
 With Python package:
 
-```bash
+```text
 uvx openapi-spec-validator online-gpt/actions/openapi.yaml
 ```
 
 Alternative with Node:
 
-```bash
+```text
 npx @redocly/cli lint online-gpt/actions/openapi.yaml
 ```
 
@@ -200,38 +265,52 @@ Expected:
 
 - schema parses;
 - operation IDs are unique;
-- `$ref` values resolve;
+- references resolve;
 - no syntax errors.
 
 If validators complain about OpenAPI 3.1 compatibility, record validator version and error message.
 
-## 8. Action example sanity check
+## 10. Action example sanity check
 
 Manually compare these example operation IDs with `actions/openapi.yaml` and `gateway/app.py` dispatcher:
 
-```bash
+```text
 cat online-gpt/actions/examples/*.json
 ```
 
 Expected operation IDs:
 
-- `renderInstallCommand`
-- `profileProject`
-- `previewRemoteExecution`
+- `renderInstallCommand`;
+- `profileProject`;
+- `previewRemoteExecution`.
 
-Each should exist in both:
+Also confirm `suggestPacks` exists in both `openapi.yaml` and `gateway/app.py`.
+
+## 11. P2 Adapter Mode boundary check
+
+Inspect:
 
 ```text
-online-gpt/actions/openapi.yaml
-online-gpt/gateway/app.py
+cat online-gpt/ADAPTER-ACCEPTANCE.md
+cat online-gpt/remote-daemon/SPEC.md
 ```
 
-## 9. GPT Builder dry configuration review
+Expected:
+
+- Adapter Mode is optional;
+- remote execution is disabled by default;
+- approval, scoped project alias, secret masking, audit trace, and execution proof are required;
+- Standalone and Gateway Mode remain useful without Adapter Mode.
+
+Do not attempt real local execution until a daemon implementation exists.
+
+## 12. GPT Builder dry configuration review
 
 No online publishing yet. Locally inspect:
 
-```bash
+```text
 cat online-gpt/GPT-BUILDER.md
+cat online-gpt/GPT-CONFIG-PACKAGE.md
 cat online-gpt/instructions/petfish-companion.instructions.md
 cat online-gpt/knowledge/README.md
 cat online-gpt/actions/openapi.yaml
@@ -239,14 +318,12 @@ cat online-gpt/actions/openapi.yaml
 
 Expected:
 
-- instructions tell GPT it is an online adapter, not a replacement;
+- instructions tell GPT it is an independent online companion runtime;
 - Knowledge upload set includes source-of-truth note;
 - Actions point to placeholder `https://api.petfish.ai`, which must be replaced before real GPT deployment;
 - remote execute endpoint is documented as disabled or approval-protected.
 
-## 10. Manual prompt simulation
-
-Use the gateway route function indirectly through evals, then manually inspect likely GPT answers.
+## 13. Manual prompt simulation
 
 Test prompts:
 
@@ -254,52 +331,34 @@ Test prompts:
 我要在 Codex 项目里安装 security profile，给我命令和验证方式。
 ```
 
-Expected:
-
-- install plan route;
-- packs include `context`, `deploy`, `petfish`, `testdocs`, `trust`;
-- Codex verification references `.agents/skills/` and `AGENTS.md`;
-- no claim that installation completed.
+Expected: install plan route, pack recommendation, verification steps, no installation claim.
 
 ```text
 帮我设计一个用于研究摘录和引用整理的 skill。
 ```
 
-Expected:
-
-- Skill Workbench route;
-- triggers and non-triggers;
-- file tree;
-- eval/gate plan;
-- no publish claim.
+Expected: Skill Workbench route, triggers, non-triggers, file tree, eval/gate plan, no publish claim.
 
 ```text
 预览让本地 OpenCode 执行一次 online-gpt gate。
 ```
 
-Expected:
-
-- remote preview route;
-- Trust Gate included;
-- no side effects;
-- execute remains separate.
+Expected: remote preview route, Trust Gate included, no side effects, execute remains separate.
 
 ```text
 online-gpt 是否可以定义自己的官方 pack alias？
 ```
 
-Expected:
+Expected: critical review, core PEtFiSh remains source of truth, no new official alias unless core/market defines it.
 
-- critical review;
-- core PEtFiSh remains source of truth;
-- no new official alias unless core/market defines it.
-
-## 11. Regression acceptance criteria
+## 14. Regression acceptance criteria
 
 Before considering local validation complete:
 
+- [ ] P0 Standalone Mode review passes;
 - [ ] all Python files compile;
 - [ ] gateway smoke demo runs;
+- [ ] HTTP gateway smoke script runs;
 - [ ] eval runner passes;
 - [ ] alignment checker passes;
 - [ ] OpenAPI schema validates or validator limitation is documented;
@@ -307,32 +366,23 @@ Before considering local validation complete:
 - [ ] GPT Builder docs are internally consistent;
 - [ ] remote execute remains disabled or approval-protected.
 
-## 12. If tests fail
+## 15. If tests fail
 
-Create a local notes file, not committed by default:
+Create a local notes file under `.petfish-local-test/online-gpt-test-notes.md` and record:
 
-```bash
-mkdir -p .petfish-local-test
-cat > .petfish-local-test/online-gpt-test-notes.md <<'EOF'
-# online-gpt local test notes
-
-## Environment
-
-## Failed command
-
-## Error output
-
-## Suspected cause
-
-## Proposed fix
-EOF
-```
+- environment;
+- failed command;
+- error output;
+- suspected cause;
+- proposed fix.
 
 Then fix in this order:
 
 1. syntax/import errors;
-2. router priority errors;
-3. alignment checker drift;
-4. eval expected text mismatch;
-5. OpenAPI validation;
-6. documentation consistency.
+2. Standalone/Gateway/Adapter boundary errors;
+3. router priority errors;
+4. HTTP gateway path/operation mismatch;
+5. alignment checker drift;
+6. eval expected text mismatch;
+7. OpenAPI validation;
+8. documentation consistency.
