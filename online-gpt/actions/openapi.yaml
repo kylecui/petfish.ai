@@ -251,7 +251,7 @@ components:
   schemas:
     Platform:
       type: string
-      enum: [opencode, claude, codex, cursor, copilot, windsurf, antigravity, universal]
+      enum: [opencode, claude, codex, cursor, copilot, windsurf, antigravity, universal, online]
     ResultLevel:
       type: string
       enum: [advice_only, command_rendered, dry_run, previewed, executed, audit_logged]

@@ -1,0 +1,60 @@
+id: review-online
+name: Online Code Review
+runtime: online
+surface: chatgpt-project
+base_profile: security
+
+description: >
+  A PEtFiSh online project profile for code review workflows in ChatGPT.
+  It assumes no local filesystem, no IDE/CLI adapter, and no repository access
+  unless the user uploads or pastes the relevant context.
+
+packs:
+  core:
+    - companion
+    - context
+    - petfish
+    - testdocs
+    - trust
+  optional:
+    - calibrate
+    - deploy
+
+default_execution_truth: advice_only
+
+review_dimensions:
+  - correctness
+  - security
+  - tests
+  - maintainability
+  - architecture
+  - release_risk
+  - missing_evidence
+
+gateway_policy:
+  topic_check: strict_per_pr
+  anti_sycophancy: required_for_approval
+  failure_signal_detection: enabled
+  skill_sense: enabled
+  trust_gate: enabled_for_risky_changes
+
+non_goals:
+  - local test execution
+  - repository mutation
+  - git operations
+  - deployment
+  - publishing
+  - hidden remote execution
+
+required_user_context:
+  preferred:
+    - diff
+    - pr_description
+    - changed_files
+    - test_output
+    - relevant_logs
+    - architecture_notes
+  fallback:
+    - pasted_code
+    - uploaded_files
+    - screenshots_with_user_explanation

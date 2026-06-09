@@ -39,6 +39,7 @@ EXPECTED_PROFILES = {
     "writing",
     "skills-package",
     "comprehensive",
+    "review-online",
 }
 
 EXPECTED_PLATFORMS = {
@@ -50,6 +51,7 @@ EXPECTED_PLATFORMS = {
     "windsurf",
     "antigravity",
     "universal",
+    "online",
 }
 
 DRIFT_TERMS = [

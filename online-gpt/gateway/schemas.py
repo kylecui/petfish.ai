@@ -17,6 +17,7 @@ Platform = Literal[
     "windsurf",
     "antigravity",
     "universal",
+    "online",
 ]
 
 ResultLevel = Literal[

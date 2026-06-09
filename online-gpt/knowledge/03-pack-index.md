@@ -59,3 +59,19 @@ Include `trust` when:
 Include `doc-reader` when:
 
 - the user needs PDF, DOCX, XLSX, PPTX, HTML or document-to-Markdown reading workflows.
+
+## Online-only profile: review-online
+
+`review-online` is a semantic online profile for ChatGPT Project code reviews. It requires no local installation.
+
+| Property | Value |
+|---|---|
+| Runtime | online (chatgpt-project) |
+| Core packs | companion, context, petfish, testdocs, trust |
+| Optional packs | calibrate, deploy |
+| Execution truth | advice_only (default) |
+| Local adapter | none |
+
+Use `review-online` when the user asks to review code, PRs, architecture, or security in a ChatGPT Project without a local IDE/CLI adapter.
+
+Do not use `review-online` when the user needs to install PEtFiSh locally. In that case, recommend the appropriate local profile (security, code, ops, etc.).

@@ -35,6 +35,31 @@ def render_install_command(
         )
 
     base = "uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py"
+
+    # Online runtime: no local install — packs are semantic references only.
+    if platform == "online":
+        return envelope(
+            module="installer",
+            mode="dry_run",
+            result_level="advice_only",
+            data={
+                "operation": "semantic_only",
+                "packs": pack_list,
+                "platform": "online",
+                "runtime": "chatgpt-project",
+                "command": None,
+                "explanation": (
+                    "Online PEtFiSh projects do not require local installation. "
+                    "Packs are referenced semantically through GPT Instructions and Knowledge. "
+                    "If a local adapter is needed later, render a local install command with --platform opencode."
+                ),
+            },
+            warnings=[
+                "This is an online PEtFiSh project. No local files are modified.",
+                "Packs are semantic references, not local installations.",
+            ],
+        )
+
     flags = [f"--pack {','.join(pack_list)}", f"--platform {platform}", f"--target {target}"]
 
     if scope == "global":

@@ -14,6 +14,11 @@ This file is intended for GPT Knowledge upload.
 | Windsurf | `windsurf` | `.windsurf/skills/` | `.windsurfrules` | `.windsurf/`, `.windsurfrules` |
 | Antigravity | `antigravity` | `.agents/skills/` | `AGENTS.md` + `GEMINI.md` | `.agents/`, `GEMINI.md` |
 | Universal | `universal` | `.agents/skills/` | `AGENTS.md` | fallback |
+| ChatGPT Project | `online` | N/A (online) | GPT Instructions | ChatGPT Project page |
+
+## Online vs local
+
+ChatGPT Project (`platform: online`) is an online PEtFiSh runtime, not a local platform adapter. It does not have a local filesystem, IDE, or CLI. Packs are semantic references applied through GPT Instructions and Knowledge. No installation command is needed.
 
 ## GPT shell behavior
 

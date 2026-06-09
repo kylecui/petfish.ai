@@ -45,7 +45,13 @@ Conversation starters:
 
 Do not add remote-control conversation starters.
 
-## 2. Configure P0 Standalone Mode
+## 2. Optional: Create a ChatGPT Project
+
+If the GPT will be used for code review, create a ChatGPT Project and paste `project-instructions/code-review.md` as the project instructions. This activates the `review-online` profile and establishes the online runtime contract for that Project.
+
+ChatGPT Projects do not require an install command or a local adapter. The GPT treats the Project itself as the PEtFiSh runtime.
+
+## 4. Configure P0 Standalone Mode
 
 Actions must remain disabled in this stage.
 
@@ -74,7 +80,7 @@ The final instruction must preserve:
 - core PEtFiSh remains source of truth;
 - P2 tests are boundary/regression only.
 
-## 3. Upload Knowledge for first release
+## 5. Upload Knowledge for first release
 
 Upload these files:
 
@@ -106,7 +112,7 @@ Do not upload:
 - local daemon configuration;
 - unpublished Adapter Mode credentials.
 
-## 4. Configure capabilities
+## 6. Configure capabilities
 
 Recommended first-release settings:
 
@@ -118,7 +124,7 @@ Recommended first-release settings:
 | Image Generation | off | not core to PEtFiSh Companion |
 | Actions | off for P0, on for P1 only | preserve release sequence |
 
-## 5. P0 Preview tests
+## 7. P0 Preview tests
 
 Run before enabling Actions:
 
@@ -172,7 +178,7 @@ Expected:
 - includes counterargument;
 - avoids praise-first sycophancy.
 
-## 6. Configure P1 Gateway Actions
+## 8. Configure P1 Gateway Actions
 
 Proceed only after P0 Preview passes.
 
@@ -217,7 +223,7 @@ Header: X-PEtFiSh-Gateway-Key
 Value: <PETFISH_GATEWAY_TOKEN>
 ```
 
-## 7. P1 Preview tests
+## 9. P1 Preview tests
 
 After Actions are enabled, run:
 
@@ -257,7 +263,7 @@ Expected answer:
 - no execution claim;
 - no Adapter Mode dependency.
 
-## 8. P2 boundary prompts
+## 10. P2 boundary prompts
 
 Run only after P0/P1 pass and only as boundary/regression checks:
 
@@ -276,7 +282,7 @@ Expected:
 - Adapter Mode is optional;
 - local daemon, Trust Gate, approval, scoped alias, secret masking, audit, and execution proof are required.
 
-## 9. Publication settings
+## 11. Publication settings
 
 Recommended sequence:
 
@@ -293,7 +299,7 @@ Do not publish with:
 - remote execution enabled;
 - unknown Gateway host.
 
-## 10. Final GPT Builder checklist
+## 12. Final GPT Builder checklist
 
 - [ ] Instructions copied and reviewed.
 - [ ] Knowledge upload list matches this runbook.

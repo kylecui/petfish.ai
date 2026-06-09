@@ -85,12 +85,15 @@ online-gpt/
 ├── OPERATING-MODES.md
 ├── ARCHITECTURE.md
 ├── MODULES.md
+├── runtime-contract.md    # online runtime contract
+├── profiles/              # online project profiles (review-online)
+├── project-instructions/  # ChatGPT Project instruction templates
 ├── instructions/          # GPT behavior contracts for Standalone Mode
 ├── knowledge/             # compiled GPT Knowledge bundle for Standalone Mode
 ├── actions/               # GPT Actions OpenAPI and policy for Gateway Mode
 ├── gateway/               # reference gateway kernel skeleton for Gateway Mode
 ├── remote-daemon/         # low-priority Adapter Mode contracts
-└── evals/                 # routing, safety, knowledge, alignment, regression evals
+└── evals/                 # routing, safety, knowledge, alignment, regression, online-runtime evals
 ```
 
 ## Non-negotiable boundaries

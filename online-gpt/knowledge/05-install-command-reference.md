@@ -75,3 +75,14 @@ cat CLAUDE.md
 ## Uninstall note
 
 Uninstall is a local state mutation. GPT should generate the command and warn about expected changes unless a verified local adapter performs it.
+
+## Online projects (ChatGPT Project)
+
+ChatGPT Projects do not require local installation. When `--platform online` or when the user is working in a ChatGPT Project:
+
+- No `uv run install.py` command is needed.
+- Packs are semantic references applied through GPT Instructions and Knowledge.
+- The GPT should explain what each pack provides conceptually, not render an install command.
+- If the user later wants local installation, render the appropriate local command with `--platform <local-platform>`.
+
+Do not render `uv run install.py --platform online`. The `online` platform is a semantic runtime, not an install target.

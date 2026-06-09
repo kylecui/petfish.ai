@@ -40,7 +40,12 @@ Included:
 - install command rendering;
 - quality-gate planning;
 - anti-sycophancy discipline;
-- source-of-truth discipline.
+- source-of-truth discipline;
+- **ChatGPT Project as first-class online PEtFiSh runtime;**
+- **`runtime-contract.md` defining online runtime guarantees;**
+- **`review-online` profile for ChatGPT Project code reviews;**
+- **`project-instructions/code-review.md` template;**
+- **`docs/online-projects.md` user-facing documentation.**
 
 ### P1 Gateway Mode
 
