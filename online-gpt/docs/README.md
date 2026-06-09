@@ -2,6 +2,16 @@
 
 This directory is a pointer index. Most documentation lives at the top level of `online-gpt/` so it is easy to find from GitHub.
 
+## Current blocker reading order
+
+1. `../REVIEW-BLOCKERS.md`
+2. `../LOCAL-TEST-PLAN.md`
+3. `../LOCAL-TEST-QUICKSTART.md`
+4. `../QUALITY-GATE.md`
+5. `../PRODUCTION-READINESS-CHECKLIST.md`
+
+Do not proceed to RC tag or publication while `REVIEW-BLOCKERS.md` remains unresolved.
+
 ## Current remediation reading order
 
 1. `../README.md`
@@ -66,25 +76,27 @@ This directory is a pointer index. Most documentation lives at the top level of 
 
 ## Developer reading order
 
-1. `../ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`
-2. `../gateway/CONTRACTS.md`
-3. `../gateway/API-MAPPING.md`
-4. `../actions/openapi.gateway-only.yaml`
-5. `../actions/openapi.yaml`
-6. `../tools/README.md`
-7. `../evals/README.md`
-8. `../remote-daemon/SPEC.md`
+1. `../REVIEW-BLOCKERS.md`
+2. `../ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`
+3. `../gateway/CONTRACTS.md`
+4. `../gateway/API-MAPPING.md`
+5. `../actions/openapi.gateway-only.yaml`
+6. `../actions/openapi.yaml`
+7. `../tools/README.md`
+8. `../evals/README.md`
+9. `../remote-daemon/SPEC.md`
 
 ## Review reading order
 
-1. `../ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`
-2. `../FINAL-DEVELOPMENT-CHECKLIST.md`
-3. `../PR-NOTES.md`
-4. `../WORK-COMPLETION.md`
-5. `../COMPLETION-NOTE.md`
-6. `../KNOWN-LIMITATIONS.md`
-7. `../SECURITY.md`
-8. `../CI-RECOMMENDATION.md`
+1. `../REVIEW-BLOCKERS.md`
+2. `../ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`
+3. `../FINAL-DEVELOPMENT-CHECKLIST.md`
+4. `../PR-NOTES.md`
+5. `../WORK-COMPLETION.md`
+6. `../COMPLETION-NOTE.md`
+7. `../KNOWN-LIMITATIONS.md`
+8. `../SECURITY.md`
+9. `../CI-RECOMMENDATION.md`
 
 ## P2 Adapter warning
 
