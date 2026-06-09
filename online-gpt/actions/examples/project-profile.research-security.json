@@ -1,0 +1,15 @@
+{
+  "operationId": "profileProject",
+  "request": {
+    "project_description": "AI security research project with literature review, PPT output, trust policy, and deployment scripts",
+    "platform": "opencode",
+    "requested_domains": ["research", "security", "ppt", "deploy"],
+    "constraints": ["Windows host", "WSL", "GitHub repository"]
+  },
+  "expected_result_level": "advice_only",
+  "expected_packs": ["context", "research", "doc-reader", "ppt", "deploy", "trust", "petfish"],
+  "expected_notes": [
+    "Do not blindly choose comprehensive unless multiple additional domains are required.",
+    "Explain why each pack is included."
+  ]
+}
