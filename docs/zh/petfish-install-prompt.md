@@ -26,15 +26,8 @@ Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 
 更习惯直接跑命令？没问题。
 
-**Bash (macOS / Linux / WSL):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack init,companion --detect
-```
-
-**PowerShell (Windows):**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
 ```
 
 装完输入 `/initproject`，胖鱼会问你项目类型，然后自动装上匹配的能力包。
@@ -44,8 +37,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 ## 装全套
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack all --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --detect
 ```
 
 ---
@@ -55,8 +47,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 已经装了？重跑一遍加 `--force` 就行。
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack all --force
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
 ```
 
 或者让AI帮你升级：
@@ -73,7 +64,7 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 - `--detect` 自动检测AI平台，把skill装到正确的目录。
 - `--pack init,companion` 先装初始化器和伙伴命令，其他pack后续按需装。
 - 要指定平台？`--platform cursor` / `--platform claude` / `--platform copilot`。
-- 要指定版本？`--branch v0.6.4`（Bash）或 `-Branch v0.6.4`（PowerShell）。
+- 前置条件：[uv](https://docs.astral.sh/uv/getting-started/installation/) — 安装器通过PEP 723自动引导，无需手动配置Python。
 
 ---
 
