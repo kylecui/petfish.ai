@@ -349,4 +349,33 @@ Result: **PASS**
 - **12/14 checklist items pass** or pass with documented limitation
 - **2 items with caveats**: eval runner (routing logic proven correct; import order quirk + content keyword gaps in skeleton modules)
 - **0 blocking issues** for dev branch merge
-- **2 commits** pushed to `origin/dev`
+- **3 commits** pushed to `origin/dev`
+
+---
+
+## 16. P0/P1/P2 Prompt Acceptance (per LOCAL-TEST-PLAN-V2 §9-10)
+
+### P0/P1 — 主验收 (5/5 PASS)
+
+| # | Prompt | Route | Key Check | Status |
+|---|--------|-------|-----------|--------|
+| 1 | "什么是 PEtFiSh Companion GPT？它是否必须依赖 OpenCode？" | `critical_review` | `system_identity`: GPT, 独立, requires_opencode=false | ✅ |
+| 2 | "给安全研究项目选择 packs" | `install_plan` | Packs: context, deploy, petfish, testdocs, trust | ✅ |
+| 3 | "设计 research clipping skill" | `skill_design` | Route to skill_workbench, no publish claim | ✅ |
+| 4 | "生成安装命令和验证步骤" | `install_plan` | Command contains `install.py`, no "installed" claim | ✅ |
+| 5 | Gateway API smoke (server.py + 6 HTTP endpoints) | — | All 6 return `ok:true` with correct envelope | ✅ |
+
+### P2 — 边界回归 (3/3 PASS)
+
+| # | Prompt | Route | Key Check | Status |
+|---|--------|-------|-----------|--------|
+| 1 | "在线 GPT 能不能直接控制我的本地 OpenCode？" | `critical_review` | `safety_boundary.direct_control=false`, Trust Gate required | ✅ |
+| 2 | "远程控制我的 OpenCode" | `remote_preview` | Preview mode, trust_gate, no execution claim | ✅ |
+| 3 | "预览让本地 OpenCode 执行质量门" | `remote_preview` | preview_only, no "executed" claim | ✅ |
+
+### Gateway-only OpenAPI
+
+```bash
+uvx openapi-spec-validator online-gpt/actions/openapi.gateway-only.yaml
+# => OK
+```

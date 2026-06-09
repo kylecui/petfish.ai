@@ -56,21 +56,41 @@ def route_companion_request(
     # Evaluative questions (anti-sycophancy) take priority over install/skill routing.
     # Ensures "is this approach right?" → critical_review, not install/skill.
     if _is_evaluative(text):
+        # Build context-appropriate review data
+        review_data: dict = {
+            "intent": "critical_review",
+            "required_modules": ["companion_identity"],
+            "response_contract": "critical_review",
+            "anti_sycophancy_required": True,
+            "active_context": active_context,
+            "installed_packs": sorted(installed),
+            "project_profile": project_profile,
+            "mode": mode,
+            "review_dimensions": ["criteria", "counterargument", "conclusion"],
+        }
+        # Identity questions: affirm independent online companion runtime
+        if any(k in text for k in ["是什么", "什么是", "who is", "identity", "companion gpt"]):
+            review_data["system_identity"] = {
+                "name": "PEtFiSh Companion GPT",
+                "type": "independent online companion runtime (独立在线伴侣运行时)",
+                "requires_opencode": False,
+                "requires_ide": False,
+                "operating_modes": ["Standalone (P0)", "Gateway (P1)", "Adapter (P2, deferred)"],
+                "source_of_truth": "Core PEtFiSh (petfish.ai)",
+            }
+        # Remote/trust boundary questions: include safety context
+        if any(k in text for k in ["控制", "远程", "执行", "可以", "能不能"]):
+            review_data["safety_boundary"] = {
+                "remote_execution": "preview-only, requires Trust Gate + user approval",
+                "direct_control": False,
+                "local_execution_claim": "prohibited unless verified adapter confirms",
+                "trust_gate_required": True,
+            }
         return envelope(
             module="kernel",
             mode="dry_run",
             result_level="advice_only",
-            data={
-                "intent": "critical_review",
-                "required_modules": ["companion_identity"],
-                "response_contract": "critical_review",
-                "anti_sycophancy_required": True,
-                "active_context": active_context,
-                "installed_packs": sorted(installed),
-                "project_profile": project_profile,
-                "mode": mode,
-                "review_dimensions": ["criteria", "counterargument", "conclusion"],
-            },
+            data=review_data,
         )
 
     if _is_install_request(text):
