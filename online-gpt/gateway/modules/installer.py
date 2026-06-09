@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Iterable
 
-from ..schemas import ModuleEnvelope, envelope
+from schemas import ModuleEnvelope, envelope
 
 VALID_OPERATIONS = {"install", "upgrade", "uninstall"}
 
