@@ -2,113 +2,138 @@
 
 ## Purpose
 
-PEtFiSh Companion GPT is the online companion shell for PEtFiSh. It gives ChatGPT a disciplined interface into PEtFiSh without pretending that ChatGPT itself is the local execution environment.
+PEtFiSh Companion GPT is the GPT version of `petfish.ai`: an independent online companion runtime for PEtFiSh.
 
-The architecture keeps the core companion logic reusable across:
+It gives ChatGPT a disciplined PEtFiSh-native operating surface without requiring OpenCode, Codex, Antigravity, or any local IDE/CLI runtime.
 
-- ChatGPT Custom GPT
-- future ChatGPT Apps / MCP frontends
-- web consoles
-- local CLI wrappers
-- remote-control surfaces
+The architecture is optimized in this order:
 
-## Five-layer model
+```text
+P0. Standalone Mode
+P1. Gateway Mode
+P2. Adapter Mode
+```
+
+Adapter Mode exists as a future extension only. It must not block Standalone or Gateway work.
+
+## Mode-first architecture
+
+### P0. Standalone Mode
 
 ```text
 ┌────────────────────────────────────────────┐
-│ L1. Companion Interface Layer              │
-│ ChatGPT GPT / ChatGPT App / Web UI         │
+│ ChatGPT GPT                                │
 └────────────────────────────────────────────┘
                     │
                     ▼
 ┌────────────────────────────────────────────┐
-│ L2. Companion Kernel                       │
-│ Intent Router / Gateway Loop / Policy Core │
+│ Instructions + Knowledge                   │
+│ Identity / Safety / Answer Contracts       │
+│ Source-of-Truth Alignment                  │
 └────────────────────────────────────────────┘
                     │
                     ▼
 ┌────────────────────────────────────────────┐
-│ L3. Capability Modules                     │
-│ Catalog / Install / Skill / Project /      │
-│ Context / Research / Deploy / Trust        │
-└────────────────────────────────────────────┘
-                    │
-                    ▼
-┌────────────────────────────────────────────┐
-│ L4. Adapter Layer                          │
-│ GPT Actions / MCP / CLI / GitHub / Local   │
-│ Daemon / Cloud Gateway                     │
-└────────────────────────────────────────────┘
-                    │
-                    ▼
-┌────────────────────────────────────────────┐
-│ L5. Execution Substrate                    │
-│ OpenCode / Codex / Antigravity / Repo /    │
-│ File System / petfish-market / CI          │
+│ Standalone Companion Capabilities          │
+│ Explain / Recommend / Design / Review /    │
+│ Render Commands / Produce Test Plans       │
 └────────────────────────────────────────────┘
 ```
 
-## Layer responsibilities
+Standalone Mode has no external runtime dependency.
 
-### L1. Companion Interface Layer
+It must support:
 
-Owns user interaction and presentation. It must not own execution truth.
+- PEtFiSh concept explanation;
+- Companion Gateway explanation;
+- profile and pack recommendation;
+- skill design;
+- trigger and non-trigger design;
+- command rendering;
+- quality-gate planning;
+- source-of-truth checks;
+- anti-sycophancy review.
 
-Responsibilities:
+### P1. Gateway Mode
 
-- parse user intent in conversational form;
-- present plans, commands, warnings, and results;
-- call Actions or Apps/MCP tools when available;
-- distinguish advice, generated commands, dry-run plans, and executed actions.
+```text
+┌────────────────────────────────────────────┐
+│ ChatGPT GPT                                │
+└────────────────────────────────────────────┘
+                    │ GPT Actions
+                    ▼
+┌────────────────────────────────────────────┐
+│ PEtFiSh Online Gateway                     │
+│ Catalog / Profile / Install Render /       │
+│ Skill Workbench / Trust Gate               │
+└────────────────────────────────────────────┘
+                    │
+                    ▼
+┌────────────────────────────────────────────┐
+│ Online Server-Side State and Services      │
+│ Pack Index / Policy / Eval / Logs          │
+└────────────────────────────────────────────┘
+```
 
-### L2. Companion Kernel
+Gateway Mode depends on online API infrastructure, not local IDE/CLI tools.
 
-Owns the online version of Companion Gateway.
+Gateway Mode must support:
 
-Responsibilities:
+- catalog search;
+- profile suggestion;
+- pack resolution;
+- install command rendering;
+- skill contract rendering;
+- Trust Gate classification;
+- server-side validation and eval when implemented.
 
-- topic continuity check;
-- failure signal detection;
-- skill and pack sensing;
-- anti-sycophancy gate;
-- action risk pre-classification;
-- response contract selection.
+### P2. Adapter Mode, low priority
 
-### L3. Capability Modules
+```text
+┌────────────────────────────────────────────┐
+│ PEtFiSh Online Gateway                     │
+└────────────────────────────────────────────┘
+                    │ optional
+                    ▼
+┌────────────────────────────────────────────┐
+│ Local Daemon / Desktop Bridge              │
+└────────────────────────────────────────────┘
+                    │ optional
+                    ▼
+┌────────────────────────────────────────────┐
+│ OpenCode / Codex / Antigravity / Shell     │
+└────────────────────────────────────────────┘
+```
 
-Owns deterministic capability logic.
+Adapter Mode overlaps with 胖鱼遥控器 but is not the same product surface.
 
-Initial modules:
+For `online-gpt`, Adapter Mode is optional and low priority. It is only an execution extension.
+
+## Layer model
+
+The original five-layer model is still useful, but it must be interpreted through the priority order above:
+
+| Layer | Standalone Mode | Gateway Mode | Adapter Mode |
+|---|---|---|---|
+| Interface | ChatGPT GPT | ChatGPT GPT | ChatGPT GPT |
+| Kernel | instruction-level Companion discipline | server-side router | server-side router |
+| Capabilities | explain, recommend, design, render, review | catalog/profile/install/trust/skill APIs | preview/execute local tasks |
+| Adapter | none | GPT Actions to online API | local daemon / desktop bridge |
+| Substrate | GPT config and Knowledge | online server resources | IDE/CLI/local filesystem |
+
+## Core capability modules
+
+Current high-priority modules:
 
 - `catalog`: pack, skill, MCP, and plugin lookup;
 - `installer`: install, upgrade, uninstall command rendering;
 - `profiler`: map project intent to profile and pack set;
 - `skill_workbench`: design, render, lint, audit, gate, eval workflow;
-- `trust_gate`: classify and restrict action risk;
-- `remote_control`: preview and execute local/remote actions via adapters.
+- `trust_gate`: classify action risk and policy decisions.
 
-### L4. Adapter Layer
+Low-priority future module:
 
-Owns integration with outside systems.
-
-Adapters may be:
-
-- `mock`: deterministic test behavior;
-- `readonly`: query-only behavior;
-- `dry_run`: render commands/plans but do not execute;
-- `remote_preview`: preview local execution through relay;
-- `remote_execute`: perform approved execution.
-
-### L5. Execution Substrate
-
-Owns real state and side effects:
-
-- repositories;
-- local filesystems;
-- OpenCode, Codex, Antigravity sessions;
-- petfish-market;
-- CI;
-- remote daemons.
+- `remote_control`: preview and execute local/remote actions via optional adapters.
 
 ## Execution truth rule
 
@@ -119,11 +144,13 @@ Valid result levels:
 ```text
 advice_only        no side effect
 command_rendered   no side effect; user must run locally
-dry_run            no side effect; adapter validated shape
-previewed          no side effect; remote daemon returned proposed plan
+dry_run            no side effect; gateway validated shape
+previewed          no side effect; preview result only
 executed           side effect confirmed by adapter result
 audit_logged       executed result has durable trace
 ```
+
+Standalone and Gateway Mode normally operate at `advice_only`, `command_rendered`, or `dry_run`.
 
 ## Module contract rule
 
@@ -136,24 +163,26 @@ Every module must define:
 - failure modes;
 - examples;
 - eval cases;
-- replacement path from mock to real adapter.
+- source-of-truth alignment.
 
 A disabled module is allowed. An undefined module is not.
 
-## Remote-control rule
+## Adapter Mode rule
 
-Remote control is part of the architecture from day one, but it defaults to preview or disabled mode until a trusted local daemon is connected.
+Remote/local execution is not part of the critical path for `online-gpt`.
 
-Required flow:
+Adapter Mode should remain documented but de-emphasized until:
 
-```text
-intent compile -> risk classify -> command preview -> approval -> execution -> log capture -> result summary -> rollback hint
-```
+- Standalone Mode passes GPT preview tests;
+- Gateway Mode APIs are deployed and tested;
+- Trust Gate is reliable;
+- a separate 胖鱼遥控器 direction is clarified.
 
 ## Knowledge versus behavior
 
 - `instructions/` contains behavior and answer contracts.
 - `knowledge/` contains reference material for GPT retrieval.
-- `gateway/` contains reusable deterministic logic.
-- `actions/` contains external call contracts.
-- `evals/` protects against prompt, routing, and safety regression.
+- `actions/` contains Gateway Mode API contracts.
+- `gateway/` contains reusable deterministic online logic.
+- `remote-daemon/` contains low-priority Adapter Mode contracts.
+- `evals/` protects prompt, routing, safety, and source-of-truth behavior.
