@@ -5,25 +5,15 @@ PEtFiSh installs into your AI coding assistant's skill directory. The process ta
 ## Prerequisites
 
 - **An AI coding assistant** — OpenCode, Claude Code, Cursor, Codex, Copilot, Windsurf, or Antigravity
-- **`uv`** — Python package manager ([install uv](https://docs.astral.sh/uv/getting-started/installation/)) — required for Python-based skills and MCP servers
-- **`python3`** — used by the installer for lightweight JSON processing (stdlib only, no virtual environment needed)
+- **`uv`** — Python package manager ([install uv](https://docs.astral.sh/uv/getting-started/installation/)) — the installer auto-bootstraps via PEP 723
 
 ## Quick Install
 
-Install the two essential packs — `init` (project initializer) and `companion` (Companion Gateway + 10 built-in skills):
+Install the two essential packs — `init` (project initializer) and `companion` (Companion Gateway + built-in skills):
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack init,companion --detect
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
+```
 
 The `--detect` flag auto-detects your AI platform. You can also specify it explicitly with `--platform opencode` (or `claude`, `cursor`, `codex`, `copilot`, `windsurf`, `antigravity`).
 
@@ -47,25 +37,16 @@ After installing `init` and `companion`, run `/initproject` in your AI assistant
 
 Or install packs manually:
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack deploy --detect
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "deploy" -Detect
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy --detect
+```
 
 ## Available Packs
 
 | Pack | Purpose | Skills |
 |---|---|---|
 | `init` | Project initializer and `/initproject` wizard | 1 |
-| `companion` | Companion Gateway, `/petfish`, 10 built-in lifecycle skills | 10 |
+| `companion` | Companion Gateway, `/petfish`, built-in lifecycle skills | 2 |
 | `course` | Course outline, content, labs, QA/QC workflows | 15 |
 | `deploy` | Deployment, CI/CD, health check, rollback, ops | 7 |
 | `testdocs` | Test case and usage documentation generation | 2 |
@@ -112,33 +93,13 @@ After restarting, run `/petfish` in your AI assistant. You should see your insta
 
 Re-run the install command with `--force` to upgrade:
 
-=== "macOS / Linux / WSL"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
+```
 
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack all --force
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
-    ```
-
-Or run `/petfish upgrade` to see the upgrade command for your OS.
+Or run `/petfish upgrade` to see the upgrade command.
 
 ## Troubleshooting
-
-??? tip "curl not found"
-    Use `wget` instead:
-    ```bash
-    wget -qO- https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --detect
-    ```
-
-??? tip "PowerShell execution policy blocks the script"
-    ```powershell
-    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-    ```
 
 ??? tip "uv not found"
     Install uv: <https://docs.astral.sh/uv/getting-started/installation/>
@@ -146,23 +107,20 @@ Or run `/petfish upgrade` to see the upgrade command for your OS.
 ??? tip "Platform detection picks the wrong platform"
     Use `--platform <name>` explicitly instead of `--detect`:
     ```bash
-    curl -fsSL ... | bash -s -- --pack init,companion --platform opencode
+    uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --platform opencode
+    ```
+
+??? tip "Network issues (China / restricted firewall)"
+    The installer has built-in mirror fallback (`ghfast.top` → `ghproxy.com`) with retries. If all mirrors fail, clone the repo and install offline:
+    ```bash
+    git clone https://github.com/kylecui/petfish.ai.git
+    uv run ./petfish.ai/install.py --pack <alias> --platform <PLATFORM> --target . --offline
     ```
 
 ## Private Repositories
 
 For private or enterprise GitHub repos:
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-      https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack init,companion
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -GitHubToken $env:GITHUB_TOKEN
-    ```
+```bash
+GITHUB_TOKEN=xxx uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion
+```

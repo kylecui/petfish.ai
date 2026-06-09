@@ -6,20 +6,11 @@
 
 The installer skips packs that appear current. Use `--force` to re-install:
 
-=== "macOS / Linux / WSL"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
+```
 
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack all --force
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
-    ```
-
-Or run `/petfish upgrade` in your AI assistant to see the exact command for your OS.
+Or run `/petfish upgrade` in your AI assistant to see the exact command.
 
 ### The installer says "uv not found"
 
@@ -51,19 +42,9 @@ See [Platform Support](../reference/platform-support.md) for detection markers a
 
 Yes. Pass a GitHub token:
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-      https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack companion
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack companion -GitHubToken $env:GITHUB_TOKEN
-    ```
+```bash
+GITHUB_TOKEN=xxx uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion
+```
 
 ---
 
@@ -162,27 +143,20 @@ The auto-migration from `.ai-context/` to `.petfish/fish-trail/` runs once on fi
 
 ### What Python version do I need?
 
-Python 3.10+ for skills with scripts. The installer itself only uses stdlib (`python3 -c` for JSON parsing), so any Python 3 works for installation.
+Python 3.10+ for skills with scripts. The unified Python installer (`install.py`) uses PEP 723 inline metadata and auto-bootstraps via `uv run` — no manual Python setup needed.
 
 ### Does PEtFiSh work offline?
 
-After installation, yes. Skills are local files. The only network calls happen during install/upgrade (downloading from GitHub) and if you use web-search-dependent skills (like marketplace-connector).
+After installation, yes. Skills are local files. The only network calls happen during install/upgrade (downloading from GitHub) and if you use web-search-dependent skills (like marketplace-connector). For offline install, clone the repo and use `--offline`.
 
 ### How do I uninstall a pack?
 
-Use the local installer:
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --uninstall <alias>
+```
 
-=== "macOS / Linux / WSL"
+Or from a cloned repo:
 
-    ```bash
-    ./install.sh --uninstall <alias>
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    .\install.ps1 -Uninstall <alias>
-    ```
-
-!!! note
-    Uninstall is only available with the local installer, not the remote one-liner.
+```bash
+uv run ./install.py --uninstall <alias>
+```

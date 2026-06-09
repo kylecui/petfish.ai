@@ -5,25 +5,15 @@ PEtFiSh安装到你的AI编码助手的技能目录中，整个过程不到两�
 ## 前置条件
 
 - **一个AI编码助手** — OpenCode、Claude Code、Cursor、Codex、Copilot、Windsurf或Antigravity
-- **`uv`** — Python包管理器（[安装uv](https://docs.astral.sh/uv/getting-started/installation/)）— Python技能和MCP server需要
-- **`python3`** — 安装器用于轻量JSON处理（仅stdlib，不需要虚拟环境）
+- **`uv`** — Python包管理器（[安装uv](https://docs.astral.sh/uv/getting-started/installation/)）— 安装器通过PEP 723自动引导
 
 ## 快速安装
 
-安装两个核心包 — `init`（项目初始化器）和`companion`（Companion Gateway + 10个内置技能）：
+安装两个核心包 — `init`（项目初始化器）和`companion`（Companion Gateway + 内置技能）：
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack init,companion --detect
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
+```
 
 `--detect`会自动检测你的AI平台。也可以用`--platform opencode`（或`claude`、`cursor`、`codex`、`copilot`、`windsurf`、`antigravity`）明确指定。
 
@@ -47,25 +37,16 @@ PEtFiSh安装到你的AI编码助手的技能目录中，整个过程不到两�
 
 也可以手动安装单个包：
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack deploy --detect
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "deploy" -Detect
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy --detect
+```
 
 ## 可用技能包
 
 | 包 | 用途 | 技能数 |
 |---|---|---|
 | `init` | 项目初始化器和`/initproject`向导 | 1 |
-| `companion` | Companion Gateway、`/petfish`、10个内置生命周期技能 | 10 |
+| `companion` | Companion Gateway、`/petfish`、内置生命周期技能 | 2 |
 | `course` | 课程大纲、内容、实验、QA/QC工作流 | 15 |
 | `deploy` | 部署、CI/CD、健康检查、回滚、运维 | 7 |
 | `testdocs` | 测试用例和使用文档生成 | 2 |
@@ -112,33 +93,13 @@ PEtFiSh支持8个AI编码平台：
 
 使用`--force`参数重新运行安装命令即可升级：
 
-=== "macOS / Linux / WSL"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
+```
 
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack all --force
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
-    ```
-
-或运行`/petfish upgrade`查看适合你操作系统的升级命令。
+或运行`/petfish upgrade`查看升级命令。
 
 ## 常见问题
-
-??? tip "找不到curl"
-    使用`wget`替代：
-    ```bash
-    wget -qO- https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --detect
-    ```
-
-??? tip "PowerShell执行策略阻止脚本运行"
-    ```powershell
-    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-    ```
 
 ??? tip "找不到uv"
     安装uv：<https://docs.astral.sh/uv/getting-started/installation/>
@@ -146,23 +107,20 @@ PEtFiSh支持8个AI编码平台：
 ??? tip "平台自动检测识别错误"
     使用`--platform <name>`明确指定：
     ```bash
-    curl -fsSL ... | bash -s -- --pack init,companion --platform opencode
+    uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --platform opencode
+    ```
+
+??? tip "网络问题（中国大陆/受限防火墙）"
+    安装器内置镜像回退（`ghfast.top` → `ghproxy.com`），带重试。如果所有镜像都失败，可以克隆仓库后离线安装：
+    ```bash
+    git clone https://github.com/kylecui/petfish.ai.git
+    uv run ./petfish.ai/install.py --pack <alias> --platform <PLATFORM> --target . --offline
     ```
 
 ## 私有仓库
 
 对于私有或企业GitHub仓库：
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-      https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack init,companion
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -GitHubToken $env:GITHUB_TOKEN
-    ```
+```bash
+GITHUB_TOKEN=xxx uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion
+```
