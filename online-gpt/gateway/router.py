@@ -1,4 +1,10 @@
-"""Companion Kernel router for PEtFiSh Companion GPT."""
+"""Companion Kernel router for PEtFiSh Companion GPT.
+
+The router preserves core PEtFiSh semantics first, then adds online adapter
+routing. Platform names such as OpenCode, Codex, or Antigravity should not by
+自 themselves force remote execution routing; they often appear in install,
+profile, or skill requests.
+"""
 
 from __future__ import annotations
 
@@ -27,7 +33,7 @@ def route_companion_request(
     installed = set(installed_packs or [])
     mode = mode or {"depth": "balanced", "rigor": False}
 
-    if any(k in text for k in ["rm -rf", "delete", "删除", "uninstall", "reset --hard", "token", "secret", "密钥"]):
+    if _has_trust_boundary(text):
         trust = classify_action(user_message, target_runtime=platform)
         return envelope(
             module="kernel",
@@ -38,30 +44,13 @@ def route_companion_request(
                 "topic_risk": "low",
                 "required_modules": ["trust_gate"],
                 "action_policy": trust["data"].get("decision"),
-                "response_contract": "remote_execution_preview" if "remote" in text else "direct_explanation",
+                "response_contract": "remote_execution_preview" if _is_remote_request(text) else "direct_explanation",
                 "trust_gate": trust["data"],
                 "mode": mode,
             },
         )
 
-    if any(k in text for k in ["remote", "遥控", "执行", "opencode", "codex", "antigravity"]):
-        if any(k in text for k in ["执行", "run", "execute", "remote"]):
-            preview = preview_remote_execution(platform, user_message)
-            return envelope(
-                module="kernel",
-                mode="preview_only",
-                result_level="previewed",
-                data={
-                    "intent": "remote_preview",
-                    "required_modules": ["remote_control", "trust_gate"],
-                    "response_contract": "remote_execution_preview",
-                    "preview": preview["data"],
-                    "mode": mode,
-                },
-                warnings=preview["warnings"],
-            )
-
-    if any(k in text for k in ["install", "安装", "upgrade", "升级", "profile", "pack"]):
+    if _is_install_request(text):
         prof = profile_project(user_message, platform=platform)
         packs = prof["data"].get("packs", ["context", "petfish"])
         cmd = render_install_command(packs, platform=platform)
@@ -82,7 +71,7 @@ def route_companion_request(
             warnings=cmd["warnings"],
         )
 
-    if any(k in text for k in ["skill", "技能", "pack", "触发", "trigger"]):
+    if _is_skill_request(text):
         skill = design_skill(user_message, platform=platform)
         return envelope(
             module="kernel",
@@ -98,7 +87,7 @@ def route_companion_request(
             warnings=skill["warnings"],
         )
 
-    if any(k in text for k in ["search", "查找", "catalog", "市场", "market"]):
+    if _is_catalog_request(text):
         catalog = search_catalog(user_message, platform=platform)
         return envelope(
             module="kernel",
@@ -112,6 +101,22 @@ def route_companion_request(
                 "mode": mode,
             },
             warnings=catalog["warnings"],
+        )
+
+    if _is_remote_request(text):
+        preview = preview_remote_execution(platform, user_message)
+        return envelope(
+            module="kernel",
+            mode="preview_only",
+            result_level="previewed",
+            data={
+                "intent": "remote_preview",
+                "required_modules": ["remote_control", "trust_gate"],
+                "response_contract": "remote_execution_preview",
+                "preview": preview["data"],
+                "mode": mode,
+            },
+            warnings=preview["warnings"],
         )
 
     evaluation_triggers = ["好吗", "对吗", "是否", "是不是", "worth", "good", "feasible", "evaluate", "评价"]
@@ -131,4 +136,28 @@ def route_companion_request(
             "project_profile": project_profile,
             "mode": mode,
         },
+    )
+
+
+def _has_trust_boundary(text: str) -> bool:
+    return any(k in text for k in ["rm -rf", "delete", "删除", "uninstall", "reset --hard", "token", "secret", "密钥"])
+
+
+def _is_install_request(text: str) -> bool:
+    return any(k in text for k in ["install", "安装", "upgrade", "升级", "profile", "pack", "初始化", "initproject"])
+
+
+def _is_skill_request(text: str) -> bool:
+    return any(k in text for k in ["skill", "技能", "触发", "trigger", "skill.md"])
+
+
+def _is_catalog_request(text: str) -> bool:
+    return any(k in text for k in ["search", "查找", "catalog", "市场", "market", "list packs", "pack 列表"])
+
+
+def _is_remote_request(text: str) -> bool:
+    remote_terms = ["remote", "遥控", "远程", "local daemon", "本地 daemon", "本地执行"]
+    execute_terms = ["执行", "run", "execute", "preview", "预览", "daemon"]
+    return any(k in text for k in remote_terms) or (
+        any(agent in text for agent in ["opencode", "codex", "antigravity"]) and any(k in text for k in execute_terms)
     )
