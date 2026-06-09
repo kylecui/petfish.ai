@@ -1,8 +1,8 @@
 """Companion Kernel router for PEtFiSh Companion GPT.
 
-The router preserves core PEtFiSh semantics first, then adds online adapter
+The router preserves core PEtFiSh semantics first, then adds online runtime
 routing. Platform names such as OpenCode, Codex, or Antigravity should not by
-自 themselves force remote execution routing; they often appear in install,
+themselves force remote execution routing; they often appear in install,
 profile, or skill requests.
 """
 
@@ -140,7 +140,20 @@ def route_companion_request(
 
 
 def _has_trust_boundary(text: str) -> bool:
-    return any(k in text for k in ["rm -rf", "delete", "删除", "uninstall", "reset --hard", "token", "secret", "密钥"])
+    trust_terms = [
+        "delete",
+        "删除",
+        "uninstall",
+        "reset",
+        "清空",
+        "覆盖",
+        "token",
+        "secret",
+        "密钥",
+        "password",
+        "凭证",
+    ]
+    return any(k in text for k in trust_terms)
 
 
 def _is_install_request(text: str) -> bool:
