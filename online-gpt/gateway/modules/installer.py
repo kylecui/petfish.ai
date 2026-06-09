@@ -51,7 +51,7 @@ def render_install_command(
                 "explanation": (
                     "Online PEtFiSh projects do not require local installation. "
                     "Packs are referenced semantically through GPT Instructions and Knowledge. "
-                    "If a local adapter is needed later, render a local install command with --platform opencode."
+                    "If a local adapter is needed later, render a local install command with the appropriate --platform."
                 ),
             },
             warnings=[
