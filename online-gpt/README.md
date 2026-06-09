@@ -6,6 +6,16 @@ It is not a lightweight chatbot copy of PEtFiSh, and it is not a wrapper around 
 
 Its job is to bring PEtFiSh's companion discipline, profiles, packs, skill lifecycle, quality gates, and trust boundaries into a GPT-native online surface while staying aligned with core PEtFiSh semantics.
 
+## Current remediation entry point
+
+Before continuing online-runtime implementation, read:
+
+```text
+ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md
+```
+
+This document records the current review findings and executable fixes needed to fully wire ChatGPT Project / online project runtime into router, profiler, Trust Gate, OpenAPI, evals, and Gateway docs.
+
 ## Release-candidate entry points
 
 For the current RC, read in this order:
@@ -77,6 +87,7 @@ A module may start with a mock, read-only, or disabled adapter, but its contract
 ```text
 online-gpt/
 ├── README.md
+├── ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md
 ├── RELEASE-CANDIDATE.md
 ├── PRIORITY-GUARDRAIL.md
 ├── GPT-BUILDER-RUNBOOK.md
@@ -117,9 +128,10 @@ This is an implementation order, not a reduced product roadmap:
 4. Define Gateway Mode OpenAPI contract.
 5. Implement Gateway skeleton for catalog, profile, installer, trust, and skill workbench.
 6. Add Gateway evals and local test plan.
-7. Configure GPT Builder from `GPT-BUILDER-RUNBOOK.md`.
-8. Deploy Gateway from `GATEWAY-DEPLOYMENT-RUNBOOK.md`.
-9. Defer Adapter Mode remote preview / local daemon work until Standalone and Gateway are reliable.
+7. Wire ChatGPT Project runtime according to `ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`.
+8. Configure GPT Builder from `GPT-BUILDER-RUNBOOK.md`.
+9. Deploy Gateway from `GATEWAY-DEPLOYMENT-RUNBOOK.md`.
+10. Defer Adapter Mode remote preview / local daemon work until Standalone and Gateway are reliable.
 
 ## Primary artifact
 
@@ -135,3 +147,5 @@ Do not import full `actions/openapi.yaml` for the first release.
 ## Status
 
 This subsystem is an RC-ready skeleton for Standalone and Gateway development. Adapter Mode contracts exist for future compatibility but are not the current priority.
+
+The online project runtime branch still requires the remediation steps in `ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md` before it should be considered complete.
