@@ -40,14 +40,7 @@
 ## 快速开始
 
 ```bash
-# macOS / Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack init,companion --detect
-```
-
-```powershell
-# Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
 ```
 
 装完输入 `/initproject`——胖鱼问你项目类型，自动装上匹配的能力包。
@@ -189,8 +182,7 @@ PEtFiSh 现在有 ChatGPT GPT 版本 —— 不需要本地安装，不依赖 Op
 运行 `/petfish upgrade` 查看适合当前OS的升级命令，或直接重跑安装命令加 `--force`：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack all --force
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
 ```
 
 或者让AI帮你：

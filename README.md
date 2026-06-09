@@ -37,14 +37,8 @@ Not a toolbox. A companion. Tools get called. PEtFiSh is always there.
 Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
 
-**Windows PowerShell**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
-```
-
-**macOS / Linux / WSL**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
 ```
 
 ---
@@ -205,68 +199,46 @@ See [docs/online-projects.md](docs/online-projects.md) for full documentation an
 
 ## Install Commands
 ### Remote Install
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> [-Target .] [-Platform opencode] [-Detect] [-Force] [-Global]
-```
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias> [--target .] [--platform opencode] [--detect] [--force] [--global]
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform <PLATFORM>
 ```
 
-### Local Install
-```powershell
-.\install.ps1 -Pack <alias> [-Target path] [-Platform opencode|claude|codex|cursor|copilot|windsurf|antigravity|all|primary|ide|cli] [-Detect] [-Force] [-Global]
-.\install.ps1 -List
-```
-
+### Local Install (from cloned repo)
 ```bash
-./install.sh --pack <alias> [--target path] [--platform <platform|group>] [--detect] [--force] [--global]
-./install.sh --list
+git clone https://github.com/kylecui/petfish.ai.git
+uv run ./petfish.ai/install.py --pack <alias> --platform <PLATFORM> --target .
+```
+
+### List Available Packs
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --list
 ```
 
 ### Private Repo Example
 ```bash
-curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-  https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack course
-```
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack course -GitHubToken $env:GITHUB_TOKEN
+GITHUB_TOKEN=xxx uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform <PLATFORM>
 ```
 
 ### Offline / Network-Restricted Install
 
 1. Clone or download the repo: `git clone https://github.com/kylecui/petfish.ai.git`
 2. Transfer to target machine (USB, SCP, internal share)
-3. Run local installer:
-   ```powershell
-   .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
-   ```
-   ```bash
-   ./install.sh --pack <alias> --platform <PLATFORM> --target .
-   ```
+3. Run: `uv run ./install.py --pack <alias> --platform <PLATFORM> --target . --offline`
 
-The local installer needs no internet — it scans `packs/` locally. `platforms.json` is recommended but optional (hardcoded fallback exists).
+The installer needs no internet — it scans `packs/` locally. Built-in mirror fallback (`ghfast.top` → `ghproxy.com`) with 3 retries for network-restricted environments.
 
-For China network: remote installer (v0.11.12+) auto-falls back to `ghfast.top` → `ghproxy.com` mirrors with 3 retries.
-
-See [docs/agent-install.md](docs/agent-install.md) for full offline install instructions.
+See [docs/agent-install.md](docs/agent-install.md) for full install instructions.
 
 ---
 
 ## Upgrade
-Run `/petfish upgrade` to see the upgrade command for your OS, or re-run the install command with `--force`:
+Run `/petfish upgrade` to see the upgrade command, or re-run with `--force`:
 ```text
 Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
 ```
 
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
-```
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force --platform <PLATFORM>
 ```
 
 Without `--force`, current packs are skipped, available updates are reported, and missing packs still install normally.
@@ -357,10 +329,11 @@ petfish.ai/
 │       ├── research-skill-pack/                  # research
 │       └── fish-reflection-pack/                 # reflect
 ├── platforms.json                                # platform registry
-├── install.ps1                                   # local PowerShell installer
-├── install.sh                                    # local shell installer
-├── remote-install.ps1                            # remote PowerShell installer
-├── remote-install.sh                             # remote shell installer
+├── install.py                                    # unified Python installer (PEP 723)
+├── install.ps1                                   # local PowerShell installer (legacy)
+├── install.sh                                    # local shell installer (legacy)
+├── remote-install.ps1                            # remote PowerShell installer (legacy)
+├── remote-install.sh                             # remote shell installer (legacy)
 └── README.md
 ```
 
