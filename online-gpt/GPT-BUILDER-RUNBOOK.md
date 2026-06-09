@@ -141,6 +141,10 @@ online-gpt/knowledge/08-failure-playbook.md
 online-gpt/knowledge/09-skill-workbench-reference.md
 online-gpt/knowledge/10-trust-gate-reference.md
 online-gpt/knowledge/11-execution-and-contracts.md
+online-gpt/knowledge/12-surface-output-contracts.md
+online-gpt/knowledge/13-skillset-index.md
+online-gpt/knowledge/14-companion-skillset.md
+online-gpt/knowledge/15-fish-classic-skillset.md
 ```
 
 Do not upload in first release:

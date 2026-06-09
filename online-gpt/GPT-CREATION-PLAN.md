@@ -150,7 +150,7 @@ GPT Builder instructions check passed (5933 chars <= 8000)
 
 ## 6. Knowledge 配置
 
-### 6.1 上传清单（11 个文件）
+### 6.1 上传清单（15 个文件）
 
 在 GPT Builder → Knowledge 中上传以下文件：
 
@@ -167,6 +167,14 @@ GPT Builder instructions check passed (5933 chars <= 8000)
 | 9 | `knowledge/09-skill-workbench-reference.md` | Skill 工作台参考 |
 | 10 | `knowledge/10-trust-gate-reference.md` | Trust Gate 参考 |
 | 11 | `knowledge/11-execution-and-contracts.md` | 执行模式、风险分类、answer contract 模板 |
+| 12 | `knowledge/12-surface-output-contracts.md` | **新增** — 输出表面合约（ChatGPT Project / GPT Builder / Gateway / Local / Skill Authoring） |
+| 13 | `knowledge/13-skillset-index.md` | **新增** — 全 PEtFiSh skillset 索引 |
+| 14 | `knowledge/14-companion-skillset.md` | **新增** — companion 核心 skillset（Gateway + 工具链） |
+| 15 | `knowledge/15-fish-classic-skillset.md` | **新增** — 经典 fish-* skillset（topic / style / calibrate / trust / reflect） |
+| 12 | `knowledge/12-surface-output-contracts.md` | 表面输出合同（ChatGPT Project / GPT Builder / Gateway / Local） |
+| 13 | `knowledge/13-skillset-index.md` | Skillset 总索引（所有 pack × skill 映射） |
+| 14 | `knowledge/14-companion-skillset.md` | Companion 核心技能集（Gateway + Toolchain） |
+| 15 | `knowledge/15-fish-classic-skillset.md` | 经典 Fish-* 技能集（topic, style, calibrate, trust, reflect） |
 
 ### 6.2 禁止上传
 
