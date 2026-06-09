@@ -22,7 +22,11 @@ def profile_project(
 
     if any(k in text for k in ["security", "安全", "audit", "policy", "trust", "remote", "遥控", "执行"]):
         packs.add("trust")
+        packs.add("deploy")
+        packs.add("testdocs")
         reasons.append("trust is required for security-sensitive or remote-control workflows")
+        reasons.append("deploy covers CI/CD, health check, rollback, and ops workflows")
+        reasons.append("testdocs covers test cases and usage documentation")
         profile = "security"
 
     if any(k in text for k in ["deploy", "docker", "ci", "cd", "ops", "运维", "部署", "回滚"]):

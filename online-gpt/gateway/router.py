@@ -35,6 +35,9 @@ def route_companion_request(
 
     if _has_trust_boundary(text):
         trust = classify_action(user_message, target_runtime=platform)
+        response_contract = "critical_review" if _is_evaluative(text) else (
+            "remote_execution_preview" if _is_remote_request(text) else "direct_explanation"
+        )
         return envelope(
             module="kernel",
             mode="dry_run",
@@ -44,9 +47,29 @@ def route_companion_request(
                 "topic_risk": "low",
                 "required_modules": ["trust_gate"],
                 "action_policy": trust["data"].get("decision"),
-                "response_contract": "remote_execution_preview" if _is_remote_request(text) else "direct_explanation",
+                "response_contract": response_contract,
                 "trust_gate": trust["data"],
                 "mode": mode,
+            },
+        )
+
+    # Evaluative questions (anti-sycophancy) take priority over install/skill routing.
+    # Ensures "is this approach right?" → critical_review, not install/skill.
+    if _is_evaluative(text):
+        return envelope(
+            module="kernel",
+            mode="dry_run",
+            result_level="advice_only",
+            data={
+                "intent": "critical_review",
+                "required_modules": ["companion_identity"],
+                "response_contract": "critical_review",
+                "anti_sycophancy_required": True,
+                "active_context": active_context,
+                "installed_packs": sorted(installed),
+                "project_profile": project_profile,
+                "mode": mode,
+                "review_dimensions": ["criteria", "counterargument", "conclusion"],
             },
         )
 
@@ -126,7 +149,7 @@ def route_companion_request(
         mode="dry_run",
         result_level="advice_only",
         data={
-            "intent": "general_or_review",
+            "intent": "direct_explanation",
             "topic_risk": "low",
             "required_modules": ["companion_identity"],
             "response_contract": "critical_review" if anti_sycophancy else "direct_explanation",
@@ -156,11 +179,29 @@ def _has_trust_boundary(text: str) -> bool:
     return any(k in text for k in trust_terms)
 
 
+def _is_evaluative(text: str) -> bool:
+    """Detect questions that require critical review rather than direct routing."""
+    evaluative = [
+        "好吗", "对吗", "是否", "是不是", "能不能", "可否",
+        "是否可以", "是否替代", "该不该", "是否值得",
+        "worth", "good", "feasible", "evaluate", "评价",
+    ]
+    return any(k in text for k in evaluative)
+
+
 def _is_install_request(text: str) -> bool:
-    return any(k in text for k in ["install", "安装", "upgrade", "升级", "profile", "pack", "初始化", "initproject"])
+    return any(k in text for k in [
+        "install", "安装", "upgrade", "升级", "profile",
+        "pack", "初始化", "initproject",
+        "装什么", "应装什么", "装哪个",
+        "装 context", "装 petfish",
+    ])
 
 
 def _is_skill_request(text: str) -> bool:
+    # Avoid false positive when "skills" refers to platform directory paths
+    if any(k in text for k in ["放在哪里", "在哪里", "目录", "路径", "directory"]):
+        return False
     return any(k in text for k in ["skill", "技能", "触发", "trigger", "skill.md"])
 
 

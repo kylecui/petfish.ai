@@ -29,6 +29,18 @@ EXPECTED_PACKS = {
     "doc-reader",
 }
 
+EXPECTED_PROFILES = {
+    "minimal",
+    "course",
+    "code",
+    "ops",
+    "security",
+    "research",
+    "writing",
+    "skills-package",
+    "comprehensive",
+}
+
 EXPECTED_PLATFORMS = {
     "opencode",
     "claude",
@@ -45,6 +57,21 @@ DRIFT_TERMS = [
     "GPT-native pack semantics",
     "online-only pack lifecycle",
     "new official pack",
+]
+
+DRIFT_NEGATION_PATTERNS = [
+    "does not replace",
+    "is not a replacement",
+    "not a replacement",
+    "no replacement",
+    "cannot define",
+    "not create new",
+    "not meant to replace",
+    "no new official",
+    "no replacement companion",
+    "non-goal",
+    "do not implement",
+    "not implement yet",
 ]
 
 
@@ -78,6 +105,12 @@ def check_drift_terms() -> List[str]:
         text = read_text(path)
         for phrase in DRIFT_TERMS:
             if phrase in text and path.name not in {"ALIGNMENT.md", "SOURCE-OF-TRUTH.md"}:
+                # Check if phrase appears in a negation context nearby
+                phrase_pos = text.find(phrase)
+                if phrase_pos >= 0:
+                    context = text[max(0, phrase_pos - 250):phrase_pos + len(phrase) + 100].lower()
+                    if any(neg in context for neg in DRIFT_NEGATION_PATTERNS):
+                        continue  # False positive: negated context
                 errors.append(f"drift term in {path.relative_to(ROOT)}: {phrase}")
     return errors
 
@@ -86,7 +119,12 @@ def check_pack_aliases() -> List[str]:
     errors = []
     pack_index = read_text(ONLINE / "knowledge" / "03-pack-index.md")
     aliases = set(re.findall(r"`([a-z][a-z0-9-]+)`", pack_index))
-    unknown = sorted(alias for alias in aliases if alias not in EXPECTED_PACKS and alias not in EXPECTED_PLATFORMS)
+    unknown = sorted(
+        alias for alias in aliases
+        if alias not in EXPECTED_PACKS
+        and alias not in EXPECTED_PLATFORMS
+        and alias not in EXPECTED_PROFILES
+    )
     for alias in unknown:
         errors.append(f"unknown alias in knowledge/03-pack-index.md: {alias}")
     return errors
