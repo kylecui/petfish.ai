@@ -27,6 +27,8 @@ def dispatch(action: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         return route_companion_request(**payload)
     if action == "searchCatalog":
         return search_catalog(**payload)
+    if action == "suggestPacks":
+        return profile_project(**payload)
     if action == "renderInstallCommand":
         return render_install_command(**payload)
     if action == "profileProject":
@@ -52,6 +54,13 @@ def _demo() -> None:
             },
         ),
         (
+            "suggestPacks",
+            {
+                "project_description": "AI security research project with PPT, docs, trust policy, and deployment scripts",
+                "platform": "opencode",
+            },
+        ),
+        (
             "profileProject",
             {
                 "project_description": "AI security research project with PPT, docs, trust policy, and deployment scripts",
@@ -69,7 +78,7 @@ def _demo() -> None:
         (
             "classifyActionRisk",
             {
-                "action_text": "rm -rf .opencode/skills without listing files first",
+                "action_text": "clear generated skill files without listing scoped paths first",
                 "target_runtime": "opencode",
             },
         ),
