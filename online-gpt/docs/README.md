@@ -2,31 +2,80 @@
 
 This directory is a pointer index. Most documentation lives at the top level of `online-gpt/` so it is easy to find from GitHub.
 
+## Release-candidate reading order
+
+1. `../README.md`
+2. `../RELEASE-CANDIDATE.md`
+3. `../PRIORITY-GUARDRAIL.md`
+4. `../PRIORITY-AUDIT.md`
+5. `../GPT-BUILDER-RUNBOOK.md`
+6. `../GATEWAY-DEPLOYMENT-RUNBOOK.md`
+7. `../PRODUCTION-READINESS-CHECKLIST.md`
+8. `../PUBLISH-CHECKLIST.md`
+
 ## Core reading order
 
 1. `../README.md`
-2. `../ALIGNMENT.md`
-3. `../SOURCE-OF-TRUTH.md`
-4. `../ARCHITECTURE.md`
-5. `../MODULES.md`
-6. `../GPT-BUILDER.md`
-7. `../GPT-CONFIG-PACKAGE.md`
-8. `../LOCAL-TEST-PLAN.md`
-9. `../PUBLISH-CHECKLIST.md`
+2. `../PRINCIPLES.md`
+3. `../OPERATING-MODES.md`
+4. `../ALIGNMENT.md`
+5. `../SOURCE-OF-TRUTH.md`
+6. `../ARCHITECTURE.md`
+7. `../MODULES.md`
+8. `../STANDALONE-ACCEPTANCE.md`
+9. `../GATEWAY-ACCEPTANCE.md`
+10. `../ADAPTER-ACCEPTANCE.md`
+
+## GPT Builder reading order
+
+1. `../GPT-BUILDER-RUNBOOK.md`
+2. `../GPT-BUILDER.md`
+3. `../GPT-CONFIG-PACKAGE.md`
+4. `../instructions/petfish-companion.instructions.md`
+5. `../knowledge/README.md`
+6. `../actions/action-policy.md`
+7. `../actions/openapi.gateway-only.yaml`
+
+## Gateway deployment reading order
+
+1. `../GATEWAY-DEPLOYMENT-RUNBOOK.md`
+2. `../gateway/HTTP-GATEWAY.md`
+3. `../gateway/CONTRACTS.md`
+4. `../gateway/API-MAPPING.md`
+5. `../actions/openapi.gateway-only.yaml`
+6. `../gateway/server.py`
+7. `../gateway/http-smoke.sh`
+
+## Local validation reading order
+
+1. `../LOCAL-TEST-PLAN.md`
+2. `../LOCAL-TEST-QUICKSTART.md`
+3. `../QUALITY-GATE.md`
+4. `../evals/README.md`
+5. `../tools/README.md`
 
 ## Developer reading order
 
 1. `../gateway/CONTRACTS.md`
 2. `../gateway/API-MAPPING.md`
-3. `../actions/openapi.yaml`
-4. `../tools/README.md`
-5. `../evals/README.md`
-6. `../remote-daemon/SPEC.md`
+3. `../actions/openapi.gateway-only.yaml`
+4. `../actions/openapi.yaml`
+5. `../tools/README.md`
+6. `../evals/README.md`
+7. `../remote-daemon/SPEC.md`
 
 ## Review reading order
 
-1. `../PR-NOTES.md`
-2. `../WORK-COMPLETION.md`
-3. `../KNOWN-LIMITATIONS.md`
-4. `../SECURITY.md`
-5. `../CI-RECOMMENDATION.md`
+1. `../FINAL-DEVELOPMENT-CHECKLIST.md`
+2. `../PR-NOTES.md`
+3. `../WORK-COMPLETION.md`
+4. `../COMPLETION-NOTE.md`
+5. `../KNOWN-LIMITATIONS.md`
+6. `../SECURITY.md`
+7. `../CI-RECOMMENDATION.md`
+
+## P2 Adapter warning
+
+`../knowledge/07-remote-control-model.md`, `../remote-daemon/README.md`, and `../remote-daemon/SPEC.md` are P2 boundary materials.
+
+Do not use them as first-release GPT Builder upload materials.
