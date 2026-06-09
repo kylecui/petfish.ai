@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from ..schemas import ModuleEnvelope, envelope
+from schemas import ModuleEnvelope, envelope
 
 CORE_PACKS: Dict[str, str] = {
     "init": "Project initializer and /initproject wizard",
