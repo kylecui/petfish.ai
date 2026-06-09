@@ -14,6 +14,42 @@ P2. Adapter Mode boundary only
 
 Do not enable Adapter Mode in the first GPT configuration.
 
+## Instruction governance rule
+
+Do not hand-write GPT Builder Instructions.
+
+The only approved copy/paste source for the GPT Builder Instructions field is:
+
+```text
+online-gpt/instructions/petfish-companion.gpt-builder.instructions.md
+```
+
+This short version is derived from:
+
+```text
+online-gpt/instructions/petfish-companion.instructions.md
+```
+
+Detailed execution modes, risk tables, and answer contract templates belong in Knowledge:
+
+```text
+online-gpt/knowledge/11-execution-and-contracts.md
+```
+
+Before copying into GPT Builder, run:
+
+```text
+python online-gpt/tools/check_gpt_builder_instructions.py
+```
+
+Expected:
+
+```text
+GPT Builder instructions check passed
+```
+
+If the GPT Builder UI reports an instructions length error, do not manually trim inside the UI. Fix the repository short-version file, rerun the checker, then paste again.
+
 ## 1. Create GPT draft
 
 Metadata:
@@ -51,19 +87,26 @@ If the GPT will be used for code review, create a ChatGPT Project and paste `pro
 
 ChatGPT Projects do not require an install command or a local adapter. The GPT treats the Project itself as the PEtFiSh runtime.
 
-## 4. Configure P0 Standalone Mode
+## 3. Configure P0 Standalone Mode
 
 Actions must remain disabled in this stage.
 
 Copy this file into the GPT Instructions field:
 
 ```text
+online-gpt/instructions/petfish-companion.gpt-builder.instructions.md
+```
+
+Do not paste this full canonical file into GPT Builder:
+
+```text
 online-gpt/instructions/petfish-companion.instructions.md
 ```
 
-Keep these support files open while editing or reviewing the instruction field:
+Keep these support files open while reviewing the instruction field:
 
 ```text
+online-gpt/instructions/INSTRUCTION-GOVERNANCE.md
 online-gpt/instructions/safety-boundary.md
 online-gpt/instructions/answer-contract.md
 online-gpt/instructions/anti-sycophancy.md
@@ -71,16 +114,18 @@ online-gpt/PRIORITY-GUARDRAIL.md
 online-gpt/PRINCIPLES.md
 ```
 
-The final instruction must preserve:
+The final GPT Builder instruction must preserve:
 
 - independent online companion runtime identity;
+- ChatGPT Project as online runtime;
 - P0/P1/P2 priority order;
 - IDE/CLI tools are optional adapters;
 - no local execution claim without verified adapter proof;
+- no secret echoing;
 - core PEtFiSh remains source of truth;
 - P2 tests are boundary/regression only.
 
-## 5. Upload Knowledge for first release
+## 4. Upload Knowledge for first release
 
 Upload these files:
 
@@ -95,6 +140,7 @@ online-gpt/knowledge/06-quality-gate-reference.md
 online-gpt/knowledge/08-failure-playbook.md
 online-gpt/knowledge/09-skill-workbench-reference.md
 online-gpt/knowledge/10-trust-gate-reference.md
+online-gpt/knowledge/11-execution-and-contracts.md
 ```
 
 Do not upload in first release:
@@ -112,7 +158,7 @@ Do not upload:
 - local daemon configuration;
 - unpublished Adapter Mode credentials.
 
-## 6. Configure capabilities
+## 5. Configure capabilities
 
 Recommended first-release settings:
 
@@ -124,7 +170,7 @@ Recommended first-release settings:
 | Image Generation | off | not core to PEtFiSh Companion |
 | Actions | off for P0, on for P1 only | preserve release sequence |
 
-## 7. P0 Preview tests
+## 6. P0 Preview tests
 
 Run before enabling Actions:
 
@@ -178,7 +224,7 @@ Expected:
 - includes counterargument;
 - avoids praise-first sycophancy.
 
-## 8. Configure P1 Gateway Actions
+## 7. Configure P1 Gateway Actions
 
 Proceed only after P0 Preview passes.
 
@@ -223,7 +269,7 @@ Header: X-PEtFiSh-Gateway-Key
 Value: <PETFISH_GATEWAY_TOKEN>
 ```
 
-## 9. P1 Preview tests
+## 8. P1 Preview tests
 
 After Actions are enabled, run:
 
@@ -263,7 +309,7 @@ Expected answer:
 - no execution claim;
 - no Adapter Mode dependency.
 
-## 10. P2 boundary prompts
+## 9. P2 boundary prompts
 
 Run only after P0/P1 pass and only as boundary/regression checks:
 
@@ -282,7 +328,7 @@ Expected:
 - Adapter Mode is optional;
 - local daemon, Trust Gate, approval, scoped alias, secret masking, audit, and execution proof are required.
 
-## 11. Publication settings
+## 10. Publication settings
 
 Recommended sequence:
 
@@ -293,16 +339,21 @@ Recommended sequence:
 
 Do not publish with:
 
+- hand-written GPT Builder Instructions;
+- full canonical instructions pasted into GPT Builder;
 - full OpenAPI schema imported;
 - remote-control Knowledge uploaded;
 - Adapter Mode conversation starters;
 - remote execution enabled;
 - unknown Gateway host.
 
-## 12. Final GPT Builder checklist
+## 11. Final GPT Builder checklist
 
-- [ ] Instructions copied and reviewed.
+- [ ] Instruction governance reviewed.
+- [ ] Short GPT Builder instructions copied and reviewed.
+- [ ] `check_gpt_builder_instructions.py` passes.
 - [ ] Knowledge upload list matches this runbook.
+- [ ] `11-execution-and-contracts.md` uploaded as Knowledge.
 - [ ] P2 Knowledge excluded.
 - [ ] Conversation starters are P0/P1 only.
 - [ ] P0 Preview passes without Actions.
