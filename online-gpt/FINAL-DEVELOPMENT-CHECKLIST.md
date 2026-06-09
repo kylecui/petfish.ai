@@ -9,6 +9,7 @@ This checklist records repository work that should be complete before local test
 - [x] Core PEtFiSh remains source of truth.
 - [x] Standalone, Gateway, and Adapter modes are explicitly defined.
 - [x] Remote execution is optional and disabled by default.
+- [x] P2 Adapter tests are boundary/regression tests only, not primary acceptance.
 
 Files:
 
@@ -17,6 +18,7 @@ PRINCIPLES.md
 OPERATING-MODES.md
 ALIGNMENT.md
 SOURCE-OF-TRUTH.md
+PRIORITY-GUARDRAIL.md
 ```
 
 ## Mode acceptance
@@ -24,6 +26,7 @@ SOURCE-OF-TRUTH.md
 - [x] Standalone Mode acceptance criteria.
 - [x] Gateway Mode acceptance criteria.
 - [x] Adapter Mode acceptance criteria.
+- [x] P0/P1 must pass before P2 boundary results are interpreted.
 
 Files:
 
@@ -41,6 +44,7 @@ ADAPTER-ACCEPTANCE.md
 - [x] Knowledge upload list.
 - [x] Actions import instructions.
 - [x] Publish checklist.
+- [x] P2 remote-control Knowledge excluded from first-release upload unless explicitly testing boundary behavior.
 
 Files:
 
@@ -106,6 +110,7 @@ gateway/modules/remote_control.py
 - [x] Knowledge evals.
 - [x] Anti-sycophancy regression evals.
 - [x] Core alignment regression evals.
+- [x] Mode-priority regression requirement.
 - [x] Alignment checker scaffold.
 - [x] Knowledge compiler scaffold.
 
@@ -124,6 +129,7 @@ tools/compile_knowledge.py
 - [x] Remote daemon spec.
 - [x] Adapter Mode acceptance criteria.
 - [x] Remote execution disabled-by-default rule.
+- [x] Adapter Mode marked optional and low-priority.
 
 Files:
 
@@ -141,6 +147,7 @@ ADAPTER-ACCEPTANCE.md
 - [x] Quality gate.
 - [x] Known limitations.
 - [x] Completion note.
+- [x] Priority audit report.
 
 Files:
 
@@ -151,6 +158,7 @@ CI-RECOMMENDATION.md
 QUALITY-GATE.md
 KNOWN-LIMITATIONS.md
 COMPLETION-NOTE.md
+PRIORITY-AUDIT.md
 ```
 
 ## Remaining local-only work
@@ -179,3 +187,5 @@ LOCAL-TEST-QUICKSTART.md
 All non-local-test repository development and documentation work for the current online-gpt phase is complete in `dev`.
 
 The remaining work is validation from a local clone and, later, deployment of Gateway Mode API infrastructure.
+
+P2 Adapter results must not be used to override or replace P0/P1 acceptance results.
