@@ -8,6 +8,18 @@ online-gpt/LOCAL-TEST-PLAN.md
 
 This is the short command sequence.
 
+## Priority rule
+
+Run tests in this order:
+
+```text
+P0. Standalone Mode first
+P1. Gateway Mode second
+P2. Adapter Mode boundary/regression only
+```
+
+Do not use P2 remote-control prompts as primary acceptance evidence for the GPT version.
+
 ## 1. Checkout
 
 ```bash
@@ -15,12 +27,31 @@ git checkout dev
 git pull
 ```
 
-## 2. Compile Python files
+## 2. P0 Standalone review
+
+Inspect the mode and GPT configuration docs:
+
+```bash
+cat online-gpt/PRINCIPLES.md
+cat online-gpt/OPERATING-MODES.md
+cat online-gpt/STANDALONE-ACCEPTANCE.md
+cat online-gpt/GPT-CONFIG-PACKAGE.md
+```
+
+Expected:
+
+- GPT version is independently operable;
+- IDE/CLI tools are optional adapters;
+- Standalone Mode does not require Actions;
+- no local execution claim is allowed.
+
+## 3. Compile Python files
 
 ```bash
 python -m py_compile \
   online-gpt/gateway/app.py \
   online-gpt/gateway/router.py \
+  online-gpt/gateway/server.py \
   online-gpt/gateway/schemas.py \
   online-gpt/gateway/eval_runner.py \
   online-gpt/gateway/modules/catalog.py \
@@ -33,32 +64,48 @@ python -m py_compile \
   online-gpt/tools/compile_knowledge.py
 ```
 
-## 3. Run smoke demo
+## 4. Run P1 Gateway dispatcher smoke demo
 
 ```bash
 python online-gpt/gateway/app.py
 ```
 
-## 4. Run evals
+## 5. Run P1 HTTP gateway smoke test
+
+Terminal 1:
+
+```bash
+python online-gpt/gateway/server.py --host 127.0.0.1 --port 8787
+```
+
+Terminal 2:
+
+```bash
+bash online-gpt/gateway/http-smoke.sh
+```
+
+## 6. Run evals
 
 ```bash
 python online-gpt/gateway/eval_runner.py online-gpt/evals
 ```
 
-## 5. Run alignment check
+P2 remote-control evals, if present, are boundary/regression tests only.
+
+## 7. Run alignment check
 
 ```bash
 python online-gpt/tools/check_alignment.py
 ```
 
-## 6. Try knowledge compiler scaffold
+## 8. Try knowledge compiler scaffold
 
 ```bash
 python online-gpt/tools/compile_knowledge.py
 cat online-gpt/knowledge/04-platform-adapters.generated.md
 ```
 
-## 7. Optional OpenAPI validation
+## 9. Optional OpenAPI validation
 
 ```bash
 uvx openapi-spec-validator online-gpt/actions/openapi.yaml
@@ -66,8 +113,10 @@ uvx openapi-spec-validator online-gpt/actions/openapi.yaml
 
 Expected before GPT Builder publication:
 
+- P0 standalone review passes;
 - compile passes;
-- smoke demo runs;
+- dispatcher smoke demo runs;
+- HTTP gateway smoke runs;
 - evals pass;
 - alignment check passes;
 - OpenAPI validates or validator issue is documented;
