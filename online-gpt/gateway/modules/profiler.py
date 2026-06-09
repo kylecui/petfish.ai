@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Iterable, Set
 
-from ..schemas import ModuleEnvelope, envelope
+from schemas import ModuleEnvelope, envelope
 
 
 def profile_project(
