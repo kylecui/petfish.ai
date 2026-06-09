@@ -12,6 +12,12 @@ All blockers identified in `REVIEW-BLOCKERS.md` are now resolved:
 - [x] F2: `/v1/health` and `/v1/version` return runbook-compatible metadata
 - [x] F3: HTTP smoke covers all health/version endpoints
 
+Instruction governance is now required before GPT Builder configuration:
+- [x] Canonical instructions kept as repository source.
+- [x] GPT Builder short instructions created.
+- [x] Character and guardrail checker created.
+- [x] Execution/contract details moved to Knowledge file 11.
+
 Do not publish without final review confirmation. GPT Builder / production publication requires human sign-off.
 
 ## Product principle
@@ -42,6 +48,7 @@ PRIORITY-GUARDRAIL.md
 - [x] Documentation index updated.
 - [x] README points to RC runbooks.
 - [x] Review blockers resolved.
+- [x] Instruction governance documented.
 
 Files:
 
@@ -52,6 +59,7 @@ GPT-BUILDER-RUNBOOK.md
 GATEWAY-DEPLOYMENT-RUNBOOK.md
 PRODUCTION-READINESS-CHECKLIST.md
 docs/README.md
+docs/INSTRUCTION-GOVERNANCE-INDEX.md
 README.md
 ```
 
@@ -75,8 +83,11 @@ ADAPTER-ACCEPTANCE.md
 - [x] GPT Builder guide.
 - [x] GPT Builder runbook.
 - [x] GPT configuration package.
-- [x] Instructions package.
+- [x] Canonical instructions package.
+- [x] GPT Builder short instructions package.
+- [x] GPT Builder instruction checker.
 - [x] Knowledge upload list.
+- [x] Knowledge file 11 for execution and answer contracts.
 - [x] Actions import instructions.
 - [x] Publish checklist.
 - [x] P2 remote-control Knowledge excluded from first-release upload unless explicitly testing boundary behavior.
@@ -88,8 +99,11 @@ GPT-BUILDER.md
 GPT-BUILDER-RUNBOOK.md
 GPT-CONFIG-PACKAGE.md
 PUBLISH-CHECKLIST.md
-instructions/
-knowledge/
+instructions/INSTRUCTION-GOVERNANCE.md
+instructions/petfish-companion.instructions.md
+instructions/petfish-companion.gpt-builder.instructions.md
+knowledge/11-execution-and-contracts.md
+tools/check_gpt_builder_instructions.py
 actions/
 ```
 
@@ -153,6 +167,7 @@ gateway/modules/remote_control.py
 - [x] Mode-priority regression requirement.
 - [x] Alignment checker scaffold.
 - [x] Knowledge compiler scaffold.
+- [x] GPT Builder instructions checker.
 
 Files:
 
@@ -161,6 +176,7 @@ evals/
 gateway/eval_runner.py
 tools/check_alignment.py
 tools/compile_knowledge.py
+tools/check_gpt_builder_instructions.py
 ```
 
 ## Remote daemon and Adapter Mode
@@ -213,6 +229,7 @@ These are intentionally not completed through remote repository edits:
 - [x] HTTP smoke script run from fresh local clone.
 - [x] Eval runner execution from fresh local clone.
 - [x] Alignment checker execution from fresh local clone.
+- [ ] GPT Builder instructions checker execution from fresh local clone.
 - [ ] Knowledge compiler execution from fresh local clone.
 - [ ] OpenAPI schema validation from fresh local clone.
 - [ ] GPT Builder manual preview.
@@ -229,12 +246,13 @@ LOCAL-TEST-QUICKSTART.md
 GPT-BUILDER-RUNBOOK.md
 GATEWAY-DEPLOYMENT-RUNBOOK.md
 PRODUCTION-READINESS-CHECKLIST.md
+instructions/INSTRUCTION-GOVERNANCE.md
 ```
 
 ## Completion statement
 
-Repository-side release preparation materials exist, but the current `online-gpt/` RC is blocked by review findings.
+Repository-side release preparation materials exist and the prior review blockers are resolved.
 
-The next required action is to fix `REVIEW-BLOCKERS.md`, rerun the specified tests, and update local test notes.
+The next required action is to run the GPT Builder instructions checker, configure GPT Builder from the short instructions file, and perform manual preview tests.
 
 P2 Adapter results must not be used to override or replace P0/P1 acceptance results.
