@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..schemas import ModuleEnvelope, envelope
+from schemas import ModuleEnvelope, envelope
 
 
 def design_skill(
