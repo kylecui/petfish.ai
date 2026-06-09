@@ -4,14 +4,22 @@ This checklist is for preparing a Custom GPT or future ChatGPT App based on `onl
 
 Publishing means exposing the companion shell to users. It does not mean enabling remote execution by default.
 
-## 0. Mode priority
+## 0. Release-candidate entry
+
+- [ ] `RELEASE-CANDIDATE.md` reviewed.
+- [ ] `PRIORITY-GUARDRAIL.md` reviewed.
+- [ ] `GPT-BUILDER-RUNBOOK.md` followed.
+- [ ] `GATEWAY-DEPLOYMENT-RUNBOOK.md` followed if Gateway Mode is enabled.
+- [ ] `PRODUCTION-READINESS-CHECKLIST.md` completed before production release.
+
+## 1. Mode priority
 
 - [ ] P0 Standalone Mode works before Actions are enabled.
 - [ ] P1 Gateway Mode is tested only after P0 passes.
 - [ ] P2 Adapter Mode is excluded from first-release acceptance unless explicitly marked as boundary/regression testing.
 - [ ] P2 Adapter prompts are not used as primary evidence that the GPT version is useful.
 
-## 1. Instructions
+## 2. Instructions
 
 - [ ] `petfish-companion.instructions.md` is copied into GPT Instructions.
 - [ ] Instructions identify PEtFiSh Companion GPT as an independent online companion runtime.
@@ -21,24 +29,28 @@ Publishing means exposing the companion shell to users. It does not mean enablin
 - [ ] Anti-sycophancy contract is represented.
 - [ ] The GPT never claims local execution without adapter proof.
 
-## 2. Knowledge
+## 3. Knowledge
 
 - [ ] Knowledge files are generated from current repo docs.
+- [ ] Knowledge upload set follows `GPT-BUILDER-RUNBOOK.md`.
 - [ ] No secrets, tokens, customer data, or private local state are included.
 - [ ] Pack index is current.
 - [ ] Platform adapter table is current.
 - [ ] Install command reference matches the target release branch.
 - [ ] `knowledge/07-remote-control-model.md` is excluded from first-release upload unless testing P2 boundary behavior.
 
-## 3. Actions
+## 4. Actions
 
 - [ ] Gateway-only Actions schema imports successfully if Gateway Mode is enabled.
+- [ ] `actions/openapi.gateway-only.yaml` is imported, not full `actions/openapi.yaml`.
 - [ ] Server URL points to real gateway host, not placeholder.
+- [ ] Gateway auth is configured.
 - [ ] All operation IDs map to gateway dispatcher functions.
+- [ ] No `/v1/remote/*` path is imported in first-release Actions.
 - [ ] Remote execute endpoint is absent, disabled, or approval-protected.
 - [ ] Errors return module envelopes.
 
-## 4. P0 Standalone checks
+## 5. P0 Standalone checks
 
 - [ ] PEtFiSh explanation prompt passes without Actions.
 - [ ] Pack/profile recommendation prompt passes without Actions.
@@ -47,16 +59,20 @@ Publishing means exposing the companion shell to users. It does not mean enablin
 - [ ] Anti-sycophancy prompt passes without Actions.
 - [ ] GPT does not require OpenCode/Codex/Antigravity for core usefulness.
 
-## 5. P1 Gateway checks
+## 6. P1 Gateway checks
 
 - [ ] `python online-gpt/gateway/app.py` runs.
+- [ ] `python online-gpt/gateway/server.py --host 127.0.0.1 --port 8787` runs.
+- [ ] `bash online-gpt/gateway/http-smoke.sh` passes.
+- [ ] `/v1/health` works.
+- [ ] `/v1/version` works.
 - [ ] Catalog search returns pack matches.
 - [ ] Project profiler returns minimal sufficient pack sets.
 - [ ] Installer renders commands without execution.
 - [ ] Trust Gate classifies write, secret, publish, and high-risk actions.
 - [ ] HTTP Gateway smoke test passes if Gateway Mode is enabled.
 
-## 6. P2 Adapter boundary checks
+## 7. P2 Adapter boundary checks
 
 These checks are optional boundary/regression checks. They must not replace P0 or P1 acceptance.
 
@@ -68,7 +84,7 @@ These checks are optional boundary/regression checks. They must not replace P0 o
 - [ ] Logs mask secrets.
 - [ ] Audit trace is durable before any execution claim.
 
-## 7. Evals
+## 8. Evals
 
 - [ ] Routing evals pass.
 - [ ] Safety evals pass.
@@ -78,7 +94,7 @@ These checks are optional boundary/regression checks. They must not replace P0 o
 - [ ] P2 boundary evals are labeled as boundary/regression, not primary acceptance.
 - [ ] New known failure modes have regression cases.
 
-## 8. Manual GPT preview prompts
+## 9. Manual GPT preview prompts
 
 Run these P0 prompts before sharing:
 
@@ -120,6 +136,9 @@ When merging this subsystem into `master`, release notes should include:
 
 - online-gpt subsystem added;
 - independent Standalone Mode added;
+- GPT Builder runbook added;
+- production readiness checklist added;
+- Gateway deployment runbook added;
 - GPT Builder instructions and Knowledge bundle added;
 - Gateway Mode Actions/OpenAPI contract added;
 - stdlib gateway skeleton added;
