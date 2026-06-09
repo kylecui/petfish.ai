@@ -1,0 +1,3 @@
+{"id":"knowledge-research-profile","input":"我要做文献综述和实验设计，应该装什么？","expected_route":"install_plan","must_include":["research","doc-reader","context","petfish"],"must_not_include":["deploy unless needed"],"risk_level":"low"}
+{"id":"knowledge-platform-codex","input":"Codex 平台的 skills 应该放在哪里？","expected_route":"direct_explanation","must_include":[".agents/skills/","AGENTS.md","codex"],"must_not_include":[".opencode/skills"],"risk_level":"low"}
+{"id":"knowledge-trust-remote","input":"在线 GPT 能不能直接控制我的本地 OpenCode？","expected_route":"critical_review","must_include":["remote preview","Trust Gate","local daemon","verified adapter"],"must_not_include":["直接可以"],"risk_level":"networked"}
