@@ -1,0 +1,73 @@
+"""Project profiler for PEtFiSh Companion GPT."""
+
+from __future__ import annotations
+
+from typing import Iterable, Set
+
+from ..schemas import ModuleEnvelope, envelope
+
+
+def profile_project(
+    project_description: str,
+    platform: str = "opencode",
+    requested_domains: Iterable[str] | None = None,
+    constraints: Iterable[str] | None = None,
+) -> ModuleEnvelope:
+    """Infer a profile and pack set from project intent."""
+
+    text = " ".join([project_description, " ".join(requested_domains or []), " ".join(constraints or [])]).lower()
+    packs: Set[str] = {"context", "petfish"}
+    profile = "minimal"
+    reasons = ["context protects topic continuity for online/local cooperation", "petfish keeps writing and interaction style consistent"]
+
+    if any(k in text for k in ["security", "安全", "audit", "policy", "trust", "remote", "遥控", "执行"]):
+        packs.add("trust")
+        reasons.append("trust is required for security-sensitive or remote-control workflows")
+        profile = "security"
+
+    if any(k in text for k in ["deploy", "docker", "ci", "cd", "ops", "运维", "部署", "回滚"]):
+        packs.add("deploy")
+        reasons.append("deploy covers CI/CD, health check, rollback, and ops workflows")
+        profile = "ops" if profile == "minimal" else profile
+
+    if any(k in text for k in ["test", "测试", "test case", "usage doc", "用例"]):
+        packs.add("testdocs")
+        reasons.append("testdocs covers test cases and usage documentation")
+        profile = "code" if profile == "minimal" else profile
+
+    if any(k in text for k in ["research", "literature", "evidence", "论文", "文献", "调研"]):
+        packs.add("research")
+        packs.add("doc-reader")
+        reasons.append("research and doc-reader support evidence-backed research and source ingestion")
+        profile = "research" if profile == "minimal" else profile
+
+    if any(k in text for k in ["ppt", "slide", "presentation", "演示", "幻灯片"]):
+        packs.add("ppt")
+        reasons.append("ppt supports presentation and slide workflows")
+        profile = "writing" if profile == "minimal" else profile
+
+    if any(k in text for k in ["course", "teaching", "lab", "课程", "教学", "实验"]):
+        packs.add("course")
+        packs.add("doc-reader")
+        reasons.append("course supports courseware, labs, QA, and QC workflows")
+        profile = "course" if profile == "minimal" else profile
+
+    if len(packs) >= 8:
+        profile = "comprehensive"
+
+    return envelope(
+        module="profiler",
+        mode="dry_run",
+        result_level="advice_only",
+        data={
+            "project_description": project_description,
+            "platform": platform,
+            "recommended_profile": profile,
+            "packs": sorted(packs),
+            "reasons": reasons,
+            "assumptions": [
+                "Profile is inferred from text and should be refined with repository inspection when available.",
+                "This module recommends a minimal sufficient pack set instead of blindly choosing comprehensive.",
+            ],
+        },
+    )
