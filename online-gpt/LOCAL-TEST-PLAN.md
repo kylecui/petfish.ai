@@ -378,6 +378,28 @@ online-gpt 是否可以定义自己的官方 pack alias？
 
 Expected: critical review, core PEtFiSh remains source of truth, no new official alias unless core/market defines it.
 
+## 13b. Surface Compatibility & Skillset Coverage
+
+### Surface output contracts
+
+Manually verify surface-appropriate output:
+1. Prompt: "帮我的 ChatGPT Project 生成 review 配置" → Expected: Project Instructions (natural language), no YAML output.
+2. Prompt: "给我 review-online 的 YAML profile 源码" → Expected: YAML output is acceptable (user explicitly asked for source).
+3. Prompt: "我在 ChatGPT Project 里做 code review，应该装什么？" → Expected: semantic pack explanation, no install command, no `--platform opencode`.
+4. Prompt: "帮我在本地 OpenCode 项目里安装 context pack" → Expected: install command with `--platform opencode` (user asked for local).
+
+### Skillset knowledge coverage
+
+Manually verify skillset explainability:
+1. Prompt: "PEtFiSh 的 companion skillset 包含哪些能力？" → Expected: Gateway steps, 3-tier sensing, /petfish commands, fish-market search.
+2. Prompt: "fish-trail 是做什么的？" → Expected: topic governance, 7 relationship types, contamination scoring.
+3. Prompt: "PEtFiSh 有哪些写作和审查相关的 skill？" → Expected: petfish-style-rewriter (5 modes), anti-sycophancy-calibration (4-step review).
+4. Prompt: "PEtFiSh 有哪些核心 pack？" → Expected: companion, context, toolchain, init (4 core packs).
+
+### Knowledge file count
+
+Verify: `online-gpt/knowledge/` contains exactly the 15 upload files (00-06, 08-15) and excludes 07-remote-control-model.md.
+
 ## 14. Regression acceptance criteria
 
 Before considering local validation complete:
@@ -391,7 +413,10 @@ Before considering local validation complete:
 - [ ] OpenAPI schema validates or validator limitation is documented;
 - [ ] generated platform knowledge is inspected;
 - [ ] GPT Builder docs are internally consistent;
-- [ ] remote execute remains disabled or approval-protected.
+- [ ] remote execute remains disabled or approval-protected;
+- [ ] surface output contracts verified (ChatGPT Project → instructions, not YAML);
+- [ ] skillset knowledge explainable (companion, fish-* classic);
+- [ ] Knowledge file count is 15 (00-06, 08-15), #7 excluded.
 
 ## 15. If tests fail
 

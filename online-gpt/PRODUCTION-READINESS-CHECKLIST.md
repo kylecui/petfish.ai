@@ -31,12 +31,18 @@ This checklist is the final gate before publishing PEtFiSh Companion GPT with P1
 - [ ] Knowledge compiler output inspected.
 - [ ] Gateway-only OpenAPI validates.
 - [ ] Gateway-only OpenAPI and server paths are aligned.
+- [ ] Surface compatibility audit complete (ONLINE-SURFACE-COMPATIBILITY-AUDIT.md).
+- [ ] Skillset knowledge coverage complete (15 Knowledge files, skillsets 13-15 present).
+- [ ] ChatGPT Project output is Project Instructions, not YAML.
+- [ ] Companion skillset and fish-* classic skillset are explainable from Knowledge.
 
 ## GPT Builder P0
 
-- [ ] Instructions copied from `petfish-companion.instructions.md`.
-- [ ] Knowledge upload list matches `GPT-BUILDER-RUNBOOK.md`.
-- [ ] Remote-control Knowledge excluded.
+- [ ] Instructions copied from `petfish-companion.gpt-builder.instructions.md` (not canonical source).
+- [ ] Knowledge upload list is 15 files (00-06, 08-15).
+- [ ] Knowledge excludes 07-remote-control-model.md.
+- [ ] Surface output contracts (12) present in Knowledge.
+- [ ] Skillset index (13), companion skillset (14), fish classic skillset (15) present in Knowledge.
 - [ ] Actions disabled.
 - [ ] P0 Preview prompts pass.
 - [ ] GPT never claims local execution.
