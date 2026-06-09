@@ -40,8 +40,11 @@ class GatewayHandler(BaseHTTPRequestHandler):
     server_version = "PEtFiShOnlineGateway/0.1"
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib handler API
-        if self.path == "/healthz":
+        if self.path in ("/healthz", "/v1/health"):
             self._write_json(200, {"ok": True, "service": "petfish-online-gateway"})
+            return
+        if self.path == "/v1/version":
+            self._write_json(200, {"ok": True, "service": "petfish-online-gateway", "version": "0.1.0"})
             return
         self._write_json(404, _error("gateway", "not_found", f"Unknown GET path: {self.path}"))
 
