@@ -19,6 +19,14 @@ def load_platforms() -> List[Dict[str, str]]:
     if not path.exists():
         return []
     data = json.loads(read(path))
+    if isinstance(data, dict) and isinstance(data.get("platforms"), dict):
+        # platforms.json: {"platforms": {"opencode": {...}, "claude": {...}}}
+        rows = []
+        for key, value in data["platforms"].items():
+            row = dict(value)
+            row.setdefault("name", key)
+            rows.append(row)
+        return rows
     if isinstance(data, dict) and isinstance(data.get("platforms"), list):
         return data["platforms"]
     if isinstance(data, dict):
@@ -43,9 +51,11 @@ def render_platform_reference() -> str:
         "|---|---|---|",
     ]
     for item in platforms:
-        name = item.get("name") or item.get("platform") or item.get("id") or "unknown"
-        skills_dir = item.get("skills_dir") or item.get("skillsDirectory") or item.get("skills_directory") or ""
-        instructions = item.get("instructions_file") or item.get("instructionsFile") or item.get("instructions") or ""
+        name = item.get("name") or item.get("platform") or "unknown"
+        # Platform data may be nested under "project" sub-object
+        proj = item.get("project", item)
+        skills_dir = proj.get("skills_dir") or proj.get("skillsDirectory") or proj.get("skills_directory") or item.get("skills_dir") or ""
+        instructions = proj.get("instructions_file") or proj.get("instructionsFile") or proj.get("instructions") or item.get("instructions_file") or ""
         lines.append(f"| `{name}` | `{skills_dir}` | `{instructions}` |")
     lines.append("")
     return "\n".join(lines)
