@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 GATEWAY_DIR = Path(__file__).resolve().parent
 if str(GATEWAY_DIR) not in sys.path:
@@ -19,29 +20,42 @@ from modules.remote_control import execute_remote_command, preview_remote_execut
 from modules.skill_workbench import design_skill  # noqa: E402
 from modules.trust_gate import classify_action  # noqa: E402
 
+# Action name → handler function.  ``suggestPacks`` maps to ``profile_project``
+# because the backend reuses the same profiler logic for both operations.
+_HANDLERS: Dict[str, Callable[..., Dict[str, Any]]] = {
+    "routeCompanionRequest": route_companion_request,
+    "searchCatalog": search_catalog,
+    "suggestPacks": profile_project,
+    "renderInstallCommand": render_install_command,
+    "profileProject": profile_project,
+    "designSkill": design_skill,
+    "classifyActionRisk": classify_action,
+    "previewRemoteExecution": preview_remote_execution,
+    "executeRemoteCommand": execute_remote_command,
+}
+
 
 def dispatch(action: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Dispatch a local smoke action using the same names as OpenAPI operations."""
+    """Dispatch a local smoke action using the same names as OpenAPI operations.
 
-    if action == "routeCompanionRequest":
-        return route_companion_request(**payload)
-    if action == "searchCatalog":
-        return search_catalog(**payload)
-    if action == "suggestPacks":
-        return profile_project(**payload)
-    if action == "renderInstallCommand":
-        return render_install_command(**payload)
-    if action == "profileProject":
-        return profile_project(**payload)
-    if action == "designSkill":
-        return design_skill(**payload)
-    if action == "classifyActionRisk":
-        return classify_action(**payload)
-    if action == "previewRemoteExecution":
-        return preview_remote_execution(**payload)
-    if action == "executeRemoteCommand":
-        return execute_remote_command(**payload)
-    raise ValueError(f"Unknown action: {action}")
+    Applies an allowlist filter so that extra fields present in the OpenAPI
+    schema but not yet accepted by the handler are silently ignored (with a
+    warning) instead of causing ``TypeError``.
+    """
+    handler = _HANDLERS.get(action)
+    if handler is None:
+        raise ValueError(f"Unknown action: {action}")
+
+    # Allowlist: only pass params the handler actually accepts.
+    allowed_keys = set(inspect.signature(handler).parameters.keys())
+    filtered = {k: v for k, v in payload.items() if k in allowed_keys}
+    extras = {k: v for k, v in payload.items() if k not in allowed_keys}
+
+    result = handler(**filtered)
+    if extras:
+        result.setdefault("warnings", [])
+        result["warnings"].append(f"ignored_unknown_fields: {sorted(extras.keys())}")
+    return result
 
 
 def _demo() -> None:

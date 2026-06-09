@@ -24,6 +24,7 @@ def route_companion_request(
     active_context: str | None = None,
     installed_packs: Iterable[str] | None = None,
     platform: str = "opencode",
+    runtime: dict | None = None,
     project_profile: str | None = None,
     mode: dict | None = None,
 ) -> ModuleEnvelope:
@@ -35,6 +36,10 @@ def route_companion_request(
 
     # Normalize runtime: detect online project requests and override platform.
     if _is_online_project_request(text):
+        platform = "online"
+
+    # Apply runtime context when provided.
+    if runtime and runtime.get("kind") == "online":
         platform = "online"
 
     if _has_trust_boundary(text):
