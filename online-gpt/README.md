@@ -6,6 +6,26 @@ It is not a lightweight chatbot copy of PEtFiSh, and it is not a wrapper around 
 
 Its job is to bring PEtFiSh's companion discipline, profiles, packs, skill lifecycle, quality gates, and trust boundaries into a GPT-native online surface while staying aligned with core PEtFiSh semantics.
 
+## Release-candidate entry points
+
+For the current RC, read in this order:
+
+```text
+RELEASE-CANDIDATE.md
+PRIORITY-GUARDRAIL.md
+GPT-BUILDER-RUNBOOK.md
+GATEWAY-DEPLOYMENT-RUNBOOK.md
+PRODUCTION-READINESS-CHECKLIST.md
+```
+
+The first release is scoped to:
+
+```text
+P0 Standalone Mode + P1 Gateway-only Actions
+```
+
+P2 Adapter Mode remains boundary/regression only.
+
 ## Priority
 
 ```text
@@ -57,6 +77,11 @@ A module may start with a mock, read-only, or disabled adapter, but its contract
 ```text
 online-gpt/
 ├── README.md
+├── RELEASE-CANDIDATE.md
+├── PRIORITY-GUARDRAIL.md
+├── GPT-BUILDER-RUNBOOK.md
+├── GATEWAY-DEPLOYMENT-RUNBOOK.md
+├── PRODUCTION-READINESS-CHECKLIST.md
 ├── OPERATING-MODES.md
 ├── ARCHITECTURE.md
 ├── MODULES.md
@@ -73,6 +98,7 @@ online-gpt/
 - Standalone Mode must work without OpenCode, Codex, Antigravity, a local daemon, or local filesystem access.
 - Gateway Mode must work with online APIs and still not require IDE/CLI tools.
 - Adapter Mode is optional and low priority.
+- P2 Adapter tests are boundary/regression tests only.
 - The GPT shell may generate local commands, but it must not claim local execution unless a verified adapter result confirms it.
 - Secrets must never be echoed back.
 - Knowledge files are references; behavioral rules belong in `instructions/`.
@@ -88,7 +114,9 @@ This is an implementation order, not a reduced product roadmap:
 4. Define Gateway Mode OpenAPI contract.
 5. Implement Gateway skeleton for catalog, profile, installer, trust, and skill workbench.
 6. Add Gateway evals and local test plan.
-7. Defer Adapter Mode remote preview / local daemon work until Standalone and Gateway are reliable.
+7. Configure GPT Builder from `GPT-BUILDER-RUNBOOK.md`.
+8. Deploy Gateway from `GATEWAY-DEPLOYMENT-RUNBOOK.md`.
+9. Defer Adapter Mode remote preview / local daemon work until Standalone and Gateway are reliable.
 
 ## Primary artifact
 
@@ -96,9 +124,11 @@ The GPT Builder should be configured from:
 
 - `instructions/petfish-companion.instructions.md`
 - selected files under `knowledge/`
-- `actions/openapi.yaml` only when Gateway Mode is enabled
+- `actions/openapi.gateway-only.yaml` only when Gateway Mode is enabled
 - `actions/action-policy.md` only when Gateway Mode is enabled
+
+Do not import full `actions/openapi.yaml` for the first release.
 
 ## Status
 
-This subsystem is a full skeleton for Standalone and Gateway development. Adapter Mode contracts exist for future compatibility but are not the current priority.
+This subsystem is an RC-ready skeleton for Standalone and Gateway development. Adapter Mode contracts exist for future compatibility but are not the current priority.
