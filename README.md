@@ -169,6 +169,40 @@ mine → author → lint → audit → gate → publish → optimize → eval
 
 ---
 
+## Online Companion
+
+PEtFiSh's online companion runtime brings the companion discipline to ChatGPT-native online surfaces without requiring local IDE/CLI tools. It operates independently of OpenCode, Codex, Antigravity, or any local environment.
+
+### Operating Modes
+
+| Mode | Description |
+|---|---|
+| **P0 Standalone** | Instructions and knowledge only — no external dependencies |
+| **P1 Gateway** | Standalone plus online API access for catalog search, profile suggestion, pack resolution, command rendering, trust classification, and skill workbench |
+| **P2 Adapter** | Optional local execution support (boundary/regression scope only) |
+
+### Online Project Capabilities
+
+| Can Do | Cannot Do (default) |
+|---|---|
+| Explain PEtFiSh concepts and architecture | Read local files |
+| Recommend packs and profiles | Run local tests |
+| Design skills with validation | Modify repositories |
+| Render install commands | Invoke local agents |
+| Critical review with anti-sycophancy | Commit, push, or deploy |
+| Apply Companion Gateway discipline | Execute local code |
+| Run Trust Gate classification | Access project internals |
+
+### Getting Started
+
+Use the `review-online` profile for ChatGPT Project code review. The online companion applies the same Companion Gateway discipline (Mode Read, Topic Check, Failure Signal Detection, Skill Sense, Anti-Sycophancy Check) as local installations. On ChatGPT Project, it outputs Project Instructions in natural language rather than YAML unless YAML source is explicitly requested.
+
+The companion skillset handles gateway steps, 3-tier sensing, `/petfish` commands, and fish-market search. The fish-* classic skillset provides fish-trail topic governance, fish-brain orchestration, and fish-market search capabilities.
+
+See [docs/online-projects.md](docs/online-projects.md) for full documentation and setup instructions.
+
+---
+
 ## Install Commands
 ### Remote Install
 ```powershell

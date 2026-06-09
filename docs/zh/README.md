@@ -142,6 +142,48 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 
 ---
 
+## Online Companion（在线伙伴）
+
+PEtFiSh 现在有 ChatGPT GPT 版本 —— 不需要本地安装，不依赖 OpenCode、Codex、Cursor 或任何本地 IDE/CLI。
+
+### 运行模式
+
+| 模式 | 说明 |
+|------|------|
+| Standalone | 纯 GPT 指令 + 知识库 |
+| Gateway | 在线 API |
+| Adapter | 可选本地执行（低优先级） |
+
+### 能力范围
+
+**能做：**
+- 解释 PEtFiSh
+- 推荐 pack 和 profile
+- 设计 skill
+- 渲染安装命令
+- 做批判性 review
+- 反迎合校准
+- 风险分类
+
+**不能做：**
+- 读本地文件
+- 跑本地测试
+- 改仓库
+- 调用本地 IDE/CLI
+- commit/push/deploy（需要本地安装或 adapter）
+
+### 快速开始
+
+首次发布范围：P0 Standalone + P1 Gateway-only Actions。
+
+详细文档：[docs/online-projects.md](online-projects.md)
+
+### 专用配置
+
+`review-online` profile 专门用于 ChatGPT Project 代码审查。
+
+---
+
 ## 升级
 
 运行 `/petfish upgrade` 查看适合当前OS的升级命令，或直接重跑安装命令加 `--force`：
