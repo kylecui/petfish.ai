@@ -33,6 +33,10 @@ def route_companion_request(
     installed = set(installed_packs or [])
     mode = mode or {"depth": "balanced", "rigor": False}
 
+    # Normalize runtime: detect online project requests and override platform.
+    if _is_online_project_request(text):
+        platform = "online"
+
     if _has_trust_boundary(text):
         trust = classify_action(user_message, target_runtime=platform)
         response_contract = "critical_review" if _is_evaluative(text) else (
@@ -235,3 +239,21 @@ def _is_remote_request(text: str) -> bool:
     return any(k in text for k in remote_terms) or (
         any(agent in text for agent in ["opencode", "codex", "antigravity"]) and any(k in text for k in execute_terms)
     )
+
+
+def _is_online_project_request(text: str) -> bool:
+    """Detect requests that explicitly target ChatGPT Project / online runtime."""
+    return any(k in text for k in [
+        "chatgpt project",
+        "chatgpt-only",
+        "hosted chat",
+        "online project",
+        "online runtime",
+        "在线项目",
+        "在线 runtime",
+        "只在 chatgpt",
+        "不依赖本地",
+        "无本地 adapter",
+        "无本地适配器",
+        "chatgpt 项目",
+    ])

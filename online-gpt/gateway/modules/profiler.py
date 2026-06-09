@@ -20,6 +20,63 @@ def profile_project(
     profile = "minimal"
     reasons = ["context protects topic continuity for online/local cooperation", "petfish keeps writing and interaction style consistent"]
 
+    # Online code review project → review-online profile.
+    if _is_online_review_project(text, platform):
+        packs = {"companion", "context", "petfish", "testdocs", "trust"}
+        optional_packs = ["calibrate", "deploy"]
+        has_deploy_scope = any(k in text for k in [
+            "docker", "ci", "ci/cd", "cd", "ops", "rollback", "运维", "部署",
+            "生产", "production", "release", "deployment",
+        ])
+        reasons = [
+            "companion runs Companion Gateway before substantive review work",
+            "context isolates PRs, modules, and review threads",
+            "petfish keeps review writing precise and actionable",
+            "testdocs reasons about tests, coverage, and acceptance cases",
+            "trust classifies risky changes and policy boundaries",
+        ]
+        if has_deploy_scope:
+            reasons.append("deploy recommended for CI/CD/release/ops scope")
+        else:
+            reasons.append("deploy is optional unless CI/CD, release, or operations scope is present")
+        return envelope(
+            module="profiler",
+            mode="dry_run",
+            result_level="advice_only",
+            data={
+                "project_description": project_description,
+                "platform": "online",
+                "runtime": {
+                    "kind": "online",
+                    "surface": "chatgpt-project",
+                    "local_adapter": "none",
+                    "filesystem": "unavailable",
+                    "execution_truth_default": "advice_only",
+                },
+                "recommended_profile": "review-online",
+                "packs": sorted(packs),
+                "optional_packs": optional_packs,
+                "reasons": reasons,
+                "assumptions": [
+                    "No local filesystem, repository, IDE, CLI, git history, or test runner access is assumed.",
+                    "Only uploaded or pasted artifacts are reviewable.",
+                    "Local execution requires a verified adapter.",
+                    "Deploy is optional unless CI/CD, release, or operations scope is present.",
+                ],
+            },
+    )
+
+
+def _is_online_review_project(text: str, platform: str | None) -> bool:
+    """Detect online code review project requests."""
+    online = platform == "online" or any(k in text for k in [
+        "chatgpt project", "chatgpt-only", "online project", "在线项目", "只在 chatgpt",
+    ])
+    review = any(k in text for k in [
+        "review", "code review", "pr", "pull request", "diff", "审查", "代码审查", "评审",
+    ])
+    return online and review
+
     if any(k in text for k in ["security", "安全", "audit", "policy", "trust", "remote", "遥控", "执行"]):
         packs.add("trust")
         packs.add("deploy")

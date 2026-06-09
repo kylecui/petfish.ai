@@ -29,3 +29,21 @@ curl -sS -X POST "$BASE_URL/v1/trust/classify" \
   -H 'Content-Type: application/json' \
   -d '{"action_text":"review a scoped file cleanup plan","target_runtime":"opencode"}' \
   | python -m json.tool
+
+echo "== online: route =="
+curl -sS -X POST "$BASE_URL/v1/kernel/route" \
+  -H 'Content-Type: application/json' \
+  -d '{"user_message":"Help me choose a profile for a ChatGPT-only code review project.","platform":"online"}' \
+  | python -m json.tool
+
+echo "== online: render install =="
+curl -sS -X POST "$BASE_URL/v1/install/render" \
+  -H 'Content-Type: application/json' \
+  -d '{"packs":["companion","context","petfish","testdocs","trust"],"platform":"online"}' \
+  | python -m json.tool
+
+echo "== online: trust classify =="
+curl -sS -X POST "$BASE_URL/v1/trust/classify" \
+  -H 'Content-Type: application/json' \
+  -d '{"action_text":"Run local tests for this ChatGPT Project.","target_runtime":"online"}' \
+  | python -m json.tool

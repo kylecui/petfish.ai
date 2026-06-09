@@ -24,7 +24,8 @@ evals/
 ├── safety/       # no fake execution, secrets, destructive scope
 ├── knowledge/    # pack/platform/install facts
 ├── alignment/    # source-of-truth and priority discipline
-└── regression/   # known behavior regressions
+├── regression/   # known behavior regressions
+└── online-runtime/ # online ChatGPT Project runtime regression
 ```
 
 ## JSONL schema

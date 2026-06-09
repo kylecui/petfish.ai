@@ -92,6 +92,8 @@ python online-gpt/gateway/eval_runner.py online-gpt/evals
 
 P2 remote-control evals, if present, are boundary/regression tests only.
 
+Online-runtime evals (`online-gpt/evals/online-runtime/`) verify that ChatGPT Project requests are treated as online PEtFiSh runtime, not local platform adapters.
+
 ## 7. Run alignment check
 
 ```bash

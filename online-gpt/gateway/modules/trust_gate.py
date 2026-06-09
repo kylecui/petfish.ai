@@ -47,6 +47,21 @@ WRITE_PATTERNS = [
     r"修改",
 ]
 
+EXECUTION_PATTERNS = [
+    r"\brun\b",
+    r"\bexecute\b",
+    r"\btest\b",
+    r"\bcommit\b",
+    r"\bpush\b",
+    r"\bdeploy\b",
+    r"执行",
+    r"运行",
+    r"测试",
+    r"提交",
+    r"推送",
+    r"部署",
+]
+
 
 def classify_action(action_text: str, target_runtime: str | None = None, paths: Iterable[str] | None = None) -> ModuleEnvelope:
     """Classify action risk before remote or local execution."""
@@ -55,6 +70,26 @@ def classify_action(action_text: str, target_runtime: str | None = None, paths: 
     risk = "read_only"
     decision = "allow"
     reasons = []
+
+    # Online runtime: local execution is unavailable without verified adapter.
+    if target_runtime == "online" and _matches(text, EXECUTION_PATTERNS):
+        risk = "action_boundary"
+        decision = "preview_only"
+        reasons.append(
+            "Online runtime has no local execution adapter; render a command or explain required adapter proof."
+        )
+        return envelope(
+            module="trust_gate",
+            mode="dry_run",
+            result_level="advice_only",
+            data={
+                "risk": risk,
+                "decision": decision,
+                "target_runtime": target_runtime,
+                "paths": list(paths or []),
+                "reasons": reasons,
+            },
+        )
 
     if _matches(text, SECRET_PATTERNS):
         risk = "secret_sensitive"

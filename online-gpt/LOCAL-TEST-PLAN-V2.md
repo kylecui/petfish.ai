@@ -242,4 +242,5 @@ For now, verify only:
 - Gateway-only OpenAPI validates;
 - Gateway skeleton tests pass;
 - alignment check passes;
+- online-runtime evals pass (ChatGPT Project treated as online PEtFiSh runtime);
 - remote/Adapter Mode remains out of the first public configuration.

@@ -237,6 +237,28 @@ paths:
                 $ref: '#/components/schemas/ModuleEnvelope'
 components:
   schemas:
+    RuntimeContext:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum: [online, local]
+          description: Runtime kind (online = ChatGPT Project / hosted chat, local = IDE/CLI agent).
+        surface:
+          type: string
+          enum: [chatgpt-project, gpt-page, hosted-chat, local-agent]
+        local_adapter:
+          type: string
+          enum: [none, opencode, codex, claude, cursor, copilot, windsurf, antigravity, universal]
+          description: When kind=online, local_adapter must be none. When kind=local, names the target adapter.
+        filesystem:
+          type: string
+          enum: [unavailable, uploaded-only, local]
+          description: Whether local filesystem access is available.
+        execution_truth_default:
+          type: string
+          enum: [advice_only, command_rendered, dry_run, previewed]
+          description: Default execution truth for this runtime.
     Platform:
       type: string
       enum: [opencode, claude, codex, cursor, copilot, windsurf, antigravity, universal, online]
@@ -283,6 +305,8 @@ components:
             type: string
         platform:
           $ref: '#/components/schemas/Platform'
+        runtime:
+          $ref: '#/components/schemas/RuntimeContext'
         project_profile:
           type: string
         mode:
