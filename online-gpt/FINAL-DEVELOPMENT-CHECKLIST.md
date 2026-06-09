@@ -1,6 +1,6 @@
 # Final Development Checklist
 
-This checklist records repository work that should be complete before local testing begins.
+This checklist records repository work that should be complete before local testing, GPT Builder configuration, and Gateway staging begin.
 
 ## Product principle
 
@@ -21,6 +21,26 @@ SOURCE-OF-TRUTH.md
 PRIORITY-GUARDRAIL.md
 ```
 
+## Release candidate and publication readiness
+
+- [x] Release-candidate scope documented.
+- [x] GPT Builder runbook documented.
+- [x] Gateway deployment runbook documented.
+- [x] Production readiness checklist documented.
+- [x] Documentation index updated.
+- [x] README points to RC runbooks.
+
+Files:
+
+```text
+RELEASE-CANDIDATE.md
+GPT-BUILDER-RUNBOOK.md
+GATEWAY-DEPLOYMENT-RUNBOOK.md
+PRODUCTION-READINESS-CHECKLIST.md
+docs/README.md
+README.md
+```
+
 ## Mode acceptance
 
 - [x] Standalone Mode acceptance criteria.
@@ -39,6 +59,7 @@ ADAPTER-ACCEPTANCE.md
 ## GPT Builder package
 
 - [x] GPT Builder guide.
+- [x] GPT Builder runbook.
 - [x] GPT configuration package.
 - [x] Instructions package.
 - [x] Knowledge upload list.
@@ -50,6 +71,7 @@ Files:
 
 ```text
 GPT-BUILDER.md
+GPT-BUILDER-RUNBOOK.md
 GPT-CONFIG-PACKAGE.md
 PUBLISH-CHECKLIST.md
 instructions/
@@ -59,16 +81,19 @@ actions/
 
 ## Gateway Mode API
 
-- [x] OpenAPI contract.
+- [x] Gateway-only OpenAPI contract.
+- [x] Full OpenAPI contract kept for non-first-release reference.
 - [x] Dispatcher operation mapping.
 - [x] stdlib HTTP server.
 - [x] HTTP smoke script.
 - [x] API mapping documentation.
 - [x] Gateway contracts documentation.
+- [x] Gateway deployment runbook.
 
 Files:
 
 ```text
+actions/openapi.gateway-only.yaml
 actions/openapi.yaml
 gateway/app.py
 gateway/server.py
@@ -76,6 +101,7 @@ gateway/http-smoke.sh
 gateway/API-MAPPING.md
 gateway/CONTRACTS.md
 gateway/HTTP-GATEWAY.md
+GATEWAY-DEPLOYMENT-RUNBOOK.md
 ```
 
 ## Gateway modules
@@ -161,31 +187,37 @@ COMPLETION-NOTE.md
 PRIORITY-AUDIT.md
 ```
 
-## Remaining local-only work
+## Remaining local / external work
 
 These are intentionally not completed through remote repository edits:
 
-- [ ] Python syntax compilation.
-- [ ] Local dispatcher smoke run.
-- [ ] Local HTTP gateway run.
-- [ ] HTTP smoke script run.
-- [ ] Eval runner execution.
-- [ ] Alignment checker execution.
-- [ ] Knowledge compiler execution.
-- [ ] OpenAPI schema validation.
+- [ ] Python syntax compilation from fresh local clone.
+- [ ] Local dispatcher smoke run from fresh local clone.
+- [ ] Local HTTP gateway run from fresh local clone.
+- [ ] HTTP smoke script run from fresh local clone.
+- [ ] Eval runner execution from fresh local clone.
+- [ ] Alignment checker execution from fresh local clone.
+- [ ] Knowledge compiler execution from fresh local clone.
+- [ ] OpenAPI schema validation from fresh local clone.
 - [ ] GPT Builder manual preview.
+- [ ] Gateway staging deployment.
+- [ ] Gateway production deployment.
+- [ ] GPT Actions authentication setup.
 
 Use:
 
 ```text
 LOCAL-TEST-PLAN.md
 LOCAL-TEST-QUICKSTART.md
+GPT-BUILDER-RUNBOOK.md
+GATEWAY-DEPLOYMENT-RUNBOOK.md
+PRODUCTION-READINESS-CHECKLIST.md
 ```
 
 ## Completion statement
 
-All non-local-test repository development and documentation work for the current online-gpt phase is complete in `dev`.
+All repository-side development and documentation work for the current online-gpt RC phase is complete in `dev`.
 
-The remaining work is validation from a local clone and, later, deployment of Gateway Mode API infrastructure.
+The remaining work is validation from a fresh local clone, GPT Builder configuration, and Gateway staging/production deployment.
 
 P2 Adapter results must not be used to override or replace P0/P1 acceptance results.
