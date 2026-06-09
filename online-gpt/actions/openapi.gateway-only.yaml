@@ -1,0 +1,300 @@
+openapi: 3.1.0
+info:
+  title: PEtFiSh Online Gateway
+  version: 0.1.0
+  description: Gateway Mode Actions contract for PEtFiSh Companion GPT. This schema intentionally excludes Adapter Mode remote endpoints.
+servers:
+  - url: https://api.petfish.ai
+paths:
+  /v1/health:
+    get:
+      operationId: getGatewayHealth
+      summary: Check gateway health.
+      responses:
+        '200':
+          description: Gateway health
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  service:
+                    type: string
+                  mode:
+                    type: string
+                  remote_execute_enabled:
+                    type: boolean
+  /v1/version:
+    get:
+      operationId: getGatewayVersion
+      summary: Get gateway version metadata.
+      responses:
+        '200':
+          description: Gateway version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  service:
+                    type: string
+                  version:
+                    type: string
+                  source:
+                    type: string
+                  git_ref:
+                    type: string
+  /v1/kernel/route:
+    post:
+      operationId: routeCompanionRequest
+      summary: Route a user request through the online Companion Kernel.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteRequest'
+      responses:
+        '200':
+          description: Routing decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+  /v1/catalog/search:
+    post:
+      operationId: searchCatalog
+      summary: Search PEtFiSh packs, skills, MCP servers, and plugins.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                platform:
+                  $ref: '#/components/schemas/Platform'
+      responses:
+        '200':
+          description: Catalog search result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleEnvelope'
+  /v1/catalog/suggest:
+    post:
+      operationId: suggestPacks
+      summary: Suggest packs for a project description.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_description]
+              properties:
+                project_description:
+                  type: string
+                platform:
+                  $ref: '#/components/schemas/Platform'
+                risk_sensitive:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Pack suggestion result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleEnvelope'
+  /v1/install/render:
+    post:
+      operationId: renderInstallCommand
+      summary: Render a PEtFiSh install, upgrade, or uninstall command without executing it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [packs, platform]
+              properties:
+                packs:
+                  type: array
+                  items:
+                    type: string
+                platform:
+                  $ref: '#/components/schemas/Platform'
+                target:
+                  type: string
+                  default: .
+                scope:
+                  type: string
+                  enum: [project, global]
+                  default: project
+                operation:
+                  type: string
+                  enum: [install, upgrade, uninstall]
+                  default: install
+      responses:
+        '200':
+          description: Rendered command
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleEnvelope'
+  /v1/project/profile:
+    post:
+      operationId: profileProject
+      summary: Infer a profile and pack set from project intent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [project_description]
+              properties:
+                project_description:
+                  type: string
+                platform:
+                  $ref: '#/components/schemas/Platform'
+                requested_domains:
+                  type: array
+                  items:
+                    type: string
+                constraints:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Project profile result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleEnvelope'
+  /v1/skill/design:
+    post:
+      operationId: designSkill
+      summary: Produce a skill contract from a skill idea.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [skill_goal]
+              properties:
+                skill_goal:
+                  type: string
+                target_pack:
+                  type: string
+                platform:
+                  $ref: '#/components/schemas/Platform'
+                safety_constraints:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Skill design result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleEnvelope'
+  /v1/trust/classify:
+    post:
+      operationId: classifyActionRisk
+      summary: Classify action risk before command rendering or future execution adapters.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action_text]
+              properties:
+                action_text:
+                  type: string
+                target_runtime:
+                  type: string
+                paths:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Trust Gate decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModuleEnvelope'
+components:
+  schemas:
+    Platform:
+      type: string
+      enum: [opencode, claude, codex, cursor, copilot, windsurf, antigravity, universal]
+    ResultLevel:
+      type: string
+      enum: [advice_only, command_rendered, dry_run, previewed, executed, audit_logged]
+    ModuleEnvelope:
+      type: object
+      required: [ok, module, mode, result_level, data, warnings, errors]
+      properties:
+        ok:
+          type: boolean
+        module:
+          type: string
+        mode:
+          type: string
+        result_level:
+          $ref: '#/components/schemas/ResultLevel'
+        data:
+          type: object
+          additionalProperties: true
+        warnings:
+          type: array
+          items:
+            type: string
+        errors:
+          type: array
+          items:
+            type: string
+        audit:
+          type: object
+          additionalProperties: true
+    RouteRequest:
+      type: object
+      required: [user_message]
+      properties:
+        user_message:
+          type: string
+        active_context:
+          type: string
+        installed_packs:
+          type: array
+          items:
+            type: string
+        platform:
+          $ref: '#/components/schemas/Platform'
+        project_profile:
+          type: string
+        mode:
+          type: object
+          properties:
+            depth:
+              type: string
+              enum: [urgent, balanced, thorough]
+              default: balanced
+            rigor:
+              type: boolean
+              default: false
+    RouteResponse:
+      allOf:
+        - $ref: '#/components/schemas/ModuleEnvelope'
