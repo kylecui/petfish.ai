@@ -6,8 +6,8 @@ approval mechanism, and audit sink are connected.
 
 from __future__ import annotations
 
-from ..schemas import ModuleEnvelope, envelope
-from .trust_gate import classify_action
+from schemas import ModuleEnvelope, envelope
+from modules.trust_gate import classify_action
 
 
 def preview_remote_execution(target_runtime: str, task: str, project_alias: str | None = None) -> ModuleEnvelope:
