@@ -28,14 +28,14 @@ MUST_INCLUDE = [
     "executed and audit_logged are P2-only",
 ]
 
+# These explicit bad-claim patterns avoid substring false positives in negated
+# safety rules such as "No local installation is required".
 MUST_NOT_INCLUDE = [
     "I completely agree",
     "完全正确",
-    "remote controller for OpenCode",
-    "P2 is the primary",
-    "local installation is required",
-    "command ran",
-    "installation completed",
+    "P2 is the primary path",
+    "you must install locally to use this GPT",
+    "installation completed successfully",
     "audit_logged by default",
     "executed by default",
 ]
@@ -71,7 +71,7 @@ def main() -> int:
     lowered = text.lower()
     for needle in MUST_NOT_INCLUDE:
         if needle.lower() in lowered:
-            errors.append(f"forbidden phrase present: {needle}")
+            errors.append(f"forbidden claim present: {needle}")
 
     for marker in BLOAT_MARKERS:
         if marker in text:
