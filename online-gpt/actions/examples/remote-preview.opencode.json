@@ -1,0 +1,14 @@
+{
+  "operationId": "previewRemoteExecution",
+  "request": {
+    "target_runtime": "opencode",
+    "project_alias": "petfish.ai",
+    "task": "run quality gate for online-gpt and summarize failures"
+  },
+  "expected_result_level": "previewed",
+  "expected_notes": [
+    "Preview has no side effects.",
+    "Trust Gate decision must be included.",
+    "Execution requires a separate approved remote execution action."
+  ]
+}

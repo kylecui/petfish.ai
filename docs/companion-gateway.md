@@ -8,7 +8,7 @@ PEtFiSh's Companion Gateway runs automatically before every user message. It doe
 User message
     → [Companion Gateway]
           │
-          ├─ Step 0: Mode Read (project-mode.yaml)
+          ├─ Step 0: Mode Read (local or online)
           ├─ Step 1: Topic Check (topic_detect MCP)
           ├─ Step 1.5: Failure Signal Detection (previous turn errors)
           ├─ Step 2: Skill Sense (capability gap detection)
@@ -17,6 +17,18 @@ User message
 ```
 
 ### Step 0: Mode Read
+
+PEtFiSh supports two runtimes. Mode Read selects the correct one based on context.
+
+#### Step 0A: Local Mode Read
+
+Used when runtime is local or when a local adapter is explicitly selected (OpenCode, Claude Code, Codex, etc.).
+
+Priority:
+1. `.opencode/project-mode.yaml` or platform-equivalent mode file
+2. Local project config
+3. Session override
+4. Defaults (`depth: balanced, rigor: false`)
 
 Reads `.opencode/project-mode.yaml` (if present) on the first message of each session:
 
@@ -38,6 +50,25 @@ rigor: false          # true | false (forced true when depth=thorough)
 **Session-only overrides**: Users can say "urgent" / "thorough" / "rigor" etc. to switch mode within a session without modifying the file. Reverts next session.
 
 If the file doesn't exist, defaults to `depth: balanced, rigor: false`.
+
+#### Step 0B: Online Mode Read
+
+Used when runtime is online or when the user asks for a ChatGPT Project / hosted chat project.
+
+Priority:
+1. ChatGPT Project instructions
+2. Uploaded project policy files
+3. Current conversation state
+4. User-stated mode
+5. Session inference
+
+If no local adapter is connected, local execution is unavailable. The assistant may render commands or previews, but must not claim execution.
+
+Online runtime defaults:
+- `depth: balanced` (inferred from conversation)
+- `rigor: false` (no local filesystem for plan files)
+- `execution_truth_default: advice_only`
+- `filesystem: unavailable`
 
 ### Step 1: Topic Check
 
@@ -145,7 +176,9 @@ Debug output looks like:
 
 ## Dependencies
 
-Gateway depends on two components:
+Gateway depends on two components for local mode.
+
+### Local mode dependencies
 
 **1. context-state MCP** — Configured in `opencode.json`:
 ```json
@@ -163,6 +196,12 @@ Gateway depends on two components:
 ```
 .opencode/skills/fish-brain/scripts/catalog_query.py
 ```
+
+### Online mode dependencies
+
+In online mode (ChatGPT Project or hosted chat), MCP and local catalog scripts are unavailable unless exposed through Gateway APIs. Gateway behavior must degrade to instructions, uploaded context, conversation state, and online API results.
+
+Online Topic Check uses conversation-state heuristics instead of MCP topic_detect. Skill Sense uses Knowledge-derived pack selection instead of local TRIGGERS. Failure Signal Detection uses previous-turn text analysis only.
 
 ## Install
 
