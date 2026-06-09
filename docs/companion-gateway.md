@@ -208,8 +208,7 @@ Online Topic Check uses conversation-state heuristics instead of MCP topic_detec
 Install the `companion` + `context` packs — Gateway activates automatically:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack companion,context
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion,context
 ```
 
 Gateway rules are injected into the target project via the AGENTS.md pack merge mechanism.

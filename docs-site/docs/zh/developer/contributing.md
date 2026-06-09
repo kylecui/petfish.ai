@@ -67,8 +67,8 @@ master ← dev ← feature branches (功能分支)
 
 | 序号 | 触点 | 文件 | 处理方法 |
 |---|---|---|---|
-| 1 | 本地安装器别名 | `install.ps1`, `install.sh` | 在 pack 映射表中注册 pack 的别名 |
-| 2 | 远程安装器数组 | `remote-install.ps1`, `remote-install.sh` | **手动添加**到 `$AllPacks` / `ALL_PACKS` 静态数组中 |
+| 1 | 统一安装器别名 | `install.py` | 在 `ALIASES` 映射表中注册 pack 的别名 |
+| 2 | 本地安装器别名 | `install.ps1`, `install.sh` | 在本地 pack 映射表中注册别名（遗留） |
 | 3 | Companion 目录 | `catalog_query.py` PROFILES 字典 | 添加到相关的配置文件 (至少包括 `comprehensive`) |
 | 4 | 项目初始化器 | `project-initializer/SKILL.md` + `init_project.py` | 关联到具体的配置或添加新配置 |
 | 5 | README | `README.md` | 更新 Pack 列表和 Profile → Auto-Install 映射表 |
@@ -77,12 +77,14 @@ master ← dev ← feature branches (功能分支)
 | 8 | 中文翻译 | `docs/zh/README.md` | 同步中文版本 |
 | 9 | 归档文档 | `docs/archive/` | 更新 pack 数量统计和列表 |
 
-!!! danger "本地 vs 远程安装器架构 (Local vs Remote installer architecture)"
-    **本地安装器**（`install.ps1`, `install.sh`）会动态扫描 `packs/` 目录 — 新的 packs 会被自动发现，但别名仍需注册。
+!!! danger "统一 Python 安装器 vs 遗留 Shell 安装器"
+    **统一 Python 安装器**（`install.py`，首选）：使用 PEP 723 内联元数据，通过 `uv run` 自动引导，内置镜像回退，并通过 petfish-market 动态解析可选 pack。新 pack 必须在 `ALIASES` 字典中注册别名。
 
-    **远程安装器**（`remote-install.ps1`, `remote-install.sh`）使用**硬编码的静态数组**。如果不手动添加 pack 名称，`--pack all` 将会静默跳过它。
+    **遗留 Shell 安装器**（`install.ps1`, `install.sh`）：动态扫描 `packs/` 目录 — 新的 packs 会被自动发现，但别名仍需注册。保留用于向后兼容。
 
-    这种不对称性曾经引发过真实的事故。请务必测试这两条安装路径。
+    **遗留远程安装器**（`remote-install.ps1`, `remote-install.sh`）：使用**硬编码的静态数组**。如果不手动添加 pack 名称，`--pack all` 将会静默跳过它。可选包通过 petfish-market 解析，但核心包名仍需在数组中。
+
+    请务必测试统一安装器路径。遗留安装器仅用于向后兼容。
 
 ### 验证
 
@@ -97,16 +99,17 @@ master ← dev ← feature branches (功能分支)
 
 ## 4 个安装器 (The 4 Installers)
 
-PEtFiSh 拥有 4 个安装器脚本，它们必须保持同步：
+PEtFiSh 拥有 5 个安装器脚本。统一 Python 安装器（`install.py`）是首选；Shell 脚本为遗留兼容。
 
-| 脚本 | 类型 | 架构 |
-|---|---|---|
-| `install.ps1` | 本地 (Local), PowerShell | 动态扫描 `packs/` |
-| `install.sh` | 本地 (Local), Shell | 动态扫描 `packs/` |
-| `remote-install.ps1` | 远程 (Remote), PowerShell | 静态数组 (Static array) |
-| `remote-install.sh` | 远程 (Remote), Shell | 静态数组 (Static array) |
+| 脚本 | 类型 | 架构 | 状态 |
+|---|---|---|---|
+| `install.py` | 统一, Python (PEP 723) | 动态别名 + 市场解析 | **首选** |
+| `install.ps1` | 本地 (Local), PowerShell | 动态扫描 `packs/` | 遗留 |
+| `install.sh` | 本地 (Local), Shell | 动态扫描 `packs/` | 遗留 |
+| `remote-install.ps1` | 远程 (Remote), PowerShell | 静态数组 (Static array) | 遗留 |
+| `remote-install.sh` | 远程 (Remote), Shell | 静态数组 (Static array) | 遗留 |
 
-任何逻辑上的变更都必须在所有 4 个脚本中进行评估。实现方式可能不同（动态扫描 vs 静态数组），但功能行为必须完全一致。
+任何逻辑上的变更都必须在所有脚本中进行评估。优先级：先确保 `install.py` 正确，再同步到遗留脚本。
 
 ---
 

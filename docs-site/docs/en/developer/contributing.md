@@ -67,8 +67,8 @@ A new pack requires updating **9 touchpoints**. Missing any one causes silent in
 
 | # | Touchpoint | File(s) | What to Do |
 |---|---|---|---|
-| 1 | Local installer aliases | `install.ps1`, `install.sh` | Register pack alias in the pack mapping |
-| 2 | Remote installer arrays | `remote-install.ps1`, `remote-install.sh` | **Manually add** to `$AllPacks` / `ALL_PACKS` static array |
+| 1 | Unified installer aliases | `install.py` | Register pack alias in the `ALIASES` mapping |
+| 2 | Local installer aliases | `install.ps1`, `install.sh` | Register pack alias in the local pack mapping (legacy) |
 | 3 | Companion catalog | `catalog_query.py` PROFILES dict | Add to relevant profiles (at minimum `comprehensive`) |
 | 4 | Project initializer | `project-initializer/SKILL.md` + `init_project.py` | Associate with profiles or add new profile |
 | 5 | README | `README.md` | Update Pack list and Profile → Auto-Install table |
@@ -77,12 +77,14 @@ A new pack requires updating **9 touchpoints**. Missing any one causes silent in
 | 8 | Chinese translation | `docs/zh/README.md` | Sync Chinese version |
 | 9 | Archive docs | `docs/archive/` | Update pack counts and lists |
 
-!!! danger "Local vs Remote installer architecture"
-    **Local installers** (`install.ps1`, `install.sh`) dynamically scan the `packs/` directory — new packs are auto-discovered, but aliases still need registration.
+!!! danger "Unified Python installer vs legacy shell installers"
+    **Unified Python installer** (`install.py`, primary): Uses PEP 723 inline metadata, auto-bootstraps via `uv run`, has built-in mirror fallback, and dynamically resolves optional packs via petfish-market. New packs must have their alias registered in the `ALIASES` dict.
 
-    **Remote installers** (`remote-install.ps1`, `remote-install.sh`) use **hardcoded static arrays**. If you don't manually add the pack name, `--pack all` will silently skip it.
+    **Legacy shell installers** (`install.ps1`, `install.sh`): Dynamically scan `packs/` directory — new packs are auto-discovered, but aliases still need registration. Kept for backward compatibility.
 
-    This asymmetry has caused real incidents. Always test both install paths.
+    **Legacy remote installers** (`remote-install.ps1`, `remote-install.sh`): Use **hardcoded static arrays**. If you don't manually add the pack name, `--pack all` will silently skip it. Optional packs are resolved via petfish-market, but core pack names must still be in the array.
+
+    Always test the unified installer path. Legacy installers are maintained for backward compatibility only.
 
 ### Verification
 
@@ -97,16 +99,17 @@ After adding a new pack:
 
 ## The 4 Installers
 
-PEtFiSh has 4 installer scripts that must stay synchronized:
+PEtFiSh has 5 installer scripts. The unified Python installer (`install.py`) is the primary; shell scripts are legacy.
 
-| Script | Type | Architecture |
-|---|---|---|
-| `install.ps1` | Local, PowerShell | Dynamic `packs/` scan |
-| `install.sh` | Local, Shell | Dynamic `packs/` scan |
-| `remote-install.ps1` | Remote, PowerShell | Static array |
-| `remote-install.sh` | Remote, Shell | Static array |
+| Script | Type | Architecture | Status |
+|---|---|---|---|
+| `install.py` | Unified, Python (PEP 723) | Dynamic alias + market resolution | **Primary** |
+| `install.ps1` | Local, PowerShell | Dynamic `packs/` scan | Legacy |
+| `install.sh` | Local, Shell | Dynamic `packs/` scan | Legacy |
+| `remote-install.ps1` | Remote, PowerShell | Static array | Legacy |
+| `remote-install.sh` | Remote, Shell | Static array | Legacy |
 
-Any logic change must be evaluated for all 4 scripts. The implementation may differ (dynamic vs. static), but the functional behavior must be identical.
+Any logic change must be evaluated for all scripts. Priority: `install.py` first, then sync to legacy scripts.
 
 ---
 

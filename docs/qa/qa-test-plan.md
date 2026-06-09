@@ -38,16 +38,10 @@ cd petfish.ai
 git checkout feat/fish-trail-tiered-memory-v2
 ```
 
-或远程安装 pre-release：
-
-```powershell
-# PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/feat/fish-trail-tiered-memory-v2/remote-install.ps1))) -Pack all -Detect
-```
+或远程安装 pre-release（需指定分支）：
 
 ```bash
-# Bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/feat/fish-trail-tiered-memory-v2/remote-install.sh)" -- --pack all --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/feat/fish-trail-tiered-memory-v2/install.py --pack all --detect
 ```
 
 ---

@@ -169,8 +169,7 @@ Gateway靠两个东西：
 装上 `companion` + `context` pack就自动生效：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack companion,context
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion,context
 ```
 
 Gateway规则通过AGENTS.md的pack merge机制注入目标项目。
