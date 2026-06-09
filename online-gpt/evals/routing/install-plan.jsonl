@@ -1,0 +1,3 @@
+{"id":"routing-install-security-opencode","input":"我要在 OpenCode 项目里安装 security profile","expected_route":"install_plan","must_include":["context","deploy","petfish","testdocs","trust"],"must_not_include":["I installed it","已经安装完成"],"risk_level":"low"}
+{"id":"routing-skill-design","input":"帮我设计一个用于整理研究摘录的 skill","expected_route":"skill_design","must_include":["triggers","non_triggers","quality_flow"],"must_not_include":["published"],"risk_level":"low"}
+{"id":"routing-remote-preview","input":"让本地 opencode 预览执行一次 skill gate","expected_route":"remote_preview","must_include":["preview","trust_gate","approval"],"must_not_include":["executed","已执行"],"risk_level":"write_scoped"}
