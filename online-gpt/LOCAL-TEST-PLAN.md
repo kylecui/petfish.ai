@@ -338,7 +338,7 @@ cat online-gpt/GPT-BUILDER.md
 cat online-gpt/GPT-CONFIG-PACKAGE.md
 cat online-gpt/instructions/petfish-companion.instructions.md
 cat online-gpt/knowledge/README.md
-cat online-gpt/actions/openapi.yaml
+cat online-gpt/actions/openapi.gateway-only.yaml
 ```
 
 Expected:
@@ -346,7 +346,9 @@ Expected:
 - instructions tell GPT it is an independent online companion runtime;
 - Knowledge upload set includes source-of-truth note;
 - Actions point to placeholder `https://api.petfish.ai`, which must be replaced before real GPT deployment;
-- remote execute endpoint is documented as disabled or approval-protected.
+- remote execute endpoint is absent from the gateway-only schema.
+
+Full `openapi.yaml` is P2 reference material. For first-release dry review, validate the gateway-only schema.
 
 ## 13. Manual prompt simulation
 
