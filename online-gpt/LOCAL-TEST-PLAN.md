@@ -66,7 +66,8 @@ online-gpt/GPT-CONFIG-PACKAGE.md
 online-gpt/IMPLEMENTATION.md
 online-gpt/SECURITY.md
 online-gpt/PUBLISH-CHECKLIST.md
-online-gpt/actions/openapi.yaml
+online-gpt/actions/openapi.gateway-only.yaml (first release)
+online-gpt/actions/openapi.yaml (P2 reference)
 online-gpt/gateway/app.py
 online-gpt/gateway/server.py
 online-gpt/gateway/http-smoke.sh
@@ -249,16 +250,20 @@ Do not replace the hand-curated `04-platform-adapters.md` until generated output
 
 Optional but recommended.
 
+### First-release / P1 Gateway validation (required)
+
+The primary schema for first-release Gateway Mode is `openapi.gateway-only.yaml`. Validate this one first:
+
 With Python package:
 
 ```text
-uvx openapi-spec-validator online-gpt/actions/openapi.yaml
+uvx openapi-spec-validator online-gpt/actions/openapi.gateway-only.yaml
 ```
 
 Alternative with Node:
 
 ```text
-npx @redocly/cli lint online-gpt/actions/openapi.yaml
+npx @redocly/cli lint online-gpt/actions/openapi.gateway-only.yaml
 ```
 
 Expected:
@@ -266,25 +271,45 @@ Expected:
 - schema parses;
 - operation IDs are unique;
 - references resolve;
-- no syntax errors.
+- no syntax errors;
+- no `/v1/remote/*` paths present.
+
+### Full openapi.yaml / P2 reference check (optional)
+
+Only after first-release validation passes, check the full schema:
+
+```text
+uvx openapi-spec-validator online-gpt/actions/openapi.yaml
+```
+
+Full schema may include `/v1/remote/*` paths. These must NOT be imported into the first-release GPT Actions configuration.
 
 If validators complain about OpenAPI 3.1 compatibility, record validator version and error message.
 
 ## 10. Action example sanity check
 
-Manually compare these example operation IDs with `actions/openapi.yaml` and `gateway/app.py` dispatcher:
+Manually compare these first-release operation IDs with `actions/openapi.gateway-only.yaml` and `gateway/app.py` dispatcher:
 
 ```text
 cat online-gpt/actions/examples/*.json
 ```
 
-Expected operation IDs:
+Expected first-release operation IDs:
 
+- `routeCompanionRequest`;
+- `searchCatalog`;
+- `suggestPacks`;
 - `renderInstallCommand`;
 - `profileProject`;
-- `previewRemoteExecution`.
+- `designSkill`;
+- `classifyActionRisk`;
+- `getGatewayHealth`;
+- `getGatewayVersion`.
 
-Also confirm `suggestPacks` exists in both `openapi.yaml` and `gateway/app.py`.
+Also confirm P2-only operations exist in full `openapi.yaml` and `gateway/app.py` but are NOT in `openapi.gateway-only.yaml`:
+
+- `previewRemoteExecution`;
+- `executeRemoteCommand`.
 
 ## 11. P2 Adapter Mode boundary check
 

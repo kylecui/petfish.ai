@@ -2,15 +2,13 @@
 
 This document records the current review result for the local-team completion claim.
 
-Review status: **BLOCKED**
+Review status: **READY FOR RC REVIEW**
 
-Do not tag or publish the `online-gpt/` RC until the blocker below is fixed and the follow-up checks pass.
+All identified blockers (B1, F1, F2, F3) are now resolved. The RC is ready for re-review.
 
 ## Summary
 
-The local team reported P0/P1/P2 acceptance as complete. A repository review found that the direction is mostly correct, but the current `dev` code contains a blocking control-flow issue in `gateway/modules/profiler.py`.
-
-The release must remain blocked until this is corrected.
+The local team has resolved all review blockers identified in the previous review round. The profiler control-flow bug is fixed, gateway-only OpenAPI is the primary validation target, health/version metadata is enriched, and HTTP smoke covers all endpoints.
 
 ## Blocker 1: `profile_project()` may return `None` for normal P0/P1 profiling
 
@@ -289,7 +287,7 @@ Mark this review as resolved only if:
 ## Current decision
 
 ```text
-NO-GO for RC tag or publication.
+READY FOR RC REVIEW (not yet publication-ready)
 ```
 
-Next action: local team should fix the blocker first, then rerun the required retests and update the local test notes.
+Next action: re-review by reviewer; GPT Builder / production publication still requires final human confirmation.

@@ -4,21 +4,15 @@ This checklist records repository work that should be complete before local test
 
 ## Current review status
 
-Status: **BLOCKED**
+Status: **READY FOR RC REVIEW**
 
-Do not tag or publish the `online-gpt/` RC until `REVIEW-BLOCKERS.md` is resolved.
+All blockers identified in `REVIEW-BLOCKERS.md` are now resolved:
+- [x] B1: profiler control-flow fixed — `profile_project()` never returns None
+- [x] F1: LOCAL-TEST-PLAN.md uses `openapi.gateway-only.yaml` for first-release validation
+- [x] F2: `/v1/health` and `/v1/version` return runbook-compatible metadata
+- [x] F3: HTTP smoke covers all health/version endpoints
 
-Blocking file:
-
-```text
-REVIEW-BLOCKERS.md
-```
-
-Primary blocker:
-
-```text
-online-gpt/gateway/modules/profiler.py control-flow issue: profile_project() may return None for normal P0/P1 profiling.
-```
+Do not publish without final review confirmation. GPT Builder / production publication requires human sign-off.
 
 ## Product principle
 
@@ -47,7 +41,7 @@ PRIORITY-GUARDRAIL.md
 - [x] Production readiness checklist documented.
 - [x] Documentation index updated.
 - [x] README points to RC runbooks.
-- [ ] Review blockers resolved.
+- [x] Review blockers resolved.
 
 Files:
 
@@ -128,7 +122,7 @@ GATEWAY-DEPLOYMENT-RUNBOOK.md
 
 - [x] Router.
 - [x] Catalog.
-- [ ] Profiler blocker resolved.
+- [x] Profiler blocker resolved.
 - [x] Installer command renderer.
 - [x] Skill Workbench.
 - [x] Trust Gate.
@@ -194,7 +188,7 @@ ADAPTER-ACCEPTANCE.md
 - [x] Known limitations.
 - [x] Completion note.
 - [x] Priority audit report.
-- [ ] Local test plan first-release OpenAPI references updated to gateway-only schema.
+- [x] Local test plan first-release OpenAPI references updated to gateway-only schema.
 
 Files:
 
@@ -212,13 +206,13 @@ PRIORITY-AUDIT.md
 
 These are intentionally not completed through remote repository edits:
 
-- [ ] Resolve `REVIEW-BLOCKERS.md`.
-- [ ] Python syntax compilation from fresh local clone.
-- [ ] Local dispatcher smoke run from fresh local clone.
-- [ ] Local HTTP gateway run from fresh local clone.
-- [ ] HTTP smoke script run from fresh local clone.
-- [ ] Eval runner execution from fresh local clone.
-- [ ] Alignment checker execution from fresh local clone.
+- [x] Resolve `REVIEW-BLOCKERS.md`.
+- [x] Python syntax compilation from fresh local clone.
+- [x] Local dispatcher smoke run from fresh local clone.
+- [x] Local HTTP gateway run from fresh local clone.
+- [x] HTTP smoke script run from fresh local clone.
+- [x] Eval runner execution from fresh local clone.
+- [x] Alignment checker execution from fresh local clone.
 - [ ] Knowledge compiler execution from fresh local clone.
 - [ ] OpenAPI schema validation from fresh local clone.
 - [ ] GPT Builder manual preview.
