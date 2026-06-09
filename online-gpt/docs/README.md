@@ -2,6 +2,16 @@
 
 This directory is a pointer index. Most documentation lives at the top level of `online-gpt/` so it is easy to find from GitHub.
 
+## Current remediation reading order
+
+1. `../README.md`
+2. `../ONLINE-PROJECT-RUNTIME.md`
+3. `../ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`
+4. `../runtime-contract.md`
+5. `../profiles/review-online.yaml`
+6. `../project-instructions/code-review.md`
+7. `../../docs/online-projects.md`
+
 ## Release-candidate reading order
 
 1. `../README.md`
@@ -56,23 +66,25 @@ This directory is a pointer index. Most documentation lives at the top level of 
 
 ## Developer reading order
 
-1. `../gateway/CONTRACTS.md`
-2. `../gateway/API-MAPPING.md`
-3. `../actions/openapi.gateway-only.yaml`
-4. `../actions/openapi.yaml`
-5. `../tools/README.md`
-6. `../evals/README.md`
-7. `../remote-daemon/SPEC.md`
+1. `../ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`
+2. `../gateway/CONTRACTS.md`
+3. `../gateway/API-MAPPING.md`
+4. `../actions/openapi.gateway-only.yaml`
+5. `../actions/openapi.yaml`
+6. `../tools/README.md`
+7. `../evals/README.md`
+8. `../remote-daemon/SPEC.md`
 
 ## Review reading order
 
-1. `../FINAL-DEVELOPMENT-CHECKLIST.md`
-2. `../PR-NOTES.md`
-3. `../WORK-COMPLETION.md`
-4. `../COMPLETION-NOTE.md`
-5. `../KNOWN-LIMITATIONS.md`
-6. `../SECURITY.md`
-7. `../CI-RECOMMENDATION.md`
+1. `../ONLINE-RUNTIME-REVIEW-ACTION-PLAN.md`
+2. `../FINAL-DEVELOPMENT-CHECKLIST.md`
+3. `../PR-NOTES.md`
+4. `../WORK-COMPLETION.md`
+5. `../COMPLETION-NOTE.md`
+6. `../KNOWN-LIMITATIONS.md`
+7. `../SECURITY.md`
+8. `../CI-RECOMMENDATION.md`
 
 ## P2 Adapter warning
 
