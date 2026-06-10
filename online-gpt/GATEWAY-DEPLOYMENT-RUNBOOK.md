@@ -260,6 +260,66 @@ If a full schema is accidentally imported, these flags must still prevent execut
 - [ ] P2 boundary prompts do not overclaim control.
 - [ ] rollback plan exists.
 
+## api-stage operational procedures
+
+### Server layout
+
+```text
+Host:       165.154.218.237 (SSH: ubuntu@)
+Gateway:    /home/ubuntu/petfish-gateway/gateway/
+Static site: /var/www/petfish.ai/
+Service:    petfish-gateway.service (systemd)
+Reverse proxy: nginx (sites: petfish-gateway, petfish.ai, remote.petfish.ai)
+Co-tenant:  petfish-remote.service (Telegram bot) — DO NOT TOUCH
+```
+
+### Deploy gateway update
+
+The server does not have a git clone. Files are deployed via scp.
+
+```bash
+# 0. Run schema drift check locally (MUST pass before deploy)
+python3 online-gpt/gateway/check_schema_drift.py
+# If drift > 0, fix handler or schema before deploying.
+
+# 1. Backup current files
+ssh ubuntu@165.154.218.237 \
+  "cd /home/ubuntu/petfish-gateway/gateway && \
+   cp app.py app.py.bak && \
+   cp router.py router.py.bak"
+
+# 2. Upload changed files
+scp online-gpt/gateway/app.py ubuntu@165.154.218.237:/home/ubuntu/petfish-gateway/gateway/app.py
+scp online-gpt/gateway/router.py ubuntu@165.154.218.237:/home/ubuntu/petfish-gateway/gateway/router.py
+
+# 3. Restart only the gateway service (NOT nginx, NOT remote)
+ssh ubuntu@165.154.218.237 \
+  "sudo systemctl restart petfish-gateway.service && \
+   sleep 2 && \
+   sudo systemctl status petfish-gateway.service --no-pager"
+
+# 4. Smoke test (includes Phase 0 drift check on server)
+ssh ubuntu@165.154.218.237 \
+  "python3 /home/ubuntu/petfish-gateway/gateway/smoke_full.py"
+```
+
+### Rollback gateway
+
+```bash
+ssh ubuntu@165.154.218.237 \
+  "cd /home/ubuntu/petfish-gateway/gateway && \
+   cp app.py.bak app.py && \
+   cp router.py.bak router.py && \
+   sudo systemctl restart petfish-gateway.service"
+```
+
+### Known limitations
+
+- No CI/CD — manual scp + restart.
+- API key is hardcoded in systemd unit file (`/etc/systemd/system/petfish-gateway.service`).
+- No automatic backup rotation — `.bak` files accumulate.
+- Gateway runs on `/usr/bin/python3` (system python), not uv-managed.
+
 ## Rollback
 
 If Gateway Actions behave incorrectly:
