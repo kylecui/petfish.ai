@@ -312,6 +312,54 @@
       font-size: 13px; color: var(--text-muted);
     }
 
+    /* ── Online GPT ── */
+    .online-section { text-align: center; }
+    .online-section h2 { font-size: 24px; margin-bottom: 12px; }
+    .online-section > .container > p {
+      color: var(--text-muted); margin-bottom: 32px; font-size: 15px;
+      max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.7;
+    }
+    .online-modes { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+    .online-mode-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 24px;
+      flex: 1; min-width: 220px; max-width: 260px;
+      text-align: left; position: relative; overflow: hidden;
+    }
+    .online-mode-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    }
+    .online-mode-card[data-mode="standalone"]::before { background: var(--accent); }
+    .online-mode-card[data-mode="gateway"]::before { background: var(--accent2); }
+    .online-mode-card[data-mode="adapter"]::before { background: var(--accent3); }
+    .online-mode-label {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .online-mode-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+    .online-mode-title[data-mode="standalone"] { color: var(--accent); }
+    .online-mode-title[data-mode="gateway"] { color: var(--accent2); }
+    .online-mode-title[data-mode="adapter"] { color: var(--accent3); }
+    .online-mode-desc { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+    .online-capabilities {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+      max-width: 720px; margin: 0 auto 32px; text-align: left;
+    }
+    .online-cap-block h3 { font-size: 14px; margin-bottom: 12px; color: var(--text); }
+    .online-cap-block h3[data-type="can"] { color: var(--accent); }
+    .online-cap-block h3[data-type="cannot"] { color: var(--text-muted); }
+    .online-cap-list { color: var(--text-muted); font-size: 13px; line-height: 1.8; }
+    .online-cap-list li { position: relative; padding-left: 16px; }
+    .online-cap-list li::before {
+      content: '•'; position: absolute; left: 0; color: var(--border);
+    }
+    .online-learn-more {
+      font-size: 14px; color: var(--accent2); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .online-learn-more:hover { text-decoration: underline; }
+
     /* ── Remote ── */
     .remote-section { text-align: center; }
     .remote-section h2 { font-size: 24px; margin-bottom: 12px; }
@@ -368,6 +416,8 @@
       <a href="#how"><span class="copy-zh">运作</span><span class="copy-en">How</span></a>
       <a href="#packs"><span class="copy-zh">能力</span><span class="copy-en">Capabilities</span></a>
       <a href="market.html"><span class="copy-zh">市场</span><span class="copy-en">Market</span></a>
+      <a href="#platforms">Platforms</a>
+      <a href="#online">Online</a>
       <a href="#install"><span class="copy-zh">安装</span><span class="copy-en">Install</span></a>
       <a href="pitch.html"><span class="copy-zh">产品介绍</span><span class="copy-en">Product</span></a>
       <a href="whitepaper.html"><span class="copy-zh">白皮书</span><span class="copy-en">Whitepaper</span></a>
@@ -621,6 +671,83 @@
       <span class="platform-badge">Antigravity</span>
       <span class="platform-badge">Universal</span>
     </div>
+  </div>
+</section>
+
+<!-- Online GPT -->
+<section class="online-section" id="online">
+  <div class="container">
+    <h2><span class="copy-zh">ChatGPT GPT 版本</span><span class="copy-en">ChatGPT GPT Version</span></h2>
+    <p>
+      <span class="copy-zh">PEtFiSh 现在有 ChatGPT GPT 版本 — 不需要本地安装也能用。不依赖 OpenCode、Codex、Cursor 或任何本地 IDE/CLI。</span>
+      <span class="copy-en">PEtFiSh now has a ChatGPT GPT version — no local installation needed. No dependency on OpenCode, Codex, Cursor, or any local IDE/CLI.</span>
+    </p>
+
+    <!-- 3 Mode Cards -->
+    <div class="online-modes">
+      <div class="online-mode-card" data-mode="standalone">
+        <div class="online-mode-label">Mode 1</div>
+        <div class="online-mode-title" data-mode="standalone">Standalone</div>
+        <p class="online-mode-desc">
+          <span class="copy-zh">纯 GPT 模式 — 在 ChatGPT 内直接运行</span>
+          <span class="copy-en">Pure GPT mode — runs directly in ChatGPT</span>
+        </p>
+      </div>
+
+      <div class="online-mode-card" data-mode="gateway">
+        <div class="online-mode-label">Mode 2</div>
+        <div class="online-mode-title" data-mode="gateway">Gateway</div>
+        <p class="online-mode-desc">
+          <span class="copy-zh">在线 API 模式 — 通过 API 查询 PEtFiSh 数据</span>
+          <span class="copy-en">Online API mode — queries PEtFiSh data via API</span>
+        </p>
+      </div>
+
+      <div class="online-mode-card" data-mode="adapter">
+        <div class="online-mode-label">Mode 3</div>
+        <div class="online-mode-title" data-mode="adapter">Adapter</div>
+        <p class="online-mode-desc">
+          <span class="copy-zh">可选本地执行 — 可连接本地环境增强能力</span>
+          <span class="copy-en">Optional local execution — can connect to local environment for enhanced capabilities</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Capabilities -->
+    <div class="online-capabilities">
+      <div class="online-cap-block">
+        <h3 data-type="can"><span class="copy-zh">能做什么</span><span class="copy-en">What it can do</span></h3>
+        <ul class="online-cap-list">
+          <li><span class="copy-zh">解释 PEtFiSh 概念和工作流程</span><span class="copy-en">Explain PEtFiSh concepts and workflows</span></li>
+          <li><span class="copy-zh">推荐适合项目的 Skill Pack</span><span class="copy-en">Recommend Skill Packs for your project</span></li>
+          <li><span class="copy-zh">设计新 Skill 的结构和内容</span><span class="copy-en">Design new Skill structure and content</span></li>
+          <li><span class="copy-zh">渲染安装命令和配置说明</span><span class="copy-en">Render install commands and configuration instructions</span></li>
+          <li><span class="copy-zh">批判性 review 和方案评估</span><span class="copy-en">Critical review and plan evaluation</span></li>
+          <li><span class="copy-zh">风险分类和安全评估</span><span class="copy-en">Risk classification and security assessment</span></li>
+        </ul>
+      </div>
+
+      <div class="online-cap-block">
+        <h3 data-type="cannot"><span class="copy-zh">不能做什么</span><span class="copy-en">What it cannot do</span></h3>
+        <ul class="online-cap-list">
+          <li><span class="copy-zh">读本地文件系统</span><span class="copy-en">Read local filesystem</span></li>
+          <li><span class="copy-zh">跑本地测试</span><span class="copy-en">Run local tests</span></li>
+          <li><span class="copy-zh">改仓库代码</span><span class="copy-en">Modify repository code</span></li>
+          <li><span class="copy-zh">执行本地命令</span><span class="copy-en">Execute local commands</span></li>
+        </ul>
+        <p style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+          <span class="copy-zh">注：需要本地安装或使用 Adapter 模式来访问这些能力</span>
+          <span class="copy-en">Note: local installation or Adapter mode required for these capabilities</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Learn more link -->
+    <p>
+      <a href="https://docs.petfish.ai/online-projects" class="online-learn-more">
+        <span class="copy-zh">查看完整文档 →</span><span class="copy-en">Learn more →</span>
+      </a>
+    </p>
   </div>
 </section>
 

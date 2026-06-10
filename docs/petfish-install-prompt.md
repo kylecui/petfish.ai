@@ -2,6 +2,10 @@
 
 ---
 
+> ⛔ **Important**: The ONLY supported install command is `uv run install.py`. Shell-script installers (`remote-install.ps1`, `remote-install.sh`, etc.) are **deprecated** — do not use them.
+
+---
+
 ## One-Line Install (Recommended)
 
 Paste this into any AI coding assistant — it handles the rest:
@@ -20,15 +24,8 @@ Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 
 Prefer running commands directly?
 
-**Bash (macOS / Linux / WSL):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack init,companion --detect
-```
-
-**PowerShell (Windows):**
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
 ```
 
 After install, type `/initproject` — PEtFiSh asks your project type and auto-installs matching packs.
@@ -38,8 +35,7 @@ After install, type `/initproject` — PEtFiSh asks your project type and auto-i
 ## Install Everything
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack all --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --detect
 ```
 
 ---
@@ -49,8 +45,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 Already installed? Re-run with `--force` to upgrade.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack all --force
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
 ```
 
 Or let your AI handle it:
@@ -67,7 +62,7 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 - `--detect` auto-detects your AI platform and installs to the right path.
 - `--pack init,companion` installs the initializer and companion first — add more packs later as needed.
 - Need a specific platform? Use `--platform cursor` / `--platform claude` / `--platform copilot`.
-- Need a specific version? Use `--branch v0.6.4` (Bash) or `-Branch v0.6.4` (PowerShell).
+- Prerequisites: [uv](https://docs.astral.sh/uv/getting-started/installation/) — the installer auto-bootstraps via PEP 723.
 
 ---
 

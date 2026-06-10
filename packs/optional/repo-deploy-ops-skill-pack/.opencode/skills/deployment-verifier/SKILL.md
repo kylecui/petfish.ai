@@ -30,6 +30,13 @@ license: Internal use
 -认证链路基本可用
 - worker/queue/background job已恢复
 
+### Level 2.5：相邻路径验证
+-当变更涉及特定endpoint/handler/function时，必须同时验证同层所有sibling endpoint
+- "同层" = 共享同一dispatch机制、同一模块、或同一API前缀的endpoint
+-示例：修复了 `/v1/kernel/route`，则 `/v1/catalog/suggest`、`/v1/catalog/search` 等所有经过同一dispatch的POST endpoint都必须smoke test
+-原因：2026-06-10生产故障表明，修复单个operation的dispatch问题后，相邻operation因共享代码路径产生500错误但未被发现
+-若本次变更无明确影响范围（如全局配置变更），可跳过本层，但需在验证报告中注明
+
 ### Level 3：日志与依赖
 -启动日志无明显报错
 -数据库连接正常
@@ -53,6 +60,7 @@ uv run scripts/verify_http.py --spec assets/smoke-matrix.example.json --output -
 1. 一条health/readiness结果
 2. 一条核心功能smoke test结果
 3. 一条日志或依赖核验结果
+4. 若本次变更有明确影响范围，至少一条相邻路径的smoke test结果
 
 ## 验证报告模板
 

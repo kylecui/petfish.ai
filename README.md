@@ -11,7 +11,7 @@
 **Your AI Companion**
 From first commit to final delivery, PEtFiSh is always there.
 ```text
-><(((^>  PEtFiSh v1.5
+><(((^>  PEtFiSh v1.4
 
 Always Present   Companion Gateway in every interaction
 Guarding         Sense gaps, guard context, block pollution
@@ -32,26 +32,16 @@ Not a toolbox. A companion. Tools get called. PEtFiSh is always there.
 2. Run `/initproject` in your project.
 3. Pick a profile; PEtFiSh installs matching packs.
 4. Start working; Companion Gateway is now active.
-**Recommended one-line install**
+
+**Tell your AI agent:**
 ```text
 Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
+> ⚠️ The agent MUST read and follow that guide exactly. The only supported install command is `uv run install.py` (shown below). Shell-script installers (`remote-install.ps1`, `remote-install.sh`) are **deprecated** — do not use them.
 
-**Unified Python installer (recommended)**
+**Or run directly:**
 ```bash
 uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
-```
-
-**Legacy shell installers (deprecated)**
-
-Windows PowerShell:
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect
-```
-
-macOS / Linux / WSL:
-```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack init,companion --detect
 ```
 
 ---
@@ -133,7 +123,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `petfish` | Writing style and rewrite guidance | Global default |
 | `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
 
-## 10 Optional Packs (via petfish-market)
+## 9 Optional Packs (via petfish-market)
 > Optional packs are distributed through [petfish-market](https://github.com/kylecui/petfish-market). Install commands resolve automatically — no user-visible difference.
 | Alias | Purpose | Scale |
 |---|---|---|
@@ -146,20 +136,19 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `trust` | Skill trust governance and policy checks | Project |
 | `research` | Research workbench — evidence-backed scientific, product, and planning research | Project |
 | `reflect` | Structured reflection — capture what went wrong, why, and corrective actions | Project |
-| `doc-reader` | Document-to-Markdown conversion — PDF/DOCX/XLSX/HTML/PPTX reading via markitdown | Project |
 
 ## Profile → Auto-Install Mapping
 | Profile | Auto-installed Packs |
 |---|---|
-| `minimal` | `context`, `petfish` |
-| `course` | `context`, `course`, `doc-reader`, `petfish` |
-| `code` | `context`, `deploy`, `petfish`, `testdocs` |
-| `ops` | `context`, `deploy`, `petfish` |
-| `security` | `context`, `deploy`, `petfish`, `testdocs`, `trust` |
-| `research` | `context`, `doc-reader`, `petfish`, `research` |
-| `writing` | `context`, `petfish`, `ppt` |
-| `skills-package` | `context`, `petfish`, `testdocs` |
-| `comprehensive` | `context`, `course`, `deploy`, `doc-reader`, `petfish`, `ppt`, `testdocs`, `trust`, `research`, `reflect` |
+| `minimal` | `petfish` |
+| `course` | `course`, `petfish` |
+| `code` | `deploy`, `petfish`, `testdocs` |
+| `ops` | `deploy`, `petfish` |
+| `security` | `deploy`, `petfish`, `testdocs`, `trust` |
+| `research` | `petfish`, `research` |
+| `writing` | `petfish`, `ppt` |
+| `skills-package` | `petfish`, `testdocs` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect` |
 
 ---
 
@@ -177,80 +166,82 @@ mine → author → lint → audit → gate → publish → optimize → eval
 
 ---
 
+## Online Companion
+
+PEtFiSh's online companion runtime brings the companion discipline to ChatGPT-native online surfaces without requiring local IDE/CLI tools. It operates independently of OpenCode, Codex, Antigravity, or any local environment.
+
+### Operating Modes
+
+| Mode | Description |
+|---|---|
+| **P0 Standalone** | Instructions and knowledge only — no external dependencies |
+| **P1 Gateway** | Standalone plus online API access for catalog search, profile suggestion, pack resolution, command rendering, trust classification, and skill workbench |
+| **P2 Adapter** | Optional local execution support (boundary/regression scope only) |
+
+### Online Project Capabilities
+
+| Can Do | Cannot Do (default) |
+|---|---|
+| Explain PEtFiSh concepts and architecture | Read local files |
+| Recommend packs and profiles | Run local tests |
+| Design skills with validation | Modify repositories |
+| Render install commands | Invoke local agents |
+| Critical review with anti-sycophancy | Commit, push, or deploy |
+| Apply Companion Gateway discipline | Execute local code |
+| Run Trust Gate classification | Access project internals |
+
+### Getting Started
+
+Use the `review-online` profile for ChatGPT Project code review. The online companion applies the same Companion Gateway discipline (Mode Read, Topic Check, Failure Signal Detection, Skill Sense, Anti-Sycophancy Check) as local installations. On ChatGPT Project, it outputs Project Instructions in natural language rather than YAML unless YAML source is explicitly requested.
+
+The companion skillset handles gateway steps, 3-tier sensing, `/petfish` commands, and fish-market search. The fish-* classic skillset provides fish-trail topic governance, fish-brain orchestration, and fish-market search capabilities.
+
+See [docs/online-projects.md](docs/online-projects.md) for full documentation and setup instructions.
+
+---
+
 ## Install Commands
-
-### Unified Python Installer (Recommended)
+### Remote Install
 ```bash
-# Remote one-liner (requires uv)
-uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> [--target .] [--platform opencode] [--detect] [--force] [--global]
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform <PLATFORM>
+```
 
-# List available packs
+### Local Install (from cloned repo)
+```bash
+git clone https://github.com/kylecui/petfish.ai.git
+uv run ./petfish.ai/install.py --pack <alias> --platform <PLATFORM> --target .
+```
+
+### List Available Packs
+```bash
 uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --list
-
-# Offline install from cloned repo
-uv run ./install.py --pack <alias> --offline
-
-# With GitHub token (private repos / rate limit)
-uv run ./install.py --pack <alias> --github-token $GITHUB_TOKEN
-
-# Uninstall
-uv run ./install.py --uninstall --pack <alias> --target .
 ```
 
-Supports all 8 platforms, 28 pack aliases, community packs (`community/owner/repo`), mirror fallback for China networks, and full uninstall.
-
-### Legacy Shell Installers (Deprecated)
-
-> ⚠ The shell installers (`install.sh`, `install.ps1`, `remote-install.sh`, `remote-install.ps1`) are deprecated in favor of `install.py`. They will be removed in a future release.
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> [-Target .] [-Platform opencode] [-Detect] [-Force] [-Global]
-```
-
+### Private Repo Example
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias> [--target .] [--platform opencode] [--detect] [--force] [--global]
+GITHUB_TOKEN=xxx uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform <PLATFORM>
 ```
 
 ### Offline / Network-Restricted Install
 
 1. Clone or download the repo: `git clone https://github.com/kylecui/petfish.ai.git`
-2. Run the unified installer:
-   ```bash
-   uv run ./install.py --pack <alias> --offline
-   ```
-   Or use the legacy local installers:
-   ```powershell
-   .\install.ps1 -Pack <alias> -Platform <PLATFORM> -Target .
-   ```
-   ```bash
-   ./install.sh --pack <alias> --platform <PLATFORM> --target .
-   ```
+2. Transfer to target machine (USB, SCP, internal share)
+3. Run: `uv run ./install.py --pack <alias> --platform <PLATFORM> --target . --offline`
 
-The installer works offline — it scans `packs/` locally. `platforms.json` is recommended but optional (hardcoded fallback exists).
-
-For China network: mirror fallback via `ghfast.top` → `ghproxy.com` with 3 retries.
+The installer needs no internet — it scans `packs/` locally. Built-in mirror fallback (`ghfast.top` → `ghproxy.com`) with 3 retries for network-restricted environments.
 
 See [docs/agent-install.md](docs/agent-install.md) for full install instructions.
 
 ---
 
 ## Upgrade
-Run `/petfish upgrade` to see the upgrade command for your OS, or re-run the install command with `--force`:
+Run `/petfish upgrade` to see the upgrade command, or re-run with `--force`:
 ```text
 Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-upgrade.md
 ```
 
 ```bash
-uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
-```
-
-Legacy shell upgrade:
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
-```
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack all --force
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force --platform <PLATFORM>
 ```
 
 Without `--force`, current packs are skipped, available updates are reported, and missing packs still install normally.
@@ -330,7 +321,7 @@ petfish.ai/
 │   │           ├── skill-description-optimizer/  # description tuning
 │   │           ├── skill-trigger-evaluator/      # trigger testing
 │   │           └── skill-usage-tracker/          # usage analytics
-│   └── optional/                                 # 10 optional packs, distributed via petfish-market
+│   └── optional/                                 # 9 optional packs, distributed via petfish-market
 │       ├── opencode-course-skills-pack/          # course
 │       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
 │       ├── repo-deploy-ops-skill-pack/           # deploy
@@ -339,24 +330,19 @@ petfish.ai/
 │       ├── fish-trail/                           # context
 │       ├── trustskills-governance-pack/          # trust
 │       ├── research-skill-pack/                  # research
-│       ├── fish-reflection-pack/                 # reflect
-│       └── doc-reader-skill/                     # doc-reader
+│       └── fish-reflection-pack/                 # reflect
 ├── platforms.json                                # platform registry
-├── install.py                                    # unified Python installer (recommended)
-├── install.ps1                                   # local PowerShell installer (deprecated)
-├── install.sh                                    # local shell installer (deprecated)
-├── remote-install.ps1                            # remote PowerShell installer (deprecated)
-├── remote-install.sh                             # remote shell installer (deprecated)
+├── install.py                                    # unified Python installer (PEP 723)
+├── install.ps1                                   # local PowerShell installer (legacy)
+├── install.sh                                    # local shell installer (legacy)
+├── remote-install.ps1                            # remote PowerShell installer (legacy)
+├── remote-install.sh                             # remote shell installer (legacy)
 └── README.md
 ```
 
 ---
 
 ## Version History
-### v1.5 — Unified Python Installer
-
-- **v1.5.0**: Replace 4 shell installers (install.sh, install.ps1, remote-install.sh, remote-install.ps1) with single `install.py` distributed via `uv run <url>`. Zero external dependencies (stdlib only). Full feature parity: 8 platforms, 28 pack aliases, AGENTS.md marker merge, opencode.json deep merge, L1 rules files, plugin/MCP deployment, instruction translation, market download, community packs, mirror fallback, uninstall, v0.9→v1.4 migration, Claude Code hooks. Shell installers deprecated with migration notices.
-
 ### v1.4 — Market-First Distribution
 
 - **v1.4.6**: Market-first download in local installers — both install.sh and install.ps1 now query petfish-market for optional packs not found locally, with mirror fallback and --offline flag. Fix #193: redirect community pack status messages to stderr in bash installers.

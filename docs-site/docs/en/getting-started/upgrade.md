@@ -15,18 +15,9 @@ gh release view --repo kylecui/petfish.ai --json tagName -q .tagName
 
 ## Upgrade All Packs
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack all --force --detect
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force -Detect
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force --detect
+```
 
 !!! tip "What `--force` does"
     Re-installs all packs even if they appear current. Without `--force`, existing packs are skipped and only missing packs are installed.
@@ -37,7 +28,7 @@ Replace `all` with a comma-separated list:
 
 ```bash
 # Only upgrade companion and research
---pack companion,research --force
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion,research --force
 ```
 
 ## After Upgrading

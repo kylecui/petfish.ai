@@ -453,8 +453,8 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 
 | # | 触点 | 文件位置 | 说明 |
 |---|------|---------|------|
-| 1 | 本地安装器别名 | `install.ps1`, `install.sh` | 添加pack别名到安装器的pack映射表。本地安装器通过扫描`packs/core/`和`packs/optional/`目录动态发现pack，但别名映射仍需手动注册 |
-| 2 | 远程安装器ALL_PACKS数组 | `remote-install.ps1`, `remote-install.sh` | **必须手动添加**。远程安装器使用静态数组，不扫描目录 |
+| 1 | 本地安装器别名 | `install.py` + `install.ps1`, `install.sh` | 添加pack别名到安装器的ALIASES映射表。`install.py`（统一Python安装器）为首选；shell安装器为遗留兼容 |
+| 2 | 远程安装器ALL_PACKS数组 | `remote-install.ps1`, `remote-install.sh` | **遗留**。`install.py` 通过 petfish-market 动态解析可选pack，无需静态数组 |
 | 3 | Companion catalog PROFILES | `catalog_query.py` PROFILES dict | 将新pack加入相关profile（至少加入`comprehensive`） |
 | 4 | project-initializer | `project-initializer/SKILL.md` + `init_project.py` | 在初始化向导中添加新profile或将pack关联到现有profile |
 | 5 | README profile表 | `README.md` | 更新Pack列表、Profile → Auto-Install Mapping表 |
@@ -466,9 +466,10 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 
 ### 关键陷阱：本地 vs 远程安装器架构差异
 
+- **统一Python安装器**（`install.py`，首选）：通过 `uv run` 远程执行，PEP 723 inline script自动引导，内置镜像回退（`ghfast.top` → `ghproxy.com`），通过 petfish-market 动态解析可选 pack。
 - **本地安装器**（`install.ps1`, `install.sh`）：动态扫描`packs/core/`和`packs/optional/`目录发现可用pack。新增pack目录后自动可见，但别名映射仍需注册。
-- **远程安装器**（`remote-install.ps1`, `remote-install.sh`）：使用**硬编码的静态数组**（`$AllPacks` / `ALL_PACKS`）。新增pack必须手动添加到数组中，否则`--pack all`会静默跳过。
-- **v1.4市场分发**：可选pack（`packs/optional/`）通过petfish-market分发，远程安装器通过`query_market_index()` / `Query-MarketIndex`自动解析。核心pack（`packs/core/`）仍直接从petfish.ai仓库下载。
+- **远程安装器**（`remote-install.ps1`, `remote-install.sh`，遗留）：使用**硬编码的静态数组**（`$AllPacks` / `ALL_PACKS`）。新增pack必须手动添加到数组中，否则`--pack all`会静默跳过。
+- **v1.4市场分发**：可选pack（`packs/optional/`）通过petfish-market分发，`install.py` 和远程安装器通过`query_market_index()` / `Query-MarketIndex`自动解析。核心pack（`packs/core/`）仍直接从petfish.ai仓库下载。
 
 这一不对称是v0.10.7遗漏的根本原因。开发时使用本地安装器测试通过，但用户通过远程安装器安装时该pack不存在。
 
@@ -593,9 +594,9 @@ v0.11.10的修复通过PowerShell SSH会话测试，看起来正确，但PowerSh
 
 规则：bash脚本必须在真实bash环境中测试，PowerShell脚本在真实PowerShell中测试。不要通过代理shell测试另一种shell的行为——中间层会吞掉或改变转义字符，产生误导性的"通过"结果。
 
-### 4个安装器同步变更
+### 安装器同步变更
 
-项目有4个安装器：`install.sh`、`install.ps1`、`remote-install.sh`、`remote-install.ps1`。任何逻辑变更必须评估是否需要同步到全部4个文件。本地和远程安装器架构不同（动态扫描 vs 静态数组），同一个修复在不同安装器中的实现方式可能不同，但功能语义必须一致。
+项目有 `install.py`（统一Python安装器，首选）和 4个遗留安装器（`install.sh`、`install.ps1`、`remote-install.sh`、`remote-install.ps1`）。`install.py` 是主要维护对象，逻辑变更优先确保 `install.py` 正确。遗留安装器按需同步，但功能语义必须一致。
 
 v0.11.9（uninstall功能）和v0.11.10/v0.11.11（rstrip修复）都涉及4个安装器的同步变更。遗漏任何一个会导致用户通过不同安装方式得到不一致的行为。
 
@@ -608,6 +609,36 @@ v1.4将packs/拆分为`packs/core/`（4个）和`packs/optional/`（9个）。�
 - **触点#10（新增）**：可选pack必须在petfish-market的`registry/official/`目录创建条目，并更新`index.json`
 
 核心pack与可选pack的触点数量不同：核心pack覆盖#1-#9，可选pack额外需覆盖#10。
+
+### OpenAPI schema与handler签名的drift检测
+
+当HTTP服务同时维护OpenAPI schema和Python handler代码时，schema中声明的参数与handler实际接受的参数可能产生漂移（drift）。典型表现：GPT Actions发送schema中定义的参数，但handler不接受，导致`TypeError`。
+
+v1.4.6的online-gpt gateway发现2处drift（`runtime`和`risk_sensitive`字段）。根本原因是schema和handler代码独立维护，没有自动对齐机制。
+
+规则：
+
+- 每次修改OpenAPI schema时，必须同步检查对应handler的函数签名
+- 每次修改handler函数签名时，必须同步检查OpenAPI schema
+- 使用`check_schema_drift.py`做自动检测，不要依赖手动比对
+- 短期方案：dispatch层加allowlist filter（`inspect.signature`），未知字段进warnings而非TypeError
+- 长期方案：从OpenAPI schema自动生成handler签名校验
+
+### 批量同类文件替换优先用本地脚本
+
+当需要跨10+文件做同类替换（如退役一种安装命令、统一一种术语）时，优先写一个本地替换脚本（sed/python），而不是派多个分布式agent各自处理不同文件。
+
+原因：分布式agent的网络依赖没有fallback。当外部资源不可用时（证书错误、超时），agent只能失败，导致大量重试和浪费。21个文件的命令迁移中，4个子agent因证书错误被取消，所有工作需要重做。
+
+本地脚本的优点：无网络依赖、可预览（dry-run）、可grep验证、一次性完成。
+
+### 变更后验证相邻路径
+
+修复一个endpoint/handler后，必须同时验证同一dispatch层级的所有sibling endpoint，不能只验证修好的那一个。
+
+v1.4.6修复了`routeCompanionRequest`的dispatch问题，本地smoke test只测了这一个operation。部署后发现`suggestPacks`因相同根因（`profile_project`不接受`risk_sensitive`）返回500，但这个operation在修复时没有被打到测试里。
+
+规则：改了N个handler中的1个，smoke test要跑全部N个。
 
 ---
 

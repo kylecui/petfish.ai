@@ -22,7 +22,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v1.5                       │
+│  ><(((^>  胖鱼 PEtFiSh v1.4                       │
 │                                                     │
 │  常伴  每一轮交互都在                                │
 │  守护  感知缺口、守护上下文、阻断污染                │
@@ -40,14 +40,7 @@
 ## 快速开始
 
 ```bash
-# 推荐方式（统一Python安装器）
 uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
-```
-
-```bash
-# 旧版Shell安装器（已废弃）
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack init,companion --detect
 ```
 
 装完输入 `/initproject`——胖鱼问你项目类型，自动装上匹配的能力包。
@@ -108,7 +101,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `petfish` | 工程写作风格 | 1 skill |
 | `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
 
-## 10个可选包（通过 petfish-market 获取）
+## 9个可选包（通过 petfish-market 获取）
 > 可选包通过 [petfish-market](https://github.com/kylecui/petfish-market) 分发。安装命令自动解析，用户无感知。
 
 | 别名 | 定位 | 规模 |
@@ -122,7 +115,6 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `ppt` | PPT设计 | 2 skills |
 | `research` | 研究工作台——科研、产品、规划等8个领域 | 54 skills |
 | `reflect` | 结构化反思——捕获失败原因与纠正措施 | 1 skill |
-| `doc-reader` | 文档转Markdown——PDF/DOCX/XLSX/HTML/PPTX阅读 | 1 skill |
 
 ---
 
@@ -143,18 +135,54 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 
 ---
 
+## Online Companion（在线伙伴）
+
+PEtFiSh 现在有 ChatGPT GPT 版本 —— 不需要本地安装，不依赖 OpenCode、Codex、Cursor 或任何本地 IDE/CLI。
+
+### 运行模式
+
+| 模式 | 说明 |
+|------|------|
+| Standalone | 纯 GPT 指令 + 知识库 |
+| Gateway | 在线 API |
+| Adapter | 可选本地执行（低优先级） |
+
+### 能力范围
+
+**能做：**
+- 解释 PEtFiSh
+- 推荐 pack 和 profile
+- 设计 skill
+- 渲染安装命令
+- 做批判性 review
+- 反迎合校准
+- 风险分类
+
+**不能做：**
+- 读本地文件
+- 跑本地测试
+- 改仓库
+- 调用本地 IDE/CLI
+- commit/push/deploy（需要本地安装或 adapter）
+
+### 快速开始
+
+首次发布范围：P0 Standalone + P1 Gateway-only Actions。
+
+详细文档：[docs/online-projects.md](online-projects.md)
+
+### 专用配置
+
+`review-online` profile 专门用于 ChatGPT Project 代码审查。
+
+---
+
 ## 升级
 
 运行 `/petfish upgrade` 查看适合当前OS的升级命令，或直接重跑安装命令加 `--force`：
 
 ```bash
 uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
-```
-
-旧版Shell升级（已废弃）：
-```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack all --force
 ```
 
 或者让AI帮你：
@@ -181,10 +209,6 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
-
-### v1.5 — 统一Python安装器
-
-- **v1.5.0**: 用单个`install.py`替换4个Shell安装器（install.sh、install.ps1、remote-install.sh、remote-install.ps1），通过`uv run <url>`分发。零外部依赖（仅stdlib）。完整功能对等：8个平台、28个别名、AGENTS.md标记合并、opencode.json深度合并、L1规则文件、plugin/MCP部署、指令翻译、市场下载、社区包、镜像回退、卸载、v0.9→v1.4迁移、Claude Code hooks。Shell安装器标记为废弃。
 
 ### v1.4 — 市场优先分发
 

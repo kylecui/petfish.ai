@@ -6,20 +6,11 @@
 
 安装器会跳过看起来已经是最新的 packs。请使用 `--force` 重新安装：
 
-=== "macOS / Linux / WSL"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force
+```
 
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack all --force
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force
-    ```
-
-或者在你的 AI 助手中运行 `/petfish upgrade` 以查看适用于你操作系统的确切命令。
+或者在你的 AI 助手中运行 `/petfish upgrade` 以查看升级命令。
 
 ### 安装器提示 "uv not found"
 
@@ -51,19 +42,9 @@ PEtFiSh 的 Python skills 和 MCP servers 依赖于 [uv](https://docs.astral.sh/
 
 可以。请传递 GitHub token：
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL -H "Authorization: token $GITHUB_TOKEN" \
-      https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | GITHUB_TOKEN=$GITHUB_TOKEN bash -s -- --pack companion
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack companion -GitHubToken $env:GITHUB_TOKEN
-    ```
+```bash
+GITHUB_TOKEN=xxx uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion
+```
 
 ---
 
@@ -162,27 +143,20 @@ Gateway 嵌入在 `AGENTS.md`（或对应平台的等效文件）的指令文件
 
 ### 我需要什么 Python 版本？
 
-对于包含脚本的 skills 需要 Python 3.10+。安装器本身仅使用标准库（通过 `python3 -c` 进行 JSON 解析），因此任何 Python 3 版本均可用于安装。
+对于包含脚本的 skills 需要 Python 3.10+。统一 Python 安装器（`install.py`）使用 PEP 723 内联元数据，通过 `uv run` 自动引导——无需手动配置 Python 环境。
 
 ### PEtFiSh 可以离线使用吗？
 
-安装完成后是可以的。Skills 均为本地文件。网络调用仅在安装/升级时（从 GitHub 下载），或当你使用了依赖网络搜索的 skills（如 marketplace-connector）时发生。
+安装完成后是可以的。Skills 均为本地文件。网络调用仅在安装/升级时（从 GitHub 下载），或当你使用了依赖网络搜索的 skills（如 marketplace-connector）时发生。离线安装请克隆仓库后使用 `--offline`。
 
 ### 如何卸载某个 pack？
 
-请使用本地安装器：
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --uninstall <alias>
+```
 
-=== "macOS / Linux / WSL"
+或从克隆的仓库：
 
-    ```bash
-    ./install.sh --uninstall <alias>
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    .\install.ps1 -Uninstall <alias>
-    ```
-
-!!! note
-    卸载功能仅支持通过本地安装器操作，无法使用远程一行命令（one-liner）卸载。
+```bash
+uv run ./install.py --uninstall <alias>
+```

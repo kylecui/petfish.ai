@@ -15,18 +15,9 @@ gh release view --repo kylecui/petfish.ai --json tagName -q .tagName
 
 ## 升级所有 Pack
 
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-      | bash -s -- --pack all --force --detect
-    ```
-
-=== "Windows PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack all -Force -Detect
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --force --detect
+```
 
 !!! tip "--force 的作用"
     即使 pack 看起来已经是最新版本，也会重新安装所有的 pack。如果不加 `--force`，已存在的 pack 会被跳过，只会安装缺失的 pack。
@@ -37,7 +28,7 @@ gh release view --repo kylecui/petfish.ai --json tagName -q .tagName
 
 ```bash
 # 仅升级 companion 和 research
---pack companion,research --force
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion,research --force
 ```
 
 ## 升级后
