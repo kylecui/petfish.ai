@@ -508,6 +508,36 @@ v1.4将packs/拆分为`packs/core/`（4个）和`packs/optional/`（9个）。�
 
 核心pack与可选pack的触点数量不同：核心pack覆盖#1-#9，可选pack额外需覆盖#10。
 
+### OpenAPI schema与handler签名的drift检测
+
+当HTTP服务同时维护OpenAPI schema和Python handler代码时，schema中声明的参数与handler实际接受的参数可能产生漂移（drift）。典型表现：GPT Actions发送schema中定义的参数，但handler不接受，导致`TypeError`。
+
+v1.4.6的online-gpt gateway发现2处drift（`runtime`和`risk_sensitive`字段）。根本原因是schema和handler代码独立维护，没有自动对齐机制。
+
+规则：
+
+- 每次修改OpenAPI schema时，必须同步检查对应handler的函数签名
+- 每次修改handler函数签名时，必须同步检查OpenAPI schema
+- 使用`check_schema_drift.py`做自动检测，不要依赖手动比对
+- 短期方案：dispatch层加allowlist filter（`inspect.signature`），未知字段进warnings而非TypeError
+- 长期方案：从OpenAPI schema自动生成handler签名校验
+
+### 批量同类文件替换优先用本地脚本
+
+当需要跨10+文件做同类替换（如退役一种安装命令、统一一种术语）时，优先写一个本地替换脚本（sed/python），而不是派多个分布式agent各自处理不同文件。
+
+原因：分布式agent的网络依赖没有fallback。当外部资源不可用时（证书错误、超时），agent只能失败，导致大量重试和浪费。21个文件的命令迁移中，4个子agent因证书错误被取消，所有工作需要重做。
+
+本地脚本的优点：无网络依赖、可预览（dry-run）、可grep验证、一次性完成。
+
+### 变更后验证相邻路径
+
+修复一个endpoint/handler后，必须同时验证同一dispatch层级的所有sibling endpoint，不能只验证修好的那一个。
+
+v1.4.6修复了`routeCompanionRequest`的dispatch问题，本地smoke test只测了这一个operation。部署后发现`suggestPacks`因相同根因（`profile_project`不接受`risk_sensitive`）返回500，但这个operation在修复时没有被打到测试里。
+
+规则：改了N个handler中的1个，smoke test要跑全部N个。
+
 ---
 
 ## Pack-Specific Rules (On-Demand Loading)
