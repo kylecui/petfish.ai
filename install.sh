@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 #
+# ⛔ DEPRECATED — This script is NO LONGER SUPPORTED.
+# Use the unified Python installer instead:
+#   uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform opencode
+# See: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
+# This script is retained for emergency fallback only. Do NOT use it by default.
+#
 # Install 胖鱼 PEtFiSh skill packs into a target project or global skills directory.
 #
 # Usage:

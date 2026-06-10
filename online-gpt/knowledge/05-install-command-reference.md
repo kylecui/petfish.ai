@@ -25,19 +25,7 @@ Common flags:
 
 ## Branch-aware fallback
 
-Some older branches may still document legacy shell installers. If `install.py` is not available on the target branch or release, use the branch-documented shell command and explicitly state the fallback.
-
-Windows PowerShell legacy style:
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias> -Platform opencode
-```
-
-macOS/Linux/WSL legacy style:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias> --platform opencode
-```
+Shell-script installers (`remote-install.ps1`, `remote-install.sh`, `install.ps1`, `install.sh`) are **DEPRECATED** and must NOT be used. If `uv` is not available, install it from https://docs.astral.sh/uv/getting-started/installation/ first, then use the unified Python installer above. There is no valid fallback to shell scripts.
 
 ## Command rendering contract
 

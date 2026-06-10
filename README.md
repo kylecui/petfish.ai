@@ -32,11 +32,14 @@ Not a toolbox. A companion. Tools get called. PEtFiSh is always there.
 2. Run `/initproject` in your project.
 3. Pick a profile; PEtFiSh installs matching packs.
 4. Start working; Companion Gateway is now active.
-**Recommended one-line install**
+
+**Tell your AI agent:**
 ```text
 Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
+> ⚠️ The agent MUST read and follow that guide exactly. The only supported install command is `uv run install.py` (shown below). Shell-script installers (`remote-install.ps1`, `remote-install.sh`) are **deprecated** — do not use them.
 
+**Or run directly:**
 ```bash
 uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init,companion --detect
 ```

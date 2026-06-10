@@ -1,4 +1,10 @@
 <#
+⛔ DEPRECATED — This script is NO LONGER SUPPORTED.
+Use the unified Python installer instead:
+  uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --platform opencode
+See: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
+This script is retained for emergency fallback only. Do NOT use it by default.
+
 .SYNOPSIS
     胖鱼 PEtFiSh - Install skill packs for supported AI coding platforms.
 
