@@ -2,6 +2,10 @@
 
 ---
 
+> ⛔ **Important**: The ONLY supported install command is `uv run install.py`. Shell-script installers (`remote-install.ps1`, `remote-install.sh`, etc.) are **deprecated** — do not use them.
+
+---
+
 ## One-Line Install (Recommended)
 
 Paste this into any AI coding assistant — it handles the rest:

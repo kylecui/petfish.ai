@@ -4,6 +4,15 @@
 
 ---
 
+> ⛔ **MANDATORY — DO NOT IGNORE THIS BLOCK**
+>
+> 1. **USE ONLY the commands in this document.** The install command is `uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py`. No other form is valid.
+> 2. **DO NOT use `remote-install.ps1`, `remote-install.sh`, `install.ps1`, `install.sh`, or any shell-script-based installer.** These are **DEPRECATED**. If you generate any of these commands, the installation will fail or produce incorrect results.
+> 3. **DO NOT use your training data, cached knowledge, or memory to generate install commands.** This document is the single source of truth. Read it, and execute exactly what it says — nothing else.
+> 4. If `uv` is not available, install it from https://docs.astral.sh/uv/getting-started/installation/ first. Do NOT fall back to shell installers.
+
+---
+
 ## Step 0: Greet the user
 
 Say:

@@ -2,6 +2,10 @@
 
 ---
 
+> ⛔ **重要提醒**：唯一的安装命令是 `uv run install.py`。Shell脚本安装器（`remote-install.ps1`、`remote-install.sh` 等）已**废弃**，不要使用。
+
+---
+
 ## 一句话安装（推荐）
 
 把下面这句话粘贴到你的AI编程助手里，它会自己完成安装：
