@@ -27,6 +27,28 @@
 - 处理方式：如果后半句没有具体机制、对象、结果，就删掉
 - 例外：用于纠正误解、重新定义概念、提出核心立场时可保留
 
+### 5. 句式过度对称（syntactic over-symmetry）
+- 典型问题：连续3句以上使用相同句式模板，例如"X实现Y。A实现B。M实现N。"或"First… Second… Third… Therefore…"
+- 处理方式：在每段中至少打破一次模板——把结论前置、插入例子、用短句打断
+- 例外：形式化定义、编号步骤、算法描述中的有序列举可保留
+- 关键区分：学术写作中的句式变化是人类作者的标志。完全对称的段落即使没有口号也是AI腔。详见 `references/academic-writing.md` Part 1 特征3。
+
+### 6. 句长波动不足（low burstiness）
+- 典型问题：所有句子长度集中在狭窄区间（变异系数CV < 0.4），没有长句和短句的交替
+- 处理方式：在长复合句后跟一个短句（≤8词或≤15字）；在短句后允许一个长句（≥30词或≥50字）
+- 例外：法律条文、规格说明等要求句式统一的文体可保留
+- 检测方式：`scripts/style_check.py` 会计算句长变异系数。学术写作尤其需要burstiness，见 `references/academic-writing.md` Part 2 技巧2.4。
+
+### 7. 段落模板化（paragraph templating）
+- 典型问题：连续4段以上句数相同（±1句），每段都遵循"背景→方法→结果→结论"的相同骨架
+- 处理方式：故意写出至少一个短段（2–3句）和一个长段（5–7句）；让至少一段以结论或限制开头
+- 例外：实验报告中的标准化小节、论文中的方法节按步骤组织时可保留
+
+### 8. 连接词堆叠（connector stacking）
+- 典型问题：每句都有显式逻辑连接词（"因此""另一方面""具体来说""However""Therefore"），没有让读者自己推断两步以内的逻辑
+- 处理方式：每页至少删掉一个显式连接词，改为隐式衔接
+- 例外：论证密度高、读者需要明确追踪推理链的技术分析可多用
+
 ## 改写动作表
 
 | AI腔模式 | 不好的写法 | 更好的处理 |
@@ -39,6 +61,10 @@
 | Dash abuse | This is the solution—the only way forward—to solve our problems | This solution addresses the root cause of the memory leak by implementing a custom allocator |
 | Triplet parallelism | Improving speed, accuracy, and efficiency | Reducing response time by 20% and eliminating manual data entry errors |
 | Empty not X but Y | It's not just a tool, but a transformative journey for your team | It automates the documentation process, allowing developers to focus on core logic |
+| 句式过度对称 | The model achieves high accuracy. The model handles edge cases. The model scales to large datasets. | The model achieves high accuracy on the standard benchmark. Edge cases require a fallback path, which we describe in Section 3. At scale, throughput degrades linearly rather than gracefully. |
+| 句长波动不足 | We designed the system. We tested the system. We deployed the system. We evaluated the system. (每句7词) | We designed and tested the system in a controlled environment. Deployment followed. Evaluation, however, revealed a throughput regression we had not anticipated. |
+| 段落模板化 | (连续5段，每段都是4句：背景句→方法句→结果句→结论句) | Break the pattern: write a 2-sentence observation paragraph, then a 6-sentence analysis paragraph. |
+| 连接词堆叠 | Therefore, we observe X. However, Y also holds. Specifically, Z follows. In conclusion, W. | We observe X. Y also holds, though the effect is smaller. Z follows when the sample is restricted to the labeled subset. |
 
 ## 保留条件
 
@@ -60,5 +86,9 @@
 | 结构必要性 | 排比、转折、总结是否服务论证？ | 5 |
 | 术语克制 | 术语是否必要，是否解释清楚？ | 5 |
 | 风格一致性 | 是否符合用户已有写作风格？ | 5 |
+| 句长波动 | 是否有长短句交替（burstiness），而非全部中等长度？ | 5 |
+| 句式多样性 | 是否避免了连续3句以上相同模板？ | 5 |
 
 低于4分的段落必须改写。
+
+学术写作另需检查 `references/academic-writing.md` Part 6 的学术专项自检清单。
