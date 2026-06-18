@@ -12,11 +12,10 @@ import json
 import sys
 from pathlib import Path
 
-SKILL_ROOT = Path(__file__).resolve().parent.parent          # fish-brain/
-REPO_ROOT = SKILL_ROOT.parents[5]                              # up to repo root
-sys.path.insert(0, str(REPO_ROOT / "benchmarks" / "scripts" / "modules"))
+SKILL_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
-from failure_signal_eval import classify  # noqa: E402  (reuse, not reinvent)
+from gateway_classifiers import classify_failure_signal as classify  # noqa: E402
 
 CONTRACT = json.loads((SKILL_ROOT / "contracts" / "step1.5-failure-signal.contract.json").read_text(encoding="utf-8"))
 FIXTURES = json.loads((SKILL_ROOT / "fixtures" / "step1.5-failure-signal" / "fixtures.json").read_text(encoding="utf-8"))

@@ -16,8 +16,42 @@ Usage:
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
+
+
+def fix_docx_tables(text: str) -> str:
+    """Fix common DOCX table conversion issues (#235).
+
+    markitdown sometimes drops the header row — headers appear as data,
+    empty row becomes header. Fix: ensure separator line (|---|) is
+    always the second line of each markdown table block.
+    """
+    lines = text.split("\n")
+    result = []
+    i = 0
+    while i < len(lines):
+        if lines[i].strip().startswith("|"):
+            block = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                block.append(lines[i])
+                i += 1
+            sep_re = re.compile(r"\|[-:\s|]+-+")
+            sep_indices = [j for j, l in enumerate(block) if sep_re.match(l.strip())]
+            if sep_indices and sep_indices[0] != 1 and len(block) >= 3:
+                sep = block.pop(sep_indices[0])
+                while block and not block[0].strip().replace("|", "").strip():
+                    block.pop(0)
+                result.append(block[0])
+                result.append(sep)
+                result.extend(block[1:])
+            else:
+                result.extend(block)
+        else:
+            result.append(lines[i])
+            i += 1
+    return "\n".join(result)
 
 
 def parse_args() -> argparse.Namespace:
@@ -87,7 +121,7 @@ def main() -> None:
         print(f"Error converting {args.input}: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    text_content = result.text_content
+    text_content = fix_docx_tables(result.text_content)
 
     # Write Markdown output
     if args.output:

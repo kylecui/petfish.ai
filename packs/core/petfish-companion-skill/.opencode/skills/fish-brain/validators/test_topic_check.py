@@ -7,9 +7,8 @@ import json, sys
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
-REPO_ROOT = SKILL_ROOT.parents[5]
-sys.path.insert(0, str(REPO_ROOT / "benchmarks" / "scripts" / "modules"))
-from gateway_eval import classify  # noqa: E402
+sys.path.insert(0, str(SKILL_ROOT / "scripts"))
+from gateway_classifiers import classify_topic as classify  # noqa: E402
 
 FIXTURES = json.loads((SKILL_ROOT / "fixtures" / "step1-topic-check" / "fixtures.json").read_text(encoding="utf-8"))
 VALID_RELATIONS = {"continue", "fork", "switch", "merge", "archive", "reset", "bridge"}

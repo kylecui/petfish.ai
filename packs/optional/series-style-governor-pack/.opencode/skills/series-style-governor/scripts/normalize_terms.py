@@ -23,7 +23,7 @@ def parse_simple_termbase(path: Path) -> dict[str, list[str]]:
     in_aliases = False
     for raw in text.splitlines():
         line = raw.rstrip()
-        m = re.match(r"^\s{2}([^:#][^:]*):\s*$", line)
+        m = re.match(r"^\s{2}([^:#\s][^:]*):\s*$", line)
         if m:
             current = m.group(1).strip()
             terms.setdefault(current, [])

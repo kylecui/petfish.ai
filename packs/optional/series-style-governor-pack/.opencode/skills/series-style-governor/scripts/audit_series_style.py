@@ -102,7 +102,12 @@ def audit_file(path: Path, profile: dict) -> dict:
     }
 
 
+IMPLEMENTED_DIMS = {"Structure", "Terminology", "Chinese-English typography"}
+
+
 def status_for(results: list[dict], dimension: str) -> tuple[str, str]:
+    if dimension not in IMPLEMENTED_DIMS:
+        return "Not checked", "No checks implemented for this dimension yet."
     count = sum(1 for r in results for i in r["issues"] if i[0] == dimension)
     if count == 0:
         return "Pass", "No major drift detected."

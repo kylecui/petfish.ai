@@ -56,7 +56,7 @@ Also trigger when the user wants to:
 - Preserve `trustskills` as an external dependency; do not vendor or inline the engine.
 - Surface the five governance levels clearly: `allow`, `allow_with_ask`, `sandbox_required`, `manual_review_required`, `deny`.
 - Call out redline violations explicitly because they are hard DENY gates.
-- If `trustskills` is missing, return install guidance: `uv add trustskills` or `uv pip install trustskills`.
+- If `trustskills` is missing, return install guidance: `uv add git+https://github.com/kylecui/trustskills.git` or `uv pip install git+https://github.com/kylecui/trustskills.git`.
 - Use machine-readable JSON output when integrating with quality-gate or other automated checks.
 
 ## Must Not Do

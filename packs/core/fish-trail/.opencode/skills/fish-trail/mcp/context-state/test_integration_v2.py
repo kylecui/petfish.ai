@@ -91,11 +91,11 @@ def _is_error_response(response: dict) -> bool:
 class TestFeatureFlagGating:
     """Verify that get_memory_context is only registered when flags allow."""
 
-    def test_v2_disabled_by_default(self, base_dir: str):
-        """Without config, v2 flags default to disabled — handler not registered."""
+    def test_v2_enabled_by_default(self, base_dir: str):
+        """Without config, v2 flags default to enabled — handler IS registered."""
         server = ContextStateServer(base_dir)
-        assert server._memory_context is None
-        assert "get_memory_context" not in server._handlers
+        assert server._memory_context is not None
+        assert "get_memory_context" in server._handlers
 
     def test_v2_disabled_explicit(self, base_dir: str):
         """Explicit v2_enabled=false → handler not registered."""
@@ -128,6 +128,7 @@ class TestFeatureFlagGating:
                 "feature_flags": {
                     "v2_enabled": True,
                     "enable_continuous_detection": False,
+                    "enable_tiered_retention": False,
                     "enable_budget_allocation": False,
                 }
             },
@@ -138,6 +139,7 @@ class TestFeatureFlagGating:
 
     def test_tool_call_to_unregistered_handler_returns_error(self, base_dir: str):
         """Calling get_memory_context when not registered → unknown tool error."""
+        _write_config(base_dir, {"feature_flags": {"v2_enabled": False}})
         server = ContextStateServer(base_dir)
         msg = _tool_call_msg("get_memory_context", {})
         response = server.handle_message(msg)

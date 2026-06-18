@@ -635,7 +635,15 @@ class TestServerErrorPaths:
 
     def test_get_memory_context_when_v2_disabled(self, tmp_path):
         """When v2 is disabled, get_memory_context returns error response."""
-        server = self._make_server(tmp_path)
+        from server import ContextStateServer
+
+        base_dir = str(tmp_path / "fish-trail")
+        os.makedirs(base_dir, exist_ok=True)
+        # Write config with v2 disabled so handler is not registered
+        config_path = os.path.join(base_dir, "config.json")
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump({"feature_flags": {"v2_enabled": False}}, f)
+        server = ContextStateServer(base_dir)
         msg = self._tool_call_msg(1, "get_memory_context")
         response = server.handle_message(msg)
 

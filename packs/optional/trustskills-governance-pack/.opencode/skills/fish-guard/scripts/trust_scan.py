@@ -87,13 +87,14 @@ def install_payload(exit_code: int = 2) -> dict[str, Any]:
         "exit_code": exit_code,
         "error": "trustskills CLI not found",
         "install_instructions": [
-            "uv add trustskills",
-            "uv pip install trustskills",
+            "uv add git+https://github.com/kylecui/trustskills.git",
+            "uv pip install git+https://github.com/kylecui/trustskills.git",
         ],
         "stdout": "",
         "stderr": (
-            "trustskills CLI is not installed. Install it with 'uv add trustskills' "
-            "or 'uv pip install trustskills'."
+            "trustskills CLI is not installed. Install it with "
+            "'uv add git+https://github.com/kylecui/trustskills.git' "
+            "or 'uv pip install git+https://github.com/kylecui/trustskills.git'."
         ),
     }
 

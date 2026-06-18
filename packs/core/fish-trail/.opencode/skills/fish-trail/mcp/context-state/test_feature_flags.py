@@ -56,16 +56,16 @@ class TestFeatureFlagsDefaults:
         flags = FeatureFlags()
         assert flags.v2_enabled is True
         assert flags.enable_continuous_detection is False
-        assert flags.enable_tiered_retention is False
-        assert flags.enable_budget_allocation is False
+        assert flags.enable_tiered_retention is True
+        assert flags.enable_budget_allocation is True
         assert flags.enable_never_consolidate is False
         assert flags.enable_auto_state_transitions is False
         assert flags.enable_pressure_degradation is False
         assert flags.v1_fallback_on_error is True
 
     def test_defaults_all_computed_false(self):
-        """With all feature flags False, computed properties are False."""
-        flags = FeatureFlags()
+        """With all v2 features explicitly disabled, computed properties are False."""
+        flags = FeatureFlags(v2_enabled=False)
         assert flags.registry_enabled is False
         assert flags.pressure_monitor_enabled is False
         assert flags.budget_allocator_enabled is False
@@ -97,7 +97,7 @@ class TestComputedProperties:
         assert flags.memory_context_enabled is True
 
     def test_pressure_monitor_enabled_degradation(self):
-        flags = FeatureFlags(enable_pressure_degradation=True)
+        flags = FeatureFlags(enable_pressure_degradation=True, enable_budget_allocation=False)
         assert flags.pressure_monitor_enabled is True
         assert flags.budget_allocator_enabled is False
 
@@ -118,7 +118,7 @@ class TestComputedProperties:
 
     def test_memory_context_needs_registry_or_pressure(self):
         """memory_context_enabled requires at least one subsystem."""
-        flags = FeatureFlags(enable_never_consolidate=True)
+        flags = FeatureFlags(enable_tiered_retention=False, enable_budget_allocation=False, enable_never_consolidate=True)
         assert flags.registry_enabled is False
         assert flags.pressure_monitor_enabled is False
         assert flags.memory_context_enabled is False
@@ -135,7 +135,7 @@ class TestToDict:
         assert "v1_fallback_on_error" in d
 
     def test_includes_computed_properties(self):
-        flags = FeatureFlags(enable_budget_allocation=True)
+        flags = FeatureFlags(enable_budget_allocation=True, enable_tiered_retention=False)
         d = flags.to_dict()
         assert d["_pressure_monitor_enabled"] is True
         assert d["_registry_enabled"] is False
@@ -280,8 +280,8 @@ class TestLoadPriority:
         assert flags.enable_continuous_detection is False
         # Config wins over default
         assert flags.enable_budget_allocation is True
-        # Default stays
-        assert flags.enable_tiered_retention is False
+        # Default stays (tiered_retention defaults to True in v1.1.0+)
+        assert flags.enable_tiered_retention is True
 
 
 # =============================================================================
