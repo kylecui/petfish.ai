@@ -10,7 +10,7 @@ import pytest
 
 # Load style_check.py as a module
 _SCRIPT = Path(__file__).resolve().parents[1] / (
-    "packs/optional/petfish-style-skill/.opencode/skills/fish-style/scripts/style_check.py"
+    "packs/optional/petfish-style-skill/.opencode/skills/petfish-style-rewriter/scripts/style_check.py"
 )
 _spec = importlib.util.spec_from_file_location("style_check", _SCRIPT)
 sc = importlib.util.module_from_spec(_spec)

@@ -133,17 +133,24 @@ def should_skip_dir(path: Path) -> bool:
 
 
 def bucket_for(path: Path) -> set[str]:
-    s = str(path).lower()
     name = path.name.lower()
     buckets = set()
 
-    if any(h in s for h in DOC_HINTS):
+    # Boundary-aware matching: split path components by separators to prevent
+    # "qa-testdocs" from matching both "test" and "docs" (#234)
+    path_words: set[str] = set()
+    for part in path.lower().parts:
+        path_words.add(part)
+        for sep in "-_.":
+            path_words.update(part.split(sep))
+
+    if any(h in path_words for h in DOC_HINTS):
         buckets.add("docs")
-    if any(h in s for h in API_HINTS):
+    if any(h in path_words for h in API_HINTS):
         buckets.add("api_specs")
-    if any(h in s for h in CONFIG_HINTS):
+    if any(h in path_words for h in CONFIG_HINTS):
         buckets.add("configs")
-    if any(h in s for h in TEST_HINTS):
+    if any(h in path_words for h in TEST_HINTS):
         buckets.add("tests")
     if name in ENTRYPOINT_HINTS:
         buckets.add("entrypoints")

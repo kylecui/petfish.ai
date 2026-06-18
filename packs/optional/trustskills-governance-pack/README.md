@@ -21,13 +21,13 @@
 ### 1) Install the external engine / 安装外部引擎
 
 ```bash
-uv add trustskills
+uv add git+https://github.com/kylecui/trustskills.git
 ```
 
 Or:
 
 ```bash
-uv pip install trustskills
+uv pip install git+https://github.com/kylecui/trustskills.git
 ```
 
 `trustskills` requires Python >= 3.12 and depends on `pydantic>=2.13.3` and `pyyaml>=6.0`.

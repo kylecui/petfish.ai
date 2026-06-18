@@ -10,7 +10,7 @@ import pytest
 
 # Load normalize_text.py as a module
 _SCRIPT = Path(__file__).resolve().parents[1] / (
-    "packs/optional/petfish-style-skill/.opencode/skills/fish-style/scripts/normalize_text.py"
+    "packs/optional/petfish-style-skill/.opencode/skills/petfish-style-rewriter/scripts/normalize_text.py"
 )
 _spec = importlib.util.spec_from_file_location("normalize_text", _SCRIPT)
 nt = importlib.util.module_from_spec(_spec)
