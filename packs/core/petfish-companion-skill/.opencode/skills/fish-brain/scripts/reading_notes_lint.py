@@ -10,6 +10,7 @@ NOTE_ID_RE = re.compile(r"^CN-\d{6}$")
 FILE_TYPES = {"code", "doc", "config", "test"}
 CONFIDENCE = {"high", "medium", "low"}
 REQUIRED = ["note_id", "file_path", "file_type", "language", "summary", "confidence"]
+RECOMMENDED = ["file_mtime", "file_size"]  # for staleness detection
 
 
 def lint(path: Path) -> int:
@@ -43,6 +44,9 @@ def lint(path: Path) -> int:
             warnings.append(f"line {line_no} [{nid}]: code file without 'symbol' field")
         if not entry.get("dependencies"):
             warnings.append(f"line {line_no} [{nid}]: no dependencies listed")
+        for field in RECOMMENDED:
+            if field not in entry:
+                warnings.append(f"line {line_no} [{nid}]: missing recommended field '{field}' (needed for staleness detection)")
 
     print(f"Reading-notes lint: {total} entries, {len(errors)} errors, {len(warnings)} warnings")
     for e in errors:

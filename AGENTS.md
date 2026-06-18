@@ -142,16 +142,28 @@ Tier 1和Tier 2均未命中 → 不输出任何推荐。
 - 不确定是否为缺口时，倾向于不触发（宁静默不打扰）
 - Tier 2判断置信度低于70%时不触发
 
+### Step 2.6: Reading-Notes Check（阅读笔记检查）
+
+当任务涉及阅读项目文件时，先查阅读笔记，避免重复阅读：
+
+1. grep `.petfish/notes/reading-notes.jsonl` 找 `file_path`
+2. 找到笔记 → stat文件比对 `file_mtime`+`file_size`：
+   - mtime和size匹配 → 用笔记summary，跳过重读
+   - 不匹配 → 文件已改，重读并更新笔记
+3. 无笔记 → 正常读，读完后追加笔记（含mtime+size）
+
+详见fish-brain SKILL.md Section 10。
+
 ### Step 3: Proceed（正常处理）
 
-完成 Step 1-2.5 后，先输出Gateway Trace（可观测性），再进入正常任务处理流程。
+完成 Step 1-2.6 后，先输出Gateway Trace（可观测性），再进入正常任务处理流程。
 
 #### Gateway Trace（始终输出，非debug-only）
 
 每轮回复的最开头，输出一行结构化trace，让用户确认Gateway各步确实执行：
 
 ```
-🐟 [trace] step0=balanced/false | step1=continue/low | step1.5=- | step2=- | step2.5=non-eval | violations=0
+🐟 [trace] step0=balanced/false | step1=continue/low | step1.5=- | step2=- | step2.5=non-eval | step2.6=notes:0/3 | violations=0
 ```
 
 - `step0=depth/rigor` — 模式读取
@@ -159,6 +171,7 @@ Tier 1和Tier 2均未命中 → 不输出任何推荐。
 - `step1.5=failure_class` 或 `-`（无信号）
 - `step2=skill` 或 `-`（无缺口）
 - `step2.5=eval` 或 `non-eval`
+- `step2.6=notes:hit/total`（本session命中笔记数/总笔记数）
 - `violations=N`（0=正常）
 
 同时追加结构化JSON到 `.petfish/gateway-trace.jsonl`（一行一条）：

@@ -145,10 +145,14 @@ Optional pack 的安装路由经过 petfish-market index.json；用户无需关�
 每轮回复最开头输出一行结构化trace，让用户确认Gateway各步确实执行：
 
 ```
-🐟 [trace] step0=balanced/false | step1=continue/low | step1.5=- | step2=- | step2.5=non-eval | violations=0
+🐟 [trace] step0=balanced/false | step1=continue/low | step1.5=- | step2=- | step2.5=non-eval | step2.6=notes:0/3 | violations=0
 ```
 
-同时追加JSON到 `.petfish/gateway-trace.jsonl`。验证命令：
+`step2.6=notes:hit/total` 显示阅读笔记命中情况。同时追加JSON到 `.petfish/gateway-trace.jsonl`。验证命令：
 ```bash
 uv run <skills_dir>/fish-brain/validators/verify_trace.py --last 10
 ```
+
+### 阅读笔记staleness检测
+
+读文件前先grep笔记 + stat文件比对mtime/size。文件变更则重读更新，未变更则用summary跳过。详见SKILL.md Section 10.3。

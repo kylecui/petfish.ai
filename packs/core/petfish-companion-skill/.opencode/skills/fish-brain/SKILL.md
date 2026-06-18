@@ -568,27 +568,34 @@ foreach ($f in @("test_mode_read","test_topic_check","test_failure_signal","test
 - 已有笔记的文件（先按file_path检索）
 - 琐碎文件（空文件、生成文件、模板）
 
-### 10.3 如何检索
+### 10.3 如何检索（含staleness检测）
 
-阅读文件前，先检查是否已有笔记：
+阅读文件前，先检查是否已有笔记且未过时：
 
 ```bash
+# 1. 找笔记
 grep '"file_path":"src/auth.ts"' .petfish/notes/reading-notes.jsonl
+
+# 2. 如果找到笔记，检查文件是否变更过（1次stat，不读内容）
+#    PowerShell: (Get-Item src/auth.ts).LastWriteTime  → 当前mtime
+#    对比笔记中的 file_mtime 字段
 ```
 
-- 笔记存在且confidence=high → 使用summary，跳过完整重读
-- 文件mtime > 笔记记录时间 → 笔记可能过时 → 重读并更新
-- 无笔记 → 正常阅读，读完后追加笔记
+**判定逻辑：**
+- 笔记存在 + `当前mtime <= file_mtime` + `当前size == file_size` → **新鲜**，用summary，跳过重读
+- 笔记存在但 mtime或size不同 → **过时**，重读文件，更新笔记
+- 无笔记 → 正常阅读，读完后追加笔记（含当前mtime+size）
 
 ### 10.4 笔记格式
 
 追加到 `.petfish/notes/reading-notes.jsonl`（一行一条JSON）：
 
 ```json
-{"note_id":"CN-000001","file_path":"src/auth.ts","file_type":"code","symbol":"validateToken","language":"typescript","summary":"一句话描述","dependencies":["dep.ts"],"line_range":{"start":42,"end":78},"confidence":"high","tags":["auth"]}
+{"note_id":"CN-000001","file_path":"src/auth.ts","file_type":"code","symbol":"validateToken","language":"typescript","summary":"一句话描述","dependencies":["dep.ts"],"line_range":{"start":42,"end":78},"confidence":"high","file_mtime":"2026-06-18T10:00:00Z","file_size":4523,"tags":["auth"]}
 ```
 
-`file_type` 枚举：`code` / `doc` / `config` / `test`
+必填：`note_id`(CN-\d{6})、`file_path`、`file_type`(code/doc/config/test)、`language`、`summary`、`confidence`(high/medium/low)
+推荐：`file_mtime`(ISO时间戳，staleness检测用)、`file_size`(字节数，staleness检测用)
 
 验证命令：
 ```bash
