@@ -550,3 +550,47 @@ foreach ($f in @("test_mode_read","test_topic_check","test_failure_signal","test
 - step2.5-anti-sycophancy的行为级验证（仅detection级可确定性验证，behavior级deferred to llm_judge）
 
 这些边界镜像论文Appendix A的discipline。详见 `references/contract-methodology.md`。
+
+## 10. 阅读笔记（Reading-Notes）
+
+遵循"先读后写"纪律，agent在阅读文件时记录理解，后续session可快速检索避免重复阅读。
+
+### 10.1 何时记笔记
+
+- 首次阅读项目中的某个文件
+- 为任务理解某个函数/类/模块
+- 发现非显而易见的依赖关系或架构模式
+- 阅读文档（README、API docs、设计文档）
+
+### 10.2 何时**不**记笔记
+
+- 快速查找（grep、单行检查）
+- 已有笔记的文件（先按file_path检索）
+- 琐碎文件（空文件、生成文件、模板）
+
+### 10.3 如何检索
+
+阅读文件前，先检查是否已有笔记：
+
+```bash
+grep '"file_path":"src/auth.ts"' .petfish/notes/reading-notes.jsonl
+```
+
+- 笔记存在且confidence=high → 使用summary，跳过完整重读
+- 文件mtime > 笔记记录时间 → 笔记可能过时 → 重读并更新
+- 无笔记 → 正常阅读，读完后追加笔记
+
+### 10.4 笔记格式
+
+追加到 `.petfish/notes/reading-notes.jsonl`（一行一条JSON）：
+
+```json
+{"note_id":"CN-000001","file_path":"src/auth.ts","file_type":"code","symbol":"validateToken","language":"typescript","summary":"一句话描述","dependencies":["dep.ts"],"line_range":{"start":42,"end":78},"confidence":"high","tags":["auth"]}
+```
+
+`file_type` 枚举：`code` / `doc` / `config` / `test`
+
+验证命令：
+```bash
+uv run <skills_dir>/fish-brain/scripts/reading_notes_lint.py --input .petfish/notes/reading-notes.jsonl
+```
