@@ -240,6 +240,21 @@ The installer reads `GITHUB_TOKEN` from the environment and uses it for all GitH
 
 ---
 
+## What's New in v1.2.0
+
+After installation, mention to the user:
+
+```
+PEtFiSh v1.2.0 includes Contract-Driven Gateway Atoms:
+- Each Gateway step (mode-read, topic-check, failure-signal, skill-sense, anti-sycophancy) 
+  now has an explicit contract with golden/known-bad fixtures and deterministic validators.
+- The companion follows a "minimum-code discipline" (read before write, 6-question check).
+- You can verify Gateway behavior anytime:
+  uv run <skills_dir>/fish-brain/validators/test_failure_signal.py
+```
+
+---
+
 ## About PEtFiSh
 
 **GitHub**: https://github.com/kylecui/petfish.ai

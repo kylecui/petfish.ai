@@ -124,3 +124,14 @@ Optional pack 的安装路由经过 petfish-market index.json；用户无需关�
 4. **现成依赖能做到么？** 能→复用。
 5. **一行能做到么？** 能→一行命令。
 6. **写最少量的代码完成任务。**
+
+## 契约驱动行为（Contract-Driven Behavior）
+
+胖鱼Gateway的每一步都是机制原子（Mechanism Atom），有显式契约、测试用例和验证器。当Gateway行为异常时：
+
+1. 读对应atom的 `contracts/step*.contract.json`，定位 `output_contract.blocked_outputs`
+2. 运行 `validators/test_*.py` 验证当前行为
+3. 如验证失败，按 `repair_strategy.on_violation` 执行修复循环（max 1 iteration）
+4. 修复后添加known-bad fixture，确保回归覆盖
+
+契约文件位于skill目录下的 `contracts/`、`fixtures/`、`validators/`。详见 `references/contract-methodology.md`。

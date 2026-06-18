@@ -492,3 +492,61 @@ Gateway的Step 2.5在回答评价性问题前自动执行反迎合检查：
 - 推荐明显不相关的skill
 - 修改用户的项目文件（安装操作由install脚本执行，不是companion自己执行）
 - 在用户明确拒绝后反复推荐同一pack
+
+## 9. 契约驱动的Gateway验证（Contract-Driven Gateway）
+
+胖鱼的Gateway每一步（mode-read、topic-check、failure-signal、skill-sense、anti-sycophancy）都是一个**机制原子（Mechanism Atom）**——有明确的输入契约、输出契约、golden/known-bad测试用例和确定性验证器。
+
+### 9.1 契约文件位置
+
+```
+contracts/           — 每个atom一个 .contract.json（含TaskSpec/MemorySlice/OutputContract/ValidatorGate/RepairStrategy）
+fixtures/            — golden + known-bad测试用例
+validators/          — 纯stdlib验证器，可独立运行
+references/contract-methodology.md — 完整方法论 + claim boundary
+```
+
+### 9.2 何时使用契约
+
+| 场景 | 动作 |
+|------|------|
+| Gateway某步行为异常（如失败信号误报/漏报） | 1. 读对应 `contracts/step*.contract.json` 的 `output_contract.blocked_outputs` 2. 用 `validators/test_*.py` 运行验证 3. 如发现违规，按 `repair_strategy.on_violation` 修复 |
+| 用户问"胖鱼的Gateway怎么工作的" | 读 `references/contract-methodology.md`，展示atom列表和paper映射 |
+| 需要扩展Gateway（新增检测规则） | 1. 在对应atom的contract中添加新obligation 2. 添加known-bad fixture 3. 运行验证器确认 |
+| skill-sense/failure-signal的关键词需要更新 | 修改 `scripts/catalog_query.py` 的 TRIGGERS/FAILURE_SIGNALS，然后运行验证器回归 |
+
+### 9.3 修复循环（Repair Loop）
+
+当验证器发现违规时，执行7步修复循环：
+
+1. **观察** — 验证器返回violation
+2. **隔离** — 哪个contract字段失败？哪种failure mode？
+3. **显式化** — 更新 `.contract.json`，把缺失的obligation写成blocked_output或validator
+4. **Known-bad** — 在 `fixtures/` 写入捕获该违规的测试用例
+5. **回归** — 运行验证器：golden全过 + known-bad全拒
+6. **Smoke** — 对确定性atom，验证器本身即smoke test
+7. **更新** — 更新 `references/contract-methodology.md` 的claim boundary
+
+**终止条件**：`max_iterations=1`。一次修订未修复 → 记backlog，不无限循环。
+
+### 9.4 运行验证器
+
+```bash
+# 单个atom验证
+uv run <skills_dir>/fish-brain/validators/test_failure_signal.py
+
+# 全部atom验证（6个验证器）
+$v="<skills_dir>/fish-brain/validators"
+foreach ($f in @("test_mode_read","test_topic_check","test_failure_signal","test_skill_sense","test_anti_sycophancy","test_macro_composition")) {
+    uv run "$v/$f.py"
+}
+```
+
+### 9.5 Claim Boundary（非声明）
+
+契约驱动Gateway **不声称**：
+- 整个companion是可靠的或production-ready
+- 契约能覆盖新颖失败模式（known-bad库是增量建设的）
+- step2.5-anti-sycophancy的行为级验证（仅detection级可确定性验证，behavior级deferred to llm_judge）
+
+这些边界镜像论文Appendix A的discipline。详见 `references/contract-methodology.md`。
