@@ -283,6 +283,10 @@ class TestCheckOutputShape:
             "dash_abuse",
             "triplet_patterns",
             "empty_contrast",
+            "paragraph_templating",
+            "low_burstiness",
+            "syntactic_repetition",
+            "heading_issues",
         }
         assert set(result["issues"].keys()) == expected_keys
 
@@ -293,5 +297,8 @@ class TestCheckOutputShape:
             "paragraph_count",
             "logical_connector_count",
             "has_useful_closure",
+            "burstiness_cv",
+            "sentence_length_mean",
+            "paragraph_sentence_counts",
         }
         assert set(result["summary"].keys()) == expected
