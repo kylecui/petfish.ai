@@ -343,6 +343,24 @@ petfish.ai/
 ---
 
 ## Version History
+### v1.8 — Contract-Driven Companion
+
+- **v1.8.0**: Contract-driven Gateway atoms + observability + reading-notes memory. 5 Gateway steps formalized as mechanism atoms with explicit contracts, golden/known-bad fixtures, and deterministic validators (42/42 checks PASS). Gateway Trace: always-on structured trace output + verify_trace.py. Reading-Notes (Step 2.6): agent takes structured notes while reading code/docs/config, with staleness detection (file_mtime + file_size stat comparison). Implementation discipline (minimum-code: read-before-write + 6-question check) encoded into AGENTS.md. Repair loop caught and fixed missing calibrate TRIGGERS ("好吗"/"合理"/"你觉得"). Companion pack version: 1.1.0 → 1.3.0.
+
+### v1.7 — Install Hardening
+
+- **v1.7.0**: Install hardening + online-gpt + gateway fix.
+
+### v1.6 — Online Companion
+
+- **v1.6.0**: Online Companion GPT.
+
+### v1.5 — Unified Installer
+
+- **v1.5.2**: Fix #224: --pack all and --list in remote mode.
+- **v1.5.1**: Fix #223: doc-reader-skill market registration.
+- **v1.5.0**: Unified Python Installer.
+
 ### v1.4 — Market-First Distribution
 
 - **v1.4.6**: Market-first download in local installers — both install.sh and install.ps1 now query petfish-market for optional packs not found locally, with mirror fallback and --offline flag. Fix #193: redirect community pack status messages to stderr in bash installers.
