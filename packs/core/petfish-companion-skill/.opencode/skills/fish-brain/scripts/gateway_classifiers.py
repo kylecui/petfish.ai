@@ -86,7 +86,7 @@ TRIGGERS: dict[str, list[str]] = {
     "petfish": ["说人话", "润色", "去AI味", "风格", "改写", "rewrite", "polish", "humanize"],
     "ppt": ["PPT", "幻灯片", "演示", "slide", "deck", "presentation", "PPTX"],
     "testdocs": ["测试用例", "test case", "测试矩阵", "文档", "README", "usage docs", "API docs"],
-    "calibrate": ["评审", "评价", "批判", "review", "critique", "feedback", "judgment", "decision", "evaluation", "校准", "迎合", "sycophancy", "方案评估", "可行性分析", "code review", "这个想法怎么样", "你觉得呢", "对吗", "是不是", "好吗", "合理", "你觉得"],
+    "calibrate": ["评审", "评价", "批判", "review", "critique", "feedback", "judgment", "decision", "evaluation", "校准", "迎合", "sycophancy", "方案评估", "可行性分析", "code review", "这个想法怎么样", "你觉得呢", "对吗", "是不是", "好吗", "合理吗", "你觉得"],
     "research": ["研究", "帮我研究", "仔细研究", "调研", "文献", "literature", "research", "investigate", "来源", "证据", "evidence", "综述", "论文", "学术", "academic", "citation", "source verification", "市场分析", "竞品分析", "论文方向", "规划方案"],
     "context": ["话题", "上下文", "topic", "context", "污染", "继承", "隔离", "话题切换", "话题治理", "context package", "topic detect", "contamination"],
     "trust": ["skill trust", "skill安全", "治理", "可信度", "trust scan", "governance", "risk score", "redline"],

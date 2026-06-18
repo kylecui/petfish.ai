@@ -52,6 +52,7 @@ ALIAS_MAP = {
     "context": "fish-trail",
     "research": "research-skill-pack",
     "reflect": "fish-reflection-pack",
+    "doc-reader": "doc-reader-skill",
 }
 
 # Reverse map: pack name → canonical alias (first alias listed for each pack)
@@ -203,7 +204,7 @@ TRIGGERS = {
     "fish-calibrate": [
         "评审", "评价", "批判", "review", "critique", "feedback",
         "校准", "迎合", "sycophancy", "方案评估",
-        "好吗", "合理", "你觉得", "对吗", "是不是", "这个想法怎么样",
+        "好吗", "合理吗", "你觉得", "对吗", "是不是", "这个想法怎么样",
     ],
 }
 
