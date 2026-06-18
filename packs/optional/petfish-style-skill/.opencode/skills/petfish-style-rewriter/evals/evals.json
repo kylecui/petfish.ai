@@ -1,6 +1,6 @@
 {
   "skill_name": "petfish-style-rewriter",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "evals": [
     {
       "id": "zh-en-spacing-001",
@@ -102,6 +102,61 @@
         "保留了'一是……二是……三是……'的结构",
         "没有把有序论述改成散句",
         "保留了每个并列项的具体内容"
+      ]
+    },
+    {
+      "id": "academic-abstract-001",
+      "prompt": "用学术写作模式改写以下摘要，让它更像真实研究者的写作：In recent years, deep learning models have achieved significant progress in software vulnerability detection. However, existing approaches face challenges in handling cross-project scenarios. We propose a novel framework that leverages transfer learning to improve detection accuracy. Our approach constructs a domain-invariant representation and incorporates it into the detection process. Experimental results demonstrate that our method achieves state-of-the-art performance. Furthermore, our approach shows robust generalization.",
+      "expected_output": "去掉'In recent years''significant progress''novel''state-of-the-art''robust generalization'等AI高频表达；加入burstiness（长短句交替）；加入authorial voice（如we find/observe）；打破对称模板；保留至少一处限制或意外发现",
+      "assertions": [
+        "不出现'In recent years'或'significant progress'",
+        "不出现'novel framework'或'state-of-the-art'",
+        "不出现'robust generalization'",
+        "句长有波动（至少有一个短句和一个长句）",
+        "包含authorial voice短语（如we find/we observe/to our surprise/somewhat unexpectedly）",
+        "至少在一个地方打破了背景→方法→结果→结论的对称模板"
+      ]
+    },
+    {
+      "id": "academic-burstiness-002",
+      "prompt": "用学术写作模式改写，修复句长波动不足的问题：The model achieves high accuracy on the task. The model handles edge cases well. The model scales to large datasets. The model integrates with existing tools. The model supports multiple languages.",
+      "expected_output": "打破连续相同句式模板（The model + verb + object），加入句长变化，每句承载不同信息",
+      "assertions": [
+        "不出现连续3句以上'The model + 动词'的相同模板",
+        "句长有明显波动（非全部相同长度）",
+        "每句承载不同维度的信息而非平行重述",
+        "至少有一处添加了具体条件或限制"
+      ]
+    },
+    {
+      "id": "academic-related-work-003",
+      "prompt": "用学术写作模式改写以下related work段落，改为按方法分组而非按作者列举：Smith et al. proposed method A. Jones et al. proposed method B. Lee et al. proposed method C. Wang et al. combined A and C. Our method is different.",
+      "expected_output": "按方法类别分组，每组说明方法和与本工作相关的局限，结尾定位本工作",
+      "assertions": [
+        "不再是按作者逐个列举的扁平结构",
+        "按方法类别分组（如至少两组）",
+        "每组包含方法说明和相关局限",
+        "结尾有定位本工作的句子"
+      ]
+    },
+    {
+      "id": "academic-symmetry-004",
+      "prompt": "按petfish学术风格改写，打破段落模板化和连接词堆叠：Therefore, we observe that the accuracy improves. However, the latency also increases. Specifically, the trade-off is significant. In conclusion, we need to balance accuracy and latency.",
+      "expected_output": "减少显式连接词堆叠，打破对称模板，改为隐式衔接和句长变化",
+      "assertions": [
+        "不出现连续四句每句一个显式连接词（Therefore/However/Specifically/In conclusion）的结构",
+        "至少有一处改为隐式逻辑衔接",
+        "句式有变化而非全部相同骨架"
+      ]
+    },
+    {
+      "id": "academic-hedge-005",
+      "prompt": "用学术写作模式改写以下过度断言的句子：Our method completely solves the cross-project vulnerability detection problem and is the best approach in the field.",
+      "expected_output": "将过度断言改为有scope限制的hedged claim，使用authorial voice",
+      "assertions": [
+        "不出现'completely solves'或'the best approach'",
+        "包含scope限制（如'in the settings we examined'或'on the benchmarks tested'）",
+        "使用hedging语言（如suggests/is consistent with/to our knowledge）或bounded novelty claim"
       ]
     }
   ]

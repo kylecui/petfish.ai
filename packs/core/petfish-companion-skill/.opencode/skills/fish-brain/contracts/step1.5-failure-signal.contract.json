@@ -1,0 +1,132 @@
+{
+  "atom_id": "step1.5-failure-signal",
+  "version": "v1",
+  "task_spec": {
+    "objective": "Detect known failure patterns in the previous assistant turn and recommend the matching pack if uninstalled.",
+    "constraints": [
+      "Only scan the immediately previous assistant message, not the user message",
+      "Each failure class recommended at most once per session (dedup)",
+      "Must not trigger if the matching pack is already installed",
+      "Detection is regex-based (FAILURE_SIGNALS in catalog_query.py L214-226), no LLM judgment"
+    ],
+    "success_conditions": [
+      "Returns an object with detected (bool), failure_class (string|null), recommended_pack (string|null)",
+      "detected=false when no failure pattern matches the previous turn",
+      "detected=true implies failure_class is one of: ppt, deploy, testdocs, research, context",
+      "recommended_pack is null when the pack is already installed (suppression)"
+    ],
+    "non_goals": [
+      "Does not install the pack",
+      "Does not diagnose root cause",
+      "Does not handle novel failure modes outside the 5 regex patterns"
+    ]
+  },
+  "memory_slice": {
+    "admissible": [
+      "Previous assistant message text",
+      "Session-level dedup set (failure classes already recommended this session)",
+      "installed-packs.json contents (to suppress installed packs)"
+    ],
+    "excluded": [
+      "User's current message (not scanned for failures)",
+      "Topics older than the previous turn"
+    ],
+    "unknown_state": [
+      "Whether the user will accept the recommendation",
+      "Whether the failure was transient or persistent"
+    ]
+  },
+  "evidence_bundle": {
+    "admissible_evidence": [
+      {
+        "id": "catalog_query.FAILURE_SIGNALS",
+        "type": "deterministic_regex_table",
+        "source": "scripts/catalog_query.py lines 214-226"
+      },
+      {
+        "id": "installed-packs.json",
+        "type": "registry_state",
+        "source": "platform-specific installed-packs.json under .opencode/"
+      }
+    ]
+  },
+  "output_contract": {
+    "required_fields": [
+      {"name": "detected", "type": "boolean", "validator": "isinstance(x, bool)"},
+      {"name": "failure_class", "type": "string|null", "validator": "x is None or x in {'ppt','deploy','testdocs','research','context'}"},
+      {"name": "recommended_pack", "type": "string|null", "validator": "x is None or x in FAILURE_SIGNALS.keys()"},
+      {"name": "dedup_key", "type": "string|null", "validator": "x is None or x.startswith(failure_class + '::')"}
+    ],
+    "blocked_outputs": [
+      "Pack recommendation when pack already installed in installed-packs.json",
+      "Duplicate recommendation for the same failure_class within one session",
+      "detected=true with failure_class not in the 5 known signal classes"
+    ]
+  },
+  "workflow_gate": {
+    "predecessors": ["step1-topic-check"],
+    "successors": ["step2-skill-sense"],
+    "carried_obligations_to_successors": [
+      "recommended_pack (if any) must be visible to step2-skill-sense to avoid duplicate recommendation"
+    ]
+  },
+  "trace_log": {
+    "required_traces": [
+      "Which FAILURE_SIGNALS patterns were evaluated",
+      "Which patterns matched (if any)",
+      "Whether each matched pack was suppressed (installed or dedup)"
+    ]
+  },
+  "validator_gate": {
+    "type": "deterministic_python",
+    "test_module": "validators/test_failure_signal.py",
+    "golden_fixtures": [
+      "fixtures/step1.5-failure-signal/fixtures.json#golden"
+    ],
+    "known_bad_fixtures": [
+      {
+        "path": "fixtures/step1.5-failure-signal/fixtures.json#known_bad_false_positive",
+        "expected_violation": "false_positive",
+        "intended_reason": "No failure pattern in previous turn, but detected=true"
+      },
+      {
+        "path": "fixtures/step1.5-failure-signal/fixtures.json#known_bad_false_negative",
+        "expected_violation": "false_negative",
+        "intended_reason": "Clear 'cannot open PDF' in previous turn, but detected=false"
+      },
+      {
+        "path": "fixtures/step1.5-failure-signal/fixtures.json#known_bad_invalid_class",
+        "expected_violation": "invalid_failure_class",
+        "intended_reason": "detected=true but failure_class is 'unknown' which is not in the 5 admissible classes"
+      }
+    ],
+    "pass_threshold": 1.0
+  },
+  "repair_strategy": {
+    "max_iterations": 1,
+    "on_violation": [
+      {
+        "violation_type": "false_positive",
+        "action": "tighten_regex",
+        "contract_revision": "Narrow the matching FAILURE_SIGNALS pattern to reduce over-matching"
+      },
+      {
+        "violation_type": "false_negative",
+        "action": "broaden_regex",
+        "contract_revision": "Expand the matching FAILURE_SIGNALS pattern or add a new pattern"
+      },
+      {
+        "violation_type": "invalid_failure_class",
+        "action": "enforce_enum",
+        "contract_revision": "Add output_contract enum constraint on failure_class"
+      }
+    ]
+  },
+  "admission": {
+    "fixture_schema_valid": true,
+    "golden_output_passes": true,
+    "known_bad_output_fails_for_intended_reason": true,
+    "composition_interface": "output.detected and output.recommended_pack feed step2-skill-sense.memory_slice",
+    "claim_boundary_updated": true
+  }
+}

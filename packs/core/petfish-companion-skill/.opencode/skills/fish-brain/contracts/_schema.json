@@ -1,0 +1,129 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://petfish.ai/contract-schema/v1.json",
+  "title": "Companion Gateway Mechanism Atom Contract",
+  "description": "Meta-contract: every Gateway atom contract validates against this schema. Maps paper §3.2's 7 harness objects.",
+  "type": "object",
+  "required": ["atom_id", "version", "task_spec", "memory_slice", "output_contract", "validator_gate", "admission"],
+  "properties": {
+    "atom_id": {
+      "type": "string",
+      "pattern": "^step[0-9]+(\\.[0-9]+)?-[a-z][a-z0-9-]*$",
+      "description": "Stable identifier matching the Gateway step."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^v[0-9]+(\\.[0-9]+)*$",
+      "description": "Contract revision. Bump after each repair-loop cycle (paper §3.6)."
+    },
+    "task_spec": {
+      "type": "object",
+      "required": ["objective", "success_conditions"],
+      "properties": {
+        "objective": {"type": "string", "minLength": 10},
+        "constraints": {"type": "array", "items": {"type": "string"}},
+        "success_conditions": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "non_goals": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "memory_slice": {
+      "type": "object",
+      "required": ["admissible"],
+      "properties": {
+        "admissible": {"type": "array", "items": {"type": "string"}},
+        "excluded": {"type": "array", "items": {"type": "string"}},
+        "unknown_state": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "evidence_bundle": {
+      "type": "object",
+      "properties": {
+        "admissible_evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "source"],
+            "properties": {
+              "id": {"type": "string"},
+              "type": {"type": "string"},
+              "source": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "output_contract": {
+      "type": "object",
+      "required": ["required_fields"],
+      "properties": {
+        "required_fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": {"type": "string"},
+              "type": {"type": "string"},
+              "validator": {"type": "string"},
+              "enum": {"type": "array"}
+            }
+          }
+        },
+        "blocked_outputs": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "workflow_gate": {
+      "type": "object",
+      "properties": {
+        "predecessors": {"type": "array", "items": {"type": "string"}},
+        "successors": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "trace_log": {
+      "type": "object",
+      "properties": {
+        "required_traces": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "validator_gate": {
+      "type": "object",
+      "required": ["type", "golden_fixtures", "known_bad_fixtures", "pass_threshold"],
+      "properties": {
+        "type": {"type": "string", "enum": ["deterministic_python", "llm_judge"]},
+        "test_module": {"type": "string", "description": "Path to pytest module that exercises this atom."},
+        "golden_fixtures": {"type": "array", "items": {"type": "string"}},
+        "known_bad_fixtures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "expected_violation", "intended_reason"],
+            "properties": {
+              "path": {"type": "string"},
+              "expected_violation": {"type": "string"},
+              "intended_reason": {"type": "string"}
+            }
+          }
+        },
+        "pass_threshold": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "repair_strategy": {
+      "type": "object",
+      "properties": {
+        "max_iterations": {"type": "integer", "minimum": 0, "default": 1},
+        "on_violation": {"type": "array", "items": {"type": "object"}}
+      }
+    },
+    "admission": {
+      "type": "object",
+      "required": ["fixture_schema_valid", "golden_output_passes", "known_bad_output_fails_for_intended_reason", "composition_interface"],
+      "properties": {
+        "fixture_schema_valid": {"type": "boolean"},
+        "golden_output_passes": {"type": "boolean"},
+        "known_bad_output_fails_for_intended_reason": {"type": "boolean"},
+        "composition_interface": {"type": "string"},
+        "claim_boundary_updated": {"type": "boolean", "default": false}
+      }
+    }
+  }
+}

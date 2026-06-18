@@ -50,6 +50,7 @@ TRIGGERS: dict[str, list[str]] = {
         "judgment", "decision", "evaluation", "校准", "迎合", "sycophancy",
         "方案评估", "可行性分析", "code review", "这个想法怎么样",
         "你觉得呢", "对吗", "是不是",
+        "好吗", "合理", "你觉得",
     ],
     "research": [
         "研究", "帮我研究", "仔细研究", "调研", "文献", "literature",

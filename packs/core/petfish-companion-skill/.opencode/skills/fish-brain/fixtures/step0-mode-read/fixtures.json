@@ -1,0 +1,30 @@
+{
+  "golden": [
+    {"id": "g1-balanced", "input": {"depth": "balanced", "rigor": false}, "expected": {"depth": "balanced", "rigor": false}, "description": "Standard balanced mode"},
+    {"id": "g2-thorough-forced", "input": {"depth": "thorough", "rigor": false}, "expected": {"depth": "thorough", "rigor": true}, "description": "thorough forces rigor=true"},
+    {"id": "g3-urgent", "input": {"depth": "urgent", "rigor": false}, "expected": {"depth": "urgent", "rigor": false}, "description": "Urgent mode, no rigor"},
+    {"id": "g4-rigor-on", "input": {"depth": "balanced", "rigor": true}, "expected": {"depth": "balanced", "rigor": true}, "description": "Balanced with rigor explicitly on"},
+    {"id": "g5-missing-file", "input": null, "expected": {"depth": "balanced", "rigor": false}, "description": "File does not exist → defaults"}
+  ],
+  "known_bad_invalid_depth": {
+    "id": "kb1-id",
+    "input": {"depth": "fast", "rigor": false},
+    "bad_output": {"depth": "fast", "rigor": false},
+    "expected_violation": "invalid_depth",
+    "intended_reason": "depth='fast' is not in {urgent,balanced,thorough}"
+  },
+  "known_bad_thorough_without_rigor": {
+    "id": "kb2-tw",
+    "input": {"depth": "thorough", "rigor": false},
+    "bad_output": {"depth": "thorough", "rigor": false},
+    "expected_violation": "rigor_not_forced",
+    "intended_reason": "depth=thorough must force rigor=true; outputting rigor=false violates the coercion rule"
+  },
+  "known_bad_rigor_not_bool": {
+    "id": "kb3-rb",
+    "input": {"depth": "balanced", "rigor": "yes"},
+    "bad_output": {"depth": "balanced", "rigor": "yes"},
+    "expected_violation": "rigor_not_bool",
+    "intended_reason": "rigor='yes' (string) is not a boolean"
+  }
+}

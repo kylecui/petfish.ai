@@ -1,4 +1,4 @@
-# Petfish Style Rewriter Skill V3
+# Petfish Style Rewriter Skill V4
 
 This package provides an opencode-compatible writing skill for rewriting Chinese or English text into Petfish's preferred style.
 
@@ -11,12 +11,24 @@ The skill is not a generic polishing tool. It is designed to convert AI-like, rh
 - Petfish-style structural rewrite
 - Strict/normal/light/academic/email modes
 - Structure-first analysis workflow
-- Anti-pattern rules for AI-like writing
+- Anti-pattern rules for AI-like writing (4 surface + 4 linguistic-level categories)
+- Academic humanization framework (10 detection features + 7 techniques + section templates)
 - Chinese and English writing profiles
 - Chinese-English spacing normalization
-- Quality checker script with scoring
+- Quality checker script with burstiness, syntactic-repetition, and paragraph-templating detection
 - Text normalization script
 - Eval prompts and expected criteria
+
+## V4.1 Changelog
+
+- Promoted `academic` mode to a first-class mode with dedicated workflow and humanization framework
+- Added `references/academic-writing.md`: 10-feature linguistic detection framework, 7 humanization techniques, human academic template (abstract / intro / related work / method / results / discussion / conclusion), tension-resolution with engineering style, academic anti-patterns, academic self-check
+- Expanded AI腔 detection from 4 surface categories to 8 (added: syntactic over-symmetry, low burstiness, paragraph templating, connector stacking)
+- Added academic examples (de-AI'd abstract, broken symmetry, grouped related work)
+- Added 6 academic evals
+- Upgraded `style_check.py`: burstiness (sentence-length CV), syntactic repetition, paragraph templating
+- Updated scorecard with burstiness and sentence-diversity dimensions
+- Bumped version 4.0.1 → 4.1.0
 
 ## V3 Changelog
 
