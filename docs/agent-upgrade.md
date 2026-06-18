@@ -217,6 +217,12 @@ Changes applied:
 - State dir: auto-migrates .ai-context → .petfish/fish-trail/
 - New: context firewall, topic graph validation
 
+v1.2.0 Companion enhancements:
+- Contract-Driven Gateway Atoms: each Gateway step has explicit contracts + validators
+- Implementation discipline (minimum-code): read-before-write + 6-question check
+- Verify Gateway atoms anytime:
+  uv run <skills_dir>/fish-brain/validators/test_failure_signal.py
+
 Next steps:
   /petfish catalog    — See all available skills (including new ones)
   /petfish stats      — Check usage statistics
