@@ -144,7 +144,33 @@ Tier 1和Tier 2均未命中 → 不输出任何推荐。
 
 ### Step 3: Proceed（正常处理）
 
-完成 Step 1-2 后，进入正常任务处理流程。
+完成 Step 1-2.5 后，先输出Gateway Trace（可观测性），再进入正常任务处理流程。
+
+#### Gateway Trace（始终输出，非debug-only）
+
+每轮回复的最开头，输出一行结构化trace，让用户确认Gateway各步确实执行：
+
+```
+🐟 [trace] step0=balanced/false | step1=continue/low | step1.5=- | step2=- | step2.5=non-eval | violations=0
+```
+
+- `step0=depth/rigor` — 模式读取
+- `step1=relation/risk` — 话题检测
+- `step1.5=failure_class` 或 `-`（无信号）
+- `step2=skill` 或 `-`（无缺口）
+- `step2.5=eval` 或 `non-eval`
+- `violations=N`（0=正常）
+
+同时追加结构化JSON到 `.petfish/gateway-trace.jsonl`（一行一条）：
+
+```json
+{"ts":"ISO-8601","steps":{"step0-mode-read":{"depth":"balanced","rigor":false},"step1-topic-check":{"relation":"continue","risk":"low"},"step1.5-failure-signal":{"detected":false,"class":null},"step2-skill-sense":{"detected":false,"skill":null},"step2.5-anti-sycophancy":{"evaluative":false}},"violations":[]}
+```
+
+用户可随时验证：
+```bash
+uv run .opencode/skills/petfish-companion/validators/verify_trace.py --last 10
+```
 
 ### Step 2.5: Anti-Sycophancy Check（反迎合检查）
 
