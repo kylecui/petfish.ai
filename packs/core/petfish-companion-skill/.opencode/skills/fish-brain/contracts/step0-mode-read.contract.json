@@ -1,0 +1,81 @@
+{
+  "atom_id": "step0-mode-read",
+  "version": "v1",
+  "task_spec": {
+    "objective": "Read .opencode/project-mode.yaml and extract depth + rigor to configure Gateway behavior for this session.",
+    "constraints": [
+      "File may not exist — default to depth=balanced, rigor=false",
+      "Session-only verbal overrides do not write to the file",
+      "depth=thorough forces rigor=true regardless of file value"
+    ],
+    "success_conditions": [
+      "Returns an object with depth (string) and rigor (boolean)",
+      "depth is one of: urgent, balanced, thorough",
+      "rigor is a boolean",
+      "If depth=thorough then rigor=true (forced)"
+    ],
+    "non_goals": [
+      "Does not write or modify project-mode.yaml",
+      "Does not handle session-only overrides (those are runtime, not file state)",
+      "Does not validate unrelated yaml fields"
+    ]
+  },
+  "memory_slice": {
+    "admissible": [".opencode/project-mode.yaml contents"],
+    "excluded": ["installed-packs.json", "topic context", "user message"],
+    "unknown_state": ["Whether user will issue verbal overrides this session"]
+  },
+  "evidence_bundle": {
+    "admissible_evidence": [
+      {"id": "project-mode.yaml", "type": "yaml_config", "source": ".opencode/project-mode.yaml"}
+    ]
+  },
+  "output_contract": {
+    "required_fields": [
+      {"name": "depth", "type": "string", "validator": "x in {'urgent','balanced','thorough'}", "enum": ["urgent", "balanced", "thorough"]},
+      {"name": "rigor", "type": "boolean", "validator": "isinstance(x, bool)"}
+    ],
+    "blocked_outputs": [
+      "depth not in the 3 admissible values",
+      "rigor is not a boolean",
+      "depth=thorough with rigor=false (must be forced true)"
+    ]
+  },
+  "workflow_gate": {
+    "predecessors": [],
+    "successors": ["step1-topic-check", "step2.5-anti-sycophancy"],
+    "carried_obligations_to_successors": [
+      "depth value controls failure-response behavior (urgent=workaround, thorough=root-cause)",
+      "rigor controls anti-sycophancy proactivity level"
+    ]
+  },
+  "trace_log": {
+    "required_traces": ["Whether project-mode.yaml existed", "Raw depth/rigor values read", "Whether rigor was force-set due to depth=thorough"]
+  },
+  "validator_gate": {
+    "type": "deterministic_python",
+    "test_module": "validators/test_mode_read.py",
+    "golden_fixtures": ["fixtures/step0-mode-read/fixtures.json#golden"],
+    "known_bad_fixtures": [
+      {"path": "fixtures/step0-mode-read/fixtures.json#known_bad_invalid_depth", "expected_violation": "invalid_depth", "intended_reason": "depth='fast' is not in {urgent,balanced,thorough}"},
+      {"path": "fixtures/step0-mode-read/fixtures.json#known_bad_thorough_without_rigor", "expected_violation": "rigor_not_forced", "intended_reason": "depth=thorough but rigor=false — must be force-set to true"},
+      {"path": "fixtures/step0-mode-read/fixtures.json#known_bad_rigor_not_bool", "expected_violation": "rigor_not_bool", "intended_reason": "rigor='yes' is a string, not a boolean"}
+    ],
+    "pass_threshold": 1.0
+  },
+  "repair_strategy": {
+    "max_iterations": 1,
+    "on_violation": [
+      {"violation_type": "invalid_depth", "action": "default_to_balanced", "contract_revision": "Add default fallback when depth is invalid"},
+      {"violation_type": "rigor_not_forced", "action": "enforce_thorough_rigor", "contract_revision": "Add post-read coercion: if depth=thorough, set rigor=true"},
+      {"violation_type": "rigor_not_bool", "action": "coerce_to_bool", "contract_revision": "Add type coercion for non-boolean rigor values"}
+    ]
+  },
+  "admission": {
+    "fixture_schema_valid": true,
+    "golden_output_passes": true,
+    "known_bad_output_fails_for_intended_reason": true,
+    "composition_interface": "output.depth and output.rigor feed step2.5-anti-sycophancy and all downstream steps",
+    "claim_boundary_updated": true
+  }
+}

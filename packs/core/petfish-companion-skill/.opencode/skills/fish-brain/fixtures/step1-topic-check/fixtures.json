@@ -1,0 +1,30 @@
+{
+  "golden": [
+    {"id": "g1-continue", "input": {"user_message": "继续上次的数据库迁移"}, "expected": {"predicted_relation": "continue", "predicted_risk": "low"}},
+    {"id": "g2-fork", "input": {"user_message": "在这个基础上做一个监控dashboard"}, "expected": {"predicted_relation": "fork", "predicted_risk": "medium"}},
+    {"id": "g3-switch", "input": {"user_message": "换个话题，说说部署的事"}, "expected": {"predicted_relation": "switch", "predicted_risk": "high"}},
+    {"id": "g4-reset", "input": {"user_message": "清空上下文重新开始"}, "expected": {"predicted_relation": "reset", "predicted_risk": "low"}},
+    {"id": "g5-archive", "input": {"user_message": "归档这个话题吧"}, "expected": {"predicted_relation": "archive", "predicted_risk": "low"}}
+  ],
+  "known_bad_wrong_relation": {
+    "id": "kb1-wr",
+    "input": {"user_message": "不说这个了，换个方向"},
+    "bad_output": {"predicted_relation": "continue", "predicted_risk": "low"},
+    "expected_violation": "wrong_relation",
+    "intended_reason": "Clear switch signal ('不说这个了','换个方向') but classified as continue/low"
+  },
+  "known_bad_invalid_risk": {
+    "id": "kb2-ir",
+    "input": {"user_message": "继续"},
+    "bad_output": {"predicted_relation": "continue", "predicted_risk": "critical"},
+    "expected_violation": "invalid_risk",
+    "intended_reason": "risk='critical' not in {low,medium,high}"
+  },
+  "known_bad_risk_relation_mismatch": {
+    "id": "kb3-rrm",
+    "input": {"user_message": "换个话题"},
+    "bad_output": {"predicted_relation": "switch", "predicted_risk": "low"},
+    "expected_violation": "risk_relation_mismatch",
+    "intended_reason": "switch relation must have risk=high, not low"
+  }
+}
