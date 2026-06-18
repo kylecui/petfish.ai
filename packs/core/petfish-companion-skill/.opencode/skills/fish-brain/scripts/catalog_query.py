@@ -203,6 +203,7 @@ TRIGGERS = {
     "fish-calibrate": [
         "评审", "评价", "批判", "review", "critique", "feedback",
         "校准", "迎合", "sycophancy", "方案评估",
+        "好吗", "合理", "你觉得", "对吗", "是不是", "这个想法怎么样",
     ],
 }
 

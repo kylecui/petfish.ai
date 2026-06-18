@@ -1,0 +1,85 @@
+{
+  "_comment": "Golden + known-bad fixtures for step1.5-failure-signal atom. Golden cases test the actual classify() from failure_signal_eval; known-bad cases test that the contract validator REJECTS the specified violating outputs.",
+  "golden": [
+    {
+      "id": "g1-deploy",
+      "input": {
+        "previous_assistant_output": "部署失败了，Docker容器一直报错无法启动。"
+      },
+      "expected": {
+        "predicted_signal": "deploy",
+        "predicted_detect": true
+      },
+      "description": "Clear deploy failure with domain+failure words"
+    },
+    {
+      "id": "g2-ppt",
+      "input": {
+        "previous_assistant_output": "我无法读取这个PPTX文件，尝试打开幻灯片时报错。"
+      },
+      "expected": {
+        "predicted_signal": "ppt",
+        "predicted_detect": true
+      },
+      "description": "Clear PPTX read failure"
+    },
+    {
+      "id": "g3-no-signal",
+      "input": {
+        "previous_assistant_output": "已经完成了代码重构，所有测试通过，可以合并了。"
+      },
+      "expected": {
+        "predicted_signal": null,
+        "predicted_detect": false
+      },
+      "description": "Normal successful response, no failure"
+    },
+    {
+      "id": "g4-research",
+      "input": {
+        "previous_assistant_output": "证据不足，无法确认这个结论。需要更多的文献来源来支撑。"
+      },
+      "expected": {
+        "predicted_signal": "research",
+        "predicted_detect": true
+      },
+      "description": "Research evidence gap"
+    }
+  ],
+  "known_bad_false_positive": {
+    "id": "kb1-fp",
+    "input": {
+      "previous_assistant_output": "今天的天气不错，适合部署代码到生产环境。"
+    },
+    "bad_output": {
+      "predicted_signal": "deploy",
+      "predicted_detect": true
+    },
+    "expected_violation": "false_positive",
+    "intended_reason": "Text contains '部署' but no failure indicator; a broken classifier might false-positive on domain word alone. The contract requires co-occurrence of failure+domain words."
+  },
+  "known_bad_false_negative": {
+    "id": "kb2-fn",
+    "input": {
+      "previous_assistant_output": "我无法打开这个PDF文件，解析报错。"
+    },
+    "bad_output": {
+      "predicted_signal": null,
+      "predicted_detect": false
+    },
+    "expected_violation": "false_negative",
+    "intended_reason": "Clear PDF open failure that the regex pattern `无法(打开|读取|解析).*(PDF|PPTX|PPT|幻灯片)` should catch; a broken classifier missing it violates the contract."
+  },
+  "known_bad_invalid_class": {
+    "id": "kb3-ic",
+    "input": {
+      "previous_assistant_output": "部署失败了"
+    },
+    "bad_output": {
+      "predicted_signal": "unknown",
+      "predicted_detect": true
+    },
+    "expected_violation": "invalid_failure_class",
+    "intended_reason": "failure_class='unknown' is not in the 5 admissible classes {ppt,deploy,testdocs,research,context}. The output_contract enum constraint is violated."
+  }
+}

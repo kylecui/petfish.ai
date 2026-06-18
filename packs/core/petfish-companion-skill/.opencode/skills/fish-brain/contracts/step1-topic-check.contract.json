@@ -1,0 +1,82 @@
+{
+  "atom_id": "step1-topic-check",
+  "version": "v1",
+  "task_spec": {
+    "objective": "Read the injected Active Topic Context from the system prompt and classify the relation + risk level of the current message relative to the active topic.",
+    "constraints": [
+      "Topic context is injected by plugin (not MCP call) — read from system prompt cached prefix",
+      "One-turn delay: first message of session has no injection, default to continue/low",
+      "Risk level determines behavior: low=silent, medium=one-line note, high=suggest fork/switch/reset"
+    ],
+    "success_conditions": [
+      "Returns an object with relation (string) and risk (string)",
+      "relation is one of: continue, fork, switch, merge, archive, reset, bridge",
+      "risk is one of: low, medium, high",
+      "switch → high risk, fork → medium risk, continue → low risk"
+    ],
+    "non_goals": [
+      "Does not call topic_detect MCP (plugin already handles injection)",
+      "Does not modify topic state (that requires explicit user request)",
+      "Does not handle merge/archive/bridge confidence checks (those need user confirmation)"
+    ]
+  },
+  "memory_slice": {
+    "admissible": ["Injected ## Focus block from system prompt", "Injected ## Related block", "Injected ## Topics block"],
+    "excluded": ["User's project files", "installed-packs.json"],
+    "unknown_state": ["Whether the MCP server is connected (disk mode may apply)"]
+  },
+  "evidence_bundle": {
+    "admissible_evidence": [
+      {"id": "gateway_eval.classify", "type": "keyword_classifier", "source": "benchmarks/scripts/modules/gateway_eval.py"},
+      {"id": "topic-context-injection", "type": "plugin_output", "source": "system-prompt-context-inject.ts plugin"}
+    ]
+  },
+  "output_contract": {
+    "required_fields": [
+      {"name": "predicted_relation", "type": "string", "validator": "x in {'continue','fork','switch','merge','archive','reset','bridge'}"},
+      {"name": "predicted_risk", "type": "string", "validator": "x in {'low','medium','high'}"}
+    ],
+    "blocked_outputs": [
+      "relation not in the 7 admissible values",
+      "risk not in {low,medium,high}",
+      "switch relation with risk=low (switch is always high)",
+      "continue relation with risk=high (continue is always low)"
+    ]
+  },
+  "workflow_gate": {
+    "predecessors": ["step0-mode-read"],
+    "successors": ["step1.5-failure-signal"],
+    "carried_obligations_to_successors": [
+      "If risk=high, downstream steps must pause and suggest fork/switch/reset before proceeding"
+    ]
+  },
+  "trace_log": {
+    "required_traces": ["Which keyword patterns were evaluated", "Which pattern matched (if any)", "Final relation+risk classification"]
+  },
+  "validator_gate": {
+    "type": "deterministic_python",
+    "test_module": "validators/test_topic_check.py",
+    "golden_fixtures": ["fixtures/step1-topic-check/fixtures.json#golden"],
+    "known_bad_fixtures": [
+      {"path": "fixtures/step1-topic-check/fixtures.json#known_bad_wrong_relation", "expected_violation": "wrong_relation", "intended_reason": "Clear switch signal but classified as continue"},
+      {"path": "fixtures/step1-topic-check/fixtures.json#known_bad_invalid_risk", "expected_violation": "invalid_risk", "intended_reason": "risk='critical' not in {low,medium,high}"},
+      {"path": "fixtures/step1-topic-check/fixtures.json#known_bad_risk_relation_mismatch", "expected_violation": "risk_relation_mismatch", "intended_reason": "switch relation but risk=low — switch is always high"}
+    ],
+    "pass_threshold": 1.0
+  },
+  "repair_strategy": {
+    "max_iterations": 1,
+    "on_violation": [
+      {"violation_type": "wrong_relation", "action": "add_keyword", "contract_revision": "Add missing keyword to the matching relation pattern"},
+      {"violation_type": "invalid_risk", "action": "enforce_enum", "contract_revision": "Clamp risk to nearest valid value"},
+      {"violation_type": "risk_relation_mismatch", "action": "enforce_mapping", "contract_revision": "Add post-classification coercion: switch→high, continue→low"}
+    ]
+  },
+  "admission": {
+    "fixture_schema_valid": true,
+    "golden_output_passes": true,
+    "known_bad_output_fails_for_intended_reason": true,
+    "composition_interface": "output.predicted_risk feeds step1.5-failure-signal (high risk pauses downstream)",
+    "claim_boundary_updated": true
+  }
+}

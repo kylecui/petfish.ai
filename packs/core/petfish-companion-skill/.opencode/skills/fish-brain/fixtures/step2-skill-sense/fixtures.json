@@ -1,0 +1,30 @@
+{
+  "golden": [
+    {"id": "g1-deploy", "input": {"user_message": "帮我把这个repo部署到服务器"}, "expected": {"predicted_skill": "deploy", "predicted_detect": true}},
+    {"id": "g2-research", "input": {"user_message": "帮我研究一下这个领域的最新进展"}, "expected": {"predicted_skill": "research", "predicted_detect": true}},
+    {"id": "g3-no-skill", "input": {"user_message": "修复auth.ts里的typo"}, "expected": {"predicted_skill": null, "predicted_detect": false}},
+    {"id": "g4-context-filter", "input": {"user_message": "部署这个变量是什么意思"}, "expected": {"predicted_skill": null, "predicted_detect": false}},
+    {"id": "g5-calibrate", "input": {"user_message": "帮我评审一下这个方案"}, "expected": {"predicted_skill": "calibrate", "predicted_detect": true}}
+  ],
+  "known_bad_context_question_fp": {
+    "id": "kb1-cqfp",
+    "input": {"user_message": "部署是什么意思"},
+    "bad_output": {"predicted_skill": "deploy", "predicted_detect": true},
+    "expected_violation": "context_question_false_positive",
+    "intended_reason": "'部署是什么意思' is a context question — the filter should suppress detection"
+  },
+  "known_bad_false_negative": {
+    "id": "kb2-fn",
+    "input": {"user_message": "帮我仔细研究一下这个课题的文献综述"},
+    "bad_output": {"predicted_skill": null, "predicted_detect": false},
+    "expected_violation": "false_negative",
+    "intended_reason": "Clear research request with '研究','文献','综述' — must be detected"
+  },
+  "known_bad_invalid_skill": {
+    "id": "kb3-is",
+    "input": {"user_message": "部署到服务器"},
+    "bad_output": {"predicted_skill": "cloud", "predicted_detect": true},
+    "expected_violation": "invalid_skill",
+    "intended_reason": "predicted_skill='cloud' is not in the 9 TRIGGERS keys"
+  }
+}

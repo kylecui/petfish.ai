@@ -1,0 +1,83 @@
+{
+  "atom_id": "step2-skill-sense",
+  "version": "v1",
+  "task_spec": {
+    "objective": "Detect skill gaps in the user's message using 3-tier sensing (keyword whitelist, intent detection, silent pass) and recommend the matching pack if uninstalled.",
+    "constraints": [
+      "Tier 1: keyword match against TRIGGERS dict (9 pack domains)",
+      "Context-question filtering: '部署是什么意思' should NOT trigger deploy detection",
+      "Non-action compound filtering: '课程表' should NOT trigger course detection",
+      "Each pack domain recommended at most once per session (dedup)",
+      "Must not trigger if the matching pack is already installed"
+    ],
+    "success_conditions": [
+      "Returns {predicted_skill (string|null), predicted_detect (boolean)}",
+      "predicted_detect=true implies predicted_skill is one of the 9 TRIGGERS keys",
+      "Context questions and non-action compounds yield predicted_detect=false"
+    ],
+    "non_goals": [
+      "Does not install the pack",
+      "Does not handle Tier 2 intent detection for unknown domains (that requires LLM judgment, out of deterministic scope)",
+      "Does not cross-check against step1.5 recommended_pack (composition concern, handled in macro contract)"
+    ]
+  },
+  "memory_slice": {
+    "admissible": ["User's current message text", "installed-packs.json contents", "Session dedup set"],
+    "excluded": ["Previous assistant turn (that's step1.5's scope)"],
+    "unknown_state": ["Whether Tier 2 intent detection would find a gap (LLM-dependent)"]
+  },
+  "evidence_bundle": {
+    "admissible_evidence": [
+      {"id": "skill_sense_eval.classify", "type": "keyword_classifier", "source": "benchmarks/scripts/modules/skill_sense_eval.py"},
+      {"id": "TRIGGERS", "type": "keyword_table", "source": "skill_sense_eval.py TRIGGERS dict (9 domains)"}
+    ]
+  },
+  "output_contract": {
+    "required_fields": [
+      {"name": "predicted_skill", "type": "string|null", "validator": "x is None or x in TRIGGERS.keys()"},
+      {"name": "predicted_detect", "type": "boolean", "validator": "isinstance(x, bool)"}
+    ],
+    "blocked_outputs": [
+      "predicted_detect=true with predicted_skill not in the 9 TRIGGERS keys",
+      "Detection on context questions ('部署是什么意思')",
+      "Detection on non-action compounds ('课程表')",
+      "Recommendation when pack already installed"
+    ]
+  },
+  "workflow_gate": {
+    "predecessors": ["step1.5-failure-signal"],
+    "successors": ["step2.5-anti-sycophancy"],
+    "carried_obligations_to_successors": [
+      "If skill gap detected, step2.5 should not redundantly pause for evaluative judgment on the same gap"
+    ]
+  },
+  "trace_log": {
+    "required_traces": ["Which TRIGGERS domains were scanned", "Whether context-question filter applied", "Final skill+risk classification"]
+  },
+  "validator_gate": {
+    "type": "deterministic_python",
+    "test_module": "validators/test_skill_sense.py",
+    "golden_fixtures": ["fixtures/step2-skill-sense/fixtures.json#golden"],
+    "known_bad_fixtures": [
+      {"path": "fixtures/step2-skill-sense/fixtures.json#known_bad_context_question_fp", "expected_violation": "context_question_false_positive", "intended_reason": "'部署是什么意思' is a context question, not a deploy request"},
+      {"path": "fixtures/step2-skill-sense/fixtures.json#known_bad_false_negative", "expected_violation": "false_negative", "intended_reason": "Clear research request but not detected"},
+      {"path": "fixtures/step2-skill-sense/fixtures.json#known_bad_invalid_skill", "expected_violation": "invalid_skill", "intended_reason": "predicted_skill='unknown' not in 9 TRIGGERS keys"}
+    ],
+    "pass_threshold": 1.0
+  },
+  "repair_strategy": {
+    "max_iterations": 1,
+    "on_violation": [
+      {"violation_type": "context_question_false_positive", "action": "add_context_marker", "contract_revision": "Add question marker to CONTEXT_QUESTION_MARKERS"},
+      {"violation_type": "false_negative", "action": "add_trigger_keyword", "contract_revision": "Add missing keyword to the matching TRIGGERS domain"},
+      {"violation_type": "invalid_skill", "action": "enforce_enum", "contract_revision": "Add output_contract enum constraint on predicted_skill"}
+    ]
+  },
+  "admission": {
+    "fixture_schema_valid": true,
+    "golden_output_passes": true,
+    "known_bad_output_fails_for_intended_reason": true,
+    "composition_interface": "output.predicted_skill feeds step2.5 and macro contract dedup",
+    "claim_boundary_updated": true
+  }
+}

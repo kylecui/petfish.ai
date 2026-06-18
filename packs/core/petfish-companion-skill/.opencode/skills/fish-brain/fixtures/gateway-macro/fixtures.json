@@ -1,0 +1,79 @@
+{
+  "_comment": "Macro composition fixtures. Each golden case simulates a full Gateway run with all 5 atom outputs. Known-bad cases test cross-step obligation violations.",
+  "golden": [
+    {
+      "id": "g1-normal-flow",
+      "description": "Normal Gateway run: balanced mode, continue topic, no failure, no skill gap, non-evaluative",
+      "atom_outputs": {
+        "step0-mode-read": {"depth": "balanced", "rigor": false},
+        "step1-topic-check": {"predicted_relation": "continue", "predicted_risk": "low"},
+        "step1.5-failure-signal": {"detected": false, "failure_class": null, "recommended_pack": null},
+        "step2-skill-sense": {"predicted_skill": null, "predicted_detect": false},
+        "step2.5-anti-sycophancy": {"is_evaluative": false}
+      },
+      "expected": {"atoms_executed": 5, "carried_obligations_preserved": true, "violations": []}
+    },
+    {
+      "id": "g2-failure-and-skill",
+      "description": "Deploy failure detected + deploy skill gap — but no duplicate (step1.5 fires, step2 finds different gap)",
+      "atom_outputs": {
+        "step0-mode-read": {"depth": "balanced", "rigor": false},
+        "step1-topic-check": {"predicted_relation": "continue", "predicted_risk": "low"},
+        "step1.5-failure-signal": {"detected": true, "failure_class": "deploy", "recommended_pack": "deploy"},
+        "step2-skill-sense": {"predicted_skill": null, "predicted_detect": false},
+        "step2.5-anti-sycophancy": {"is_evaluative": false}
+      },
+      "expected": {"atoms_executed": 5, "carried_obligations_preserved": true, "violations": []}
+    },
+    {
+      "id": "g3-rigor-evaluative",
+      "description": "Rigor on + evaluative question → anti-sycophancy pause justified",
+      "atom_outputs": {
+        "step0-mode-read": {"depth": "thorough", "rigor": true},
+        "step1-topic-check": {"predicted_relation": "continue", "predicted_risk": "low"},
+        "step1.5-failure-signal": {"detected": false, "failure_class": null, "recommended_pack": null},
+        "step2-skill-sense": {"predicted_skill": "calibrate", "predicted_detect": true},
+        "step2.5-anti-sycophancy": {"is_evaluative": true}
+      },
+      "expected": {"atoms_executed": 5, "carried_obligations_preserved": true, "violations": []}
+    }
+  ],
+  "known_bad_duplicate_recommendation": {
+    "id": "kb1-dr",
+    "description": "step1.5 recommends deploy, step2 ALSO recommends deploy — duplicate",
+    "atom_outputs": {
+      "step0-mode-read": {"depth": "balanced", "rigor": false},
+      "step1-topic-check": {"predicted_relation": "continue", "predicted_risk": "low"},
+      "step1.5-failure-signal": {"detected": true, "failure_class": "deploy", "recommended_pack": "deploy"},
+      "step2-skill-sense": {"predicted_skill": "deploy", "predicted_detect": true},
+      "step2.5-anti-sycophancy": {"is_evaluative": false}
+    },
+    "expected_violation": "duplicate_recommendation",
+    "intended_reason": "step1.5 already recommended 'deploy'; step2 should not re-recommend the same pack"
+  },
+  "known_bad_skipped_step": {
+    "id": "kb2-ss",
+    "description": "step1.5 missing from the sequence",
+    "atom_outputs": {
+      "step0-mode-read": {"depth": "balanced", "rigor": false},
+      "step1-topic-check": {"predicted_relation": "continue", "predicted_risk": "low"},
+      "step2-skill-sense": {"predicted_skill": null, "predicted_detect": false},
+      "step2.5-anti-sycophancy": {"is_evaluative": false}
+    },
+    "expected_violation": "skipped_step",
+    "intended_reason": "step1.5-failure-signal is missing from the sequence"
+  },
+  "known_bad_obligation_lost": {
+    "id": "kb3-ol",
+    "description": "step0 rigor=true but step2.5 doesn't respect it (non-evaluative treated as evaluative with rigor off)",
+    "atom_outputs": {
+      "step0-mode-read": {"depth": "balanced", "rigor": false},
+      "step1-topic-check": {"predicted_relation": "continue", "predicted_risk": "low"},
+      "step1.5-failure-signal": {"detected": false, "failure_class": null, "recommended_pack": null},
+      "step2-skill-sense": {"predicted_skill": null, "predicted_detect": false},
+      "step2.5-anti-sycophancy": {"is_evaluative": true}
+    },
+    "expected_violation": "obligation_lost",
+    "intended_reason": "step0.rigor=false but step2.5.is_evaluative=true on a non-evaluative query — over-trigger when rigor is off (step2.5 fixture g4 says '修复typo' is not evaluative, but atom output says true)"
+  }
+}

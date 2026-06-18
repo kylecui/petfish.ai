@@ -1,0 +1,81 @@
+{
+  "atom_id": "gateway-macro",
+  "version": "v1",
+  "task_spec": {
+    "objective": "Run all 5 Gateway atoms in sequence, carrying cross-step obligations, producing a coherent pre-processing result before Step 3 (Proceed).",
+    "constraints": [
+      "Atoms must run in order: step0 → step1 → step1.5 → step2 → step2.5",
+      "Each atom's output feeds the next via carried_obligations",
+      "If any atom's validator fails, the macro logs the violation and proceeds with current behavior (no hard block — repair is incremental)",
+      "High-risk topic switch (step1) should warn before proceeding to step1.5+"
+    ],
+    "success_conditions": [
+      "All 5 atoms executed in sequence",
+      "Cross-step carried obligations are preserved (step0.depth/rigor → step2.5; step1.5.recommended_pack → step2; step2.predicted_skill → step2.5)",
+      "No blocked_output condition triggered"
+    ],
+    "non_goals": [
+      "Does not guarantee whole-companion reliability (paper non-claim)",
+      "Does not hard-block on validator failure (incremental repair model)",
+      "Does not replace instruction-based Gateway with a state machine"
+    ]
+  },
+  "memory_slice": {
+    "admissible": ["All atom outputs from the sequence"],
+    "excluded": ["N/A (macro has access to all atom outputs)"],
+    "unknown_state": ["Whether downstream Step 3+ will respect carried obligations"]
+  },
+  "evidence_bundle": {
+    "admissible_evidence": [
+      {"id": "all_atom_contracts", "type": "contract_set", "source": "contracts/step*.contract.json"},
+      {"id": "all_atom_validators", "type": "validator_set", "source": "validators/test_*.py"}
+    ]
+  },
+  "output_contract": {
+    "required_fields": [
+      {"name": "atoms_executed", "type": "array", "validator": "len == 5 and all steps present in order"},
+      {"name": "carried_obligations_preserved", "type": "boolean", "validator": "isinstance(x, bool)"},
+      {"name": "violations", "type": "array", "validator": "each item is a {atom_id, violation_type, detail} dict"}
+    ],
+    "blocked_outputs": [
+      "Proceeding to Step 3 when step1 detected high-risk topic switch without warning",
+      "step2 recommending a pack that step1.5 already recommended (duplicate)",
+      "step2.5 pausing on a non-evaluative query when step0.rigor=false"
+    ]
+  },
+  "composition": {
+    "sequence": ["step0-mode-read", "step1-topic-check", "step1.5-failure-signal", "step2-skill-sense", "step2.5-anti-sycophancy"],
+    "carried_obligations": [
+      {"from": "step0-mode-read", "carry": "depth, rigor", "to": ["step2.5-anti-sycophancy"], "rule": "rigor controls anti-sycophancy proactivity"},
+      {"from": "step1-topic-check", "carry": "predicted_risk", "to": ["step1.5-failure-signal", "step2-skill-sense"], "rule": "high risk should warn before proceeding"},
+      {"from": "step1.5-failure-signal", "carry": "recommended_pack", "to": ["step2-skill-sense"], "rule": "step2 must not re-recommend the same pack"},
+      {"from": "step2-skill-sense", "carry": "predicted_skill", "to": ["step2.5-anti-sycophancy"], "rule": "if skill gap detected, don't redundantly pause"}
+    ]
+  },
+  "validator_gate": {
+    "type": "deterministic_python",
+    "test_module": "validators/test_macro_composition.py",
+    "golden_fixtures": ["fixtures/gateway-macro/fixtures.json#golden"],
+    "known_bad_fixtures": [
+      {"path": "fixtures/gateway-macro/fixtures.json#known_bad_duplicate_recommendation", "expected_violation": "duplicate_recommendation", "intended_reason": "step1.5 and step2 both recommend deploy pack"},
+      {"path": "fixtures/gateway-macro/fixtures.json#known_bad_skipped_step", "expected_violation": "skipped_step", "intended_reason": "step1.5 missing from sequence"},
+      {"path": "fixtures/gateway-macro/fixtures.json#known_bad_obligation_lost", "expected_violation": "obligation_lost", "intended_reason": "step0.rigor=true not propagated to step2.5"}
+    ],
+    "pass_threshold": 1.0
+  },
+  "repair_strategy": {
+    "max_iterations": 1,
+    "on_violation": [
+      {"violation_type": "duplicate_recommendation", "action": "add_dedup_check", "contract_revision": "Add cross-step dedup to step2 memory_slice"},
+      {"violation_type": "skipped_step", "action": "enforce_sequence", "contract_revision": "Add sequence assertion to macro validator"},
+      {"violation_type": "obligation_lost", "action": "make_obligation_explicit", "contract_revision": "Add carried_obligation to composition contract"}
+    ]
+  },
+  "admission": {
+    "fixture_schema_valid": true,
+    "golden_output_passes": true,
+    "known_bad_output_fails_for_intended_reason": true,
+    "composition_interface": "macro output feeds Step 3 (Proceed)",
+    "claim_boundary_updated": true
+  }
+}
