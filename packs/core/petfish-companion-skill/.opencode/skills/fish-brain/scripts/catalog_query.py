@@ -194,6 +194,10 @@ TRIGGERS = {
         "返工",
         "rework",
     ],
+    "doc-reader": [
+        "PDF", "DOCX", "读文档", "文档转换", "doc to markdown",
+        "read document", "convert document", "extract text",
+    ],
     # v1.3/v1.4 aliases share triggers with canonical
     "fish-init": ["初始化", "新项目", "project init", "scaffold", "创建项目"],
     "fish-brain": ["/petfish", "what skills", "what can you do", "help with"],
