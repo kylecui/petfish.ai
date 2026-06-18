@@ -1104,6 +1104,43 @@ PACK_RENAMES = {
     "series-style-governor": "series-style-governor-pack",
 }
 
+# Known skill directory renames (#241): old_skill → new_skill
+# Legacy global dirs cause stale Codex thread entries after upgrade.
+LEGACY_SKILL_DIRS = {
+    "petfish-companion": "fish-brain",
+    "marketplace-connector": "fish-market",
+    "context-router-skill": "fish-trail",
+}
+
+
+def detect_legacy_global_skills(plat_dirs: dict) -> list[tuple[str, str, str]]:
+    """Check global skill dirs for legacy skill names (#241).
+
+    Returns list of (legacy_name, new_name, found_path) tuples.
+    """
+    found = []
+    # Check common global skill roots
+    global_roots = []
+    home = Path.home()
+    for pattern in [".agents/skills", ".codex/skills", ".opencode/skills", ".config/opencode/skills"]:
+        global_roots.append(home / pattern)
+    # Also check platform-specific global dir if provided
+    skills_dir = plat_dirs.get("skills_dir", "")
+    if skills_dir:
+        p = Path(skills_dir)
+        # Only check parent if it looks like a global path (not project-local)
+        if ".opencode" not in str(p) and "agents" not in str(p).split(p.anchor):
+            pass  # skip project-local
+
+    for root in global_roots:
+        if not root.is_dir():
+            continue
+        for legacy_name, new_name in LEGACY_SKILL_DIRS.items():
+            legacy_path = root / legacy_name
+            if legacy_path.is_dir():
+                found.append((legacy_name, new_name, str(legacy_path)))
+    return found
+
 
 def find_registry_path(target: Path, plat_dirs: dict) -> Path:
     """Determine the installed-packs.json path."""
