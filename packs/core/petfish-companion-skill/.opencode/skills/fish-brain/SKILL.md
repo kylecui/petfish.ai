@@ -550,3 +550,54 @@ foreach ($f in @("test_mode_read","test_topic_check","test_failure_signal","test
 - step2.5-anti-sycophancy的行为级验证（仅detection级可确定性验证，behavior级deferred to llm_judge）
 
 这些边界镜像论文Appendix A的discipline。详见 `references/contract-methodology.md`。
+
+## 10. 阅读笔记（Reading-Notes）
+
+遵循"先读后写"纪律，agent在阅读文件时记录理解，后续session可快速检索避免重复阅读。
+
+### 10.1 何时记笔记
+
+- 首次阅读项目中的某个文件
+- 为任务理解某个函数/类/模块
+- 发现非显而易见的依赖关系或架构模式
+- 阅读文档（README、API docs、设计文档）
+
+### 10.2 何时**不**记笔记
+
+- 快速查找（grep、单行检查）
+- 已有笔记的文件（先按file_path检索）
+- 琐碎文件（空文件、生成文件、模板）
+
+### 10.3 如何检索（含staleness检测）
+
+阅读文件前，先检查是否已有笔记且未过时：
+
+```bash
+# 1. 找笔记
+grep '"file_path":"src/auth.ts"' .petfish/notes/reading-notes.jsonl
+
+# 2. 如果找到笔记，检查文件是否变更过（1次stat，不读内容）
+#    PowerShell: (Get-Item src/auth.ts).LastWriteTime  → 当前mtime
+#    对比笔记中的 file_mtime 字段
+```
+
+**判定逻辑：**
+- 笔记存在 + `当前mtime <= file_mtime` + `当前size == file_size` → **新鲜**，用summary，跳过重读
+- 笔记存在但 mtime或size不同 → **过时**，重读文件，更新笔记
+- 无笔记 → 正常阅读，读完后追加笔记（含当前mtime+size）
+
+### 10.4 笔记格式
+
+追加到 `.petfish/notes/reading-notes.jsonl`（一行一条JSON）：
+
+```json
+{"note_id":"CN-000001","file_path":"src/auth.ts","file_type":"code","symbol":"validateToken","language":"typescript","summary":"一句话描述","dependencies":["dep.ts"],"line_range":{"start":42,"end":78},"confidence":"high","file_mtime":"2026-06-18T10:00:00Z","file_size":4523,"tags":["auth"]}
+```
+
+必填：`note_id`(CN-\d{6})、`file_path`、`file_type`(code/doc/config/test)、`language`、`summary`、`confidence`(high/medium/low)
+推荐：`file_mtime`(ISO时间戳，staleness检测用)、`file_size`(字节数，staleness检测用)
+
+验证命令：
+```bash
+uv run <skills_dir>/fish-brain/scripts/reading_notes_lint.py --input .petfish/notes/reading-notes.jsonl
+```
