@@ -1097,6 +1097,14 @@ def compare_versions(
 # ---------------------------------------------------------------------------
 # Registry (installed-packs.json)
 # ---------------------------------------------------------------------------
+
+# Known pack renames: old_name → new_name (#207)
+# Stale registry keys from old names are cleaned up on load.
+PACK_RENAMES = {
+    "series-style-governor": "series-style-governor-pack",
+}
+
+
 def find_registry_path(target: Path, plat_dirs: dict) -> Path:
     """Determine the installed-packs.json path."""
     skills_dir = plat_dirs.get("skills_dir")
@@ -1133,6 +1141,13 @@ def load_registry(reg_path: Path) -> dict:
         data["packs"] = {}
 
     data.setdefault("version", "2.0")
+
+    # Clean up stale entries from renamed packs (#207)
+    packs = data.get("packs", {})
+    for old_name, new_name in PACK_RENAMES.items():
+        if old_name in packs and new_name in packs:
+            del packs[old_name]
+
     return data
 
 
