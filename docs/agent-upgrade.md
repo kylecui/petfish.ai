@@ -251,6 +251,7 @@ For very old installations (pre-v0.4, no context-router at all), Steps 4-7 can b
 - **MCP server won't start**: Check that `uv` is installed and the path in `opencode.json` points to `.opencode/skills/fish-trail/mcp/context-state/server.py` (not the old context-router path).
 - **Topic data missing after upgrade**: The auto-migration only runs once. If `.ai-context/` was deleted before the server migrated it, data is lost. Check `.petfish/fish-trail/` for your topics.
 - **AGENTS.md has duplicate pack markers**: If both old (`context-router-skill`) and new (`fish-trail`) markers exist, remove the old ones manually.
+- **Legacy skill entries visible in Codex after upgrade (#241)**: Codex caches skill discovery metadata at the thread level. After upgrading from `petfish-companion` → `fish-brain`, existing threads may still show stale `petfish-companion` entries even after global cleanup. **Fix: start a fresh Codex thread** — new threads use the current filesystem state. Also check these global dirs for legacy skills to back up and remove: `~/.agents/skills/petfish-companion`, `~/.codex/skills/petfish-companion`, `~/.agents/skills/marketplace-connector`. The installer now detects and warns about these on upgrade.
 
 ---
 
