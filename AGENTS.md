@@ -551,7 +551,23 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 
 每次发布前，必须完成以下检查。
 
-### 发布前
+### 发布前 — 自动化门禁（BLOCKING）
+
+**`gh release create`之前必须运行预发布验证脚本，输出FAIL则禁止release：**
+
+```bash
+uv run python scripts/pre_release_check.py
+```
+
+脚本检查：
+1. CI在master上是success（红=禁止release）
+2. 所有pack能安装到干净临时目录
+3. 契约验证器在**安装上下文**通过（非源码仓库）
+4. 市场索引指向monorepo（非stale独立仓库）
+
+**此规则无例外。脚本FAIL时修复问题，不要绕过。**
+
+### 发布前 — 手动检查
 
 - [ ] 所有计划变更已合入`dev`分支
 - [ ] `dev`分支测试通过（smoke test + trigger eval如适用）
@@ -560,6 +576,7 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 - [ ] CHANGELOG已更新（如pack有独立CHANGELOG）
 - [ ] README版本历史已更新
 - [ ] 如涉及schema变更：已验证SKILL.md与schema字段名对齐
+- [ ] 所有修复的GitHub issue在release notes中用 `Closes #N` 引用
 
 ### 发布时
 
@@ -702,6 +719,14 @@ v1.4.6的online-gpt gateway发现2处drift（`runtime`和`risk_sensitive`字段�
 v1.4.6修复了`routeCompanionRequest`的dispatch问题，本地smoke test只测了这一个operation。部署后发现`suggestPacks`因相同根因（`profile_project`不接受`risk_sensitive`）返回500，但这个operation在修复时没有被打到测试里。
 
 规则：改了N个handler中的1个，smoke test要跑全部N个。
+
+### 在安装上下文验证，不在源码仓库验证
+
+v1.8.0-v1.9.0的交付失败根因：验证器在源码仓库能跑（有benchmarks/scripts/modules/），在用户安装后崩溃（没有这个目录）。6个release声称"全部修复"，实际0-3个到达用户。
+
+规则：`gh release create`前必须运行 `uv run python scripts/pre_release_check.py`。脚本在干净临时目录安装所有pack，在**安装上下文**运行验证器。FAIL=禁止release。
+
+此教训源自v1.8.0-v1.9.0的交付失败：代码在源码仓库但用户从市场仓库拿，两者之间没有同步。与v0.10.7/v0.10.8的9触点遗漏是同一类问题。
 
 ---
 

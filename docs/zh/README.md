@@ -22,7 +22,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v1.4                       │
+│  ><(((^>  胖鱼 PEtFiSh v1.9                       │
 │                                                     │
 │  常伴  每一轮交互都在                                │
 │  守护  感知缺口、守护上下文、阻断污染                │
@@ -209,6 +209,34 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v1.9 — 测试团队 issue 解决 + 交付链路修复
+
+- **v1.9.4**: 修复已交付修复中残留的 3 个 bug — #234（`path.lower().parts` 每次调用都崩溃，Path 没有 `.lower()` 方法；改为遍历 `path.parts` 逐个小写化）、#235（`fix_docx_tables()` 漏掉了 index-0 处空表头的情况；增加检测+交换）、#207（PACK_RENAMES 清理放在 `load_registry` 中——仅内存态，从未持久化；移至 `save_registry`）。全部通过运行时测试验证。
+- **v1.9.3**: 交付链路修复——所有可选包（doc-reader、testdocs、series-style-governor、trustskills-governance）现在从 monorepo 的 v1.9.2 提供而非过时的独立仓库引用。用户运行 `--pack all --force` 现在能拿到 #230–#237 的全部修复。
+- **v1.9.2**: CI 转绿（363 个测试通过）+ 交付链路修复。doc-reader 加入 TRIGGERS（修复 `test_all_aliases_have_triggers`）；`合理` → `合理吗`（修复 calibrate 对非评价性消息如"变量命名是否合理"的误报）；`test_style_check` 期望 keys 按新指标更新。市场索引更新随后单独提交。
+- **v1.9.1**: 修复 #241——`install.py` 检测 legacy 全局 skill 目录（`petfish-companion`、`marketplace-connector`、`context-router-skill`）并在升级时告警。`agent-upgrade.md` 增加 Codex 故障排查说明：Codex 旧线程中的 skill 条目是平台级缓存问题——升级后开新线程即可。
+- **v1.9.0**: 测试团队 issue 全部解决 + CI 转绿。汇总 v1.8.1 的 #230–#237 修复以及 #207（install.py PACK_RENAMES stale registry 清理）。CI 回归修复：`合理` 触发词收窄为 `合理吗` 防止误报；`doc-reader` 加入 ALIAS_MAP（修复 profile 校验）；`test_style_check.py` 期望 keys 按新指标更新。
+
+### v1.8 — 契约驱动 Companion
+
+- **v1.8.2**: 修复 #207——`install.py` 通过 PACK_RENAMES 映射清理重命名 pack 的 stale registry 条目（`series-style-governor` → `series-style-governor-pack` 重复条目在下次 `load_registry()` 时自动移除）。
+- **v1.8.1**: Bugfix 发布——测试团队报的 8 个 issue。#230 `gateway_classifiers.py` 改为自包含（无外部依赖）；#231 fish-trail 测试断言更新适配 v2 feature-flag 默认值；#232 CI 测试路径修复（`fish-style` → `petfish-style-rewriter`）；#233 trustskills 安装说明指向 GitHub URL；#234 `project_inventory.py` 边界感知路径匹配（不再出现 qa-testdocs 污染）；#235 `doc-reader` 新增 `fix_docx_tables()` 后处理器修复 markitdown 表格 bug；#236 `normalize_terms` 正则增加 `\s` 排除（修复 `aliases:` 被当作 term key）；#237 `audit_series_style` 对未实现维度报告"Not checked"而非"Pass"。
+- **v1.8.0**: 契约驱动 Gateway 原子 + 可观测性 + 阅读笔记记忆。5 个 Gateway 步骤形式化为机制原子，带显式契约、golden/known-bad fixtures 和确定性验证器（42/42 检查 PASS）。Gateway Trace：always-on 结构化 trace 输出 + verify_trace.py。Reading-Notes（Step 2.6）：agent 在阅读代码/文档/配置时记录结构化笔记，带陈旧检测（file_mtime + file_size stat 比对）。实施纪律（最小代码：先读后写 + 六问检查）写入 AGENTS.md。修复循环发现并补齐了缺失的 calibrate TRIGGERS（"好吗"/"合理"/"你觉得"）。Companion pack 版本：1.1.0 → 1.3.0。
+
+### v1.7 — 安装加固
+
+- **v1.7.0**: 安装加固 + online-gpt + gateway 修复。
+
+### v1.6 — 在线伙伴
+
+- **v1.6.0**: Online Companion GPT。
+
+### v1.5 — 统一安装器
+
+- **v1.5.2**: 修复 #224：remote 模式下的 `--pack all` 和 `--list`。
+- **v1.5.1**: 修复 #223：doc-reader-skill 市场注册。
+- **v1.5.0**: 统一 Python 安装器（PEP 723 inline script，`uv run` 远程执行，内置镜像回退）。
 
 ### v1.4 — 市场优先分发
 
