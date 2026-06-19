@@ -16,7 +16,19 @@
           └─ Step 3: Proceed (正常处理)
 ```
 
-### Step 0: 项目模式读取
+### Step 0: 模式读取
+
+PEtFiSh 支持两种运行时。Mode Read 根据上下文选择正确的运行时。
+
+#### Step 0A: 本地模式读取
+
+当运行时是本地的，或显式选择了本地适配器（OpenCode、Claude Code、Codex 等）时使用。
+
+优先级：
+1. `.opencode/project-mode.yaml` 或平台等价的模式文件
+2. 本地项目配置
+3. Session 覆盖
+4. 默认值（`depth: balanced, rigor: false`）
 
 每次session首条消息时读取 `.opencode/project-mode.yaml`（如存在）：
 
@@ -38,6 +50,25 @@ rigor: false          # true | false (depth=thorough时强制为true)
 **Session内切换**：用户说"紧急"/"仔细"/"严谨"等关键词时在当前session内切换模式，不写文件。下次session自动恢复。
 
 文件不存在时默认 `depth: balanced, rigor: false`，不阻塞。
+
+#### Step 0B: 在线模式读取
+
+当运行时是在线的，或用户要求使用 ChatGPT Project / 托管聊天项目时使用。
+
+优先级：
+1. ChatGPT Project 指令
+2. 上传的项目策略文件
+3. 当前对话状态
+4. 用户声明的模式
+5. Session 推断
+
+如果没有连接本地适配器，本地执行不可用。助手可以渲染命令或预览，但不得声称已执行。
+
+在线运行时默认值：
+- `depth: balanced`（从对话推断）
+- `rigor: false`（没有本地文件系统存放计划文件）
+- `execution_truth_default: advice_only`
+- `filesystem: unavailable`
 
 ### Step 1: 话题检测
 

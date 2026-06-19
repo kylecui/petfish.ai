@@ -11,7 +11,7 @@
 **Your AI Companion**
 From first commit to final delivery, PEtFiSh is always there.
 ```text
-><(((^>  PEtFiSh v1.4
+><(((^>  PEtFiSh v1.9
 
 Always Present   Companion Gateway in every interaction
 Guarding         Sense gaps, guard context, block pollution
@@ -343,8 +343,18 @@ petfish.ai/
 ---
 
 ## Version History
+### v1.9 — Testing Team Issue Resolution + Delivery Pipeline Fix
+
+- **v1.9.4**: Fix 3 remaining bugs in delivered fixes — #234 (`path.lower().parts` crashed on every call since Path has no `.lower()` method; fixed by iterating `path.parts` and lowercasing each), #235 (`fix_docx_tables()` missed the empty-header-at-index-0 case; fixed with detect-and-swap), #207 (PACK_RENAMES cleanup lived in `load_registry` — in-memory only, never persisted; moved to `save_registry`). All verified with runtime tests.
+- **v1.9.3**: Delivery pipeline fix — all optional packs (doc-reader, testdocs, series-style-governor, trustskills-governance) now served from monorepo at v1.9.2 instead of stale independent-repo refs. Users running `--pack all --force` now receive every fix from issues #230–#237.
+- **v1.9.2**: CI green (363 tests pass) + delivery pipeline fix. doc-reader added to TRIGGERS (fixes `test_all_aliases_have_triggers`); `合理` → `合理吗` (fixes calibrate false positive on non-evaluative messages like "变量命名是否合理"); `test_style_check` expected keys updated for new metrics. Market index update follows in a separate commit.
+- **v1.9.1**: Fix #241 — `install.py` detects legacy global skill directories (`petfish-companion`, `marketplace-connector`, `context-router-skill`) and warns on upgrade. Codex troubleshooting note added to `agent-upgrade.md`: stale Codex thread entries are a platform-level cache issue — fix is to start a fresh thread after upgrade.
+- **v1.9.0**: All testing team issues resolved + CI green. Consolidates the #230–#237 fixes from v1.8.1 plus #207 (install.py PACK_RENAMES stale registry cleanup). CI regression fix: `合理` trigger narrowed to `合理吗` to prevent false positives; `doc-reader` added to ALIAS_MAP (fixes profile validation); `test_style_check.py` expected keys updated for new metrics.
+
 ### v1.8 — Contract-Driven Companion
 
+- **v1.8.2**: Fix #207 — `install.py` cleans up stale registry entries from renamed packs via the PACK_RENAMES map (`series-style-governor` → `series-style-governor-pack` duplicate auto-removed on next `load_registry()` call).
+- **v1.8.1**: Bugfix release — 8 issues from the testing team. #230 `gateway_classifiers.py` made self-contained (no external deps); #231 fish-trail test assertions updated for v2 feature-flag defaults; #232 CI test paths fixed (`fish-style` → `petfish-style-rewriter`); #233 trustskills install instructions pointed to GitHub URL; #234 `project_inventory.py` boundary-aware path matching (no more qa-testdocs pollution); #235 `doc-reader` gained `fix_docx_tables()` post-processor for markitdown table bug; #236 `normalize_terms` regex gained `\s` exclusion (fixes `aliases:` matched as term key); #237 `audit_series_style` reports "Not checked" instead of "Pass" for unimplemented dimensions.
 - **v1.8.0**: Contract-driven Gateway atoms + observability + reading-notes memory. 5 Gateway steps formalized as mechanism atoms with explicit contracts, golden/known-bad fixtures, and deterministic validators (42/42 checks PASS). Gateway Trace: always-on structured trace output + verify_trace.py. Reading-Notes (Step 2.6): agent takes structured notes while reading code/docs/config, with staleness detection (file_mtime + file_size stat comparison). Implementation discipline (minimum-code: read-before-write + 6-question check) encoded into AGENTS.md. Repair loop caught and fixed missing calibrate TRIGGERS ("好吗"/"合理"/"你觉得"). Companion pack version: 1.1.0 → 1.3.0.
 
 ### v1.7 — Install Hardening
