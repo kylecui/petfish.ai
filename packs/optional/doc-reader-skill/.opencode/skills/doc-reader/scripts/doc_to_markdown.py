@@ -39,6 +39,7 @@ def fix_docx_tables(text: str) -> str:
                 i += 1
             sep_re = re.compile(r"\|[-:\s|]+-+")
             sep_indices = [j for j, l in enumerate(block) if sep_re.match(l.strip())]
+            # Fix 1: separator not at index 1
             if sep_indices and sep_indices[0] != 1 and len(block) >= 3:
                 sep = block.pop(sep_indices[0])
                 while block and not block[0].strip().replace("|", "").strip():
@@ -46,6 +47,13 @@ def fix_docx_tables(text: str) -> str:
                 result.append(block[0])
                 result.append(sep)
                 result.extend(block[1:])
+            # Fix 2: empty header at index 0, separator at index 1 (#235)
+            elif (len(block) >= 3
+                  and not block[0].strip().replace("|", "").strip()
+                  and sep_re.match(block[1].strip())):
+                block.pop(0)       # remove empty header
+                block[0], block[1] = block[1], block[0]  # swap separator↔real header
+                result.extend(block)
             else:
                 result.extend(block)
         else:

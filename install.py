@@ -1178,19 +1178,16 @@ def load_registry(reg_path: Path) -> dict:
         data["packs"] = {}
 
     data.setdefault("version", "2.0")
-
-    # Clean up stale entries from renamed packs (#207)
-    packs = data.get("packs", {})
-    for old_name, new_name in PACK_RENAMES.items():
-        if old_name in packs and new_name in packs:
-            del packs[old_name]
-
     return data
 
 
 def save_registry(reg_path: Path, registry: dict):
-    """Save registry file."""
+    """Save registry file (with stale rename cleanup — #207)."""
     reg_path.parent.mkdir(parents=True, exist_ok=True)
+    packs = registry.get("packs", {})
+    for old_name, new_name in PACK_RENAMES.items():
+        if old_name in packs and new_name in packs:
+            del packs[old_name]
     reg_path.write_text(
         json.dumps(registry, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
