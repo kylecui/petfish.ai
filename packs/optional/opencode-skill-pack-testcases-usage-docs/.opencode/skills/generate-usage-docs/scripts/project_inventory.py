@@ -139,10 +139,11 @@ def bucket_for(path: Path) -> set[str]:
     # Boundary-aware matching: split path components by separators to prevent
     # "qa-testdocs" from matching both "test" and "docs" (#234)
     path_words: set[str] = set()
-    for part in path.lower().parts:
-        path_words.add(part)
+    for part in path.parts:
+        pl = part.lower()
+        path_words.add(pl)
         for sep in "-_.":
-            path_words.update(part.split(sep))
+            path_words.update(pl.split(sep))
 
     if any(h in path_words for h in DOC_HINTS):
         buckets.add("docs")
