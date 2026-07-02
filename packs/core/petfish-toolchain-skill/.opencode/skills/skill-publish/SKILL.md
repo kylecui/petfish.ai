@@ -33,6 +33,25 @@ metadata:
 - quality-gate返回PASS，且用户随后要求发布
 - 用户说"/petfish publish"或"/petfish gate"完成后要求下一步
 
+## 2.5 发布前验证（强制，#249教训）
+
+发布前**必须**验证以下条件，任一失败则阻止发布：
+
+1. **git tag存在**：`--ref`指定的tag必须在目标仓库中实际存在
+   ```bash
+   gh api repos/kylecui/petfish.ai/git/refs/tags/<ref> --silent
+   ```
+   如果404 → 提示用户先创建tag：`git tag <ref> && git push origin <ref>`
+
+2. **pack-manifest.json完整**：包含 `skills` 数组和 `contents` 列表（installer依赖这些字段复制文件）
+
+3. **目录结构正确**：skill文件必须在 `.opencode/skills/<name>/` 下（不是直接放在pack根目录）
+   - ✅ 正确：`packs/optional/<pack>/.opencode/skills/<skill>/SKILL.md`
+   - ❌ 错误：`packs/optional/<pack>/SKILL.md`（installer找不到）
+
+4. **不手动编辑registry JSON**：所有registry条目必须通过 `publish_pack.py` 生成，不得手写
+   - 手写条目容易遗漏字段、猜错ref、用错path — 这是#249的根本原因
+
 ## 3. 工作流程
 
 ### 3.1 完整流程

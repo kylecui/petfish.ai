@@ -122,6 +122,32 @@ After authoring, recommend or invoke:
 - Generate at least 3 should-trigger and 2 should-not-trigger evals.
 - Define explicit handoff boundaries with adjacent skills.
 - Mark uncertain information with `[assumption]` or `[needs-user-input]`.
+- **Enforce `.opencode/skills/<name>/` directory structure** (#249 lesson):
+  the installer expects skill files under this path. Files placed directly
+  in the pack root will not be installed.
+
+## Publish-Ready Structure (for optional packs)
+
+When creating a skill intended for `packs/optional/`, the directory must follow:
+
+```
+packs/optional/<pack-name>/
+  pack-manifest.json          ← required by installer
+  .opencode/
+    skills/
+      <skill-name>/
+        SKILL.md
+        scripts/              ← if any
+        references/           ← if any
+        evals/                ← if any
+```
+
+The `pack-manifest.json` must include:
+- `skills`: array of skill directory names under `.opencode/skills/`
+- `contents`: array of file paths relative to pack root (installer copies these)
+
+**Do NOT** place SKILL.md or scripts directly in the pack root — the installer
+will not find them. This was the root cause of #249 (drawio-radar-chart).
 
 ## Must Not Do
 
