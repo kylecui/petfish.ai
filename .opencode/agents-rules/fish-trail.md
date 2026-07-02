@@ -68,6 +68,17 @@ Focus block末尾的方括号标记控制MCP调用行为：
 - 用户明确发起话题管理操作
 - Focus block显示high-risk切换信号
 - Agent需要理解另一个话题的完整上下文（使用topic_show）
+- **Disk mode + major work phase transition**（#248）— 见下方Disk Mode Agent Responsibilities
+
+### Disk Mode Agent Responsibilities（#248）
+
+当Focus block显示 `[disk|...]`（无实时检测）时，plugin无法检测工作阶段切换。此时agent承担以下责任：
+
+- **Major phase transition时创建topic**：当工作从一个明确阶段切换到另一个（如"从设计到实现"、"从修复到测试"、"从写作到审阅"），agent应调用 `topic_create` 创建新话题
+- **Phase完成时更新topic**：当一个阶段产出实质性成果，调用 `topic_update` 更新summary
+- **不要等待plugin检测信号**：disk模式下plugin只能从磁盘读取上一轮状态，无法实时感知
+
+`rMCP:off` 仅抑制例行检测调用（`topic_detect`等）。`topic_create` 和 `topic_update` **始终可用**，agent应在disk模式下主动使用。
 
 ### 根据注入的context采取行动
 

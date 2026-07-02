@@ -117,6 +117,8 @@ See `docs/embedding-setup.md` for offline/air-gapped setup and troubleshooting.
 
 **目标**：判断用户当前消息与活跃topic的关系。
 
+> **Disk Mode Note (#248)**: 当Focus block显示 `[disk|...]` 时，plugin无法实时检测工作阶段切换。此时agent应主动判断是否发生了major phase transition（如"从设计到实现"、"从修复到测试"），如果是则直接调用 `topic_create` 创建新话题。`rMCP:off` 仅抑制例行检测调用（`topic_detect`），不抑制 `topic_create`/`topic_update`。详见agents-rules/fish-trail.md "Disk Mode Agent Responsibilities"。
+
 **操作**：
 
 1. 调用MCP tool `topic_detect`，传入用户消息文本
