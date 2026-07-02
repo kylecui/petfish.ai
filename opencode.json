@@ -5,14 +5,35 @@
       "petfish-style-rewriter": "allow",
       "ppt-reader": "allow",
       "ppt-writer": "allow",
-      "fish-trail": "allow"
+      "fish-trail": "allow",
+      "petfish-companion": "allow",
+      "marketplace-connector": "allow",
+      "skill-author": "allow",
+      "skill-lint": "allow",
+      "repo-skill-miner": "allow",
+      "skill-security-auditor": "allow",
+      "quality-gate": "allow",
+      "skill-description-optimizer": "allow",
+      "skill-trigger-evaluator": "allow",
+      "skill-usage-tracker": "allow"
     }
   },
   "plugin": [
-    [".opencode/plugin/system-prompt-rules.ts", {}],
-    [".opencode/plugin/fish-trail-compaction.ts", {}],
-    [".opencode/plugin/topic-context-filter.ts", { "enabled": true, "safetyWindow": 3, "minMessages": 10 }],
-    [".opencode/plugin/system-prompt-context-inject.ts", { "maxTopics": 5, "maxSummaryLen": 200, "detectionMode": "disk", "reflectiveBriefEnabled": true }]
+    [
+      ".opencode/plugin/system-prompt-rules.ts",
+      {
+        "mode": "all"
+      }
+    ],
+    [
+      ".opencode/plugin/system-prompt-context-inject.ts",
+      {
+        "maxTopics": 5,
+        "maxSummaryLen": 200,
+        "detectionMode": "disk",
+        "reflectiveBriefEnabled": true
+      }
+    ]
   ],
   "mcp": {
     "context-state": {
@@ -30,7 +51,7 @@
         "uv",
         "run",
         "python",
-        "packs/core/petfish-companion-skill/.opencode/mcp/skill-registry/server.py"
+        ".opencode/mcp/skill-registry/server.py"
       ]
     },
     "usage-cost": {
@@ -39,7 +60,7 @@
         "uv",
         "run",
         "python",
-        "packs/core/petfish-companion-skill/.opencode/mcp/usage-cost/server.py"
+        ".opencode/mcp/usage-cost/server.py"
       ]
     }
   }

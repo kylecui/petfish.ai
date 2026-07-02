@@ -133,5 +133,5 @@ research/
 - 面向人类阅读的输出技能（brief-framer、synthesis、report-writer）默认使用 Markdown。
 - Markdown 更适合叙述、审阅与协作编辑。
 - 这是有意设计：JSONL 负责保存可追踪证据链，Markdown 负责呈现结论与洞见。
-- 两种格式都有效，不存在"谁替代谁"。
+- 两种格式都有效，不存在“谁替代谁”。
 - 选择原则：下游消费者是脚本就优先 JSONL；是读者/评审就优先 Markdown。

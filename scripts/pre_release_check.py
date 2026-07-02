@@ -143,6 +143,41 @@ def check_market_refs():
         print("  PASS: all optional packs point to monorepo")
 
 
+def check_agents_rules_sync():
+    """5. Verify agents-rules files are synced between repo root and pack dirs (#254)."""
+    print("[5/5] Checking agents-rules sync (repo root vs pack dirs)...")
+    import hashlib
+    root_rules_dir = REPO_ROOT / ".opencode" / "agents-rules"
+    if not root_rules_dir.is_dir():
+        print("  SKIP: no .opencode/agents-rules/ directory")
+        return
+
+    drift = []
+    for pack_dir in (REPO_ROOT / "packs" / "core").iterdir():
+        pack_rules = pack_dir / ".opencode" / "agents-rules"
+        if not pack_rules.is_dir():
+            continue
+        for rule_file in root_rules_dir.glob("*.md"):
+            pack_copy = pack_rules / rule_file.name
+            if pack_copy.exists():
+                root_hash = hashlib.md5(rule_file.read_bytes()).hexdigest()
+                pack_hash = hashlib.md5(pack_copy.read_bytes()).hexdigest()
+                if root_hash != pack_hash:
+                    drift.append(f"{rule_file.name}: {pack_dir.name} pack copy is stale")
+            # If pack_copy doesn't exist, it's not necessarily an error —
+            # some rules belong to different packs. Only flag EXISTING-but-stale.
+
+    if drift:
+        for d in drift:
+            failures.append(f"Agents-rules drift: {d}")
+        print(f"  FAIL: {len(drift)} file(s) drifted:")
+        for d in drift:
+            print(f"    └─ {d}")
+        print("  Fix: cp .opencode/agents-rules/<file> packs/core/<pack>/.opencode/agents-rules/<file>")
+    else:
+        print("  PASS: all agents-rules copies in sync")
+
+
 def main():
     print("=" * 60)
     print("PRE-RELEASE VERIFICATION GATE")
@@ -158,6 +193,8 @@ def main():
         shutil.rmtree(tmpdir, ignore_errors=True)
     print()
     check_market_refs()
+    print()
+    check_agents_rules_sync()
 
     print()
     print("=" * 60)

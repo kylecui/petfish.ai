@@ -19,7 +19,7 @@
 
 ## 工作原则
 
--当用户要求"读取repo/GitHub项目并部署到指定主机"时，优先走完整链路：
+-当用户要求“读取repo/GitHub项目并部署到指定主机”时，优先走完整链路：
   1. `repo-runtime-discovery`
   2. `target-host-readiness`
   3. `deployment-executor`
@@ -28,9 +28,9 @@
   6. 如遇异常，再使用 `incident-rollback`
 
 -如果用户给的是宽泛任务，例如：
-  - "帮我把这个仓库部署到10.0.0.5"
-  - "把这个GitHub repo跑起来并验收"
-  - "把这个服务上线后帮我持续运维"
+  - “帮我把这个仓库部署到10.0.0.5”
+  - “把这个GitHub repo跑起来并验收”
+  - “把这个服务上线后帮我持续运维”
 
   优先启用 `repo-service-lifecycle` 作为总控技能。
 
