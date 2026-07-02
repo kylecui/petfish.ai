@@ -24,7 +24,7 @@ def load_contract_fields():
     return fields
 
 CONTRACT_FIELDS = load_contract_fields()
-EXPECTED_STEPS = ["step0-mode-read", "step1-topic-check", "step1.5-failure-signal", "step2-skill-sense", "step2.5-anti-sycophancy"]
+EXPECTED_STEPS = ["step0-mode-read", "step1-topic-check", "step1.5-failure-signal", "step2-skill-sense", "step2.5-anti-sycophancy", "step2.6-reading-notes"]
 
 
 def validate_entry(entry):
@@ -121,5 +121,109 @@ def main():
     sys.exit(0 if total_violations == 0 else 1)
 
 
+def coverage_mode():
+    """Report trace coverage: how many entries exist over what time span.
+
+    Usage: uv run verify_trace.py --coverage [--target <project_root>]
+    """
+    from datetime import datetime, timezone
+
+    target = Path(sys.argv[sys.argv.index("--target") + 1]) if "--target" in sys.argv else Path.cwd()
+    trace_file = target / ".petfish" / "gateway-trace.jsonl"
+
+    if not trace_file.exists():
+        print("No trace file found. Agent has not emitted any Gateway traces.")
+        print("Coverage: 0% (0 entries)")
+        sys.exit(0)
+
+    lines = [l for l in trace_file.read_text(encoding="utf-8").strip().split("\n") if l.strip()]
+    entries = []
+    for line in lines:
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+
+    if not entries:
+        print("Trace file exists but contains no valid entries.")
+        print("Coverage: 0% (0 valid entries)")
+        sys.exit(0)
+
+    total = len(entries)
+    violations = sum(len(validate_entry(e)) for e in entries)
+
+    # Time span
+    timestamps = []
+    for e in entries:
+        ts = e.get("ts", "")
+        try:
+            timestamps.append(datetime.fromisoformat(ts.replace("Z", "+00:00")))
+        except (ValueError, TypeError):
+            pass
+
+    print("=" * 60)
+    print("GATEWAY TRACE COVERAGE REPORT")
+    print("=" * 60)
+    print(f"\n  Total trace entries:   {total}")
+    print(f"  Contract violations:   {violations}")
+    print(f"  Clean entries:         {total - violations}")
+
+    if timestamps:
+        span = (max(timestamps) - min(timestamps)).total_seconds()
+        if span > 0:
+            hours = span / 3600
+            entries_per_hour = total / hours if hours > 0 else 0
+            print(f"  Time span:             {hours:.1f} hours")
+            print(f"  Entries per hour:      {entries_per_hour:.1f}")
+
+            # Gap detection: entries >10min apart suggest missing turns
+            gaps = []
+            for i in range(1, len(timestamps)):
+                delta = (timestamps[i] - timestamps[i-1]).total_seconds()
+                if delta > 600:  # >10 minutes
+                    gaps.append(delta / 60)
+            if gaps:
+                print(f"  Large gaps (>10min):   {len(gaps)} gaps")
+                print(f"  Longest gap:           {max(gaps):.0f} minutes")
+                print(f"  Avg gap:               {sum(gaps)/len(gaps):.0f} minutes")
+    print()
+
+    # Steps coverage
+    step_coverage = {}
+    for step in EXPECTED_STEPS:
+        present = sum(1 for e in entries if step in e.get("steps", {}))
+        step_coverage[step] = present
+
+    print("  Step coverage:")
+    for step, count in step_coverage.items():
+        pct = (count / total * 100) if total > 0 else 0
+        bar = "█" * int(pct / 5) + "░" * (20 - int(pct / 5))
+        print(f"    {step:<28} {bar} {count}/{total} ({pct:.0f}%)")
+
+    # Health score
+    clean_rate = ((total - violations) / total * 100) if total > 0 else 0
+    step_completeness = sum(step_coverage.values()) / (total * len(EXPECTED_STEPS)) * 100 if total > 0 else 0
+
+    print(f"\n  {'Metric':<30} {'Score':>8}")
+    print(f"  {'-'*40}")
+    print(f"  {'Entry cleanliness':<30} {clean_rate:>7.0f}%")
+    print(f"  {'Step completeness':<30} {step_completeness:>7.0f}%")
+    print(f"  {'Overall health':<30} {(clean_rate + step_completeness) / 2:>7.0f}%")
+
+    print("\n" + "=" * 60)
+    if clean_rate == 100 and step_completeness == 100:
+        print("RESULT: Excellent — all entries clean, all steps present.")
+    elif clean_rate >= 90 and step_completeness >= 80:
+        print("RESULT: Good — minor gaps in coverage.")
+    else:
+        print("RESULT: Needs attention — significant gaps in trace coverage.")
+        print("        Agent may be skipping Gateway steps or not emitting traces.")
+
+    sys.exit(0)
+
+
 if __name__ == "__main__":
-    main()
+    if "--coverage" in sys.argv:
+        coverage_mode()
+    else:
+        main()
