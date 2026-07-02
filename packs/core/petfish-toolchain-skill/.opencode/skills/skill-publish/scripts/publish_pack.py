@@ -108,6 +108,38 @@ def build_registry_entry(
     return entry
 
 
+def validate_ref_exists(ref: str, repo: str = "kylecui/petfish.ai") -> bool:
+    """Check that a git ref/tag actually exists in the target repo (#249).
+
+    Uses gh API to verify the ref exists before embedding it in the registry.
+    Returns True if the ref exists, False otherwise.
+    """
+    try:
+        result = subprocess.run(
+            ["gh", "api", f"repos/{repo}/git/refs/tags/{ref}",
+             "--silent"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            return True
+        # Also check if it's a branch ref
+        result = subprocess.run(
+            ["gh", "api", f"repos/{repo}/branches/{ref}", "--silent"],
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        # gh CLI not available — cannot validate, warn but don't block
+        print(
+            f"WARNING: Cannot validate ref '{ref}' — gh CLI not found. "
+            "Ensure the tag exists before publishing.",
+            file=sys.stderr,
+        )
+        return True  # don't block if gh is unavailable
+
+
 def generate_index_json(output_dir: Path, dry_run: bool = False) -> dict:
     """
     Regenerate index.json from all *.json files in output_dir (registry/official/).
@@ -456,6 +488,16 @@ Exit codes: 0 = success, 1 = error
 
     # Use empty string as ref placeholder for dry-run
     ref = args.ref or "(dry-run)"
+
+    # --- Validate ref exists in target repo (#249) ---
+    if not args.dry_run and ref != "(dry-run)":
+        if not validate_ref_exists(ref):
+            print(
+                f"ERROR: ref '{ref}' does not exist in kylecui/petfish.ai. "
+                f"Create the tag first: git tag {ref} && git push origin {ref}",
+                file=sys.stderr,
+            )
+            return 1
 
     # --- Find repo root ---
     script_path = Path(__file__).resolve()
