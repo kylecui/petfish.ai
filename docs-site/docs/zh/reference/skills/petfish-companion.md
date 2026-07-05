@@ -70,7 +70,7 @@ uv run catalog_query.py --check-failures "<上轮assistant文本片段>" [--targ
 | 测试用例、test case、覆盖率 | opencode-skill-pack-testcases-usage-docs | testdocs |
 | 文档、README、使用说明、API文档 | opencode-skill-pack-testcases-usage-docs | testdocs |
 | 说人话、润色、去AI味、风格、改写 | petfish-style-skill | petfish |
-| 评审、评价、批判、review、critique、校准、迎合 | anti-sycophancy-calibration-pack | calibrate |
+ | 评审、评价、批判、review、critique、校准、迎合 | judgment-calibration-pack | calibrate |
 | 话题、上下文、topic、context、污染、继承、隔离 | fish-trail | context |
 | 研究、调研、文献、证据、综述、论文 | research-skill-pack | research |
 | 反思、复盘、经验沉淀、事后分析、postmortem | fish-reflection-pack | reflect |

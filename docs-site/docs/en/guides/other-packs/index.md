@@ -65,9 +65,9 @@ Generate a 15-slide deck from docs/02-content/module-01.md using our corporate t
 
 ## Calibrate Pack
 
-**Alias:** `calibrate` | **Skills:** 1 (`anti-sycophancy-calibration`)
+**Alias:** `calibrate` | **Skills:** 2 (`anti-sycophancy-calibration`, `council-thinking`)
 
-The Calibrate pack prevents the AI from blindly agreeing with you. It injects structured evaluation discipline into any judgment-heavy task.
+The Calibrate pack prevents the AI from blindly agreeing with you and enhances decision robustness through adversarial reasoning. It injects structured evaluation discipline into any judgment-heavy task.
 
 ### Install
 
@@ -92,6 +92,17 @@ The `anti-sycophancy-calibration` skill activates whenever you ask for reviews, 
 3. **Find counter-arguments** — identify at least one reason the proposal might be wrong
 4. **Separate conclusion from confidence** — state both what it thinks AND how sure it is
 
+The `council-thinking` skill provides multi-perspective adversarial reasoning using a 5+1 model:
+
+1. **Perspective 1 (Support)** — What arguments support this proposal?
+2. **Perspective 2 (Oppose)** — What arguments oppose it?
+3. **Perspective 3 (Practical)** — What are the implementation challenges?
+4. **Perspective 4 (Conservative)** — What risks could sink this?
+5. **Perspective 5 (Innovative)** — What alternatives or improvements exist?
+6. **Perspective 6 (Synthesis)** — Integrated judgment with confidence levels
+
+This 5+1 model exposes blind spots, examines hidden assumptions, and strengthens decision robustness for high-stakes judgments like strategic decisions, architecture reviews, product planning, and technology selection.
+
 ### When to Use
 
 - Code reviews ("Is this architecture correct?")
@@ -110,6 +121,10 @@ Review this architecture proposal and tell me if it's production-ready.
 Is my approach to error handling correct here?
 ```
 
+```text
+Use council-thinking to evaluate this strategic decision: should we migrate to microservices?
+```
+
 !!! warning "It Won't Flatter You"
     The whole point is to get honest feedback. If you ask "Is this good?" and the answer is "No, here's why," that's the skill working correctly. Don't disable it because you don't like the answer.
 
@@ -117,9 +132,11 @@ Is my approach to error handling correct here?
 
 The calibrate pack works well when combined with other skills:
 
-- `course-outline-design` + `calibrate` → Prevents course outlines from just confirming your initial vision
-- `research-report-writer` + `calibrate` → Forces the report to acknowledge opposing evidence
-- `decision-recommendation` + `calibrate` → Ensures recommendations aren't just echoing your preference
+- `course-outline-design` + `anti-sycophancy-calibration` → Prevents course outlines from just confirming your initial vision
+- `research-report-writer` + `anti-sycophancy-calibration` → Forces the report to acknowledge opposing evidence
+- `decision-recommendation` + `anti-sycophancy-calibration` → Ensures recommendations aren't just echoing your preference
+- `product-opportunity-mapper` + `council-thinking` → Multi-perspective evaluation of opportunity strength and risks
+- `planning-roadmap-developer` + `council-thinking` → Strategic roadmap stress-tested through adversarial perspectives
 
 ---
 
@@ -322,7 +339,7 @@ The `context-state` MCP server exposes 30+ tools for programmatic topic manageme
 | Pack | Skills | Primary Use Case | Effort Level |
 |---|---|---|---|
 | `ppt` | 2 | Slide generation and audit | Medium |
-| `calibrate` | 1 | Honest evaluation and review | Low (always-on) |
+| `calibrate` | 2 | Judgment calibration and adversarial reasoning | Low (always-on) |
 | `petfish` | 1 | Writing style enforcement | Low |
 | `testdocs` | 2 | Test cases and docs from code | Medium |
 | `context` | 1 + MCP | Topic isolation and governance | Low (always-on) |

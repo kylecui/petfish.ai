@@ -107,7 +107,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | 别名 | 定位 | 规模 |
 |------|------|------|
 | `context` | 话题治理器——守护核心 | 1 skill, 31 MCP |
-| `calibrate` | 反迎合校准——秉正核心 | 1 skill |
+| `calibrate` | 判断校准与多视角对抗推理（fish-calibrate + council-thinking） | 2 skills |
 | `trust` | Skill可信度治理——可信核心 | 1 skill |
 | `course` | 课程开发全套 | 15 skills, 10 cmds, 8 agents |
 | `deploy` | 部署与运维 | 7 skills |
@@ -212,6 +212,7 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 
 ### v1.9 — 测试团队 issue 解决 + 交付链路修复
 
+- **v1.9.5**: Pack 重命名 `anti-sycophancy-calibration-pack` → `judgment-calibration-pack`；新增 `council-thinking` skill（5+1 多视角对抗推理）；pack 现包含 2 个 skill（fish-calibrate + council-thinking）；别名 `calibrate` 不变；`legacy_names` 保留升级兼容性。
 - **v1.9.4**: 修复已交付修复中残留的 3 个 bug — #234（`path.lower().parts` 每次调用都崩溃，Path 没有 `.lower()` 方法；改为遍历 `path.parts` 逐个小写化）、#235（`fix_docx_tables()` 漏掉了 index-0 处空表头的情况；增加检测+交换）、#207（PACK_RENAMES 清理放在 `load_registry` 中——仅内存态，从未持久化；移至 `save_registry`）。全部通过运行时测试验证。
 - **v1.9.3**: 交付链路修复——所有可选包（doc-reader、testdocs、series-style-governor、trustskills-governance）现在从 monorepo 的 v1.9.2 提供而非过时的独立仓库引用。用户运行 `--pack all --force` 现在能拿到 #230–#237 的全部修复。
 - **v1.9.2**: CI 转绿（363 个测试通过）+ 交付链路修复。doc-reader 加入 TRIGGERS（修复 `test_all_aliases_have_triggers`）；`合理` → `合理吗`（修复 calibrate 对非评价性消息如"变量命名是否合理"的误报）；`test_style_check` 期望 keys 按新指标更新。市场索引更新随后单独提交。

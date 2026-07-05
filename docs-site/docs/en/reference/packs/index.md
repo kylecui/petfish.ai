@@ -15,7 +15,7 @@ PEtFiSh ships **4 core + 9 optional** skill packs (13 total). Core packs are inc
 
 | Alias | Description | Skills | Version |
 |---|---|---|---|
-| [`calibrate`](calibrate.md) | 反迎合决策校准 — 在评审、方案设计、代码审查等判断型任务中降低AI迎合倾向，通过中性化提问、评分卡、替代方案比较和置信度分离提升判断质量 | 1 | 0.1.1 |
+ | [`calibrate`](calibrate.md) | Judgment Calibration Pack — 反迎合决策校准与多方对抗性推理。通过中性化提问、评分卡、替代方案比较和置信度分离提升判断质量；通过5+1模型（支持、反对、实用、保守、创新+综合视角）发现盲点、审视假设、增强稳健性 | 2 | 0.2.0 |
 | [`reflect`](reflect.md) | 结构化反思与经验沉淀 — 在用户纠正、连续失败或显式请求时触发反思，将一次性修正转化为可复用的预防规则和项目知识资产 | 1 | 0.1.0 |
 | [`context`](context.md) | 话题治理器 — 在项目内维护topic边界、继承策略和切换记录，降低跨话题上下文污染。三层架构：AGENTS.md always-on感知 + MCP serv | 1 | 1.0.1 |
 | [`course`](course.md) | 课程开发全生命周期 — 规划、提纲、正文、实验、资料、QA/QC、发布 | 15 | 1.3.2 |

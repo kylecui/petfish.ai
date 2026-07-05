@@ -39,7 +39,7 @@
     context:        { zh:'鱼迹',        en:'Fish Trail' },
     'fish-trail':   { zh:'鱼迹',        en:'Fish Trail' },
     trust:          { zh:'鱼鳞',        en:'Fish Scale' },
-    calibrate:      { zh:'鱼刺',        en:'Fishbone' },
+    calibrate:      { zh:'鱼判',        en:'Judgment' },
     'petfish-style':{ zh:'鱼话',        en:'Fish Talk' },
     petfish:        { zh:'鱼话',        en:'Fish Talk' },
     testdocs:       { zh:'',            en:'' },

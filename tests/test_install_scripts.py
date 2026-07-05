@@ -146,7 +146,7 @@ def test_alias_consistency(script):
     missing = CANONICAL_ALIASES - found
     assert not missing, (
         f"{script} missing aliases: {missing}. "
-        f"Found: {sorted(found)}, Expected: {sorted(CANICAL_ALIASES)}"
+        f"Found: {sorted(found)}, Expected: {sorted(CANONICAL_ALIASES)}"
     )
 
 

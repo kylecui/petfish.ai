@@ -78,7 +78,7 @@ PACK_ALIAS: dict[str, str] = {
     "repo-deploy-ops-skill-pack": "deploy",
     "petfish-style-skill": "petfish",
     "opencode-ppt-skills": "ppt",
-    "anti-sycophancy-calibration-pack": "calibrate",
+    "judgment-calibration-pack": "calibrate",
     "fish-trail": "context",
     "trustskills-governance-pack": "trust",
     "research-skill-pack": "research",

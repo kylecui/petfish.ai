@@ -4,7 +4,13 @@ Full release notes are available on [GitHub Releases](https://github.com/kylecui
 
 ---
 
-## v0.11 — Companion Gateway Enhancement: Proactive Intelligence
+## v1.9 — Testing Team Issue Resolution + Delivery Pipeline Fix
+
+## v2.2 — Council Thinking + Pack Rename
+
+### v2.2.0
+
+Pack rename `anti-sycophancy-calibration-pack` → `judgment-calibration-pack`; added `council-thinking` skill (5+1 multi-perspective adversarial reasoning); pack now contains 2 skills (fish-calibrate + council-thinking); alias `calibrate` unchanged; `legacy_names` preserves upgrade compatibility.
 
 ### v0.11.7
 
