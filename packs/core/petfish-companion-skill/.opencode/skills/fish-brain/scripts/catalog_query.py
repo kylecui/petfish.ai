@@ -47,8 +47,9 @@ ALIAS_MAP = {
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
     "trust": "trustskills-governance-pack",
     "fish-guard": "trustskills-governance-pack",
-    "calibrate": "anti-sycophancy-calibration-pack",
-    "fish-calibrate": "anti-sycophancy-calibration-pack",
+    "calibrate": "judgment-calibration-pack",
+    "fish-calibrate": "judgment-calibration-pack",
+    "council-thinking": "judgment-calibration-pack",
     "context": "fish-trail",
     "research": "research-skill-pack",
     "reflect": "fish-reflection-pack",
@@ -209,6 +210,13 @@ TRIGGERS = {
         "评审", "评价", "批判", "review", "critique", "feedback",
         "校准", "迎合", "sycophancy", "方案评估",
         "好吗", "合理吗", "你觉得", "对吗", "是不是", "这个想法怎么样",
+    ],
+    "council-thinking": [
+        "方案评估", "战略判断", "产品定位", "技术路线选择", "研究设计", "课程设计",
+        "Council", "五人顾问团", "多视角", "对抗式判断", "用Council分析",
+        "presentation主线", "商业分析", "逻辑审查", "是否值得做", "反迎合审查",
+        "multi-perspective", "adversarial reasoning", "council review",
+        "judgment calibration", "collective judgment", "顾问团", "多角度评审",
     ],
 }
 

@@ -100,7 +100,7 @@
         <li><a href="#context"><span class="copy-zh">上下文治理（守护层）</span><span class="copy-en">Context Governance (Guarding Layer)</span></a></li>
         <li><a href="#quality"><span class="copy-zh">质量门禁（可信层）</span><span class="copy-en">Quality Gates (Trust Layer)</span></a></li>
         <li><a href="#trust"><span class="copy-zh">TrustSkills治理引擎</span><span class="copy-en">TrustSkills Governance Engine</span></a></li>
-        <li><a href="#calibration"><span class="copy-zh">反迎合校准（秉正层）</span><span class="copy-en">Anti-Sycophancy Calibration (No-Compromise Layer)</span></a></li>
+         <li><a href="#calibration"><span class="copy-zh">判断校准（秉正层）</span><span class="copy-en">Judgment Calibration (No-Compromise Layer)</span></a></li>
         <li><a href="#platform"><span class="copy-zh">平台适配层</span><span class="copy-en">Platform Adaptation Layer</span></a></li>
         <li><a href="#pack"><span class="copy-zh">Pack体系</span><span class="copy-en">Pack System</span></a></li>
         <li><a href="#companion-skills"><span class="copy-zh">Companion内核</span><span class="copy-en">Companion Core</span></a></li>
@@ -487,7 +487,7 @@ skill目录
     </table>
     <p><span class="copy-zh">命中任何一条红线 → <strong>deny</strong>，不走分数阈值。</span><span class="copy-en">Hitting any red line → <strong>deny</strong>. No score threshold.</span></p>
 
-    <h2 id="calibration"><span class="copy-zh">G. 反迎合校准（秉正层）</span><span class="copy-en">G. Anti-Sycophancy Calibration (No-Compromise Layer)</span></h2>
+    <h2 id="calibration"><span class="copy-zh">G. 判断校准（秉正层）</span><span class="copy-en">G. Judgment Calibration (No-Compromise Layer)</span></h2>
 
     <p><span class="copy-zh"><code>calibrate</code> pack解决AI在评审、方案评估等判断型任务中倾向于顺着用户说的问题。</span><span class="copy-en">The <code>calibrate</code> pack addresses AI tendency to agree with users in review, evaluation, and judgment tasks.</span></p>
 
@@ -574,7 +574,7 @@ skill目录
       </tr>
       <tr><td>petfish-companion-skill</td><td><code>companion</code> · 胖鱼</td><td><span class="copy-zh">常伴</span><span class="copy-en">Always-Present</span></td><td>10 skills, 1 cmd</td></tr>
       <tr><td>fish-trail</td><td><code>context</code> · 鱼迹</td><td><span class="copy-zh">守护</span><span class="copy-en">Guarding</span></td><td>1 skill, 31 MCP</td></tr>
-      <tr><td>anti-sycophancy-calibration-pack</td><td><code>calibrate</code> · 鱼刺</td><td><span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></td><td>1 skill</td></tr>
+      <tr><td>judgment-calibration-pack</td><td><code>calibrate</code> · 鱼判</td><td><span class="copy-zh">秉正</span><span class="copy-en">No Compromise</span></td><td>2 skills</td></tr>
       <tr><td>trustskills-governance-pack</td><td><code>trust</code> · 鱼鳞</td><td><span class="copy-zh">可信</span><span class="copy-en">Verified Trust</span></td><td>1 skill</td></tr>
       <tr><td>project-initializer-skill</td><td><code>init</code></td><td>—</td><td>1 skill, 1 cmd</td></tr>
       <tr><td>opencode-course-skills-pack</td><td><code>course</code></td><td>—</td><td>15 skills, 10 cmds, 8 agents</td></tr>
@@ -695,7 +695,7 @@ mine → author → lint → audit → gate → optimize → eval
         <td><span class="copy-zh">支持多话题并行、跨会话恢复</span><span class="copy-en">Supports parallel topics and cross-session resume</span></td>
       </tr>
       <tr>
-        <td><span class="copy-zh">反迎合校准</span><span class="copy-en">Anti-sycophancy calibration</span></td>
+         <td><span class="copy-zh">判断校准</span><span class="copy-en">Judgment calibration</span></td>
         <td><span class="copy-zh">组合式skill</span><span class="copy-en">Composable skill</span></td>
         <td><span class="copy-zh">可叠加到任何评审类skill，不改变原skill逻辑</span><span class="copy-en">Stackable onto any review skill without changing original skill logic</span></td>
       </tr>

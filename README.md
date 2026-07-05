@@ -131,7 +131,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `testdocs` | Test case and usage documentation workflows | Project |
 | `deploy` | Deployment, CI/CD, health check, rollback, and ops workflows | Project |
 | `ppt` | Slide and presentation workflows | Project |
-| `calibrate` | Anti-sycophancy review and decision calibration | Project |
+| `calibrate` | Judgment calibration and multi-perspective adversarial reasoning (fish-calibrate + council-thinking) | Project |
 | `context` | Topic governance, context isolation, and contamination scoring | Project |
 | `trust` | Skill trust governance and policy checks | Project |
 | `research` | Research workbench — evidence-backed scientific, product, and planning research | Project |
@@ -326,7 +326,7 @@ petfish.ai/
 │       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
 │       ├── repo-deploy-ops-skill-pack/           # deploy
 │       ├── opencode-ppt-skills/                  # ppt
-│       ├── anti-sycophancy-calibration-pack/     # calibrate
+│       ├── judgment-calibration-pack/              # calibrate — 2 skills (fish-calibrate + council-thinking)
 │       ├── fish-trail/                           # context
 │       ├── trustskills-governance-pack/          # trust
 │       ├── research-skill-pack/                  # research
@@ -345,6 +345,7 @@ petfish.ai/
 ## Version History
 ### v1.9 — Testing Team Issue Resolution + Delivery Pipeline Fix
 
+- **v2.2.0**: Pack rename `anti-sycophancy-calibration-pack` → `judgment-calibration-pack`; added `council-thinking` skill (5+1 multi-perspective adversarial reasoning); pack now contains 2 skills (fish-calibrate + council-thinking); alias `calibrate` unchanged; `legacy_names` preserves upgrade compatibility.
 - **v1.9.4**: Fix 3 remaining bugs in delivered fixes — #234 (`path.lower().parts` crashed on every call since Path has no `.lower()` method; fixed by iterating `path.parts` and lowercasing each), #235 (`fix_docx_tables()` missed the empty-header-at-index-0 case; fixed with detect-and-swap), #207 (PACK_RENAMES cleanup lived in `load_registry` — in-memory only, never persisted; moved to `save_registry`). All verified with runtime tests.
 - **v1.9.3**: Delivery pipeline fix — all optional packs (doc-reader, testdocs, series-style-governor, trustskills-governance) now served from monorepo at v1.9.2 instead of stale independent-repo refs. Users running `--pack all --force` now receive every fix from issues #230–#237.
 - **v1.9.2**: CI green (363 tests pass) + delivery pipeline fix. doc-reader added to TRIGGERS (fixes `test_all_aliases_have_triggers`); `合理` → `合理吗` (fixes calibrate false positive on non-evaluative messages like "变量命名是否合理"); `test_style_check` expected keys updated for new metrics. Market index update follows in a separate commit.

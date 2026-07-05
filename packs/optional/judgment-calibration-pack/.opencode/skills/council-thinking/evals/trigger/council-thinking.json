@@ -1,0 +1,104 @@
+[
+  {
+    "query": "用Council分析这个产品定位是否靠谱。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "显式使用'用Council分析'触发五人顾问团多视角判断。"
+  },
+  {
+    "query": "五人顾问团，帮我审查这个战略方向。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "显式提到'五人顾问团'，应触发 council-thinking。"
+  },
+  {
+    "query": "用反对者、本质思考者、机会挖掘者、局外人、执行者五个角度判断这个方案。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "显式列举五个顾问角色，应触发 council-thinking。"
+  },
+  {
+    "query": "多视角评估这个技术路线，不要迎合我。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "包含'多视角评估'和'不要迎合我'，属于对抗式多视角判断。"
+  },
+  {
+    "query": "用Council方法评估这个研究设计是否有先进性。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "显式使用'用Council方法评估'触发。"
+  },
+  {
+    "query": "对抗式审查这个商业分析：我们是不是高估了市场规模？",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "明确请求'对抗式审查'，属于 council-thinking 的触发语。"
+  },
+  {
+    "query": "用Council审查这个课程大纲的主线设计。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "将Council用于课程设计主线审查，属于默认适用场景。"
+  },
+  {
+    "query": "我想向投资人展示这个想法，用Council帮我判断怎么表达最有说服力。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "复杂沟通判断场景，适合 council-thinking。"
+  },
+  {
+    "query": "翻译这段话成英文。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "纯翻译任务，不涉及判断。"
+  },
+  {
+    "query": "修复这个bug。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "纯代码修复任务，不涉及判断。"
+  },
+  {
+    "query": "把这个JSON格式化成标准格式。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "纯格式转换任务，不涉及判断。"
+  },
+  {
+    "query": "TCP三次握手是什么？",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "简单事实查询，不属于复杂判断。"
+  },
+  {
+    "query": "帮我改个typo。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "机械编辑任务，不应误触发。"
+  },
+  {
+    "query": "这个方案怎么样，对吗？",
+    "should_trigger": false,
+    "category": "edge",
+    "description": "是判断类请求但属于轻量确认式提问，更适合 fish-calibrate 而不是 council-thinking。"
+  },
+  {
+    "query": "帮我review这个架构设计。",
+    "should_trigger": false,
+    "category": "edge",
+    "description": "请求评审但未显式触发Council，应走 fish-calibrate 的轻量校准路径。"
+  },
+  {
+    "query": "用 Council 简单看一下这个方向。",
+    "should_trigger": true,
+    "category": "edge",
+    "description": "用户同时提到 Council 和要求简洁，仍应触发 council-thinking，但使用快速模式。"
+  },
+  {
+    "query": "帮我润色这段话并指出逻辑问题。",
+    "should_trigger": false,
+    "category": "edge",
+    "description": "主要意图是润色，逻辑问题部分由 fish-calibrate 处理，不够触发 Council。"
+  }
+]

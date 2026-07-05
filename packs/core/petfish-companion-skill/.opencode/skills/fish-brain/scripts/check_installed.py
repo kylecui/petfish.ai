@@ -42,7 +42,7 @@ KNOWN_PACKS = {
     "petfish": "petfish-style-skill",
     "ppt": "opencode-ppt-skills",
     "testdocs": "opencode-skill-pack-testcases-usage-docs",
-    "calibrate": "anti-sycophancy-calibration-pack",
+    "calibrate": "judgment-calibration-pack",
     "context": "fish-trail",
     "research": "research-skill-pack",
     "trust": "trustskills-governance-pack",

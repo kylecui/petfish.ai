@@ -378,7 +378,7 @@ $Aliases = @{
     "ppt"      = "opencode-ppt-skills"
     "trust"     = "trustskills-governance-pack"
     "fish-guard" = "trustskills-governance-pack"
-    "calibrate" = "anti-sycophancy-calibration-pack"
+    "calibrate" = "judgment-calibration-pack"
     "context"  = "fish-trail"
     "research" = "research-skill-pack"
     "reflect"  = "fish-reflection-pack"
@@ -389,7 +389,8 @@ $Aliases = @{
     "fish-deploy"    = "repo-deploy-ops-skill-pack"
     "fish-style"     = "petfish-style-skill"
     "fish-slides"    = "opencode-ppt-skills"
-    "fish-calibrate" = "anti-sycophancy-calibration-pack"
+    "fish-calibrate" = "judgment-calibration-pack"
+    "council-thinking" = "judgment-calibration-pack"
     "fish-trail"     = "fish-trail"
     "fish-research"  = "research-skill-pack"
     "fish-reflect"   = "fish-reflection-pack"
@@ -606,7 +607,7 @@ function Write-PackRulesFile([string]$srcFile, [string]$targetDir, [string]$pack
         "repo-deploy-ops-skill-pack"         = "deploy-ops.md"
         "petfish-style-skill"                = "petfish-style.md"
         "petfish-companion-skill"            = "petfish-companion.md"
-        "anti-sycophancy-calibration-pack"   = "anti-sycophancy.md"
+        "judgment-calibration-pack"          = "anti-sycophancy.md"
         "fish-trail"                         = "fish-trail.md"
         "research-skill-pack"                = "research.md"
         "fish-reflection-pack"               = "fish-reflection.md"
@@ -746,6 +747,7 @@ function Migrate-LegacyV09(
         'toolchain'                        = 'petfish-toolchain-skill'
         'project-initializer'              = 'project-initializer-skill'
         'anti-sycophancy-calibration'      = 'anti-sycophancy-calibration-pack'
+        'anti-sycophancy-calibration-pack' = 'judgment-calibration-pack'
         'petfish-style-rewriter'           = 'petfish-style-skill'
         'skill-trust-governance'           = 'trustskills-governance-pack'
     }
@@ -985,7 +987,7 @@ function Uninstall-Pack([string]$packAlias, [string]$targetPath) {
         "repo-deploy-ops-skill-pack"         = "deploy-ops.md"
         "petfish-style-skill"                = "petfish-style.md"
         "petfish-companion-skill"            = "petfish-companion.md"
-        "anti-sycophancy-calibration-pack"   = "anti-sycophancy.md"
+        "judgment-calibration-pack"          = "anti-sycophancy.md"
         "fish-trail"                         = "fish-trail.md"
         "research-skill-pack"                = "research.md"
         "fish-reflection-pack"               = "fish-reflection.md"
@@ -2180,7 +2182,7 @@ function Install-ForPlatform([string]$platformName, [string[]]$packs, [string]$t
             # Tiered AGENTS.md: on opencode, packs with L1 rules files skip inline merge
             $hasL1 = $false
             if ($platformName -eq "opencode") {
-                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","petfish-toolchain-skill","anti-sycophancy-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
+                $L1Packs = @("opencode-course-skills-pack","repo-deploy-ops-skill-pack","petfish-style-skill","petfish-companion-skill","petfish-toolchain-skill","judgment-calibration-pack","fish-trail","research-skill-pack","fish-reflection-pack")
                 $hasL1 = $L1Packs -contains $packName
             }
 

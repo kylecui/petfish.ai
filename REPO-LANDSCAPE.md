@@ -55,7 +55,7 @@ petfish.ai/
 │       ├── opencode-ppt-skills/               # ppt — 2 skills
 │       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs — 2 skills
 │       ├── petfish-style-skill/               # petfish — 1 skill (fish-style 鱼言)
-│       ├── anti-sycophancy-calibration-pack/  # calibrate — 1 skill (fish-calibrate 鱼准)
+│       ├── judgment-calibration-pack/          # calibrate — 2 skills (fish-calibrate + council-thinking)
 │       ├── trustskills-governance-pack/       # trust — 1 skill (fish-guard 鱼卫)
 │       └── fish-reflection-pack/              # reflect — 1 skill (fish-reflection)
 │
@@ -274,7 +274,7 @@ petfish-ai/packs/core/petfish-toolchain-skill/.opencode/skills/quality-gate/scri
 | `ppt` | opencode-ppt-skills | 2 | 0 | 0 | — |
 | `testdocs` | opencode-skill-pack-testcases-usage-docs | 2 | 0 | 0 | — |
 | `petfish`, `fish-style` | petfish-style-skill | 1 | 0 | 0 | 鱼言 |
-| `calibrate`, `fish-calibrate` | anti-sycophancy-calibration-pack | 1 | 0 | 0 | 鱼准 |
+| `calibrate`, `fish-calibrate` | judgment-calibration-pack | 2 | 0 | 0 | 鱼准 |
 | `context` | fish-trail | 1 | 1 | 0 | 鱼迹 |
 | `trust`, `fish-guard` | trustskills-governance-pack | 1 | 0 | 0 | 鱼卫 |
 | `reflect` | fish-reflection-pack | 1 | 0 | 0 | — |

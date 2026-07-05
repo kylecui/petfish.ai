@@ -1,10 +1,11 @@
 # Skills
 
-PEtFiSh includes **96 skills** across all packs.
+PEtFiSh includes **97 skills** across all packs.
 
-| Skill | Pack | Description |
+ | Skill | Pack | Description |
 |---|---|---|
 | [`anti-sycophancy-calibration`](anti-sycophancy-calibration.md) | calibrate | For 评审, 评价, 批判, review, critique, feedback, judgment, decision, evaluation, calibration, sycophancy,... |
+| [`council-thinking`](council-thinking.md) | calibrate | 五人顾问团多视角对抗式判断（5+1模型）。用 Council 分析方案评估、战略判断、产品定位、技术路线、研究设计等复杂判断... |
 | [`fish-reflection`](fish-reflection.md) | reflect | 结构化反思与经验沉淀。Use when 反思, reflect, what went wrong, lessons learned, 复盘, 经验总结, 失败分析, root cause analys... |
 | [`fish-trail`](fish-trail.md) | context | topic_detect is high risk, users ask to 整理/切换/合并/归档话题 or 清空上下文, or mention topic governance/上下文污染/继承... |
 | [`course-content-authoring`](course-content-authoring.md) | course | Create, revise, expand, compress, or review course chapter content, including explanations, examples... |

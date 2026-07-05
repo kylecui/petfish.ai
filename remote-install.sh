@@ -176,7 +176,7 @@ write_pack_rules_file() {
         petfish-style-skill)               l1_name="petfish-style.md" ;;
         petfish-companion-skill)           l1_name="petfish-companion.md" ;;
         petfish-toolchain-skill)           l1_name="petfish-companion.md" ;;
-        anti-sycophancy-calibration-pack)  l1_name="anti-sycophancy.md" ;;
+        judgment-calibration-pack)          l1_name="anti-sycophancy.md" ;;
         fish-trail)                        l1_name="fish-trail.md" ;;
         research-skill-pack)               l1_name="research.md" ;;
         fish-reflection-pack)              l1_name="fish-reflection.md" ;;
@@ -340,7 +340,8 @@ PACK_RENAMES = {
     'companion': 'petfish-companion-skill',
     'toolchain': 'petfish-toolchain-skill',
     'project-initializer': 'project-initializer-skill',
-    'anti-sycophancy-calibration': 'anti-sycophancy-calibration-pack',
+    'anti-sycophancy-calibration': 'judgment-calibration-pack',
+    'anti-sycophancy-calibration-pack': 'judgment-calibration-pack',
     'petfish-style-rewriter': 'petfish-style-skill',
     'skill-trust-governance': 'trustskills-governance-pack',
 }
@@ -756,7 +757,7 @@ declare -A ALIASES=(
     [init]="project-initializer-skill"
     [trust]="trustskills-governance-pack"
     [fish-guard]="trustskills-governance-pack"
-    [calibrate]="anti-sycophancy-calibration-pack"
+    [calibrate]="judgment-calibration-pack"
     [context]="fish-trail"
     [research]="research-skill-pack"
     [reflect]="fish-reflection-pack"
@@ -767,7 +768,8 @@ declare -A ALIASES=(
     [fish-deploy]="repo-deploy-ops-skill-pack"
     [fish-style]="petfish-style-skill"
     [fish-slides]="opencode-ppt-skills"
-    [fish-calibrate]="anti-sycophancy-calibration-pack"
+    [fish-calibrate]="judgment-calibration-pack"
+[council-thinking]="judgment-calibration-pack"
     [fish-trail]="fish-trail"
     [fish-research]="research-skill-pack"
     [fish-reflect]="fish-reflection-pack"
@@ -776,7 +778,7 @@ declare -A ALIASES=(
     [series-style]="series-style-governor-pack"
     [doc-reader]="doc-reader-skill"
 )
-ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "petfish-toolchain-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "anti-sycophancy-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack" "series-style-governor-pack" "doc-reader-skill")
+ALL_PACKS=("opencode-course-skills-pack" "opencode-skill-pack-testcases-usage-docs" "repo-deploy-ops-skill-pack" "petfish-style-skill" "petfish-companion-skill" "petfish-toolchain-skill" "opencode-ppt-skills" "project-initializer-skill" "trustskills-governance-pack" "judgment-calibration-pack" "fish-trail" "research-skill-pack" "fish-reflection-pack" "series-style-governor-pack" "doc-reader-skill")
 
 # --- Core pack classification ---
 # Core packs are always sourced from the petfish.ai tarball.
@@ -1207,7 +1209,7 @@ if $LIST; then
     echo "  opencode-ppt-skills                      (aliases: ppt, fish-slides)"
     echo "  project-initializer-skill                (aliases: init, fish-init)"
     echo "  trustskills-governance-pack               (alias: trust)"
-    echo "  anti-sycophancy-calibration-pack         (aliases: calibrate, fish-calibrate)"
+    echo "  judgment-calibration-pack                (aliases: calibrate, fish-calibrate)"
     echo "  fish-trail                               (aliases: context, fish-trail)"
     echo "  research-skill-pack                      (aliases: research, fish-research)"
     echo ""
@@ -1969,7 +1971,7 @@ install_for_platform() {
             local has_l1=false
             if [[ "$platform_name" == "opencode" ]]; then
                 case "$pack_name" in
-                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|petfish-toolchain-skill|anti-sycophancy-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack|series-style-governor-pack)
+                    opencode-course-skills-pack|repo-deploy-ops-skill-pack|petfish-style-skill|petfish-companion-skill|petfish-toolchain-skill|judgment-calibration-pack|fish-trail|research-skill-pack|fish-reflection-pack|series-style-governor-pack)
                         has_l1=true ;;
                 esac
             fi

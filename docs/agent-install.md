@@ -92,7 +92,7 @@ If user chooses **custom**, show available packs:
 - `testdocs` — Test cases & documentation (2 skills)
 - `petfish` — Engineering writing style (1 skill)
 - `ppt` — Presentation design (2 skills)
-- `calibrate` — Anti-sycophancy calibration for reviews (1 skill)
+- `calibrate` — Judgment calibration and multi-perspective adversarial reasoning (2 skills: fish-calibrate + council-thinking)
 - `context` — Topic governance and context isolation (1 skill)
 - `trust` — Skill trust governance engine (1 skill)
 - `research` — Research workbench — 50 skills across 8 domains (scientific, product, planning, learning, decision, risk-procurement, experience-event, adapters)
