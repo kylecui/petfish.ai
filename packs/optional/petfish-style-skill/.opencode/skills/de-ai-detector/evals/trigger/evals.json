@@ -1,0 +1,62 @@
+[
+  {
+    "query": "检测一下这段文字的AI味有多重。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "明确请求检测AI味，应触发de-ai-detector。"
+  },
+  {
+    "query": "Can you detect AI writing in this paragraph?",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文明确请求detect AI writing，应触发检测skill。"
+  },
+  {
+    "query": "is this AI-generated?",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "简短确认式请求判断是否为AI生成，应触发。"
+  },
+  {
+    "query": "帮我做个AI slop check，看看这段话像不像AI写的。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "使用AI slop check术语，属于检测AI痕迹。"
+  },
+  {
+    "query": "检查AI痕迹：这段内容是不是太像AI写的？",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "明确要求检查AI痕迹并判断AI特征。"
+  },
+  {
+    "query": "润色一下这段中文。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "纯润色请求，应路由到petfish-style-rewriter而非检测器。"
+  },
+  {
+    "query": "rewrite my paper in academic style",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "重写/改写请求，不触发检测。"
+  },
+  {
+    "query": "说人话：把这段话改得自然一点。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "去AI味的改写请求，应由rewriter处理，检测器只诊断不改写。"
+  },
+  {
+    "query": "translate this into Japanese",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "纯翻译任务，不涉及AI检测。"
+  },
+  {
+    "query": "format this JSON for me",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "格式化任务，不应误触发检测skill。"
+  }
+]

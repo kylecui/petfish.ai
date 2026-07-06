@@ -213,3 +213,62 @@ Use:
 - evidence
 - action or conclusion
 - concise closing
+
+## 9. Register Switching Rules
+
+The same underlying message must wear different clothes for different audiences. Switch register deliberately.
+
+| From register | To register | What changes |
+|---|---|---|
+| Academic paper | Executive summary | Drop hedges and jargon; lead with cost/risk/benefit; use bullets |
+| Technical report | Support email | Add acknowledgement and explicit next action; remove background unless requested |
+| Academic paper | Blog post | Use shorter sentences, direct address, and one concrete example early |
+| Engineering memo | Patent draft | Use formal claim language; avoid evaluative adjectives; define terms precisely |
+| Course material | Slide deck | Convert paragraphs to one idea per slide; favor examples over definitions |
+| Incident postmortem | Customer update | Emphasize impact window, root-cause category, and preventive action; omit blame |
+
+Rule: do not translate content word-for-word across registers. Rebuild the structure for the new reader.
+
+## 10. Terminology Consistency Table
+
+Consistent terminology reduces cognitive load. Track key terms across a document or project.
+
+| Concept | Preferred term | Avoided variants | Notes |
+|---|---|---|---|
+| AI writing signal | AI腔 | AI味, machine flavor | Use in Chinese context |
+| Style rewrite | de-AI rewrite | humanize, polish | Use when the goal is to remove AI flavor |
+| Custom style file | `.petfish/style-profile.md` | style profile, profile | Capitalize as a proper file reference |
+| Detection report | de-ai-detector report | detector output | Use the tool name as adjective |
+| Sentence-length variance | burstiness | variability | Academic term of art |
+| Connector density | connector stacking | transition spam | Stacking implies excess |
+| Parallel structure | 排比 | parallelism (in Chinese) | Use the Chinese term for Chinese text |
+
+When a user provides a style profile, let the profile's terminology table override this default table.
+
+## 11. Tone Calibration by Audience
+
+Adjust tone without changing factual claims.
+
+| Audience | Tone | Sentence length | Hedging | Examples |
+|---|---|---|---|---|
+| Internal engineer | Direct, minimal | Short to medium | Rare | "The fix is in PR #234." |
+| Cross-functional team | Neutral, structured | Medium | Moderate | "Three blockers remain; see below." |
+| Customer / executive | Reserved, outcome-focused | Medium | Low | "Deployment will reduce P99 latency by 40%." |
+| Academic reviewer | Formal, defensible | Varied (burstiness) | Load-bearing | "This suggests, though it does not prove, that …" |
+| Public blog | Conversational but precise | Short | Occasional | "We tried X. It didn't work. Here's why." |
+| Legal / compliance | Cautious, explicit | Medium to long | Frequent | "Subject to the limitations described in Section 4…" |
+
+Never mix two registers in the same paragraph. If the audience shifts, insert a section break.
+
+## 12. Micro-Editing Checklist
+
+Before finalizing any paragraph, run this quick check:
+
+1. Is the first sentence doing work, or only setting the scene?
+2. Does every sentence add information a reader would not already know?
+3. Are there two or more consecutive sentences with the same structure?
+4. Are all connectors load-bearing, or are some doing the reader's work?
+5. Is the closing sentence a real conclusion, or a restatement?
+6. Are Chinese-English technical terms compact (e.g., `API接口`, not `API 接口`)?
+
+If any answer is unsatisfactory, revise the paragraph before moving on.

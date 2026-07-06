@@ -66,6 +66,64 @@
 | 段落模板化 | (连续5段，每段都是4句：背景句→方法句→结果句→结论句) | Break the pattern: write a 2-sentence observation paragraph, then a 6-sentence analysis paragraph. |
 | 连接词堆叠 | Therefore, we observe X. However, Y also holds. Specifically, Z follows. In conclusion, W. | We observe X. Y also holds, though the effect is smaller. Z follows when the sample is restricted to the labeled subset. |
 
+## Detection Metrics
+
+AI-generated text tends to score differently from human text on several measurable dimensions. `scripts/style_check.py` computes these where applicable. For standalone, report-grade detection, see the `de-ai-detector` skill.
+
+### Burstiness (sentence-length coefficient of variation)
+
+- **Definition**: standard deviation of sentence lengths divided by the mean length (CV).
+- **AI signal**: low CV (< 0.4 with ≥ 5 sentences). Sentence lengths cluster around a narrow band.
+- **Human signal**: higher CV. A mix of short, medium, and long sentences.
+- **Rewrite move**: after a long sentence, add a short one (≤ 8 words / ≤ 15 characters); after several short sentences, allow one longer sentence.
+- **Exception**: legal texts, specification lists, and some technical procedures intentionally keep uniform length.
+
+### Type-token ratio (TTR)
+
+- **Definition**: number of unique words (types) divided by total words (tokens). A low TTR indicates repetitive vocabulary.
+- **AI signal**: TTR is lower than expected for the genre; the model reuses the same safe words.
+- **Human signal**: higher TTR; authors introduce domain-specific synonyms, slight redundancies, and verbal tics.
+- **Rewrite move**: replace the single most probable word with a slightly less common but accurate alternative; vary verbs and noun phrases.
+- **Caveat**: TTR is sensitive to text length. Compare only within similar-length passages.
+
+### Transition density
+
+- **Definition**: number of explicit logical connectors per 100 words or per paragraph.
+- **AI signal**: every sentence carries a connector; the text over-explains its own logic.
+- **Human signal**: some transitions are implicit; the reader follows two-step inferences without signposting.
+- **Rewrite move**: drop at least one explicit connector per page and rely on juxtaposition or pronoun reference.
+- **Exception**: dense technical arguments may legitimately need frequent connectors.
+
+### Syntactic repetition index
+
+- **Definition**: percentage of sentences in a paragraph that share the same starter or template.
+- **AI signal**: 3+ consecutive sentences begin with the same pattern.
+- **Human signal**: varied openings; at least one sentence per paragraph breaks the dominant template.
+- **Rewrite move**: move the conclusion forward, insert an example, or start with a limitation.
+
+### Paragraph templating score
+
+- **Definition**: difference between the longest and shortest paragraph (in sentences) across a section.
+- **AI signal**: all paragraphs have the same sentence count (±1).
+- **Human signal**: paragraphs vary by ≥ 2 sentences.
+- **Rewrite move**: deliberately write one short paragraph (2–3 sentences) and one longer paragraph (5–7 sentences) per page.
+
+### Connector stacking score
+
+- **Definition**: percentage of sentences that begin with an explicit connector.
+- **AI signal**: > 50% of sentences start with a connector.
+- **Human signal**: 20–40% connector usage, with implicit logic elsewhere.
+- **Rewrite move**: convert explicit connectors to implicit transitions where the relationship is obvious.
+
+## Integration with de-ai-detector
+
+This reference focuses on manual/self-check rules. For automated detection that produces a structured report:
+
+1. Run `de-ai-detector` on the source text.
+2. The report lists flagged patterns with severity and location.
+3. Load the report into `petfish-style-rewriter` and fix flags in severity order.
+4. Re-run detection or `scripts/style_check.py` to verify.
+
 ## 保留条件
 
 不要过度清洗。以下情况不视为AI腔：
@@ -92,3 +150,61 @@
 低于4分的段落必须改写。
 
 学术写作另需检查 `references/academic-writing.md` Part 6 的学术专项自检清单。
+
+## 检测流程图
+
+Use this flow for every paragraph in a de-AI rewrite:
+
+```text
+1. Surface scan
+   ├── dash abuse? ──yes──→ replace with comma/colon/period
+   ├── English AI buzzword? ──yes──→ replace with concrete action/object
+   ├── empty triplet? ──yes──→ collapse or expand with causality
+   └── hollow not-X-but-Y? ──yes──→ delete or replace with mechanism
+
+2. Linguistic scan
+   ├── syntactic symmetry (≥3 same-template sentences)? ──yes──→ break one template
+   ├── low burstiness (CV < 0.4)? ──yes──→ insert short/long sentence
+   ├── paragraph templating (≥4 same-shape paragraphs)? ──yes──→ vary length/opening
+   └── connector stacking (>50% sentences start with connector)? ──yes──→ drop one connector
+
+3. Chinese-specific scan
+   ├── 排比句 (≥3 parallel sentences)? ──yes──→ rewrite if empty
+   ├── 空洞框架词? ──yes──→ delete or replace with concrete observation
+   ├── 被动泛化? ──yes──→ name agent or use active verb
+   └── 词汇趋同? ──yes──→ vary verbs or use concrete description
+
+4. Verify
+   └── Does the fix preserve factual claims and technical terms?
+       no  → revert and try a lighter rewrite
+       yes → continue
+```
+
+Run the flow once per paragraph, not once per document. Surface issues are the cheapest to fix; linguistic issues take priority when they recur.
+
+## 严重度校准指南
+
+Not every flag requires the same response. Calibrate by severity and context.
+
+| Severity | When to assign | Rewrite response |
+|---|---|---|
+| CRITICAL | Pattern is empty, repeated, and central to the claim | Rewrite immediately; keep only with explicit justification |
+| HIGH | Pattern weakens readability or credibility | Rewrite unless it carries a precise technical meaning |
+| MEDIUM | Pattern is present but supported by evidence | Soften, shorten, or add concrete anchor |
+| LOW | Pattern is isolated and harmless | Note and rewrite only if it accumulates |
+| KEEP | Pattern serves real structure, definition, or rhetoric | Leave intact; do not "fix" for the sake of fixing |
+
+A good rule of thumb: if removing the pattern also removes information, keep it. If removing the pattern only improves rhythm, rewrite it.
+
+## 避免误杀（False Positive Avoidance）
+
+Over-correction is a different kind of artificiality. Avoid these common false positives:
+
+1. **Formal lists and definitions**. A numbered procedure ("Step 1… Step 2… Step 3…") is not connector stacking; it is a list.
+2. **Technical terms that happen to be AI buzzwords**. "Robust" in "robust statistics" or "leverage" in "leverage ratio" are domain terms, not AI flavor.
+3. **Deliberate rhetorical parallelism**. A speaker may repeat a sentence pattern for emphasis; preserve it when it is intentional and emotionally warranted.
+4. **Regulatory or contractual language**. Phrases like "shall not" or "provided that" are required by register, not AI signals.
+5. **User-provided quotes**. Do not rewrite inside quotation marks unless the user explicitly asks for paraphrase.
+6. **Short uniform paragraphs in emails**. Email bullets often share a shape; treat them as a genre convention, not paragraph templating.
+
+When in doubt, ask: "If a human editor rewrote this, would they change this phrase?" If the answer is no, leave it.

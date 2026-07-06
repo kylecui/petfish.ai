@@ -54,6 +54,8 @@ ALIAS_MAP = {
     "research": "research-skill-pack",
     "reflect": "fish-reflection-pack",
     "doc-reader": "doc-reader-skill",
+    "de-ai-detector": "petfish-style-skill",
+    "style-extractor": "petfish-style-skill",
 }
 
 # Reverse map: pack name → canonical alias (first alias listed for each pack)
@@ -198,6 +200,24 @@ TRIGGERS = {
     "doc-reader": [
         "PDF", "DOCX", "读文档", "文档转换", "doc to markdown",
         "read document", "convert document", "extract text",
+    ],
+    "de-ai-detector": [
+        "去AI味检测",
+        "AI味检测",
+        "检测AI写作",
+        "detect AI writing",
+        "AI text detector",
+        "humanizer check",
+        "AI slop detector",
+    ],
+    "style-extractor": [
+        "提炼写作风格",
+        "提取我的风格",
+        "风格画像",
+        "style extraction",
+        "writing style analysis",
+        "extract my voice",
+        "nuwa style",
     ],
     # v1.3/v1.4 aliases share triggers with canonical
     "fish-init": ["初始化", "新项目", "project init", "scaffold", "创建项目"],
