@@ -2409,6 +2409,8 @@ PACK_RENAMES = {
     "anti-sycophancy-calibration": "anti-sycophancy-calibration-pack",
     "anti-sycophancy-calibration-pack": "judgment-calibration-pack",
     "petfish-style-rewriter": "petfish-style-skill",
+    "de-ai-detector": "petfish-style-skill",
+    "style-extractor": "petfish-style-skill",
     "skill-trust-governance": "trustskills-governance-pack",
 }
 

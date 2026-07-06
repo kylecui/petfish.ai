@@ -98,7 +98,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 |------|------|------|
 | `companion` | 胖鱼本体——常伴核心，2个核心skill（fish-brain 鱼伴、fish-market 鱼市） | 2 skills, 1 cmd |
 | `init` | 项目初始化向导 | 1 skill, 1 cmd |
-| `petfish` | 工程写作风格 | 1 skill |
+| `petfish` | 工程写作风格套件 — 3 skills: `petfish-style-rewriter`、`de-ai-detector`、`style-extractor` | 3 skills |
 | `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
 
 ## 9个可选包（通过 petfish-market 获取）

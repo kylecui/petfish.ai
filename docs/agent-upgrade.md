@@ -66,7 +66,7 @@ I'll upgrade you to the latest release.
 The unified Python installer handles migrations from all previous versions automatically. This includes:
 
 - Repo rename (`SKILL_builder` → `petfish.ai`)
-- Pack renames (`context-router-skill` → `fish-trail`, `petfish-companion` → `fish-brain`, `marketplace-connector` → `fish-market`)
+- Pack renames (`context-router-skill` → `fish-trail`, `petfish-companion` → `fish-brain`, `marketplace-connector` → `fish-market`, `anti-sycophancy-calibration-pack` → `judgment-calibration-pack`)
 - State directory migration (`.ai-context/` → `.petfish/fish-trail/`)
 - Pack restructuring (`packs/` → `packs/core/` + `packs/optional/`)
 

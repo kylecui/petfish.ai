@@ -1,14 +1,16 @@
 {
   "name": "petfish-style-skill",
-  "version": "4.1.0",
+  "version": "5.0.0",
   "legacy_names": ["petfish-style-rewriter"],
-  "description": "工程写作风格改写 — 去AI味、说人话、AI腔检测与改写、中英文紧凑混排、学术写作拟人化",
+  "description": "工程写作风格套件 — 去AI味改写、AI腔检测、风格画像提取、中英文紧凑混排、学术写作拟人化",
   "compatibility": "opencode",
-  "skill_count": 1,
+  "skill_count": 3,
   "command_count": 0,
   "agent_count": 0,
   "skills": [
-    "petfish-style-rewriter"
+    "petfish-style-rewriter",
+    "de-ai-detector",
+    "style-extractor"
   ],
   "commands": [],
   "agents": [],
@@ -27,6 +29,13 @@
     ".opencode/skills/petfish-style-rewriter/evals/evals.json",
     ".opencode/skills/petfish-style-rewriter/examples/rewrite-examples.md",
     ".opencode/skills/petfish-style-rewriter/assets/rewrite-request-template.md",
-    ".opencode/skills/petfish-style-rewriter/README.md"
+    ".opencode/skills/petfish-style-rewriter/README.md",
+    ".opencode/skills/de-ai-detector/SKILL.md",
+    ".opencode/skills/de-ai-detector/references/ai-patterns.md",
+    ".opencode/skills/de-ai-detector/references/detection-metrics.md",
+    ".opencode/skills/de-ai-detector/scripts/detect_ai.py",
+    ".opencode/skills/de-ai-detector/evals/trigger/evals.json",
+    ".opencode/skills/style-extractor/SKILL.md",
+    ".opencode/skills/style-extractor/scripts/analyze_style.py"
   ]
 }

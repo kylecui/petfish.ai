@@ -272,3 +272,59 @@ Before finalizing an academic rewrite, run this checklist.
 8. **Contributions**: are novelty claims bounded by scope?
 
 If any answer is "no", revise before finalizing. Run `scripts/style_check.py` for the burstiness and connector metrics; the rest are judgment calls.
+
+## Part 7 — Discipline-Specific Patterns
+
+Different fields have different reader expectations. Adapt the humanization framework accordingly.
+
+### Computer science and engineering papers
+
+- Readers expect precise claims tied to experiments or implementations.
+- Favor: "we implemented", "we evaluated", "the system does X", "this reduces Y by Z%".
+- Avoid: hand-wavy novelty claims without a bounded scope ("first to consider" without naming the setting).
+- Authorial voice: "we" is standard; passive constructions ("it was observed that") read as evasive.
+
+### Humanities and social sciences
+
+- Readers tolerate longer theoretical setup and more explicit methodology discussion.
+- Favor: named theorists, situated argument, interpretive claims hedged as "argue" or "suggest".
+- Burstiness still matters, but sentence length can run longer on average.
+- Authorial voice: first person is often accepted; the key signal is a consistent interpretive stance.
+
+### Life and medical sciences
+
+- Readers expect IMRaD structure and conservative claims.
+- Favor: "patients", "samples", "assays", "odds ratios", "confidence intervals".
+- Avoid: causal language when the design is observational.
+- Authorial voice: minimal; let the protocol and results carry the text. One candid limitation per section is usually enough.
+
+### Interdisciplinary and grant proposals
+
+- Two audiences must be satisfied simultaneously.
+- Strategy: open with the domain-agnostic problem, then alternate between field-specific evidence and cross-field implication.
+- Avoid jargon that only one field understands without a one-line gloss.
+
+## Part 8 — Common Reviewer Complaints About AI-Written Academic Prose
+
+These complaints surface repeatedly in peer review and indicate that humanization has been missed.
+
+1. **"Reads like a summary, not an argument."** — The text mirrors source order and lacks authorial reordering. Fix: move the contribution or interpretation forward.
+2. **"Claims are too strong."** — AI text often drops hedges. Fix: add load-bearing hedges where evidence is indirect.
+3. **"Each paragraph has the same shape."** — Template repetition. Fix: vary paragraph length and starting move.
+4. **"No sign of the author's judgment."** — Missing authorial fingerprint. Fix: choose 2–3 stance phrases and use them consistently.
+5. **"Overly polished."** — Surface AI-cleanliness. Fix: add one candid qualification or surprise per section.
+6. **"Jargon is undefined."** — Technical density without gloss. Fix: define non-standard terms on first use.
+7. **"Transitions feel mechanical."** — Connector stacking. Fix: drop at least one explicit connector per page.
+
+## Part 9 — Journal- and Venue-Specific Style Notes
+
+When the target venue is known, adjust beyond the generic academic register.
+
+- **ML/AI conferences (NeurIPS, ICML, ICLR)**: Emphasize empirical result first, method second, theory third if present. Contributions must be bounded by dataset or task scope.
+- **Systems conferences (OSDI, SOSP, NSDI, EuroSys)**: Lead with the problem and evaluation; readers care about what works at scale. Include concrete deployment constraints.
+- **Security conferences (IEEE S&P, CCS, USENIX Security, NDSS)**: Threat model and assumptions must appear early. Avoid "we improve security" without naming the attacker or attack surface.
+- **HCI and visualization (CHI, VIS, UIST)**: Motivate with user needs; cite qualitative findings explicitly. Authorial voice is common.
+- **Management and policy journals**: Use conservative causal language, emphasize generalizability limits, and connect findings to practical implications.
+- **Letters and short papers**: One surprising result plus one limitation is often enough; avoid over-explaining context.
+
+If the venue provides a style guide, let it override the generic rules in this reference when the two conflict.

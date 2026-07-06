@@ -120,7 +120,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 |---|---|---|
 | `init` | Project initializer and `/initproject` wizard | Global default |
 | `companion` | Companion Gateway, `/petfish`, and 2 core skills (fish-brain, fish-market) | Global default |
-| `petfish` | Writing style and rewrite guidance | Global default |
+| `petfish` | Writing style and rewrite guidance — 3 skills: `petfish-style-rewriter`, `de-ai-detector`, `style-extractor` | Global default |
 | `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
 
 ## 9 Optional Packs (via petfish-market)

@@ -90,7 +90,7 @@ If user chooses **custom**, show available packs:
 - `course` — Course development (15 skills, 10 commands, 8 agents)
 - `deploy` — Deployment & operations (7 skills)
 - `testdocs` — Test cases & documentation (2 skills)
-- `petfish` — Engineering writing style (1 skill)
+- `petfish` — Engineering writing style — 3 skills: `petfish-style-rewriter`, `de-ai-detector`, `style-extractor`
 - `ppt` — Presentation design (2 skills)
 - `calibrate` — Judgment calibration and multi-perspective adversarial reasoning (2 skills: fish-calibrate + council-thinking)
 - `context` — Topic governance and context isolation (1 skill)
