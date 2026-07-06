@@ -989,6 +989,18 @@ def resolve_pack_names(raw: str) -> list[str]:
     if len(tokens) == 1 and tokens[0] == "all":
         local_packs = find_all_packs()
         if local_packs:
+            # Also query market index for packs not available locally
+            # (e.g. typst-pdf-builder lives in a separate repo)
+            try:
+                raw = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10)
+                if raw:
+                    data = json.loads(raw)
+                    for pack in data.get("packs", []):
+                        name = pack.get("name")
+                        if name and name not in local_packs:
+                            local_packs.append(name)
+            except Exception:
+                pass  # Offline or market unavailable — use local packs only
             return local_packs
         # Remote mode: no local packs/ dir (SCRIPT_ROOT is temp dir with only the
         # downloaded script). Download core repo + query market index to discover
@@ -1277,7 +1289,15 @@ def install_pack_files(
     # Copy skills
     if skills_dir and pack_skills.is_dir():
         skill_names = manifest.get("skills", [])
-        for skill_name in skill_names:
+        for skill_entry in skill_names:
+            # Skills can be specified as strings ("skill-name") or dicts
+            # ({"name": "skill-name", "path": "."}) in pack-manifest.json
+            if isinstance(skill_entry, dict):
+                skill_name = skill_entry.get("name", "")
+            else:
+                skill_name = skill_entry
+            if not skill_name or not isinstance(skill_name, str):
+                continue
             src = pack_skills / skill_name
             if not src.is_dir():
                 # Try to find it as a subdirectory

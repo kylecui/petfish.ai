@@ -226,15 +226,39 @@ def check_updates(
             print(f"⚠️ Could not check updates: {message}")
         return
 
+    # Fetch market index to resolve pack repos (optional packs may live in
+    # separate repos, not in petfish.ai monorepo)
+    market_index: dict[str, dict] = {}
+    try:
+        market_data = _fetch_json(
+            "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json",
+            timeout=10,
+        )
+        for pack in market_data.get("packs", []):
+            name = pack.get("name")
+            if name:
+                market_index[name] = pack
+    except Exception:
+        pass  # Market unavailable — fall back to monorepo for all packs
+
     for alias, pack_name in KNOWN_PACKS.items():
         info = installed.get(pack_name)
         if not isinstance(info, dict):
             continue
 
         installed_version = str(info.get("version", "unknown"))
+
+        # Determine source repo and path for this pack
+        # Core packs: from petfish.ai monorepo
+        # Optional/market packs: from their respective repos (market index)
+        market_entry = market_index.get(pack_name, {})
+        source_repo = market_entry.get("repo", repo)  # default: monorepo
+        source_ref = market_entry.get("ref", latest_tag)  # default: latest tag
+        source_path = market_entry.get("path", f"packs/{pack_name}")  # default: monorepo path
+
         manifest_url = (
-            f"https://raw.githubusercontent.com/{repo}/{latest_tag}/packs/"
-            f"{pack_name}/pack-manifest.json"
+            f"https://raw.githubusercontent.com/{source_repo}/{source_ref}/"
+            f"{source_path}/pack-manifest.json"
         )
 
         try:
