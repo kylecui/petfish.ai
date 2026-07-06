@@ -1319,7 +1319,14 @@ def install_pack_files(
     # Copy commands
     if commands_dir and pack_commands.is_dir():
         command_names = manifest.get("commands", [])
-        for cmd_name in command_names:
+        for cmd_entry in command_names:
+            # Commands can be specified as strings or dicts (same as skills)
+            if isinstance(cmd_entry, dict):
+                cmd_name = cmd_entry.get("name", "")
+            else:
+                cmd_name = cmd_entry
+            if not cmd_name or not isinstance(cmd_name, str):
+                continue
             # Commands may be stored as .md files (without leading /)
             cmd_file = pack_commands / f"{cmd_name}.md"
             if not cmd_file.is_file():
@@ -1336,7 +1343,14 @@ def install_pack_files(
     # Copy agents
     if agents_dir and pack_agents.is_dir():
         agent_names = manifest.get("agents", [])
-        for agent_name in agent_names:
+        for agent_entry in agent_names:
+            # Agents can be specified as strings or dicts (same as skills)
+            if isinstance(agent_entry, dict):
+                agent_name = agent_entry.get("name", "")
+            else:
+                agent_name = agent_entry
+            if not agent_name or not isinstance(agent_name, str):
+                continue
             src = pack_agents / agent_name
             if not src.is_dir():
                 continue
