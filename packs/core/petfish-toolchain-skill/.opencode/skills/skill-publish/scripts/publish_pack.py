@@ -42,7 +42,12 @@ PACK_ALIASES: dict[str, str] = {
 
 
 def find_repo_root(start: Path) -> Path:
-    """Walk up from start to find the repo root (contains packs/ directory)."""
+    """Walk up from start to find the repo root (contains packs/ directory).
+
+    Falls back to the current working directory if no packs/ dir is found,
+    which supports external repos with non-standard layouts (use --repo-root
+    to override).
+    """
     current = start.resolve()
     for _ in range(10):
         if (current / "packs").is_dir():
@@ -51,9 +56,8 @@ def find_repo_root(start: Path) -> Path:
         if parent == current:
             break
         current = parent
-    raise FileNotFoundError(
-        f"Could not find repo root (directory containing 'packs/') starting from {start}"
-    )
+    # Fallback: use current working directory (external repos)
+    return Path.cwd()
 
 
 def load_manifest(pack_dir: Path) -> dict:
@@ -73,8 +77,19 @@ def build_registry_entry(
     manifest: dict,
     ref: str,
     repo_root: Path,
+    repo: str = "kylecui/petfish.ai",
+    pack_path: str | None = None,
 ) -> dict:
-    """Build a registry JSON entry from a pack manifest."""
+    """Build a registry JSON entry from a pack manifest.
+
+    Args:
+        pack_name: Pack directory name.
+        manifest: Parsed pack-manifest.json.
+        ref: Git ref/tag (e.g. v1.4.0).
+        repo_root: Local repo root path (used for relative path if pack_path is None).
+        repo: GitHub repo in owner/name format (e.g. kylecui/ai_harness_courseware).
+        pack_path: Override for path within repo (default: packs/optional/{pack_name}).
+    """
     # Determine aliases
     aliases: list[str] = []
     primary_alias = PACK_ALIASES.get(pack_name)
@@ -86,7 +101,8 @@ def build_registry_entry(
             aliases.append(legacy)
 
     # Relative path from repo root
-    pack_path = f"packs/optional/{pack_name}"
+    if pack_path is None:
+        pack_path = f"packs/optional/{pack_name}"
 
     entry = {
         "namespace": "official",
@@ -94,10 +110,10 @@ def build_registry_entry(
         "alias": aliases,
         "description": manifest.get("description", ""),
         "version": manifest.get("version", "0.1.0"),
-        "repo": "kylecui/petfish.ai",
+        "repo": repo,
         "ref": ref,
         "path": pack_path,
-        "skill_count": manifest.get("skill_count", 0),
+        "skill_count": manifest.get("skill_count", len(manifest.get("skills", []))),
         "command_count": manifest.get("command_count", 0),
         "agent_count": manifest.get("agent_count", 0),
         "license": manifest.get("license", "Apache-2.0"),
@@ -319,6 +335,8 @@ def publish_pack(
     output_dir: Path,
     dry_run: bool,
     skip_gate: bool,
+    repo: str = "kylecui/petfish.ai",
+    pack_path: str | None = None,
 ) -> dict:
     """
     Process a single pack. Returns the registry entry dict.
@@ -327,21 +345,32 @@ def publish_pack(
     optional_root = repo_root / "packs" / "optional"
     core_root = repo_root / "packs" / "core"
 
-    # Guard: refuse core packs
-    core_pack_dir = core_root / pack_name
-    if core_pack_dir.exists():
-        raise ValueError(
-            f"Core packs cannot be published: '{pack_name}' is under packs/core/. "
-            "Only packs in packs/optional/ may be published to the market."
-        )
+    # Guard: refuse core packs (only if packs/core/ exists locally)
+    if core_root.exists():
+        core_pack_dir = core_root / pack_name
+        if core_pack_dir.exists():
+            raise ValueError(
+                f"Core packs cannot be published: '{pack_name}' is under packs/core/. "
+                "Only packs in packs/optional/ may be published to the market."
+            )
 
     # Find pack in optional
     pack_dir = optional_root / pack_name
     if not pack_dir.exists():
-        raise FileNotFoundError(
-            f"Pack '{pack_name}' not found in packs/optional/. "
-            f"Available packs: {', '.join(sorted(p.name for p in optional_root.iterdir() if p.is_dir()))}"
-        )
+        # For external repos, pack_dir might be under a custom path
+        if pack_path:
+            pack_dir = repo_root / pack_path
+        if not pack_dir.exists():
+            available = ""
+            if optional_root.exists():
+                available = ', '.join(sorted(p.name for p in optional_root.iterdir() if p.is_dir()))
+            raise FileNotFoundError(
+                f"Pack '{pack_name}' not found. "
+                f"Looked in: {optional_root / pack_name}"
+                + (f" and: {repo_root / pack_path}" if pack_path else "")
+                + (f"\nAvailable packs: {available}" if available else "")
+                + "\nTip: use --repo-root and --path for external repos."
+            )
 
     manifest = load_manifest(pack_dir)
 
@@ -350,7 +379,7 @@ def publish_pack(
         # We just warn; we don't block because gate results live in CI
         pass
 
-    entry = build_registry_entry(pack_name, manifest, ref, repo_root)
+    entry = build_registry_entry(pack_name, manifest, ref, repo_root, repo=repo, pack_path=pack_path)
 
     if dry_run:
         print(json.dumps(entry, indent=2, ensure_ascii=False))
@@ -438,6 +467,27 @@ Exit codes: 0 = success, 1 = error
         help="Print generated JSON to stdout without writing files.",
     )
     parser.add_argument(
+        "--repo",
+        metavar="OWNER/NAME",
+        default="kylecui/petfish.ai",
+        help="GitHub repo where the pack lives (default: kylecui/petfish.ai). "
+        "Use this for packs hosted in external repos (e.g. kylecui/ai_harness_courseware).",
+    )
+    parser.add_argument(
+        "--path",
+        metavar="DIR",
+        default=None,
+        help="Override pack path within the repo (default: packs/optional/{pack_name}). "
+        "Use this when the external repo uses a non-standard directory layout.",
+    )
+    parser.add_argument(
+        "--repo-root",
+        metavar="DIR",
+        default=None,
+        help="Override local repo root for manifest discovery (default: auto-detect). "
+        "Use this when running from outside the repo that contains the pack.",
+    )
+    parser.add_argument(
         "--skip-gate",
         action="store_true",
         help="Skip quality-gate verification (for testing only).",
@@ -491,21 +541,20 @@ Exit codes: 0 = success, 1 = error
 
     # --- Validate ref exists in target repo (#249) ---
     if not args.dry_run and ref != "(dry-run)":
-        if not validate_ref_exists(ref):
+        if not validate_ref_exists(ref, repo=args.repo):
             print(
-                f"ERROR: ref '{ref}' does not exist in kylecui/petfish.ai. "
+                f"ERROR: ref '{ref}' does not exist in {args.repo}. "
                 f"Create the tag first: git tag {ref} && git push origin {ref}",
                 file=sys.stderr,
             )
             return 1
 
     # --- Find repo root ---
-    script_path = Path(__file__).resolve()
-    try:
+    if args.repo_root:
+        repo_root = Path(args.repo_root).resolve()
+    else:
+        script_path = Path(__file__).resolve()
         repo_root = find_repo_root(script_path.parent)
-    except FileNotFoundError as e:
-        print(f"ERROR: {e}", file=sys.stderr)
-        return 1
 
     # --- Resolve output directory ---
     if args.output:
@@ -535,6 +584,8 @@ Exit codes: 0 = success, 1 = error
         try:
             publish_pack(
                 pack_name=pack_name,
+                pack_path=args.path,
+                repo=args.repo,
                 repo_root=repo_root,
                 ref=ref,
                 output_dir=output_dir,

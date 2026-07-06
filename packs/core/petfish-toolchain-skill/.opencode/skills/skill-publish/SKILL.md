@@ -108,9 +108,45 @@ uv run packs/core/petfish-toolchain-skill/.opencode/skills/skill-publish/scripts
 # 预览完整流程（不写文件、不推送）
 uv run packs/core/petfish-toolchain-skill/.opencode/skills/skill-publish/scripts/publish_pack.py \
   --all --ref v1.4.0 --generate-index --push --dry-run
+
+# 发布外部仓库的pack（非petfish.ai monorepo）
+uv run packs/core/petfish-toolchain-skill/.opencode/skills/skill-publish/scripts/publish_pack.py \
+  --pack typst-pdf-builder --ref v1.0.0 \
+  --repo kylecui/ai_harness_courseware \
+  --path packs/optional/typst-pdf-builder \
+  --generate-index --push
+
+# 从外部仓库本地克隆发布
+uv run packs/core/petfish-toolchain-skill/.opencode/skills/skill-publish/scripts/publish_pack.py \
+  --pack typst-pdf-builder --ref v1.0.0 \
+  --repo kylecui/ai_harness_courseware \
+  --repo-root /path/to/ai_harness_courseware \
+  --generate-index --push
 ```
 
 ## 4. 新增参数
+
+### `--repo OWNER/NAME`（外部仓库支持）
+
+指定pack实际托管仓库。默认`kylecui/petfish.ai`。
+
+**何时使用**：当pack不在petfish.ai monorepo中时。例如：
+- `--repo kylecui/ai_harness_courseware` — pack在ai_harness_courseware仓库
+- `--repo some-org/some-repo` — pack在第三方仓库
+
+registry JSON的`repo`字段会写入此值，installer据此从正确仓库下载。
+
+### `--path DIR`（非标准目录结构）
+
+指定pack在仓库中的路径。默认`packs/optional/{pack_name}`。
+
+**何时使用**：当外部仓库的目录结构不同于petfish.ai时。例如：
+- `--path skills/typst-builder` — pack在`skills/`目录而非`packs/optional/`
+- `--path .` — pack在仓库根目录
+
+### `--repo-root DIR`（本地仓库根目录覆盖）
+
+覆盖`find_repo_root()`的自动检测，用于从外部仓库的本地克隆运行时。
 
 ### `--generate-index`
 
