@@ -1474,10 +1474,18 @@ def deploy_extra_agents_rules(pack_opencode: Path, target: Path):
 # Phase 2: Plugin deployment
 # ---------------------------------------------------------------------------
 def install_plugin_files(source_root: Path, target: Path):
-    """Deploy lib/plugin/*.ts to target/.opencode/plugin/ (skip topic-detector.ts)."""
+    """Deploy lib/plugin/*.ts to target/.opencode/plugin/ (skip topic-detector.ts).
+
+    In remote mode (uv run https://...), source_root (SCRIPT_ROOT) is a temp dir
+    without lib/plugin/. Fall back to the extracted core repo which has lib/plugin/.
+    """
     src_plugin_dir = source_root / "lib" / "plugin"
     if not src_plugin_dir.is_dir():
-        return
+        # Remote mode: SCRIPT_ROOT has no lib/plugin/, use extracted core repo
+        if _core_repo_extracted is not None and (_core_repo_extracted / "lib" / "plugin").is_dir():
+            src_plugin_dir = _core_repo_extracted / "lib" / "plugin"
+        else:
+            return
     dst_plugin_dir = target / ".opencode" / "plugin"
     dst_plugin_dir.mkdir(parents=True, exist_ok=True)
 
