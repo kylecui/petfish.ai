@@ -145,7 +145,7 @@ Tier 1和Tier 2均未命中 → 不输出任何推荐，静默通过。
 **会话首次交互时**，自动运行更新检查：
 
 ```bash
-uv run .opencode/skills/petfish-companion/scripts/check_installed.py --target . --check-updates
+uv run .opencode/skills/fish-brain/scripts/check_installed.py --target . --check-updates
 ```
 
 如果有可用更新，在回复末尾附带一行通知：
@@ -157,7 +157,7 @@ uv run .opencode/skills/petfish-companion/scripts/check_installed.py --target . 
 当用户运行`/petfish upgrade`时：
 
 ```bash
-uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
+uv run .opencode/skills/fish-brain/scripts/catalog_query.py --upgrade
 ```
 
 输出适合当前OS的升级命令。
@@ -282,7 +282,7 @@ curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-in
 跨多个来源搜索skill和MCP server：
 
 ```bash
-uv run .opencode/skills/marketplace-connector/scripts/marketplace_search.py --query "<keyword>"
+uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<keyword>"
 ```
 
 搜索范围按优先级：胖鱼自有仓库 → 三方市场（SkillKit/Smithery/Glama）→ GitHub高星仓库 → GitHub低星仓库。
@@ -370,7 +370,7 @@ uv run .opencode/skills/skill-usage-tracker/scripts/track_usage.py --action repo
 显示适合当前OS的升级命令：
 
 ```bash
-uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
+uv run .opencode/skills/fish-brain/scripts/catalog_query.py --upgrade
 ```
 
 也可搭配`--json`输出JSON格式。
@@ -381,7 +381,7 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --upgrade
 
 ```bash
 # 查看卸载命令
-uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --uninstall <alias>
+uv run .opencode/skills/fish-brain/scripts/catalog_query.py --uninstall <alias>
 ```
 
 输出适合当前OS的卸载命令：
