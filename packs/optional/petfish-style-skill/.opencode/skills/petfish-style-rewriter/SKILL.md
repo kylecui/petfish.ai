@@ -170,11 +170,19 @@ For academic mode, additionally check:
 
 ## Style Profile Integration
 
-On activation, check whether `.petfish/style-profile.md` exists in the project root.
+On activation, check for a style profile in this **3-tier lookup order**:
 
-- **If the profile exists**: load it and use it as the **target style** for rewriting. The profile overrides the default rules in `references/style-guide.md` when the two conflict.
-- **If the profile does not exist**: use the default style-guide.md rules (current behavior).
-- **If both exist**: the profile takes precedence for voice, tone, and structural preferences; fall back to the default guide for anything the profile does not specify.
+1. **Project-level** (highest priority): `.petfish/style-profile.md`
+   — Use when a project has specific style requirements that differ from your default.
+2. **Global**: `~/.petfish/style-profile.md` (Windows: `%USERPROFILE%\.petfish\style-profile.md`)
+   — Your personal default writing style. Shared across all projects. This is where `style-extractor` saves by default.
+3. **Pack default**: `references/style-guide.md`
+   — Fallback when no profile exists anywhere.
+
+**Merge rule**: If both project and global profiles exist, merge them — project-level entries override global for the same dimension; global fills gaps the project profile doesn't specify.
+
+**Visibility**: When a profile is loaded, state which tier was used:
+> `已加载全局风格画像 (~/.petfish/style-profile.md)` or `已加载项目级风格画像 (.petfish/style-profile.md)`
 
 A valid profile should define at least:
 

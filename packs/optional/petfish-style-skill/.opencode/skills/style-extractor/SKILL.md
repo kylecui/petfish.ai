@@ -92,7 +92,19 @@ This produces `style-metrics.json` with per-file and aggregated metrics.
 
 ### Stage 2: Qualitative synthesis
 
-The agent reads `style-metrics.json` and each converted Markdown sample, then generates `.petfish/style-profile.md` using the template at `references/style-profile-template.md`. The synthesis must:
+The agent reads `style-metrics.json` and each converted Markdown sample, then generates a style profile using the template at `references/style-profile-template.md`.
+
+**Save location** (3-tier, global-first):
+
+| Priority | Path | When to use |
+|---|---|---|
+| Global (default) | `~/.petfish/style-profile.md` | **Always save here by default** — writing style is personal, not project-specific |
+| Project-level | `.petfish/style-profile.md` | Only when user explicitly says "for this project only" or a project has a different style register |
+
+After saving, tell the user which location was used:
+> `风格画像已保存到 ~/.petfish/style-profile.md（全局，所有项目共享）`
+
+The synthesis must:
 
 - Cite concrete metrics from Stage 1.
 - Quote representative short passages from the samples.
@@ -111,7 +123,7 @@ The agent reads `style-metrics.json` and each converted Markdown sample, then ge
 | Mode | Behavior |
 |------|----------|
 | interactive | Ask the user for sample files/locations, confirm language coverage, explain the output location, and show a preview of the metrics before writing the final profile. |
-| auto | Accept the provided sample paths, run Stage 0–2, and write `.petfish/style-profile.md` with minimal explanation. |
+| auto | Accept the provided sample paths, run Stage 0–2, and write the profile to `~/.petfish/style-profile.md` (global) with minimal explanation. |
 
 Default to `interactive` when the user only says "extract my style" without providing paths. Default to `auto` when paths are explicit.
 
@@ -133,17 +145,37 @@ The profile must contain:
 
 ## Output Location
 
-The qualitative profile is written to:
+The profile is saved to **global** by default (your writing style is personal, not project-specific):
 
 ```text
-.petfish/style-profile.md
+~/.petfish/style-profile.md                   ← global default (saved here by default)
+.petfish/style-profile.md                     ← project-level override (use --project flag)
 ```
 
-This file is project-local and private to the user. It is the contract between `style-extractor` and `petfish-style-rewriter`.
+**Default behavior**: Save to `~/.petfish/style-profile.md` so all projects share your personal style.
+
+**Project-level override**: When a project needs a different style (e.g., ghost-writing for a client), save to `.petfish/style-profile.md` instead. Tell the user:
+
+> 默认保存到全局 (~/.petfish/style-profile.md)，所有项目共享。
+> 如果需要项目级覆盖，说"保存到这个项目"。
+
+**Migration helper**: If the user already has `.petfish/style-profile.md` from a previous project and wants to promote it to global:
+
+```bash
+Copy-Item .petfish/style-profile.md ~/.petfish/style-profile.md
+```
+
+This file is private to the user. It is the contract between `style-extractor` and `petfish-style-rewriter`.
 
 ## Integration with petfish-style-rewriter
 
-`petfish-style-rewriter` loads `.petfish/style-profile.md` at runtime when available. If the profile exists, the rewriter:
+`petfish-style-rewriter` loads the style profile at runtime using a **3-tier lookup**:
+
+1. `.petfish/style-profile.md` (project-level override — highest priority)
+2. `~/.petfish/style-profile.md` (global personal default)
+3. Pack built-in rules (fallback)
+
+If any profile exists, the rewriter:
 
 - Uses the user's preferred sentence-length target and burstiness level.
 - Preserves signature phrases and pronoun choices.
