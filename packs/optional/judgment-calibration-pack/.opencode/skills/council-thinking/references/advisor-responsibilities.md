@@ -5,7 +5,7 @@ Council Thinking 采用 **5 + 1 架构**：
 - 5 个顾问 subagents
 - 1 个综合仲裁者 Synthesizer/Arbiter
 
-五个顾问是 **logical subagents**，即逻辑子代理。默认情况下由同一个模型在同一轮回答中模拟执行；若运行环境支持多 agent 编排，可升级为真实 subagents。
+五个顾问是 **Council Members**。优先作为独立 subagent 执行（`oracle` 类型，并行启动），确保视角独立性；运行环境不支持 `task()` 时降级为逻辑角色模拟。
 
 ---
 

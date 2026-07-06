@@ -1,6 +1,6 @@
 # Subagent Output Schema
 
-每个五顾问 subagent 的输出必须遵循此 schema。
+每个 Council Member（无论是真实 subagent 还是逻辑模拟）的输出必须遵循此 schema。
 
 ## Markdown Schema
 

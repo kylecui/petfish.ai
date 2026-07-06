@@ -1,6 +1,6 @@
 {
   "name": "judgment-calibration-pack",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "legacy_names": ["anti-sycophancy-calibration", "anti-sycophancy-calibration-pack"],
   "description": "判断校准与多视角对抗式推理 — 反迎合决策校准（fish-calibrate）+ 五人顾问团多视角判断（council-thinking），在评审、方案评估、战略判断、产品定位、研究设计等复杂判断任务中降低迎合倾向、暴露盲点、删除弱观点、形成可执行结论",
   "compatibility": "opencode",

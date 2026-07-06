@@ -37,6 +37,21 @@ Opportunity 不是盲目乐观，而是"有条件的积极"。每个机会必须
 我不知道：……
 ```
 
-## Note on Subagent Status
+## Subagent Invocation (Path A — 优先)
 
-这是一个 **logical subagent**。在 v0.1/v0.2 中，它由同一个模型在同一轮回答中模拟执行；v0.3 及以后，若运行环境支持多 agent 编排，可以映射为真实 subagent。
+此文件作为 `oracle` 类型 subagent 的 prompt 模板。调用方式：
+
+```
+task(
+  subagent_type="oracle",
+  run_in_background=true,
+  load_skills=[],
+  prompt="<本文件 Role + Must Check + Output Requirements + Output Format>\n\n---\n\n## 待审查问题\n\n<用户原始问题 + 上下文>\n\n按你的角色定义输出判断。"
+)
+```
+
+5 个顾问 subagent **并行启动**，全部返回后由主代理（Arbiter）收集并综合。Opportunity 的独立 subagent 执行确保机会发现不受 Critic 的风险视角压制。
+
+## Logical Fallback (Path B — 降级)
+
+当运行环境不支持 `task()` 时，在同一轮回答中以本文件的角色定义模拟 Opportunity 判断。输出格式不变。
