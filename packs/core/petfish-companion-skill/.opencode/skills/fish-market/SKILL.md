@@ -48,7 +48,7 @@ metadata:
 运行搜索脚本：
 
 ```bash
-uv run .opencode/skills/marketplace-connector/scripts/marketplace_search.py --query "<用户关键词>" --json
+uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<用户关键词>" --json
 ```
 
 可选参数：
