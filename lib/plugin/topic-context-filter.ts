@@ -189,8 +189,27 @@ const plugin: Plugin = async ({ directory }, options) => {
         const scores: number[] = new Array(messages.length).fill(0)
         const allMatchedDomains = new Set<string>()
 
+        // System directive patterns that must NEVER be filtered
+        const SYSTEM_PATTERNS = [
+          "[SYSTEM DIRECTIVE",
+          "[SYSTEM REMINDER",
+          "[BACKGROUND TASK",
+          "[ALL BACKGROUND TASKS",
+          "[SEARCH-MODE]",
+          "[ANALYZE-MODE]",
+          "<system-reminder>",
+          "<!-- OMO_INTERNAL_INITIATOR",
+        ]
+
         for (let i = 0; i < safetyStart; i++) {
           const text = getMessageText(messages[i])
+
+          // System directives are always kept regardless of topic relevance
+          if (SYSTEM_PATTERNS.some((p) => text.includes(p))) {
+            scores[i] = 999
+            continue
+          }
+
           scores[i] = scoreMessage(text, keywords)
 
           // Track domains for single-topic guard
