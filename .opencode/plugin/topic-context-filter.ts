@@ -210,6 +210,16 @@ const plugin: Plugin = async ({ directory }, options) => {
             continue
           }
 
+          // Tool results (file contents, command output, search results) are
+          // always kept — the agent requested them, so they're relevant to
+          // current work regardless of topic keywords.
+          const msg = messages[i]
+          if (msg.role === "tool" || (msg.content && Array.isArray(msg.content) &&
+              msg.content.some((c: any) => c.type === "tool_result"))) {
+            scores[i] = 999
+            continue
+          }
+
           scores[i] = scoreMessage(text, keywords)
 
           // Track domains for single-topic guard
