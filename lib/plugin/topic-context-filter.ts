@@ -99,6 +99,7 @@ function buildKeywordSet(topic: TopicData): Set<string> {
 }
 
 function getMessageText(msg: PluginMessage): string {
+  if (!msg?.parts || !Array.isArray(msg.parts)) return ""
   return msg.parts
     .map((p) => {
       if (p.type === "text" && p.text) return p.text
@@ -324,13 +325,19 @@ const plugin: Plugin = async ({ directory }, options) => {
           // always kept — the agent requested them, so they're relevant to
           // current work regardless of topic keywords.
           const msg = messages[i]
-          const hasToolResult = msg.parts.some(
+          const parts = msg?.parts
+          if (!parts || !Array.isArray(parts)) {
+            // Malformed message (no parts array) — keep it to be safe
+            scores[i] = 999
+            continue
+          }
+          const hasToolResult = parts.some(
             (p) => p.type === "tool_result" || p.type === "tool-result"
           )
-          const hasToolUse = msg.parts.some(
+          const hasToolUse = parts.some(
             (p) => p.type === "tool_use" || p.type === "tool-use"
           )
-          if (hasToolResult || hasToolUse || msg.info.role === "tool") {
+          if (hasToolResult || hasToolUse || msg.info?.role === "tool") {
             scores[i] = 999
             continue
           }
@@ -391,6 +398,7 @@ const plugin: Plugin = async ({ directory }, options) => {
         for (let i = 0; i < messages.length; i++) {
           if (!keep[i]) continue
           const msg = messages[i]
+          if (!msg?.parts || !Array.isArray(msg.parts)) continue
           // If this is a tool_use, keep next message (tool_result)
           if (msg.parts.some((p) => p.type === "tool_use" || p.type === "tool-use")) {
             if (i + 1 < messages.length) keep[i + 1] = true
@@ -403,7 +411,7 @@ const plugin: Plugin = async ({ directory }, options) => {
 
         // Also: if a tool_result is kept, its preceding tool_use must be kept
         for (let i = 1; i < messages.length; i++) {
-          if (keep[i] && messages[i].info.role === "tool") {
+          if (keep[i] && messages[i]?.info?.role === "tool") {
             keep[i - 1] = true
           }
         }
