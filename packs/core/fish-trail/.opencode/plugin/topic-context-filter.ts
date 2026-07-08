@@ -17,7 +17,7 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
-import { readFile, stat } from "node:fs/promises"
+import { readFile, writeFile, stat, mkdir } from "node:fs/promises"
 import { join } from "node:path"
 
 interface TopicRegistry {
@@ -36,6 +36,7 @@ interface PluginOptions {
   enabled?: boolean
   safetyWindow?: number
   minMessages?: number
+  debug?: boolean  // When true, also log to console.error
 }
 
 interface MessagePart {
@@ -99,8 +100,23 @@ function buildKeywordSet(topic: TopicData): Set<string> {
 
 function getMessageText(msg: PluginMessage): string {
   return msg.parts
-    .filter((p) => p.type === "text" && p.text)
-    .map((p) => p.text ?? "")
+    .map((p) => {
+      if (p.type === "text" && p.text) return p.text
+      // Extract tool_use parameters (tool name + input JSON)
+      if (p.type === "tool_use" || p.type === "tool-use") {
+        const input = p.input || p.params || {}
+        return `${p.name ?? ""} ${JSON.stringify(input)}`
+      }
+      // Extract tool_result content
+      if (p.type === "tool_result" || p.type === "tool-result") {
+        if (typeof p.content === "string") return p.content
+        if (Array.isArray(p.content)) {
+          return p.content.map((c: any) => c?.text ?? "").join(" ")
+        }
+        return p.text ?? ""
+      }
+      return ""
+    })
     .join(" ")
     .toLowerCase()
 }
@@ -136,9 +152,35 @@ const plugin: Plugin = async ({ directory }, options) => {
   const enabled = opts.enabled !== false
   const safetyWindow = opts.safetyWindow ?? 3
   const minMessages = opts.minMessages ?? 10
+  const debugMode = opts.debug === true
 
   if (!enabled) {
     return { name: "topic-context-filter" }
+  }
+
+  // --- Debug logging ---
+  const logPath = join(directory, FISH_TRAIL_DIR, "filter-debug.log")
+  const MAX_LOG_SIZE = 512 * 1024 // 512KB rolling cap
+
+  async function logFilter(entry: Record<string, unknown>) {
+    const line = JSON.stringify({ ts: new Date().toISOString(), ...entry }) + "\n"
+    if (debugMode) console.error("[topic-context-filter]", line.trim())
+    try {
+      await mkdir(join(directory, FISH_TRAIL_DIR), { recursive: true })
+      // Check log size for rolling
+      try {
+        const s = await stat(logPath)
+        if (s.size > MAX_LOG_SIZE) {
+          // Truncate: keep last half
+          const old = await readFile(logPath, "utf-8")
+          const lines = old.split("\n").filter(Boolean)
+          const keep = lines.slice(-Math.floor(lines.length / 2))
+          await writeFile(logPath, keep.join("\n") + "\n")
+        }
+      } catch { /* file doesn't exist yet */ }
+      const { appendFile } = await import("node:fs/promises")
+      await appendFile(logPath, line)
+    } catch { /* logging is best-effort */ }
   }
 
   // Cache topic registry path
@@ -169,20 +211,32 @@ const plugin: Plugin = async ({ directory }, options) => {
         const messages = output.messages as PluginMessage[]
 
         // Short conversation guard
-        if (messages.length < minMessages) return
+        if (messages.length < minMessages) {
+          await logFilter({ action: "skip", reason: "short_conversation", messages: messages.length, minMessages })
+          return
+        }
 
         // Read active topic
         const registry = await getRegistry()
-        if (!registry?.active_topic) return
+        if (!registry?.active_topic) {
+          await logFilter({ action: "skip", reason: "no_active_topic", messages: messages.length })
+          return
+        }
 
         // Read topic data
         const topicPath = join(directory, FISH_TRAIL_DIR, "topics", `${registry.active_topic}.json`)
         const topic = await readJSON<TopicData>(topicPath)
-        if (!topic?.title) return
+        if (!topic?.title) {
+          await logFilter({ action: "skip", reason: "topic_data_missing", active_topic: registry.active_topic })
+          return
+        }
 
         // Build keyword set for active topic
         const keywords = buildKeywordSet(topic)
-        if (keywords.size === 0) return
+        if (keywords.size === 0) {
+          await logFilter({ action: "skip", reason: "no_keywords", active_topic: registry.active_topic })
+          return
+        }
 
         // Score all messages (except safety window)
         const safetyStart = Math.max(0, messages.length - safetyWindow)
@@ -214,8 +268,13 @@ const plugin: Plugin = async ({ directory }, options) => {
           // always kept — the agent requested them, so they're relevant to
           // current work regardless of topic keywords.
           const msg = messages[i]
-          if (msg.role === "tool" || (msg.content && Array.isArray(msg.content) &&
-              msg.content.some((c: any) => c.type === "tool_result"))) {
+          const hasToolResult = msg.parts.some(
+            (p) => p.type === "tool_result" || p.type === "tool-result"
+          )
+          const hasToolUse = msg.parts.some(
+            (p) => p.type === "tool_use" || p.type === "tool-use"
+          )
+          if (hasToolResult || hasToolUse || msg.info.role === "tool") {
             scores[i] = 999
             continue
           }
@@ -233,7 +292,10 @@ const plugin: Plugin = async ({ directory }, options) => {
         }
 
         // Single-topic guard: if no OTHER topic domains detected, return early
-        if (allMatchedDomains.size <= 1) return
+        if (allMatchedDomains.size <= 1) {
+          await logFilter({ action: "skip", reason: "single_topic", domains: [...allMatchedDomains] })
+          return
+        }
 
         // Count how many messages would be removed
         let removeCount = 0
@@ -242,7 +304,19 @@ const plugin: Plugin = async ({ directory }, options) => {
         }
 
         // Low-yield guard: if <20% would be removed, skip
-        if (removeCount / messages.length < 0.2) return
+        const removeRatio = removeCount / messages.length
+        if (removeRatio < 0.2) {
+          await logFilter({ action: "skip", reason: "low_yield", removeRatio: removeRatio.toFixed(3) })
+          return
+        }
+
+        // Nuclear guard: if >50% would be removed, the active topic keywords
+        // are likely stale (user switched topics without updating registry).
+        // Removing most of the conversation is more harmful than not filtering.
+        if (removeRatio > 0.5) {
+          await logFilter({ action: "skip", reason: "nuclear_guard", removeRatio: removeRatio.toFixed(3), active_topic: registry.active_topic, topic_title: topic.title })
+          return
+        }
 
         // Build keep/remove map, respecting tool_use/tool_result pairs
         const keep = new Array<boolean>(messages.length).fill(false)
@@ -309,6 +383,45 @@ const plugin: Plugin = async ({ directory }, options) => {
         // Only splice if we actually reduced messages
         if (filtered.length < messages.length) {
           output.messages.splice(0, output.messages.length, ...filtered)
+
+          // Log final result with removed message previews
+          const removedPreviews: Array<{ idx: number; role: string; preview: string }> = []
+          for (let i = 0; i < messages.length; i++) {
+            if (!keep[i]) {
+              const text = getMessageText(messages[i]).slice(0, 80)
+              removedPreviews.push({ idx: i, role: messages[i].info.role, preview: text })
+            }
+          }
+
+          // Count keep reasons
+          let keptByScore = 0, keptByTool = 0, keptBySystem = 0, keptBySafety = 0
+          for (let i = 0; i < safetyStart; i++) {
+            if (!keep[i]) continue
+            if (scores[i] === 999) {
+              // Distinguish tool vs system
+              const text = getMessageText(messages[i])
+              if (SYSTEM_PATTERNS.some((p) => text.includes(p))) keptBySystem++
+              else keptByTool++
+            } else {
+              keptByScore++
+            }
+          }
+          for (let i = safetyStart; i < messages.length; i++) {
+            if (keep[i]) keptBySafety++
+          }
+
+          await logFilter({
+            action: "filtered",
+            total: messages.length,
+            output_count: filtered.length,
+            removed: messages.length - filtered.length,
+            remove_ratio: removeRatio.toFixed(3),
+            active_topic: registry.active_topic,
+            topic_title: topic.title,
+            keywords_count: keywords.size,
+            keep_breakdown: { score: keptByScore, tool: keptByTool, system: keptBySystem, safety: keptBySafety },
+            removed_messages: removedPreviews,
+          })
         }
       } catch (e) {
         // Graceful degradation: never throw, never break the session
