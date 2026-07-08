@@ -185,8 +185,56 @@ const plugin: Plugin = async ({ directory }, options) => {
 
   // Cache topic registry path
   const registryPath = join(directory, FISH_TRAIL_DIR, "topic-registry.json")
+  const registryDir = join(directory, FISH_TRAIL_DIR)
+  const topicsDir = join(directory, FISH_TRAIL_DIR, "topics")
   let cachedRegistry: TopicRegistry | null = null
   let cachedRegistryMtime = 0
+
+  // --- Auto-bootstrap: create minimal topic when registry is missing ---
+  async function bootstrapRegistry(): Promise<TopicRegistry | null> {
+    try {
+      // Create directories
+      await mkdir(registryDir, { recursive: true })
+      await mkdir(topicsDir, { recursive: true })
+
+      // Generate a default topic ID
+      const now = new Date()
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "")
+      const randomSuffix = Math.random().toString(36).slice(2, 6)
+      const topicId = `topic_${dateStr}_${randomSuffix}`
+
+      // Create topic data file
+      const topicData = {
+        id: topicId,
+        title: "Current work session",
+        scope: "Auto-created topic — rename via /fish-trail or topic_update",
+        tags: [] as string[],
+        summary: "",
+        status: "active",
+        created_at: now.toISOString(),
+      }
+      const { writeFile: wf } = await import("node:fs/promises")
+      await wf(join(topicsDir, `${topicId}.json`), JSON.stringify(topicData, null, 2))
+
+      // Create registry
+      const registry: TopicRegistry = {
+        active_topic: topicId,
+        topics: {
+          [topicId]: { title: topicData.title, status: "active" },
+        },
+      }
+      await wf(registryPath, JSON.stringify(registry, null, 2))
+
+      // Log bootstrap
+      await logFilter({ action: "bootstrap", topic_id: topicId, reason: "registry_missing" })
+
+      return registry
+    } catch (e) {
+      // Bootstrap failure is non-fatal — filter will skip
+      if (debugMode) console.error("[topic-context-filter] bootstrap failed:", e)
+      return null
+    }
+  }
 
   async function getRegistry(): Promise<TopicRegistry | null> {
     try {
@@ -216,25 +264,33 @@ const plugin: Plugin = async ({ directory }, options) => {
           return
         }
 
-        // Read active topic
-        const registry = await getRegistry()
+        // Read active topic (with auto-bootstrap if missing)
+        let registry = await getRegistry()
         if (!registry?.active_topic) {
-          await logFilter({ action: "skip", reason: "no_active_topic", messages: messages.length })
-          return
+          // Auto-bootstrap: create a default topic if registry is missing
+          const bootstrapped = await bootstrapRegistry()
+          if (!bootstrapped?.active_topic) {
+            await logFilter({ action: "skip", reason: "no_active_topic_bootstrap_failed", messages: messages.length })
+            return
+          }
+          cachedRegistry = bootstrapped
+          try { cachedRegistryMtime = (await stat(registryPath)).mtimeMs } catch { /* ok */ }
+          registry = bootstrapped
         }
+        const activeTopicId = registry!.active_topic!
 
         // Read topic data
-        const topicPath = join(directory, FISH_TRAIL_DIR, "topics", `${registry.active_topic}.json`)
+        const topicPath = join(directory, FISH_TRAIL_DIR, "topics", `${activeTopicId}.json`)
         const topic = await readJSON<TopicData>(topicPath)
         if (!topic?.title) {
-          await logFilter({ action: "skip", reason: "topic_data_missing", active_topic: registry.active_topic })
+          await logFilter({ action: "skip", reason: "topic_data_missing", active_topic: activeTopicId })
           return
         }
 
         // Build keyword set for active topic
         const keywords = buildKeywordSet(topic)
         if (keywords.size === 0) {
-          await logFilter({ action: "skip", reason: "no_keywords", active_topic: registry.active_topic })
+          await logFilter({ action: "skip", reason: "no_keywords", active_topic: activeTopicId })
           return
         }
 
