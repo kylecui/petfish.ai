@@ -295,6 +295,23 @@ const plugin: Plugin = async ({ directory }, options) => {
           return
         }
 
+        // Load ALL topics for removed-message categorization
+        // Each removed message will be archived under its best-matching topic,
+        // so switching to that topic can restore its context later.
+        const allTopicKeywords: Map<string, { keywords: Set<string>, title: string }> = new Map()
+        allTopicKeywords.set(activeTopicId, { keywords, title: topic.title })
+        for (const [topicId, topicInfo] of Object.entries(registry!.topics)) {
+          if (topicId === activeTopicId || topicInfo.status === "archived") continue
+          const otherTopicPath = join(directory, FISH_TRAIL_DIR, "topics", `${topicId}.json`)
+          const otherTopic = await readJSON<TopicData>(otherTopicPath)
+          if (otherTopic?.title) {
+            allTopicKeywords.set(topicId, {
+              keywords: buildKeywordSet(otherTopic),
+              title: otherTopic.title,
+            })
+          }
+        }
+
         // Score all messages (except safety window)
         const safetyStart = Math.max(0, messages.length - safetyWindow)
         const scores: number[] = new Array(messages.length).fill(0)
@@ -449,28 +466,45 @@ const plugin: Plugin = async ({ directory }, options) => {
         if (filtered.length < messages.length) {
 
           // Archive removed messages before splicing (prevent information loss)
-          // Removed messages are saved to message-archive.jsonl with full content,
-          // so they can be retrieved later if needed (e.g., when switching topics)
+          // Each message is categorized by best-matching topic and archived to
+          // .petfish/fish-trail/message-archive/<owning_topic_id>.jsonl
+          // so switching to that topic can restore its context later.
           try {
-            const archivePath = join(directory, ".petfish", "fish-trail", "message-archive.jsonl")
-            await mkdir(join(directory, ".petfish", "fish-trail"), { recursive: true }).catch(() => {})
-            const archiveEntries: string[] = []
+            const archiveDir = join(directory, ".petfish", "fish-trail", "message-archive")
+            await mkdir(archiveDir, { recursive: true }).catch(() => {})
+            // Group removed messages by best-matching topic
+            const byTopic: Map<string, string[]> = new Map()
             for (let i = 0; i < messages.length; i++) {
               if (!keep[i]) {
                 const text = getMessageText(messages[i])
-                archiveEntries.push(JSON.stringify({
+                // Categorize: find which topic this message actually belongs to
+                let bestTopicId = "_uncategorized"
+                let bestScore = 0
+                for (const [topicId, { keywords: kw }] of allTopicKeywords) {
+                  const s = scoreMessage(text, kw)
+                  if (s > bestScore) {
+                    bestScore = s
+                    bestTopicId = topicId
+                  }
+                }
+                const entry = JSON.stringify({
                   archived_ts: new Date().toISOString(),
                   role: messages[i]?.info?.role ?? "unknown",
-                  active_topic: registry.active_topic ?? "unknown",
-                  topic_title: topic.title,
+                  owning_topic: bestTopicId,
+                  removed_by_topic: activeTopicId,
                   original_index: i,
+                  match_score: bestScore,
                   text_length: text.length,
                   text: text,
-                }))
+                })
+                if (!byTopic.has(bestTopicId)) byTopic.set(bestTopicId, [])
+                byTopic.get(bestTopicId)!.push(entry)
               }
             }
-            if (archiveEntries.length > 0) {
-              await appendFile(archivePath, archiveEntries.join("\n") + "\n", "utf-8")
+            // Write each topic's messages to its own file
+            for (const [topicId, entries] of byTopic) {
+              const topicArchivePath = join(archiveDir, `${topicId}.jsonl`)
+              await appendFile(topicArchivePath, entries.join("\n") + "\n", "utf-8")
             }
           } catch {
             // Best-effort archiving — don't break filtering if archive fails

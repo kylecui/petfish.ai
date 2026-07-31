@@ -2043,6 +2043,36 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
       output.system.push(warmBlock)
       output.system.push(activeBlock)
 
+      // Restore archived messages for the active topic (if any exist)
+      // When topic-context-filter removed messages belonging to this topic
+      // during a different topic's active period, they were archived to
+      // message-archive/<topic_id>.jsonl. Here we inject a summary so the
+      // model has context about previously-discussed content.
+      try {
+        const archivePath = join(fishTrailDir, "message-archive", `${activeTopicId}.jsonl`)
+        const archiveContent = await readFile(archivePath, "utf-8")
+        if (archiveContent.trim()) {
+          const lines = archiveContent.trim().split("\n")
+          const totalArchived = lines.length
+          const recent = lines.slice(-5) // Last 5 archived messages
+          const previews: string[] = []
+          for (const line of recent) {
+            try {
+              const entry = JSON.parse(line)
+              const preview = (entry.text ?? "").slice(0, 120)
+              previews.push(`  [${entry.role}] ${preview}...`)
+            } catch { /* skip invalid lines */ }
+          }
+          if (previews.length > 0) {
+            output.system.push(
+              "## Archived Context (restored)\n" +
+              `${totalArchived} messages from this topic were previously filtered out ` +
+              `when another topic was active. Recent ${previews.length}:\n${previews.join("\n")}`,
+            )
+          }
+        }
+      } catch { /* no archive file — normal for first visit to this topic */ }
+
       // v1.2: Compute brief metrics (every 10 rounds or if not yet computed)
       const prevRoundCount = prevState?.adaptiveState?.roundCounter || 0
       const prevMetrics = prevState?._brief_metrics
