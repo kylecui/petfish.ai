@@ -1,6 +1,6 @@
 ---
 name: series-style-governor
-description: 系列文档风格一致性治理。当用户要求跨文档统一风格、术语、命名和排版时激活。Use when the user is writing a series of books, chapters, long-form articles, course materials, whitepapers, or Markdown documents and wants to keep style, terminology, naming conventions, section structure, and Markdown layout consistent. Triggers on: 系列风格, 跨文档一致性, 风格画像, 术语漂移, 排版漂移, 风格归一化, style profile, terminology drift, layout drift, style audit, series consistency, reference style, naming rules. Extract a style profile from a reference file or the first document. Audit, report, and optionally rewrite targets to match the baseline while preserving facts and author intent.
+description: 系列文档风格一致性治理。跨文档统一术语、命名、排版和叙事结构。从参考文件提取风格画像，审计目标文档，检测术语漂移和排版漂移，生成保守改写草稿。Use when writing a series of books, chapters, course materials, whitepapers and want consistent style, terminology, naming, layout. Triggers: 系列风格, 跨文档一致性, 风格画像, 术语漂移, 排版漂移, style profile, terminology drift, layout drift, series consistency, style audit.
 license: MIT
 compatibility: opencode; requires Python 3.10+ for bundled scripts; uv is recommended but python3 also works.
 metadata:

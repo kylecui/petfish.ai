@@ -1,6 +1,6 @@
 ---
 name: council-thinking
-description: 五人顾问团多视角对抗式判断。用 Council 分析方案评估、战略判断、产品定位、技术路线、研究设计、课程设计、Presentation主线、逻辑审查、写作结构取舍、是否值得做、如何向客户/评审/老板表达等复杂判断。显式触发：用Council分析、五人顾问团审查、多视角评估、对抗式审查、不要迎合我。比 fish-calibrate 更深：5个logical subagents + Arbiter删除弱观点，输出可执行结论。/ Use Council for multi-perspective adversarial review of strategy, product positioning, tech roadmap, research design, course design, business analysis, logic checks, and how-to-communicate decisions. Triggers: "Council analysis", "five-advisor review", "multi-perspective evaluation", "adversarial review".
+description: 五人顾问团多视角对抗式判断，用于方案评估、战略判断、产品定位、技术路线、研究设计等复杂决策。5个logical subagents（反对者/本质思考/机会挖掘/局外人/执行者）+Arbiter删除弱观点，输出可执行结论。比fish-calibrate更深。显式触发：用Council分析、五人顾问团审查、多视角评估、对抗式审查、不要迎合我。/ Council: multi-perspective adversarial review with 5 subagents + Arbiter. Triggers: "Council analysis", "five-advisor review", "adversarial review", "multi-perspective evaluation".
 compatibility: opencode
 metadata:
   version: "0.3.0"
