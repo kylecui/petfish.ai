@@ -22,21 +22,50 @@ from pathlib import Path
 
 
 def parse_frontmatter(content: str) -> dict:
-    """Parse YAML frontmatter from SKILL.md content."""
+    """Parse YAML frontmatter from SKILL.md content, including nested blocks."""
     match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
     if not match:
         return {}
 
     frontmatter_text = match.group(1)
-    result = {}
+    result: dict = {}
+    current_nested_key: str | None = None
+
     for line in frontmatter_text.split("\n"):
-        line = line.strip()
-        if ":" in line:
-            key, _, value = line.partition(":")
+        # Indented line under a nested key
+        if current_nested_key and line.startswith("  ") and ":" in line:
+            nested_line = line.strip()
+            if ":" in nested_line:
+                nk, _, nv = nested_line.partition(":")
+                nk = nk.strip()
+                nv = nv.strip()
+                # Parse array values: [a, b, c]
+                if nv.startswith("[") and nv.endswith("]"):
+                    nv = [x.strip().strip("\"'") for x in nv[1:-1].split(",") if x.strip()]
+                elif nv.lower() in ("true", "false"):
+                    nv = nv.lower() == "true"
+                if nk:
+                    result[current_nested_key][nk] = nv
+            continue
+
+        # Non-indented line — could be top-level key or start of nested block
+        current_nested_key = None
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if ":" in stripped:
+            key, _, value = stripped.partition(":")
             key = key.strip()
-            value = value.strip().strip("\"'")
-            if key and value:
-                result[key] = value
+            value = value.strip()
+            if not value:
+                # Could be a nested block header (e.g., "orchestration:")
+                current_nested_key = key
+                result[key] = {}
+            else:
+                value = value.strip("\"'")
+                if key and value:
+                    result[key] = value
+
     return result
 
 
@@ -68,7 +97,7 @@ def index_skill(skill_dir: Path) -> dict | None:
         if len(word) > 2:
             triggers.append(word)
 
-    return {
+    entry = {
         "name": fm.get("name", skill_dir.name),
         "description": description,
         "triggers": list(set(triggers)),
@@ -77,6 +106,18 @@ def index_skill(skill_dir: Path) -> dict | None:
         "has_references": (skill_dir / "references").is_dir(),
         "preview": extract_body_preview(content),
     }
+
+    # Add orchestration metadata if present
+    orch = fm.get("orchestration")
+    if isinstance(orch, dict) and orch:
+        entry["orchestration"] = {
+            "role": orch.get("role", "specialist"),
+            "input_contract": orch.get("input_contract", []),
+            "output_contract": orch.get("output_contract", []),
+            "parallel_safe": orch.get("parallel_safe", False),
+        }
+
+    return entry
 
 
 def generate_index(skills_dir: Path) -> dict:

@@ -3,6 +3,11 @@ name: research-source-discovery
 description: 研究资料发现与来源登记：查找论文、官方文档、竞品材料、政策文件、行业报告、数据集与用户反馈，建立/维护source index并记录search strategy，按authority/relevance/freshness/verifiability/bias/granularity筛选质量。Use when users ask “找资料/找论文/调研来源/source discovery”.
 compatibility: opencode
 license: Apache-2.0
+orchestration:
+  role: specialist
+  input_contract: [research_brief, scope]
+  output_contract: [source_index_jsonl, source_count]
+  parallel_safe: true
 ---
 
 ## 作用/Purpose
