@@ -1,0 +1,44 @@
+{
+  "should_trigger": [
+    {
+      "query": "Build a PDF from my Markdown textbook chapters using Typst",
+      "reason": "Matches explicit build PDF and Typst intent for textbook output."
+    },
+    {
+      "query": "帮我排版教材，把 Markdown 转成 PDF",
+      "reason": "Matches Chinese 排版 and 教材 PDF trigger phrases."
+    },
+    {
+      "query": "Generate a Chinese textbook PDF with pandoc and draw.io diagrams",
+      "reason": "Matches generate PDF, pandoc to PDF, and Chinese textbook scope."
+    },
+    {
+      "query": "Run the pdf pipeline to produce per-chapter PDFs",
+      "reason": "Matches pdf pipeline and per-chapter textbook output."
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "query": "Create a PowerPoint slide deck from this outline",
+      "reason": "PDF textbook pipeline is not the right tool for slide decks."
+    },
+    {
+      "query": "Write a Python script that scrapes a website",
+      "reason": "No PDF, Markdown, or textbook intent is present."
+    },
+    {
+      "query": "Draw a radar chart in draw.io",
+      "reason": "Single diagram task should route to drawio-radar-chart, not PDF build."
+    }
+  ],
+  "output_checks": [
+    {
+      "check": "SKILL.md references scripts/build_pdf.py, scripts/add_table_captions.py, scripts/export_drawio.py, and templates/book-template.typ.",
+      "reason": "A complete skill must expose all pipeline entry points."
+    },
+    {
+      "check": "Generalized scripts do not contain hardcoded project paths or chapter lists.",
+      "reason": "The skill must be reusable across projects."
+    }
+  ]
+}

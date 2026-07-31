@@ -1,0 +1,22 @@
+{
+  "name": "typst-pdf-builder",
+  "version": "1.0.1",
+  "description": "Build publication-ready PDF from Markdown via pandoc+Typst pipeline. Handles Chinese-English mixed typography, figure/table per-chapter numbering, drawio diagram export, code block escaping, and thuthesis-compliant formatting.",
+  "skills": [
+    "typst-pdf-builder"
+  ],
+  "contents": [
+    "SKILL.md",
+    "scripts/build_pdf.py",
+    "scripts/add_table_captions.py",
+    "scripts/export_drawio.py",
+    "templates/book-template.typ",
+    "references/typography-spec.md",
+    "references/format-conventions.md",
+    "references/pandoc-pitfalls.md",
+    "references/thuthesis-compliance.md",
+    "references/directory-conventions.md",
+    "evals/evals.json"
+  ],
+  "skill_count": 1
+}

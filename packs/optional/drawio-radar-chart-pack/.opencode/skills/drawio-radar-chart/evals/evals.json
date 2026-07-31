@@ -1,0 +1,34 @@
+{
+  "evals": [
+    {
+      "should_trigger": "帮我画一个雷达图比较三个产品的六维能力",
+      "reason": "User asking for radar chart with multi-series comparison"
+    },
+    {
+      "should_trigger": "create a spider chart in draw.io format",
+      "reason": "Explicit spider chart + draw.io request"
+    },
+    {
+      "should_trigger": "画FDE能力雷达图",
+      "reason": "Direct radar chart request with known domain"
+    },
+    {
+      "should_trigger": "generate a hexagonal capability comparison chart",
+      "reason": "Hexagonal chart = radar chart equivalent"
+    },
+    {
+      "should_trigger": "用draw.io画六轴雷达图，三个数据系列",
+      "reason": "Explicit draw.io + radar + multi-series"
+    }
+  ],
+  "should_not_trigger": [
+    {
+      "should_not_trigger": "画一个柱状图",
+      "reason": "Bar chart, not radar chart"
+    },
+    {
+      "should_not_trigger": "use matplotlib to create a polar plot",
+      "reason": "User explicitly wants matplotlib, not draw.io"
+    }
+  ]
+}

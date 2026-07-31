@@ -17,7 +17,7 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
-import { readFile, writeFile, stat, mkdir } from "node:fs/promises"
+import { readFile, writeFile, stat, mkdir, appendFile } from "node:fs/promises"
 import { join } from "node:path"
 
 interface TopicRegistry {
@@ -447,6 +447,35 @@ const plugin: Plugin = async ({ directory }, options) => {
 
         // Only splice if we actually reduced messages
         if (filtered.length < messages.length) {
+
+          // Archive removed messages before splicing (prevent information loss)
+          // Removed messages are saved to message-archive.jsonl with full content,
+          // so they can be retrieved later if needed (e.g., when switching topics)
+          try {
+            const archivePath = join(directory, ".petfish", "fish-trail", "message-archive.jsonl")
+            await mkdir(join(directory, ".petfish", "fish-trail"), { recursive: true }).catch(() => {})
+            const archiveEntries: string[] = []
+            for (let i = 0; i < messages.length; i++) {
+              if (!keep[i]) {
+                const text = getMessageText(messages[i])
+                archiveEntries.push(JSON.stringify({
+                  archived_ts: new Date().toISOString(),
+                  role: messages[i]?.info?.role ?? "unknown",
+                  active_topic: registry.active_topic ?? "unknown",
+                  topic_title: topic.title,
+                  original_index: i,
+                  text_length: text.length,
+                  text: text,
+                }))
+              }
+            }
+            if (archiveEntries.length > 0) {
+              await appendFile(archivePath, archiveEntries.join("\n") + "\n", "utf-8")
+            }
+          } catch {
+            // Best-effort archiving — don't break filtering if archive fails
+          }
+
           output.messages.splice(0, output.messages.length, ...filtered)
 
           // Log final result with removed message previews

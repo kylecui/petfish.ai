@@ -1,0 +1,22 @@
+{
+  "name": "drawio-radar-chart",
+  "version": "1.0.0",
+  "description": "draw.io雷达图生成器 — 六轴/八轴能力对比雷达图，精确顶点坐标计算，多系列数据叠加，同心圆网格，自动PNG导出。",
+  "compatibility": "opencode",
+  "skill_count": 1,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": [
+    "drawio-radar-chart"
+  ],
+  "commands": [],
+  "agents": [],
+  "contents": [
+    ".opencode/skills/drawio-radar-chart/SKILL.md",
+    ".opencode/skills/drawio-radar-chart/scripts/generate_radar.py",
+    ".opencode/skills/drawio-radar-chart/references/coordinate-formula.md",
+    ".opencode/skills/drawio-radar-chart/references/drawio-xml-anatomy.md",
+    ".opencode/skills/drawio-radar-chart/references/export-troubleshooting.md",
+    ".opencode/skills/drawio-radar-chart/evals/evals.json"
+  ]
+}
