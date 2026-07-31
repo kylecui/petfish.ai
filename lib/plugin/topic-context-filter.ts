@@ -278,30 +278,28 @@ const plugin: Plugin = async ({ directory }, options) => {
           try { cachedRegistryMtime = (await stat(registryPath)).mtimeMs } catch { /* ok */ }
           registry = bootstrapped
         }
-        const activeTopicId = registry!.active_topic!
+        const registryTopicId = registry!.active_topic!
 
         // Read topic data
-        const topicPath = join(directory, FISH_TRAIL_DIR, "topics", `${activeTopicId}.json`)
-        const topic = await readJSON<TopicData>(topicPath)
-        if (!topic?.title) {
-          await logFilter({ action: "skip", reason: "topic_data_missing", active_topic: activeTopicId })
+        const topicPath = join(directory, FISH_TRAIL_DIR, "topics", `${registryTopicId}.json`)
+        const registryTopic = await readJSON<TopicData>(topicPath)
+        if (!registryTopic?.title) {
+          await logFilter({ action: "skip", reason: "topic_data_missing", active_topic: registryTopicId })
           return
         }
 
-        // Build keyword set for active topic
-        const keywords = buildKeywordSet(topic)
-        if (keywords.size === 0) {
-          await logFilter({ action: "skip", reason: "no_keywords", active_topic: activeTopicId })
+        // Build keyword set for registry active topic
+        const registryKeywords = buildKeywordSet(registryTopic)
+        if (registryKeywords.size === 0) {
+          await logFilter({ action: "skip", reason: "no_keywords", active_topic: registryTopicId })
           return
         }
 
-        // Load ALL topics for removed-message categorization
-        // Each removed message will be archived under its best-matching topic,
-        // so switching to that topic can restore its context later.
+        // Load ALL topics for categorization and effective-topic detection
         const allTopicKeywords: Map<string, { keywords: Set<string>, title: string }> = new Map()
-        allTopicKeywords.set(activeTopicId, { keywords, title: topic.title })
+        allTopicKeywords.set(registryTopicId, { keywords: registryKeywords, title: registryTopic.title })
         for (const [topicId, topicInfo] of Object.entries(registry!.topics)) {
-          if (topicId === activeTopicId || topicInfo.status === "archived") continue
+          if (topicId === registryTopicId || topicInfo.status === "archived") continue
           const otherTopicPath = join(directory, FISH_TRAIL_DIR, "topics", `${topicId}.json`)
           const otherTopic = await readJSON<TopicData>(otherTopicPath)
           if (otherTopic?.title) {
@@ -309,6 +307,55 @@ const plugin: Plugin = async ({ directory }, options) => {
               keywords: buildKeywordSet(otherTopic),
               title: otherTopic.title,
             })
+          }
+        }
+
+        // Determine EFFECTIVE active topic from latest user message.
+        // Disk mode has one-turn lag: registry may still say "deploy" when
+        // the user just switched to "course". If the latest user message
+        // matches a different topic better, use THAT as the effective topic
+        // for filtering — so we keep the new topic's messages and archive
+        // the old topic's messages (not the other way around).
+        let activeTopicId = registryTopicId
+        let keywords = registryKeywords
+        let topic = registryTopic
+
+        if (allTopicKeywords.size > 1) {
+          let lastUserText = ""
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i]?.info?.role === "user") {
+              lastUserText = getMessageText(messages[i])
+              break
+            }
+          }
+          if (lastUserText) {
+            const regScore = scoreMessage(lastUserText, registryKeywords)
+            let bestAltId: string | null = null
+            let bestAltScore = regScore
+            for (const [tid, { keywords: kw }] of allTopicKeywords) {
+              if (tid === registryTopicId) continue
+              const s = scoreMessage(lastUserText, kw)
+              if (s > bestAltScore) {
+                bestAltScore = s
+                bestAltId = tid
+              }
+            }
+            if (bestAltId && bestAltScore > regScore) {
+              const alt = allTopicKeywords.get(bestAltId)!
+              activeTopicId = bestAltId
+              keywords = alt.keywords
+              const altTopicPath = join(directory, FISH_TRAIL_DIR, "topics", `${bestAltId}.json`)
+              const altTopic = await readJSON<TopicData>(altTopicPath)
+              if (altTopic?.title) topic = altTopic
+              await logFilter({
+                action: "effective_topic_switch",
+                registry_topic: registryTopicId,
+                effective_topic: activeTopicId,
+                reason: "latest_user_message_matches_different_topic",
+                registry_score: regScore,
+                effective_score: bestAltScore,
+              })
+            }
           }
         }
 
