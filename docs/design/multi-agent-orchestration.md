@@ -166,7 +166,7 @@ No new hooks are required for Phases 1-2. Phase 3 (if spike passes) uses the exi
 - `.opencode/plugin/companion-gateway.ts` (primary) → sync to `lib/plugin/` + `packs/core/.../plugin/`
 
 **Changes**:
-1. In `runSkillSense()` function (currently at ~line 230), after matching domains, also check `skill-index.json` for `orchestration.parallel_safe: true` skills in matched domains
+1. In `runSkillSense()` function (at line 115 in companion-gateway.ts), after matching domains, also check `skill-index.json` for `orchestration.parallel_safe: true` skills in matched domains
 2. If 2+ non-overlapping parallel-safe specialists matched, add to injection:
    ```
    **Orchestration Hint**: 2 parallel-safe specialists matched (research-source-discovery, product-competitor-analysis). The model MAY delegate via task() if parallel execution is judged valuable. Token cost: ~2× single-agent.
@@ -208,7 +208,7 @@ No new hooks are required for Phases 1-2. Phase 3 (if spike passes) uses the exi
 **Goal**: Provide a synthesis mechanism for parallel task results.
 
 **Files**:
-- `.opencode/skills/research-synthesis/SKILL.md` — enhance to accept multiple result sources
+- `packs/optional/research-skill-pack/.opencode/skills/research-synthesis/SKILL.md` — enhance to accept multiple result sources
 - No new files — reuse existing synthesis skill
 
 **Changes**:
