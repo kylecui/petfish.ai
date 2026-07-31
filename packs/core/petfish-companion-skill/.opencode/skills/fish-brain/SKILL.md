@@ -190,24 +190,17 @@ This applies to all agent-constructed status text, not just the scripts (which a
 
 当用户确认安装时，调用本skill的`scripts/check_installed.py`检查当前状态，然后指导用户运行安装命令：
 
-**本地安装（项目已clone胖鱼仓库）：**
+**统一安装命令（本地或远程）：**
 ```bash
-# PowerShell
-.\install.ps1 -Pack <alias> -Target <项目路径>
-
-# Bash
-./install.sh --pack <alias> --target <项目路径>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <alias> --detect
 ```
 
-**远程安装（无需clone）：**
-```powershell
-# PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <alias>
-```
+**本地clone安装：**
 ```bash
-# Bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <alias>
+uv run ./install.py --pack <alias> --target <项目路径> --detect
 ```
+
+> `install.ps1`、`install.sh`、`remote-install.ps1`、`remote-install.sh` 已废弃，统一使用 `install.py`。
 
 ### 3.2 平台适配
 

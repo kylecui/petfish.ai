@@ -310,6 +310,7 @@ const plugin: Plugin = async ({ directory }, options) => {
           "[ANALYZE-MODE]",
           "<system-reminder>",
           "<!-- OMO_INTERNAL_INITIATOR",
+          "messages from other topics omitted", // Prevent placeholder re-filtering accumulation bug
         ]
 
         for (let i = 0; i < safetyStart; i++) {

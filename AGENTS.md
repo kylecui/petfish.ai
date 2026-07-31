@@ -476,7 +476,7 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 
 ### 违反后果
 
-违反此规则等同于偏离计划执行。若模型无法遵守，将触发Phase 2硬门禁（response gate plugin自动裁剪违规段落）。
+违反此规则等同于偏离计划执行。companion-gateway插件会在系统提示中注入偏差提醒，但当前OpenCode插件API不支持输出拦截（无`chat.response.transform` hook），因此最终合规性仍取决于模型自觉遵循AGENTS.md指令。
 
 ---
 

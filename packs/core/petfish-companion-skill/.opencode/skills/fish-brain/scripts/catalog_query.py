@@ -645,22 +645,13 @@ def show_counts(as_json: bool = False, target: Path | None = None):
 
 
 def show_upgrade_command(as_json: bool = False):
-    """Show one-line command to upgrade packs."""
+    """Show one-line command to upgrade packs via install.py."""
     os_name = platform_mod.system()
-    is_windows = os_name == "Windows"
 
-    if is_windows:
-        command = (
-            "& ([scriptblock]::Create((irm "
-            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1"
-            "))) -Pack all -Force"
-        )
-    else:
-        command = (
-            "curl -fsSL "
-            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh "
-            "| bash -s -- --pack all --force"
-        )
+    command = (
+        "uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py"
+        " --pack all --force"
+    )
 
     if as_json:
         print(
@@ -679,9 +670,8 @@ def show_upgrade_command(as_json: bool = False):
 
 
 def show_uninstall_command(alias: str, as_json: bool = False):
-    """Show command to uninstall a pack via local installer."""
+    """Show command to uninstall a pack via install.py."""
     os_name = platform_mod.system()
-    is_windows = os_name == "Windows"
 
     if alias == "all":
         msg = "Cannot uninstall all packs at once. Specify individual pack aliases."
@@ -702,10 +692,10 @@ def show_uninstall_command(alias: str, as_json: bool = False):
             print(f"Error: {msg}", file=sys.stderr)
         sys.exit(1)
 
-    if is_windows:
-        command = f".\\install.ps1 -Pack {alias} -Uninstall"
-    else:
-        command = f"./install.sh --pack {alias} --uninstall"
+    command = (
+        "uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py"
+        f" --pack {alias} --uninstall"
+    )
 
     if as_json:
         print(
@@ -717,18 +707,15 @@ def show_uninstall_command(alias: str, as_json: bool = False):
         )
         return
 
-    print("Uninstall is only available via the local installer.")
-    print("Clone the repo first, then run:")
-    print()
-    print(f"  {command}")
+    print("To uninstall a pack, run:")
+    print(command)
     print()
     print("Add --target <path> if the project is not in the current directory.")
 
 
 def show_install_command(alias: str, as_json: bool = False):
-    """Show remote-install command for a pack alias."""
+    """Show install.py command for a pack alias."""
     os_name = platform_mod.system()
-    is_windows = os_name == "Windows"
 
     pack_name = ALIAS_MAP.get(alias)
     if not pack_name:
@@ -739,18 +726,10 @@ def show_install_command(alias: str, as_json: bool = False):
             print(f"Error: {msg}", file=sys.stderr)
         sys.exit(1)
 
-    if is_windows:
-        command = (
-            "& ([scriptblock]::Create((irm "
-            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1"
-            f"))) -Pack {alias}"
-        )
-    else:
-        command = (
-            "curl -fsSL "
-            "https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh "
-            f"| bash -s -- --pack {alias}"
-        )
+    command = (
+        "uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py"
+        f" --pack {alias}"
+    )
 
     if as_json:
         print(
