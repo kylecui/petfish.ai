@@ -1,0 +1,6 @@
+{
+  "title": "Auth Flow Redesign",
+  "scope": "JWT authentication, OAuth integration, session management, login flow",
+  "tags": ["auth", "jwt", "oauth", "login", "token", "session"],
+  "summary": "Redesigning authentication with JWT refresh rotation and OAuth2."
+}

@@ -1,0 +1,6 @@
+{
+  "title": "UI Component Redesign",
+  "scope": "React component library, CSS modules, responsive layout, design system",
+  "tags": ["frontend", "react", "css", "ui", "component", "layout"],
+  "summary": "Building React component library with CSS modules and responsive grid."
+}
