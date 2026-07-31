@@ -72,6 +72,31 @@ license: Apache-2.0
 
 ---
 
+## 并行Task结果聚合/Parallel Dispatch Result Aggregation (Phase 4)
+
+当此skill在并行dispatch后被调用时（companion-gateway注入了"Parallel Tasks Completed"提示），需要处理多个独立task的结果：
+
+### 输入格式
+
+接受多个JSONL/Markdown结果文件作为输入，每个来自一个并行specialist task：
+- `research/01_sources/*.jsonl` — 来自research-source-discovery的来源索引
+- `research/05_analysis/competitor-*.md` — 来自product-competitor-analysis的竞品矩阵
+- `research/05_analysis/stakeholder-*.md` — 来自planning-stakeholder-analyst的利益相关方地图
+
+### 冲突检测规则
+
+1. **事实冲突**：两个task对同一实体给出不同数据（如不同市场份额数字）→ 标记 `⚠ Conflict detected`
+2. **结论冲突**：两个task得出相反建议（如一个建议进入市场，一个建议观望）→ 标记 `⚠ Conflict detected`
+3. **范围冲突**：两个task覆盖重叠范围但得出不一致分类 → 标记 `⚠ Overlap detected`
+
+### 冲突处理原则
+
+- **永远不自动解决冲突** — 呈现双方观点和证据，让用户决策
+- 冲突输出格式：`⚠ Conflict: [Claim A (source: task-1)] vs [Claim B (source: task-2)]`
+- 无冲突的发现正常合并到综合分析中
+
+---
+
 ## 关联资源
 
 - References: `synthesis-patterns.md`, `confidence-grading.md`

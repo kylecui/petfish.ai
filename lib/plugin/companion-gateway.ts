@@ -32,6 +32,7 @@ interface PluginMessage {
 interface ProjectMode {
   depth: "urgent" | "balanced" | "thorough"
   rigor: boolean
+  autonomy: "suggest" | "delegate" | "auto"
 }
 
 interface GatewayOptions {
@@ -128,6 +129,53 @@ function isEvaluative(userText: string): boolean {
   return EVALUATIVE_PATTERNS.some((p) => lower.includes(p.toLowerCase()))
 }
 
+// Phase 2: Orchestration hint — check skill-index.json for parallel_safe skills
+async function checkOrchestrationHint(
+  directory: string,
+  skillMatches: string[],
+  autonomy: string,
+): Promise<string | null> {
+  try {
+    const indexPath = join(directory, ".opencode", "skill-index.json")
+    const content = await readFile(indexPath, "utf-8")
+    const index = JSON.parse(content) as { skills?: Array<{ name?: string; description?: string; orchestration?: { parallel_safe?: boolean } }> }
+
+    const parallelSkills: string[] = []
+    for (const skill of index.skills ?? []) {
+      const orch = skill.orchestration
+      if (orch?.parallel_safe === true && skill.name) {
+        const skillName = skill.name.toLowerCase()
+        const skillDesc = (skill.description ?? "").toLowerCase()
+        for (const domain of skillMatches) {
+          if (skillName.includes(domain) || skillDesc.includes(domain) || domain.includes(skillName.split("-")[0])) {
+            if (!parallelSkills.includes(skill.name)) {
+              parallelSkills.push(skill.name)
+            }
+            break
+          }
+        }
+      }
+    }
+
+    if (parallelSkills.length >= 2) {
+      const cost = parallelSkills.length + 1 // N specialists + 1 synthesis
+      let hint = `**Orchestration Hint**: ${parallelSkills.length} parallel-safe specialists matched (${parallelSkills.join(", ")}). `
+      if (autonomy === "auto") {
+        hint += `Auto-delegating via task(). `
+      } else if (autonomy === "delegate") {
+        hint += `Delegate via task() if valuable. `
+      } else {
+        hint += `Consider delegating via task() if parallel execution is valuable. `
+      }
+      hint += `Token cost: ~${cost}x single-agent.\n`
+      return hint
+    }
+    return null
+  } catch {
+    return null // skill-index.json missing or invalid — skip
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
@@ -172,15 +220,18 @@ const plugin: Plugin = async ({ directory }, options) => {
     try {
       const content = await readFile(
         join(directory, ".opencode", "project-mode.yaml"),
-        "utf-8"
+        "utf-8",
       )
       const depthMatch = content.match(/depth:\s*(\w+)/)
       const rigorMatch = content.match(/rigor:\s*(true|false)/)
+      const autonomyMatch = content.match(/autonomy:\s*(\w+)/)
       const depth = depthMatch?.[1] as ProjectMode["depth"]
+      const autonomyRaw = autonomyMatch?.[1] ?? "suggest"
       return {
         depth:
           depth === "urgent" || depth === "thorough" ? depth : "balanced",
         rigor: rigorMatch?.[1] === "true",
+        autonomy: autonomyRaw === "delegate" || autonomyRaw === "auto" ? autonomyRaw : "suggest",
       }
     } catch {
       return { depth: "balanced", rigor: false }
@@ -236,9 +287,31 @@ const plugin: Plugin = async ({ directory }, options) => {
         // Skill Sense
         if (skillMatches.length > 0) {
           sections.push(
-            `**Skill Sense**: Detected relevant domains: ${skillMatches.join(", ")}. Check if corresponding skills are loaded.\n`
+            `**Skill Sense**: Detected relevant domains: ${skillMatches.join(", ")}. Check if corresponding skills are loaded.\n`,
           )
         }
+
+        // Phase 2: Orchestration Hint (skill-dispatch signal)
+        const orchHint = await checkOrchestrationHint(directory, skillMatches, mode.autonomy)
+        if (orchHint) {
+          sections.push(orchHint)
+        }
+
+        // Phase 3: Check if parallel dispatch tasks have completed
+        try {
+          const dispatchPath = join(stateDir, "active-dispatch.json")
+          const dispatchContent = await readFile(dispatchPath, "utf-8").catch(() => null)
+          if (dispatchContent) {
+            const ds = JSON.parse(dispatchContent) as { pending?: number; completed?: number; notified?: boolean }
+            if (ds.pending !== undefined && ds.pending === 0 && ds.completed && ds.completed > 0 && !ds.notified) {
+              sections.push(
+                `**Parallel Tasks Completed**: ${ds.completed} dispatched task(s) finished. Results available via background_output. Consider synthesis.\n`,
+              )
+              ds.notified = true
+              await writeFile(dispatchPath, JSON.stringify(ds))
+            }
+          }
+        } catch { /* best-effort */ }
 
         // Anti-Sycophancy
         if (evaluative) {
@@ -274,18 +347,49 @@ const plugin: Plugin = async ({ directory }, options) => {
     },
 
     // -----------------------------------------------------------------------
-    // Tool Execution After — track failures for retry guard
+    // Tool Execution After — track failures + parallel dispatch (Phases 3-5)
     // -----------------------------------------------------------------------
     "tool.execute.after": async (_input, output) => {
       try {
-        // Check if tool execution resulted in an error
+        // Retry guard: track consecutive failures
         const out = output as { error?: unknown }
         if (out?.error) {
           const count = await getRetryCount()
           await setRetryCount(count + 1)
         } else {
-          // Reset on success
           await setRetryCount(0)
+        }
+
+        // Phase 3: Track parallel dispatch state
+        const ti = _input as { tool?: string; tool_name?: string; name?: string }
+        const toolName = (ti?.tool ?? ti?.tool_name ?? ti?.name ?? "").toLowerCase()
+        if (toolName.includes("task") || toolName.includes("delegate")) {
+          try {
+            const dp = join(stateDir, "active-dispatch.json")
+            const dc = await readFile(dp, "utf-8").catch(() => '{"pending":0,"completed":0}')
+            const ds = JSON.parse(dc) as { pending?: number; completed?: number; notified?: boolean }
+            // A task tool was invoked — increment pending
+            ds.pending = (ds.pending ?? 0) + 1
+            ds.notified = false
+            await writeFile(dp, JSON.stringify(ds))
+          } catch { /* best-effort */ }
+        }
+
+        // When a background task result is collected, decrement pending
+        const outStr = JSON.stringify(output ?? {})
+        if (outStr.includes("background_task_id") || outStr.includes("task_id")) {
+          try {
+            const dp = join(stateDir, "active-dispatch.json")
+            const dc = await readFile(dp, "utf-8").catch(() => null)
+            if (dc) {
+              const ds = JSON.parse(dc) as { pending?: number; completed?: number; notified?: boolean }
+              if ((ds.pending ?? 0) > 0) {
+                ds.pending = (ds.pending ?? 0) - 1
+                ds.completed = (ds.completed ?? 0) + 1
+                await writeFile(dp, JSON.stringify(ds))
+              }
+            }
+          } catch { /* best-effort */ }
         }
       } catch {
         /* best-effort */
