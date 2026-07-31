@@ -1,19 +1,22 @@
-"""Install script validation — syntax checks + alias consistency."""
+"""Install script validation — install.py is the sole installer.
+
+Legacy shell installers (install.ps1, install.sh, remote-install.ps1, remote-install.sh)
+were deleted in v2.0. This test validates install.py as the unified installer.
+"""
 
 from __future__ import annotations
 
-import re
-import subprocess
+import ast
+import importlib.util
 import sys
 from pathlib import Path
 
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+INSTALL_PY = REPO_ROOT / "install.py"
 
 # Import catalog_query for alias reference
-import importlib.util
-
 _CQ_SCRIPT = (
     REPO_ROOT
     / "packs/core/petfish-companion-skill/.opencode/skills/fish-brain/scripts/catalog_query.py"
@@ -25,10 +28,50 @@ CANONICAL_ALIASES = set(_cq.ALIAS_MAP.keys())
 
 
 # ---------------------------------------------------------------------------
-# Script file existence
+# install.py existence and syntax
 # ---------------------------------------------------------------------------
 
-INSTALL_SCRIPTS = [
+
+def test_install_py_exists():
+    """install.py must exist as the sole installer."""
+    assert INSTALL_PY.exists(), "install.py is missing — it is the only installer"
+
+
+def test_install_py_valid_python():
+    """install.py must be syntactically valid Python."""
+    content = INSTALL_PY.read_text(encoding="utf-8")
+    try:
+        ast.parse(content)
+    except SyntaxError as e:
+        pytest.fail(f"install.py has syntax errors: {e}")
+
+
+# ---------------------------------------------------------------------------
+# Alias consistency: install.py must cover all canonical aliases
+# ---------------------------------------------------------------------------
+
+
+def test_install_py_alias_coverage():
+    """install.py must contain all canonical pack aliases from catalog_query.py."""
+    content = INSTALL_PY.read_text(encoding="utf-8")
+    found = set()
+    for alias in CANONICAL_ALIASES:
+        # Check if alias appears as a string literal in install.py
+        if f'"{alias}"' in content or f"'{alias}'" in content:
+            found.add(alias)
+
+    missing = CANONICAL_ALIASES - found
+    assert not missing, (
+        f"install.py missing aliases: {missing}. "
+        f"Found: {sorted(found)}, Expected: {sorted(CANONICAL_ALIASES)}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Legacy script absence (regression guard)
+# ---------------------------------------------------------------------------
+
+LEGACY_SCRIPTS = [
     "install.ps1",
     "install.sh",
     "remote-install.ps1",
@@ -36,144 +79,35 @@ INSTALL_SCRIPTS = [
 ]
 
 
-@pytest.mark.parametrize("script", INSTALL_SCRIPTS)
-def test_script_exists(script):
-    assert (REPO_ROOT / script).exists(), f"Missing install script: {script}"
+@pytest.mark.parametrize("script", LEGACY_SCRIPTS)
+def test_legacy_script_absent(script):
+    """Legacy shell installers must not exist (deleted in v2.0)."""
+    assert not (REPO_ROOT / script).exists(), (
+        f"{script} should have been deleted in v2.0 — install.py is the sole installer"
+    )
 
 
 # ---------------------------------------------------------------------------
-# PowerShell syntax validation (Windows only)
+# catalog_query upgrade command must emit install.py only
 # ---------------------------------------------------------------------------
 
-PS_SCRIPTS = [s for s in INSTALL_SCRIPTS if s.endswith(".ps1")]
 
+def test_upgrade_command_uses_install_py():
+    """catalog_query --upgrade must emit install.py, not legacy scripts."""
+    import subprocess
 
-@pytest.mark.parametrize("script", PS_SCRIPTS)
-@pytest.mark.skipif(
-    sys.platform != "win32", reason="PowerShell syntax check on Windows only"
-)
-def test_ps1_syntax(script):
-    path = REPO_ROOT / script
     result = subprocess.run(
-        [
-            "powershell",
-            "-NoProfile",
-            "-Command",
-            f"$null = [System.Management.Automation.Language.Parser]::ParseFile('{path}', [ref]$null, [ref]$errors); $errors.Count",
-        ],
+        [sys.executable, str(_CQ_SCRIPT), "--upgrade", "--json"],
         capture_output=True,
         text=True,
         timeout=30,
+        cwd=str(REPO_ROOT),
     )
-    error_count = result.stdout.strip()
-    assert error_count == "0", (
-        f"{script} has {error_count} parse errors: {result.stderr}"
-    )
+    import json
 
-
-# ---------------------------------------------------------------------------
-# Bash syntax validation
-# ---------------------------------------------------------------------------
-
-BASH_SCRIPTS = [s for s in INSTALL_SCRIPTS if s.endswith(".sh")]
-
-
-@pytest.mark.parametrize("script", BASH_SCRIPTS)
-@pytest.mark.skipif(sys.platform == "win32", reason="bash -n on Unix only")
-def test_bash_syntax(script):
-    path = REPO_ROOT / script
-    result = subprocess.run(
-        ["bash", "-n", str(path)],
-        capture_output=True,
-        text=True,
-        timeout=30,
-    )
-    assert result.returncode == 0, f"{script} has syntax errors: {result.stderr}"
-
-
-# ---------------------------------------------------------------------------
-# Alias consistency: extract aliases from scripts and compare to catalog
-# ---------------------------------------------------------------------------
-
-
-def _extract_ps1_aliases(path: Path) -> set[str]:
-    """Extract pack alias strings from a PowerShell install script."""
-    content = path.read_text(encoding="utf-8")
-    aliases = set()
-    # Match patterns like: "init" { ... } or "init" = "..."
-    # In install.ps1, aliases appear in switch cases or hashtable keys
-    for m in re.finditer(r'["\']([\w-]+)["\']\s*[={]', content):
-        candidate = m.group(1).lower()
-        if candidate in CANONICAL_ALIASES:
-            aliases.add(candidate)
-    # Also check $AllPacks or similar array definitions
-    for m in re.finditer(r'["\']([\w-]+)["\']', content):
-        candidate = m.group(1).lower()
-        if candidate in CANONICAL_ALIASES:
-            aliases.add(candidate)
-    return aliases
-
-
-def _extract_bash_aliases(path: Path) -> set[str]:
-    """Extract pack alias strings from a Bash install script."""
-    content = path.read_text(encoding="utf-8")
-    aliases = set()
-    # Match associative array entries: [alias]="pack-name"
-    for m in re.finditer(r'\[([\w-]+)\]="[\w-]+"', content):
-        aliases.add(m.group(1).lower())
-    # Match quoted alias strings
-    for m in re.finditer(r'["\']([\w-]+)["\']', content):
-        candidate = m.group(1).lower()
-        if candidate in CANONICAL_ALIASES:
-            aliases.add(candidate)
-    # Match case patterns: alias) or "alias")
-    for m in re.finditer(r'(?:^|\|)\s*([\w-]+)\s*\)', content, re.MULTILINE):
-        candidate = m.group(1).lower()
-        if candidate in CANONICAL_ALIASES:
-            aliases.add(candidate)
-    return aliases
-
-
-@pytest.mark.parametrize("script", INSTALL_SCRIPTS)
-def test_alias_consistency(script):
-    """All canonical aliases from catalog_query.py should appear in each install script."""
-    path = REPO_ROOT / script
-    if script.endswith(".ps1"):
-        found = _extract_ps1_aliases(path)
-    else:
-        found = _extract_bash_aliases(path)
-
-    missing = CANONICAL_ALIASES - found
-    assert not missing, (
-        f"{script} missing aliases: {missing}. "
-        f"Found: {sorted(found)}, Expected: {sorted(CANONICAL_ALIASES)}"
-    )
-
-
-# ---------------------------------------------------------------------------
-# Regression: array-format installed-packs.json (v0.4.x-v0.9.x) must not crash
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.parametrize("script", BASH_SCRIPTS)
-def test_bash_array_registry_normalization(script):
-    """Shell installers must normalize array-format packs to dict (#187)."""
-    content = (REPO_ROOT / script).read_text(encoding="utf-8")
-    # The fix adds: if isinstance(packs, list):
-    assert "isinstance(packs, list)" in content, (
-        f"{script} missing array-format normalization for v0.9.x registry"
-    )
-
-
-@pytest.mark.parametrize("script", PS_SCRIPTS)
-def test_ps1_array_registry_normalization(script):
-    """PowerShell installers must normalize array-format packs to dict (#187)."""
-    content = (REPO_ROOT / script).read_text(encoding="utf-8")
-    # The fix adds: if ($reg.packs -is [System.Array]) (Update) and
-    # if ($registry.packs -is [System.Array]) (Compare)
-    assert "$reg.packs -is [System.Array]" in content, (
-        f"{script} missing array-format normalization in Update-InstalledPacks"
-    )
-    assert "$registry.packs -is [System.Array]" in content, (
-        f"{script} missing array-format normalization in Compare-PackVersion"
+    data = json.loads(result.stdout)
+    command = data.get("command", "")
+    assert "install.py" in command, f"Upgrade command must use install.py: {command}"
+    assert "remote-install" not in command, (
+        f"Upgrade command must not reference deprecated scripts: {command}"
     )

@@ -1,0 +1,297 @@
+/**
+ * companion-gateway — Programmatic Companion Gateway Plugin
+ *
+ * Moves the 6-step Companion Gateway from prompt-only instructions to
+ * programmatic enforcement. Hooks into system prompt injection and
+ * tool execution to provide:
+ *
+ *   Step 0: Mode Read (from .opencode/project-mode.yaml)
+ *   Step 1.5: Failure Signal Detection (scan previous assistant turn)
+ *   Step 2: Skill Sense (keyword matching against skill triggers)
+ *   Step 2.5: Anti-Sycophancy Check (detect evaluative questions)
+ *   Step 3: Retry Guard (track consecutive tool failures via tool.execute.after)
+ *   Step WG: Web-Grounding reminder (always injected)
+ *
+ * Hooks:
+ *   experimental.chat.system.transform — inject gateway results into system prompt
+ *   tool.execute.after — track tool failures for retry guard
+ *
+ * Config via opencode.json:
+ *   "plugin": [[ ".opencode/plugin/companion-gateway.ts", { "enabled": true } ]]
+ */
+
+import type { Plugin } from "@opencode-ai/plugin"
+import { readFile, writeFile, mkdir } from "node:fs/promises"
+import { join } from "node:path"
+
+interface PluginMessage {
+  info: { role: string }
+  parts: Array<{ type: string; text?: string }>
+}
+
+interface ProjectMode {
+  depth: "urgent" | "balanced" | "thorough"
+  rigor: boolean
+}
+
+interface GatewayOptions {
+  enabled?: boolean
+}
+
+const GATEWAY_STATE_DIR = ".petfish/gateway"
+
+// ---------------------------------------------------------------------------
+// Failure patterns for Step 1.5 (mirrors catalog_query.py FAILURE_SIGNALS)
+// ---------------------------------------------------------------------------
+const FAILURE_SIGNALS: Array<{ pattern: RegExp; pack: string }> = [
+  { pattern: /无法.*(打开|读取|解析).*(PDF|PPTX|PPT|幻灯片)/i, pack: "ppt" },
+  { pattern: /(deploy|部署|Docker).*(fail|失败|error|错误)/i, pack: "deploy" },
+  { pattern: /(测试用例|test\s*case).*(无法|不确定|需要).*生成/i, pack: "testdocs" },
+  { pattern: /(需要更多|证据不足|无法确认).*(来源|evidence|文献)/i, pack: "research" },
+  { pattern: /(上下文|context).*(混乱|污染|冲突|drift)/i, pack: "context" },
+  { pattern: /cannot.*(read|open|parse).*(PDF|PPTX|PPT)/i, pack: "ppt" },
+  { pattern: /I don't have access to|无法访问/i, pack: "" },
+]
+
+// ---------------------------------------------------------------------------
+// Skill triggers for Step 2 (mirrors catalog_query.py TRIGGERS)
+// ---------------------------------------------------------------------------
+const SKILL_TRIGGERS: Record<string, string[]> = {
+  deploy: ["deploy", "部署", "docker", "container", "systemd", "nginx", "ci/cd", "rollback", "回滚", "运维", "ops"],
+  course: ["course", "课程", "教学", "大纲", "实验", "lesson", "curriculum", "syllabus", "lab", "learner", "instructor"],
+  ppt: ["ppt", "幻灯片", "演示", "slide", "presentation", "keynote"],
+  writing: ["润色", "说人话", "去ai味", "rewrite", "polish", "style", "风格", "de-ai"],
+  research: ["research", "研究", "调研", "文献", "evidence", "综述", "论文", "literature", "synthesis"],
+  topic: ["topic", "话题", "上下文", "context", "污染", "contamination", "fish-trail"],
+  review: ["review", "评审", "critique", "calibration", "sycophancy", "评价", "迎合"],
+  testdocs: ["test case", "测试用例", "测试文档", "usage doc", "使用文档"],
+  petfish: ["petfish", "skill", "companion", "pack", "install", "marketplace", "胖鱼"],
+}
+
+// ---------------------------------------------------------------------------
+// Evaluative patterns for Step 2.5 (Anti-Sycophancy)
+// ---------------------------------------------------------------------------
+const EVALUATIVE_PATTERNS = [
+  "好吗", "对吗", "是不是", "你同意吗", "你觉得呢", "合理吗",
+  "right?", "is this correct", "what do you think", "is this right",
+  "你觉得", "你怎么看", "评价一下",
+]
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function extractLastUserMessage(messages: PluginMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].info.role === "user") {
+      return (messages[i].parts ?? [])
+        .map((p) => p.text ?? "")
+        .join(" ")
+    }
+  }
+  return ""
+}
+
+function extractLastAssistantMessage(messages: PluginMessage[]): string {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i].info.role === "assistant") {
+      return (messages[i].parts ?? [])
+        .map((p) => p.text ?? "")
+        .join(" ")
+    }
+  }
+  return ""
+}
+
+function detectFailureSignal(assistantText: string): string | null {
+  for (const { pattern, pack } of FAILURE_SIGNALS) {
+    if (pattern.test(assistantText)) {
+      return pack || "unknown"
+    }
+  }
+  return null
+}
+
+function runSkillSense(userMessage: string): string[] {
+  const lower = userMessage.toLowerCase()
+  const matches: string[] = []
+  for (const [domain, keywords] of Object.entries(SKILL_TRIGGERS)) {
+    if (keywords.some((kw) => lower.includes(kw.toLowerCase()))) {
+      matches.push(domain)
+    }
+  }
+  return matches
+}
+
+function isEvaluative(userText: string): boolean {
+  const lower = userText.toLowerCase()
+  return EVALUATIVE_PATTERNS.some((p) => lower.includes(p.toLowerCase()))
+}
+
+// ---------------------------------------------------------------------------
+// Plugin
+// ---------------------------------------------------------------------------
+
+const plugin: Plugin = async ({ directory }, options) => {
+  const opts = (options ?? {}) as GatewayOptions
+  const enabled = opts.enabled !== false
+
+  if (!enabled) {
+    return { name: "companion-gateway" }
+  }
+
+  const stateDir = join(directory, GATEWAY_STATE_DIR)
+  await mkdir(stateDir, { recursive: true }).catch(() => {})
+
+  // --- State: retry counter ---
+  async function getRetryCount(): Promise<number> {
+    try {
+      const content = await readFile(join(stateDir, "retry-count.json"), "utf-8")
+      const data = JSON.parse(content)
+      // Expire after 5 minutes of inactivity
+      if (Date.now() - (data.ts ?? 0) > 300_000) return 0
+      return data.count ?? 0
+    } catch {
+      return 0
+    }
+  }
+
+  async function setRetryCount(count: number): Promise<void> {
+    try {
+      await writeFile(
+        join(stateDir, "retry-count.json"),
+        JSON.stringify({ count, ts: Date.now() })
+      )
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  // --- Mode Read ---
+  async function readProjectMode(): Promise<ProjectMode> {
+    try {
+      const content = await readFile(
+        join(directory, ".opencode", "project-mode.yaml"),
+        "utf-8"
+      )
+      const depthMatch = content.match(/depth:\s*(\w+)/)
+      const rigorMatch = content.match(/rigor:\s*(true|false)/)
+      const depth = depthMatch?.[1] as ProjectMode["depth"]
+      return {
+        depth:
+          depth === "urgent" || depth === "thorough" ? depth : "balanced",
+        rigor: rigorMatch?.[1] === "true",
+      }
+    } catch {
+      return { depth: "balanced", rigor: false }
+    }
+  }
+
+  return {
+    name: "companion-gateway",
+
+    // -----------------------------------------------------------------------
+    // System Prompt Injection — runs on every LLM call
+    // -----------------------------------------------------------------------
+    "experimental.chat.system.transform": async (_input, output) => {
+      try {
+        const messages = ((_input as { messages?: PluginMessage[] })?.messages ?? []) as PluginMessage[]
+        const userMessage = extractLastUserMessage(messages)
+        const assistantMessage = extractLastAssistantMessage(messages)
+
+        // Step 0: Mode Read
+        const mode = await readProjectMode()
+
+        // Step 1.5: Failure Signal Detection
+        const failurePack = detectFailureSignal(assistantMessage)
+
+        // Step 2: Skill Sense
+        const skillMatches = runSkillSense(userMessage)
+
+        // Step 2.5: Anti-Sycophancy
+        const evaluative = isEvaluative(userMessage)
+
+        // Step 3: Retry Guard state
+        const retryCount = await getRetryCount()
+
+        // --- Build injection ---
+        const sections: string[] = []
+
+        sections.push("\n\n## Companion Gateway (Programmatic)\n")
+        sections.push(
+          `**Mode**: depth=${mode.depth}, rigor=${mode.rigor}\n`
+        )
+
+        // Failure Signal
+        if (failurePack && failurePack !== "unknown") {
+          sections.push(
+            `**⚠ Failure Signal**: Previous turn may indicate a failure that the \`${failurePack}\` pack can resolve. Consider: \`/petfish install ${failurePack}\`\n`
+          )
+        } else if (failurePack === "unknown") {
+          sections.push(
+            `**⚠ Failure Signal**: Previous turn may contain a failure. Consider checking if a skill pack can help.\n`
+          )
+        }
+
+        // Skill Sense
+        if (skillMatches.length > 0) {
+          sections.push(
+            `**Skill Sense**: Detected relevant domains: ${skillMatches.join(", ")}. Check if corresponding skills are loaded.\n`
+          )
+        }
+
+        // Anti-Sycophancy
+        if (evaluative) {
+          sections.push(
+            `**⚠ Anti-Sycophancy Alert**: User is asking an evaluative question. You MUST: (1) define what "good" means in this context before answering, (2) find at least one reason the proposal might be wrong, (3) separate conclusion from confidence level.\n`
+          )
+        }
+
+        // Retry Guard
+        if (retryCount >= 3) {
+          sections.push(
+            `**🚫 RETRY GUARD — AUTHORIZATION REQUIRED**: ${retryCount} consecutive tool failures detected. Do NOT switch approaches. STOP and ask the user for authorization before changing strategy.\n`
+          )
+        } else if (retryCount >= 2) {
+          sections.push(
+            `**⚠ RETRY GUARD**: ${retryCount} consecutive tool failures. RETRY the same approach at least once more before considering a workaround. Transient failures (network, timeout) are common — retry first.\n`
+          )
+        } else if (retryCount === 1) {
+          sections.push(
+            `**RETRY GUARD**: 1 tool failure detected. This may be transient — retry before changing approach.\n`
+          )
+        }
+
+        // Web-Grounding (always)
+        sections.push(
+          `**Web-Grounding**: For library/framework/API questions, use context7 or web-search-prime BEFORE answering from training data. Cite sources for factual claims.\n`
+        )
+
+        output.system += sections.join("")
+      } catch {
+        // Graceful degradation — never break the session
+      }
+    },
+
+    // -----------------------------------------------------------------------
+    // Tool Execution After — track failures for retry guard
+    // -----------------------------------------------------------------------
+    "tool.execute.after": async (_input, output) => {
+      try {
+        // Check if tool execution resulted in an error
+        const out = output as { error?: unknown }
+        if (out?.error) {
+          const count = await getRetryCount()
+          await setRetryCount(count + 1)
+        } else {
+          // Reset on success
+          await setRetryCount(0)
+        }
+      } catch {
+        /* best-effort */
+      }
+    },
+  }
+}
+
+export default plugin

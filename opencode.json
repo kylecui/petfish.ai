@@ -33,6 +33,20 @@
         "detectionMode": "disk",
         "reflectiveBriefEnabled": true
       }
+    ],
+    [
+      ".opencode/plugin/topic-context-filter.ts",
+      {
+        "enabled": true,
+        "safetyWindow": 5,
+        "minMessages": 15
+      }
+    ],
+    [
+      ".opencode/plugin/companion-gateway.ts",
+      {
+        "enabled": true
+      }
     ]
   ],
   "mcp": {

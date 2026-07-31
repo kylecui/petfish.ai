@@ -1231,6 +1231,37 @@ def update_registry(
     registry["packs"][pack_name] = entry
 
 
+def _generate_skill_index(skills_dir: Path, target: Path):
+    """Generate .opencode/skill-index.json from installed SKILL.md files.
+    Used by companion-gateway.ts for programmatic Skill Sense."""
+    index = {"generated_at": datetime.now(timezone.utc).isoformat(), "skill_count": 0, "skills": []}
+    for skill_dir in sorted(skills_dir.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        content = skill_md.read_text(encoding="utf-8")
+        # Parse simple frontmatter
+        fm: dict = {}
+        fm_match = re.match(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
+        if fm_match:
+            for line in fm_match.group(1).split("\n"):
+                if ":" in line:
+                    k, _, v = line.partition(":")
+                    fm[k.strip()] = v.strip().strip("\"'")
+        name = fm.get("name", skill_dir.name)
+        desc = fm.get("description", "")
+        if not name:
+            continue
+        index["skills"].append({"name": name, "description": desc, "path": str(skill_dir.relative_to(target))})
+    index["skill_count"] = len(index["skills"])
+    index_path = target / ".opencode" / "skill-index.json"
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+    log_success(f"skill-index.json ({index['skill_count']} skills)")
+
+
 # ---------------------------------------------------------------------------
 # File copy operations
 # ---------------------------------------------------------------------------
@@ -1548,6 +1579,8 @@ def register_plugin_in_config(config_file: Path):
     plugins_to_register = [
         [".opencode/plugin/system-prompt-rules.ts", {"mode": "all"}],
         [".opencode/plugin/system-prompt-context-inject.ts", {"maxTopics": 5, "maxSummaryLen": 200}],
+        [".opencode/plugin/companion-gateway.ts", {"enabled": True}],
+        [".opencode/plugin/topic-context-filter.ts", {"enabled": True, "safetyWindow": 5, "minMessages": 15}],
     ]
 
     changed = False
@@ -2954,6 +2987,14 @@ def main():
     if success_count > 0:
         save_registry(reg_path, registry)
         log_success(f"Registry updated: {reg_path}")
+
+        # Generate skill-index.json for companion-gateway Skill Sense
+        skills_dir_path = plat_dirs.get("skills_dir")
+        if skills_dir_path and Path(skills_dir_path).is_dir():
+            try:
+                _generate_skill_index(Path(skills_dir_path), target)
+            except Exception:
+                pass  # best-effort, don't fail install
 
     # Final summary
     banner(f"Done: {success_count}/{len(pack_names)} pack(s) processed")
