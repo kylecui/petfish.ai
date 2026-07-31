@@ -89,6 +89,47 @@ Every SKILL.md must include these sections (empty placeholder = not done):
 
 See `references/authoring-methodology.md` for how to extract each section.
 
+## Agent Skills Standard (agentskills.io) Compatibility
+
+PEtFiSh skills follow the [Agent Skills open standard](https://agentskills.io),
+ensuring cross-platform compatibility with Cursor, Claude Code, OpenCode,
+Gemini CLI, GitHub Copilot, and other supporting clients.
+
+### Frontmatter Fields
+
+| Field | Required | Standard | Purpose |
+|-------|----------|----------|---------|
+| `name` | Yes | agentskills.io | Skill identifier (kebab-case) |
+| `description` | Yes | agentskills.io | Trigger surface (~100 tokens, always loaded) |
+| `metadata.version` | Recommended | PEtFiSh extension | Semantic version for updates |
+| `metadata.author` | Optional | PEtFiSh extension | Attribution |
+| `disable-model-invocation` | Optional | agentskills.io | If true, skill only activates via `/skill-name` |
+| `paths` | Optional | agentskills.io | Glob patterns limiting auto-load scope |
+| `allowed-tools` | Optional | agentskills.io | Whitelist of tools this skill may use |
+| `disallowed-tools` | Optional | agentskills.io | Blacklist of tools this skill must not use |
+
+### Progressive Disclosure (3 Levels)
+
+1. **Metadata** (~100 tokens): `name` + `description` always loaded in system prompt.
+   This is the ONLY trigger surface — optimize for keyword density and specificity.
+2. **Instructions** (<5k tokens): SKILL.md body loaded only when skill is triggered.
+   Contains workflow, rules, decision points, output contracts.
+3. **Resources** (on demand): `scripts/`, `references/`, `assets/`, `evals/`
+   loaded or executed only as needed. Script output enters context, not source.
+
+### Cross-Platform Skill Structure
+
+```
+skill-name/
+  SKILL.md              # Required: frontmatter + body
+  scripts/              # Optional: executable tools
+  references/           # Optional: detailed knowledge
+  assets/               # Optional: templates, fixtures
+  evals/                # Optional: trigger + quality tests
+```
+
+This structure is recognized by all agentskills.io-compatible clients.
+
 ## Workflow
 
 1. Determine authoring mode from user request.
