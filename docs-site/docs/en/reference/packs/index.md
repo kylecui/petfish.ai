@@ -1,6 +1,6 @@
 # Packs
 
-PEtFiSh ships **4 core + 9 optional** skill packs (13 total). Core packs are included in every install; optional packs are distributed via [petfish-market](https://github.com/kylecui/petfish-market).
+PEtFiSh ships **4 core + 12 optional** skill packs (16 total). Core packs are included in every install; optional packs are distributed via [petfish-market](https://github.com/kylecui/petfish-market).
 
 ## Core Packs
 
@@ -24,3 +24,6 @@ PEtFiSh ships **4 core + 9 optional** skill packs (13 total). Core packs are inc
 | [`deploy`](deploy.md) | 部署与运维 — 运行时识别、主机检查、部署执行、验证、运维、回滚、全生命周期管理 | 7 | 1.0.1 |
 | [`research`](research.md) | Research workbench skill pack covering scientific, product, planning, learning, decision, risk-procurement, experience-event, and adapter domains | 54 | 0.9.0 |
 | [`trust`](trust.md) | Skill安全治理引擎 — 基于行为分析的skill可信度评估、风险评分与治理决策 | 1 | 0.1.1 |
+| [`drawio`](drawio.md) | Draw.io雷达图生成器 — 六轴/八轴能力对比雷达图，精确顶点坐标计算 | 1 | 1.0.0 |
+| [`typst`](typst.md) | Typst PDF构建 — Markdown转PDF，中文排版，pandoc pipeline | 1 | 1.0.1 |
+| [`style-governor`](style-governor.md) | 系列文档风格一致性治理 — 术语漂移检测、保守归一化改写 | 1 | 0.1.0 |

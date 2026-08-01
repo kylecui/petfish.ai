@@ -99,6 +99,9 @@ nav:
           - TestDocs: reference/packs/testdocs.md
           - Trust: reference/packs/trust.md
           - Reflect: reference/packs/reflect.md
+          - Drawio: reference/packs/drawio.md
+          - Typst: reference/packs/typst.md
+          - Style Governor: reference/packs/style-governor.md
       - Skills:
           - reference/skills/index.md
       - Platform Support: reference/platform-support.md

@@ -4,6 +4,16 @@ Full release notes are available on [GitHub Releases](https://github.com/kylecui
 
 ---
 
+## v3.0 — Companion Overhaul
+
+### v3.1.0
+
+Multi-agent orchestration (Phases 0-5): task() spike validated (1.43x parallel speedup), skill I/O contracts (3 pilot skills), orchestration hints in companion-gateway, dispatch tracking, result aggregation with conflict detection, autonomy levels (suggest/delegate/auto). Documentation/website updated. Council-thinking references trimmed.
+
+### v3.0.0
+
+Programmatic companion-gateway.ts (6-step enforcement via TypeScript plugin). topic-context-filter fixes (placeholder bug, effective topic detection, per-topic message archiving). Legacy installers deleted (install.py sole entry). skill-index.json (100 skills). Market CLI. Web-grounding rules. 13/13 registry consolidated to monorepo. 102/102 agentskills.io compliant. 2 new packs: drawio-radar-chart, typst-pdf-builder.
+
 ## v1.9 — Testing Team Issue Resolution + Delivery Pipeline Fix
 
 ## v2.2 — Council Thinking + Pack Rename

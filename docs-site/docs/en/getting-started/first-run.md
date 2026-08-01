@@ -64,4 +64,4 @@ You can also switch modes mid-session by saying "urgent", "thorough", or "rigor"
 
 - [Companion Gateway guide](../guides/companion-gateway/index.md) — deep dive into each Gateway step
 - [/petfish commands](../guides/petfish-commands/index.md) — full command reference
-- [Skill packs reference](../reference/packs/index.md) — browse all 13 packs (4 core + 9 optional) and 96 skills
+- [Skill packs reference](../reference/packs/index.md) — browse all 13 packs (4 core + 12 optional) and 96 skills

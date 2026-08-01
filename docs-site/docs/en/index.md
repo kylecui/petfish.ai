@@ -6,7 +6,7 @@ Not a toolbox. A companion. Tools get called. PEtFiSh is always there.
 
 ## What is PEtFiSh?
 
-PEtFiSh is an always-on AI companion that runs a **Companion Gateway** before every interaction — sensing capability gaps, guarding context integrity, and blocking sycophantic responses. It ships with 13 skill packs (4 core + 9 optional via petfish-market) covering deployment, research, course development, writing, and more.
+PEtFiSh is an always-on AI companion that runs a **Companion Gateway** before every interaction — sensing capability gaps, guarding context integrity, and blocking sycophantic responses. It ships with 13 skill packs (4 core + 12 optional via petfish-market) covering deployment, research, course development, writing, and more.
 
 ## Quick Links
 

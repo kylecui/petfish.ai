@@ -1,6 +1,6 @@
 # 技能包
 
-PEtFiSh 提供 **12 个技能包**。
+PEtFiSh 提供 **16 个技能包**（4核心 + 12可选）。
 
 | 别名 | 描述 | 技能数 | 版本 |
 |---|---|---|---|
@@ -16,3 +16,6 @@ PEtFiSh 提供 **12 个技能包**。
 | [`deploy`](deploy.md) | 部署与运维 — 运行时识别、主机检查、部署执行、验证、运维、回滚、全生命周期管理 | 7 | 1.0.1 |
 | [`research`](research.md) | Research workbench skill pack covering scientific, product, planning, learning,  | 54 | 0.9.0 |
 | [`trust`](trust.md) | Skill安全治理引擎 — 基于行为分析的skill可信度评估、风险评分与治理决策 | 1 | 0.1.1 |
+| [`drawio`](drawio.md) | Draw.io雷达图生成器 — 精确顶点坐标计算 | 1 | 1.0.0 |
+| [`typst`](typst.md) | Typst PDF构建 — Markdown转PDF，中文排版 | 1 | 1.0.1 |
+| [`style-governor`](style-governor.md) | 系列文档风格一致性治理 — 术语漂移检测 | 1 | 0.1.0 |

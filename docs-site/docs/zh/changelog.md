@@ -4,6 +4,16 @@
 
 ---
 
+## v3.0 — Companion 全面改造
+
+### v3.1.0
+
+多agent编排（Phase 0-5）：task()并行验证（1.43x加速）、skill I/O contracts（3个pilot skills）、companion-gateway中的orchestration hint、dispatch tracking、结果聚合+冲突检测、autonomy levels（suggest/delegate/auto）。文档/网站更新。council-thinking references精简。
+
+### v3.0.0
+
+程序化companion-gateway.ts（6步执行通过TypeScript插件）。topic-context-filter修复（placeholder累积bug、effective topic detection、per-topic message archiving）。删除legacy installers（install.py统一入口）。skill-index.json（100 skills）。Market CLI。Web-grounding rules。13/13 registry合并到monorepo。102/102 agentskills.io合规。新增2个pack：drawio-radar-chart、typst-pdf-builder。
+
 ## v0.11 — Companion Gateway 增强：主动智能
 
 ### v0.11.7

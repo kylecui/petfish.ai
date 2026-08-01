@@ -11,7 +11,7 @@ Most AI skill tools are passive: you install them, call them, and hope the agent
 - **Failure recovery** — catches errors from the previous turn and recommends fixes
 - **Anti-sycophancy** — pauses before blindly agreeing with your assumptions
 
-On top of this always-on layer, PEtFiSh provides **13 skill packs** (4 core + 9 optional via petfish-market) covering course development, deployment ops, research, presentations, writing style, and more — with 96 skills total across 8 AI platforms.
+On top of this always-on layer, PEtFiSh provides **13 skill packs** (4 core + 12 optional via petfish-market) covering course development, deployment ops, research, presentations, writing style, and more — with 96 skills total across 8 AI platforms.
 
 ## Who It's For
 
