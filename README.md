@@ -37,7 +37,7 @@ Not a toolbox. A companion. Tools get called. PEtFiSh is always there.
 ```text
 Install PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.ai/master/docs/agent-install.md
 ```
-> ⚠️ The agent MUST read and follow that guide exactly. The only supported install command is `uv run install.py` (shown below). Shell-script installers (`remote-install.ps1`, `remote-install.sh`) are **deprecated** — do not use them.
+> ⚠️ The agent MUST read and follow that guide exactly. The only supported install command is `uv run install.py` (shown below). Legacy shell-script installers have been **deleted** in v3.0 — `install.py` is the sole installer.
 
 **Or run directly:**
 ```bash
@@ -47,13 +47,16 @@ uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --
 ---
 
 ## Companion Gateway
-Companion Gateway runs before every message:
-1. **Mode Read** — load project depth/rigor settings.
+Companion Gateway runs **programmatically** via `companion-gateway.ts` plugin (v3.0+), not just prompt instructions:
+1. **Mode Read** — load project depth/rigor/autonomy settings.
 2. **Topic Check** — detect drift and assess context risk.
 3. **Failure Signal Detection** — catch previous-turn errors and recommend fixes.
-4. **Skill Sense** — detect capability gaps before they hurt.
+4. **Skill Sense** — detect capability gaps and suggest skills programmatically.
 5. **Anti-Sycophancy Check** — pause before agreeing with evaluative questions.
-6. **Proceed** — continue with the right context in place.
+6. **Retry Guard** — track consecutive tool failures; block approach changes without authorization.
+7. **Orchestration Hint** — when 2+ parallel-safe specialists match, suggest delegation with token cost estimate.
+8. **Web-Grounding** — remind to use documentation lookup for library/API questions.
+
 See [docs/companion-gateway.md](docs/companion-gateway.md) for the full flow.
 
 ---
@@ -76,7 +79,7 @@ See [docs/companion-gateway.md](docs/companion-gateway.md) for the full flow.
 | `/petfish eval <path>` | Test trigger accuracy |
 | `/petfish stats` | View usage analytics |
 | `/petfish upgrade` | Show upgrade command for installed packs |
-| `/petfish uninstall <alias>` | Show uninstall command (local installer only) |
+| `/petfish uninstall <alias>` | Show uninstall command |
 
 ---
 
@@ -123,7 +126,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `petfish` | Writing style and rewrite guidance — 3 skills: `petfish-style-rewriter`, `de-ai-detector`, `style-extractor` | Global default |
 | `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
 
-## 9 Optional Packs (via petfish-market)
+## 12 Optional Packs (via petfish-market)
 > Optional packs are distributed through [petfish-market](https://github.com/kylecui/petfish-market). Install commands resolve automatically — no user-visible difference.
 | Alias | Purpose | Scale |
 |---|---|---|
@@ -136,6 +139,9 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `trust` | Skill trust governance and policy checks | Project |
 | `research` | Research workbench — evidence-backed scientific, product, and planning research | Project |
 | `reflect` | Structured reflection — capture what went wrong, why, and corrective actions | Project |
+| `drawio` | Draw.io radar chart generation with precise vertex calculation | Project |
+| `typst` | Typst-based PDF building from Markdown via pandoc pipeline | Project |
+| `style-governor` | Cross-document style consistency, terminology drift detection, conservative rewriting | Project |
 
 ## Profile → Auto-Install Mapping
 | Profile | Auto-installed Packs |
@@ -148,7 +154,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `research` | `petfish`, `research` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor` |
 
 ---
 
@@ -343,6 +349,10 @@ petfish.ai/
 ---
 
 ## Version History
+### v3.0 — Companion Overhaul
+
+- **v3.0.0**: Programmatic companion-gateway.ts (6-step enforcement via TypeScript plugin). topic-context-filter fixes (placeholder bug, effective topic detection, per-topic message archiving). Legacy installers deleted (install.py sole entry). skill-index.json (100 skills). Market CLI. Web-grounding rules. 13/13 registry consolidated to monorepo. 102/102 agentskills.io compliant. Multi-agent orchestration design (Momus-approved, Phases 0-5 implemented: task() spike, skill I/O contracts, orchestration hints, dispatch tracking, result aggregation, autonomy levels).
+
 ### v1.9 — Testing Team Issue Resolution + Delivery Pipeline Fix
 
 - **v2.2.0**: Pack rename `anti-sycophancy-calibration-pack` → `judgment-calibration-pack`; added `council-thinking` skill (5+1 multi-perspective adversarial reasoning); pack now contains 2 skills (fish-calibrate + council-thinking); alias `calibrate` unchanged; `legacy_names` preserves upgrade compatibility.

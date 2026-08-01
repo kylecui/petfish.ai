@@ -22,7 +22,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v1.9                       │
+│  ><(((^>  胖鱼 PEtFiSh v3.0                       │
 │                                                     │
 │  常伴  每一轮交互都在                                │
 │  守护  感知缺口、守护上下文、阻断污染                │
@@ -53,7 +53,7 @@ uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --
 
 ### 常伴 — 每一轮交互都在
 
-Companion Gateway在每条消息前自动执行话题检测和能力感知。不需要你主动调用。从`/initproject`那一刻起，胖鱼就是你工作流的一部分。
+Companion Gateway在每条消息前**程序化执行**（v3.0+ 通过 companion-gateway.ts 插件，不再仅靠prompt指令）。不需要你主动调用。从`/initproject`那一刻起，胖鱼就是你工作流的一部分。
 
 ### 守护 — 在你掉坑之前拦住
 
@@ -101,7 +101,7 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `petfish` | 工程写作风格套件 — 3 skills: `petfish-style-rewriter`、`de-ai-detector`、`style-extractor` | 3 skills |
 | `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
 
-## 9个可选包（通过 petfish-market 获取）
+## 12个可选包（通过 petfish-market 获取）
 > 可选包通过 [petfish-market](https://github.com/kylecui/petfish-market) 分发。安装命令自动解析，用户无感知。
 
 | 别名 | 定位 | 规模 |
@@ -115,6 +115,9 @@ Companion Gateway在每条消息前自动执行话题检测和能力感知。不
 | `ppt` | PPT设计 | 2 skills |
 | `research` | 研究工作台——科研、产品、规划等8个领域 | 54 skills |
 | `reflect` | 结构化反思——捕获失败原因与纠正措施 | 1 skill |
+| `drawio` | Draw.io雷达图生成器——精确顶点坐标计算 | 1 skill |
+| `typst` | Typst PDF构建——Markdown转PDF，中文排版 | 1 skill |
+| `style-governor` | 系列文档风格一致性治理——术语漂移检测 | 1 skill |
 
 ---
 
@@ -209,6 +212,10 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v3.0 — Companion全面改造
+
+- **v3.0.0**: 11个用户问题系统性修复。companion-gateway.ts全量6步程序化插件（不再仅靠prompt）。topic-context-filter placeholder累积bug修复 + effective topic detection + per-topic message archiving。删除4个legacy installers（install.ps1/sh, remote-install.ps1/sh），install.py统一入口。skill-index.json（100 skills）+ market CLI + web-grounding rules。13/13 registry合并到monorepo + 2 pack迁移（drawio-radar-chart, typst-pdf-builder）。102/102 agentskills.io合规。多agent编排设计完成（Momus审查通过，Phase 0-5实现：task() spike验证 + skill I/O contracts + orchestration hint + dispatch tracking + result aggregation + autonomy levels）。
 
 ### v1.9 — 测试团队 issue 解决 + 交付链路修复
 
