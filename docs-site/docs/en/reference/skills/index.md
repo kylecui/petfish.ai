@@ -1,13 +1,27 @@
 # Skills
 
-PEtFiSh includes **97 skills** across all packs.
+PEtFiSh includes **104 skills** across all packs.
 
- | Skill | Pack | Description |
+| Skill | Pack | Description |
 |---|---|---|
-| [`anti-sycophancy-calibration`](anti-sycophancy-calibration.md) | calibrate | For 评审, 评价, 批判, review, critique, feedback, judgment, decision, evaluation, calibration, sycophancy,... |
-| [`council-thinking`](council-thinking.md) | calibrate | 五人顾问团多视角对抗式判断（5+1模型）。用 Council 分析方案评估、战略判断、产品定位、技术路线、研究设计等复杂判断... |
-| [`fish-reflection`](fish-reflection.md) | reflect | 结构化反思与经验沉淀。Use when 反思, reflect, what went wrong, lessons learned, 复盘, 经验总结, 失败分析, root cause analys... |
 | [`fish-trail`](fish-trail.md) | context | topic_detect is high risk, users ask to 整理/切换/合并/归档话题 or 清空上下文, or mention topic governance/上下文污染/继承... |
+| [`fish-brain`](fish-brain.md) | companion | > |
+| [`fish-market`](fish-market.md) | companion | > |
+| [`quality-gate`](quality-gate.md) | toolchain | > |
+| [`repo-skill-miner`](repo-skill-miner.md) | toolchain | > |
+| [`skill-author`](skill-author.md) | toolchain | > |
+| [`skill-description-optimizer`](skill-description-optimizer.md) | toolchain | > |
+| [`skill-lint`](skill-lint.md) | toolchain | > |
+| [`skill-publish`](skill-publish.md) | toolchain | > |
+| [`skill-security-auditor`](skill-security-auditor.md) | toolchain | > |
+| [`skill-trigger-evaluator`](skill-trigger-evaluator.md) | toolchain | > |
+| [`skill-usage-tracker`](skill-usage-tracker.md) | toolchain | > |
+| [`project-initializer`](project-initializer.md) | init | Initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.md/README/.opencode/docs/tasks/qa... |
+| [`doc-reader`](doc-reader.md) | doc-reader | Convert PDF/DOCX/XLSX/HTML/PPTX/EPUB to Markdown for reading, review, and extraction. Use when user ... |
+| [`drawio-radar-chart`](drawio-radar-chart.md) | drawio | >- |
+| [`fish-reflection`](fish-reflection.md) | reflect | 结构化反思与经验沉淀。Use when 反思, reflect, what went wrong, lessons learned, 复盘, 经验总结, 失败分析, root cause analys... |
+| [`council-thinking`](council-thinking.md) | calibrate | 五人顾问团多视角对抗式判断，用于方案评估、战略判断、产品定位、技术路线、研究设计等复杂决策。5个logical subagents（反对者/本质思考/机会挖掘/局外人/执行者）+Arbiter删除弱观... |
+| [`anti-sycophancy-calibration`](anti-sycophancy-calibration.md) | calibrate | For 评审, 评价, 批判, review, critique, feedback, judgment, decision, evaluation, calibration, sycophancy,... |
 | [`course-content-authoring`](course-content-authoring.md) | course | Create, revise, expand, compress, or review course chapter content, including explanations, examples... |
 | [`course-development-orchestrator`](course-development-orchestrator.md) | course | Drive course projects end to end — plans, outlines, content, labs, learner/instructor materials, QA,... |
 | [`course-directory-structure`](course-directory-structure.md) | course | Create, reorganize, normalize, or audit a course project directory tree, |
@@ -27,18 +41,9 @@ PEtFiSh includes **97 skills** across all packs.
 | [`ppt-writer`](ppt-writer.md) | ppt | Create/rewrite/restructure/update/validate/export PPT/PPTX decks (课件、提案、汇报、论文、技术方案). Trigger for 从Ma... |
 | [`generate-test-cases`](generate-test-cases.md) | testdocs | Generate test cases/test matrix for the current repo: API/CLI/UI/SDK/service, smoke/regression/accep... |
 | [`generate-usage-docs`](generate-usage-docs.md) | testdocs | Generate grounded usage docs from the current repo: README, Quick Start, configuration, usage, API/C... |
-| [`marketplace-connector`](marketplace-connector.md) | companion | > |
-| [`petfish-companion`](petfish-companion.md) | companion | > |
-| [`quality-gate`](quality-gate.md) | companion | > |
-| [`repo-skill-miner`](repo-skill-miner.md) | companion | > |
-| [`skill-author`](skill-author.md) | companion | > |
-| [`skill-description-optimizer`](skill-description-optimizer.md) | companion | > |
-| [`skill-lint`](skill-lint.md) | companion | > |
-| [`skill-security-auditor`](skill-security-auditor.md) | companion | > |
-| [`skill-trigger-evaluator`](skill-trigger-evaluator.md) | companion | > |
-| [`skill-usage-tracker`](skill-usage-tracker.md) | companion | > |
-| [`petfish-style-rewriter`](petfish-style-rewriter.md) | petfish | Rewrite, polish, humanize, simplify, de-AI, formalize, or express content in Petfish's writing style... |
-| [`project-initializer`](project-initializer.md) | init | Initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.md/README/.opencode/docs/tasks/qa... |
+| [`de-ai-detector`](de-ai-detector.md) | petfish | Detect AI writing patterns in Chinese or English text. Use when the user asks to 检测AI味 / 检测AI痕迹 / 去A... |
+| [`petfish-style-rewriter`](petfish-style-rewriter.md) | petfish | Rewrite, polish, humanize, de-AI, or formalize Chinese or English technical, academic, business, cou... |
+| [`style-extractor`](style-extractor.md) | petfish | Extract personal writing style from samples to create a style profile. Analyzes sentence patterns, v... |
 | [`deployment-executor`](deployment-executor.md) | deploy | 按已确认部署计划执行上线/升级/重部署：优先repo现有Docker/compose/systemd/k8s信号，先Plan→Validate→Execute，建立回滚点并记录版本/路径/命令/变更摘... |
 | [`deployment-verifier`](deployment-verifier.md) | deploy | 对已部署/升级/回滚后的服务做功能验证：health/readiness、核心API smoke test、页面可访问性、端口监听、日志与依赖(DB/Redis/MQ/proxy)核验。Trigger... |
 | [`incident-rollback`](incident-rollback.md) | deploy | 处理部署失败与线上故障：health check失败、核心API错误、502/504、重启循环、依赖异常等。先定级与止血，再判断修复或回滚，执行回滚并输出incident/rollback记录（影响、... |
@@ -83,7 +88,7 @@ PEtFiSh includes **97 skills** across all packs.
 | [`research-note-capture`](research-note-capture.md) | research | 阅读摘录与证据笔记捕获：从PDF/DOC/网页提取关键原文，记录出处位置(page/section/paragraph)、paraphrase与why_it_matters，支持“先摘录不要总结”“读... |
 | [`research-quality-reviewer`](research-quality-reviewer.md) | research | 研究报告独立质审：检查证据覆盖、引用完整性、逻辑链、反面证据、方法匹配、可执行建议、风险披露与AI腔（AI slop），给出发布前评级。Use when users ask “报告审查/quality... |
 | [`research-report-writer`](research-report-writer.md) | research | 基于research brief、evidence ledger与synthesis写正式研究报告/执行摘要，支持科学研究、产品研究、规划研究、白皮书与提案，确保每个claim可追溯evidence_... |
-| [`research-router`](research-router.md) | research | 研究入口与任务路由器。根据用户请求判断研究类型（科学研究、产品研究、规划研究、学习研究、决策研究、风险采购研究、活动体验研究）、复杂度并推荐合适的研究skill链路。Use when the user... |
+| [`research-router`](research-router.md) | research | 研究入口与任务路由器。判断研究类型（科学/产品/规划/学习/决策/风险采购/活动体验）、复杂度并推荐合适的路由链路。Use when user says "研究", "帮我研究", "仔细研究", "... |
 | [`research-source-discovery`](research-source-discovery.md) | research | 研究资料发现与来源登记：查找论文、官方文档、竞品材料、政策文件、行业报告、数据集与用户反馈，建立/维护source index并记录search strategy，按authority/relevan... |
 | [`research-synthesis`](research-synthesis.md) | research | 研究综合分析：将evidence ledger转为主题聚类、对比矩阵、缺口分析、矛盾分析与置信度分级，形成key findings与recommendation options。Use when us... |
 | [`risk-research-brief`](risk-research-brief.md) | research | 明确评估对象、采用场景、风险边界与决策要求，形成可执行的风险采购研究简报。Use when the user says "风险评估", "risk assessment", "工具评估", "tool... |
@@ -100,4 +105,6 @@ PEtFiSh includes **97 skills** across all packs.
 | [`travel-adapter`](travel-adapter.md) | research | 为旅行场景补充目的地类型、签证入境、天气季节、本地交通、货币语言、健康保险与跨城/跨国核验清单，不复制主流程。Use when the user says "旅行规划", "trip planning... |
 | [`vendor-source-diligence`](vendor-source-diligence.md) | research | 对供应商、开源项目与数据来源做尽调，评估身份与治理、SLA与支持、许可证兼容、bus factor、锁定与退出条件。Use when the user says "供应商尽调", "vendor du... |
 | [`venue-destination-research`](venue-destination-research.md) | research | 研究并评估城市/酒店/会场/景点候选，覆盖可达性、容量、成本、设施、安全、天气与法规许可，输出推荐/备选/淘汰清单。Use when the user says "场地调研", "venue rese... |
+| [`series-style-governor`](series-style-governor.md) | style-governor | 系列文档风格一致性治理。跨文档统一术语、命名、排版和叙事结构。从参考文件提取风格画像，审计目标文档，检测术语漂移和排版漂移，生成保守改写草稿。Use when writing a series of ... |
 | [`skill-trust-governance`](skill-trust-governance.md) | trust | Skill trust/governance requests: skill trust, skill安全, 治理, 可信度, trust scan, risk score, redline chec... |
+| [`typst-pdf-builder`](typst-pdf-builder.md) | typst | > |

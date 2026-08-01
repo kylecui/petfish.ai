@@ -1,6 +1,6 @@
 # skill-usage-tracker
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 

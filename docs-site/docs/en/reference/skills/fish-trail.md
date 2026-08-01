@@ -87,4 +87,4 @@ See `docs/embedding-setup.md` for offline/air-gapped setup and troubleshooting.
 
 - `external` session: 由外部平台提供session_id，ID格式 `oc_<external_id>`
 
-*... (285 more lines in full SKILL.md)*
+*... (287 more lines in full SKILL.md)*

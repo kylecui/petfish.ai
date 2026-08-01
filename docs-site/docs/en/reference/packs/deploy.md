@@ -24,14 +24,6 @@
 
 ## Install
 
-=== "PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "deploy"
-    ```
-
-=== "Bash"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack deploy
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy --detect
+```

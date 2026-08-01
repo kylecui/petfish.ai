@@ -1,6 +1,6 @@
 # skill-lint
 
-> 所属包: **companion**
+> 所属包: **toolchain**
 
 >
 

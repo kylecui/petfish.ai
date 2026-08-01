@@ -2,7 +2,7 @@
 
 > Pack: **calibrate**
 
-五人顾问团多视角对抗式判断。用 Council 分析方案评估、战略判断、产品定位、技术路线、研究设计、课程设计、Presentation主线、逻辑审查、写作结构取舍、是否值得做、如何向客户/评审/老板表达等复杂判断。显式触发：用Council分析、五人顾问团审查、多视角评估、对抗式审查、不要迎合我。比 fish-calibrate 更深：5个logical subagents + Arbiter删除弱观点，输出可执行结论。/ Use Council for multi-perspective adversarial review of strategy, product positioning, tech roadmap, research design, course design, business analysis, logic checks, and how-to-communicate decisions. Triggers: "Council analysis", "five-advisor review", "multi-perspective evaluation", "adversarial review".
+五人顾问团多视角对抗式判断，用于方案评估、战略判断、产品定位、技术路线、研究设计等复杂决策。5个logical subagents（反对者/本质思考/机会挖掘/局外人/执行者）+Arbiter删除弱观点，输出可执行结论。比fish-calibrate更深。显式触发：用Council分析、五人顾问团审查、多视角评估、对抗式审查、不要迎合我。/ Council: multi-perspective adversarial review with 5 subagents + Arbiter. Triggers: "Council analysis", "five-advisor review", "adversarial review", "multi-perspective evaluation".
 
 **Compatibility:** opencode
 
@@ -21,6 +21,14 @@ Council Thinking 是一个用于复杂判断的 **multi-perspective adversarial 
 3. 主动暴露逻辑漏洞和未经验证的假设。
 4. 从本质、机会、外部感知和执行路径多维度重构问题。
 5. 删除低价值观点，形成更硬、更清晰、更可执行的结论。
+
+## Domain Rules
+
+- 真正让 Council 成立的不是"五个人都说话"，而是最后的**仲裁、压缩和删弱观点机制**。
+- 五个顾问是 **Council Members**。优先作为独立 subagent 执行（确保视角独立性）；运行环境不支持时降级为逻辑角色模拟。
+- 不允许五个顾问用不同的名字说同一件事；没有独立贡献的观点应删除。
+- 不确定的信息必须明确说"我不知道"，并说明缺失什么、影响哪个判断、当前最稳妥的判断是什么。
+- 最终结论不是五个观点的平均值，而是经过筛选后的判断。
 
 ## Triggers/Activation
 
@@ -49,55 +57,15 @@ Council Thinking 是一个用于复杂判断的 **multi-perspective adversarial 
 - 用多视角/对抗式方式审查这个方案。
 - 五人顾问团，请审查这个判断。
 
-## Core Workflow: 5 + 1 Council
+### 不默认适用
 
-五个顾问 subagents + 一个综合仲裁者 Synthesizer/Arbiter。
-
-### 五个 Logical Subagents
-
-- **反对者 Critic**：攻击用户逻辑中最薄弱、最危险、最容易自欺的地方。
-- **本质思考者 Essence**：忽略表层问题，重新定义真正的问题。
-- **机会挖掘者 Opportunity**：发现用户没有看到的积极面、杠杆点和可利用空间。
-- **局外人 Outsider**：站在陌生人、客户、评审、老板、听众或市场视角，指出用户忽视的明显事实。
-- **执行者 Executor**：把讨论转化为下一步行动。
-
-### 综合仲裁者 Synthesizer/Arbiter
-
-职责：压缩五个 subagents 的观点，删除弱观点，形成最终判断。
-
-必须检查：
-
-- 哪些观点重复？
-- 哪些观点只是好听但无用？
-- 哪些观点真正改变了判断？
-- 哪些观点应该被删除？
-- 哪些观点必须保留？
-- 最终结论是否可执行？
-
-输出要求：
-
-- 不平均分配五个顾问的观点权重。
-- 不保留低价值观点。
-- 明确说明删掉什么、保留什么。
-- 给出综合结论、下一步动作和不确定项。
-
-## Execution Modes
-
-### 完整模式
-
-按 5+1 流程输出完整 Council 判断：问题重述 → 五顾问判断 → 交叉审查 → 删弱观点 → 综合结论 → 下一步动作 → 我不知道的部分。
-
-### 快速模式
-
-当用户要求简洁回答、时间有限或问题相对单一时使用，输出压缩到反对者/本质思考者/机会挖掘者/局外人/执行者五段 + 删弱观点后的结论 + 下一步 + 我不知道。
-
-### 降级模式
-
-若输入信息严重不足，跳过具体问题分析，直接输出三行：
-
-1. 当前无法判断的原因。
-2. 必须补齐的信息。
-3. 可以做的一个最小验证动作。
+- 简单事实问答
+- 单句翻译
+- 纯格式转换
+- 纯代码生成
+- 用户明确要求极简回答
+- 用户只要求直接润色、改写或翻译
+- 问题本身不涉及判断、取舍或决策
 
 ## Decision Points
 
@@ -105,3 +73,20 @@ Council Thinking 是一个用于复杂判断的 **multi-perspective adversarial 
 2. **Delete weak points or keep them**：Arbiter 必须明确删除没有证据、无法行动、情绪支持或为了凑角色而产生的观点。
 3. **Actionability first**：执行者的输出必须包含至少一个可立即执行的动作，不输出"继续优化"类空话。
 4. **Confidence boundary**：信息不足时，结论中必须列出"我不知道"的部分，不能假装确定。
+
+## Execution Strategy
+
+Council Thinking 有两种执行路径，**按优先级自动选择**：
+
+### Path A: Subagent Orchestration（优先）
+
+当运行环境支持 `task()` 或等价的 subagent 调用时（如 OpenCode），**必须**使用真实 subagent：
+
+1. **主代理**执行 Step 1（问题重述），生成 Council 输入。
+2. **并行启动 5 个独立 subagent**（`oracle` 类型，`run_in_background=true`），每个加载对应 agent prompt（`agents/critic.md` 等）：
+   ```
+   task(subagent_type="oracle", prompt=<critic_prompt + 用户问题>, run_in_background=true)
+   task(subagent_type="oracle", prompt=<essence_prompt + 用户问题>, run_in_background=true)
+   task(subagent_type="oracle", prompt=<opportunity_prompt + 用户问题>, run_in_background=true)
+
+*... (320 more lines in full SKILL.md)*

@@ -1,6 +1,6 @@
 # repo-skill-miner
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 

@@ -1,6 +1,6 @@
 # skill-lint
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 

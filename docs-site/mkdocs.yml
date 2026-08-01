@@ -102,6 +102,8 @@ nav:
           - Drawio: reference/packs/drawio.md
           - Typst: reference/packs/typst.md
           - Style Governor: reference/packs/style-governor.md
+          - Toolchain: reference/packs/toolchain.md
+          - Doc Reader: reference/packs/doc-reader.md
       - Skills:
           - reference/skills/index.md
       - Platform Support: reference/platform-support.md

@@ -61,6 +61,20 @@ When reading references for course work, prefer this structure:
 - If a scan or image is ambiguous, mark it instead of guessing.
 - When multiple references disagree, present the disagreement explicitly.
 
+# Format handling
+
+对于非Markdown格式的参考资料（PDF、DOCX、XLSX、HTML、PPTX等），优先使用 `doc-reader` skill将其转为Markdown后再进行审阅：
+
+```bash
+uv run <doc-reader-path>/scripts/doc_to_markdown.py input.pdf --output temp/review.md
+```
+
+然后在Markdown基础上执行审阅workflow。
+
+对于PPTX，优先使用 `ppt-reader` 获取结构化inventory，再用 `doc-reader` 补充全文（含表格和图表文字）。
+
+当 `doc-reader` 未安装时，回退到agent原生文件读取能力，但应明确提示转换质量可能不稳定。
+
 # Common source-specific defaults
 
 - PDF: capture title, section structure, tables, and figures.
@@ -75,4 +89,4 @@ When reading references for course work, prefer this structure:
 - Do not rewrite source intent too early; first extract, then reinterpret.
 - Do not discard appendices if they contain definitions or lab constraints.
 
-See `assets/source-review-template.md`.
+*... (完整 SKILL.md 中还有 2 行)*

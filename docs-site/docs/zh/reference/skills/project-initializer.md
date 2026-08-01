@@ -89,4 +89,4 @@ Supported profiles:
 - `research`
 - `writing`
 
-*... (完整 SKILL.md 中还有 483 行)*
+*... (完整 SKILL.md 中还有 523 行)*

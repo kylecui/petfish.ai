@@ -1,6 +1,6 @@
 # skill-description-optimizer
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 

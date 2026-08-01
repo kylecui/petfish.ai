@@ -75,6 +75,18 @@
 
 ---
 
-## 关联资源
+## 并行Task结果聚合/Parallel Dispatch Result Aggregation (Phase 4)
 
-- References: `synthesis-patterns.md`, `confidence-grading.md`
+当此skill在并行dispatch后被调用时（companion-gateway注入了"Parallel Tasks Completed"提示），需要处理多个独立task的结果：
+
+### 输入格式
+
+接受多个JSONL/Markdown结果文件作为输入，每个来自一个并行specialist task：
+- `research/01_sources/*.jsonl` — 来自research-source-discovery的来源索引
+- `research/05_analysis/competitor-*.md` — 来自product-competitor-analysis的竞品矩阵
+- `research/05_analysis/stakeholder-*.md` — 来自planning-stakeholder-analyst的利益相关方地图
+
+### 冲突检测规则
+
+
+*... (完整 SKILL.md 中还有 15 行)*

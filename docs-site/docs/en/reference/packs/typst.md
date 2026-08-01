@@ -1,6 +1,6 @@
 # typst
 
-Build publication-ready PDF from Markdown via pandoc+Typst pipeline. Handles Chinese-English mixed typography, figure/table per-chapter numbering, drawio diagram export, code block escaping, and thuthesis-compliant formatting.
+**Build publication-ready PDF from Markdown via pandoc+Typst pipeline. Handles Chinese-English mixed typography, figure/table per-chapter numbering, drawio diagram export, code block escaping, and thuthesis-compliant formatting.**
 
 | Field | Value |
 |---|---|
@@ -8,11 +8,13 @@ Build publication-ready PDF from Markdown via pandoc+Typst pipeline. Handles Chi
 | Alias | `typst` |
 | Version | 1.0.1 |
 | Skills | 1 |
-| Compatibility | opencode |
+| Commands | 0 |
+| Agents | 0 |
+| Compatibility | N/A |
 
 ## Skills
 
-- `typst-pdf-builder` — Markdown to PDF via Typst with Chinese typography support
+- [`typst-pdf-builder`](../skills/typst-pdf-builder.md) — >
 
 ## Install
 

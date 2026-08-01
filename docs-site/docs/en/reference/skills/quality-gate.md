@@ -1,6 +1,6 @@
 # quality-gate
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 

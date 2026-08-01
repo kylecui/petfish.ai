@@ -1,6 +1,6 @@
 # skill-trigger-evaluator
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 

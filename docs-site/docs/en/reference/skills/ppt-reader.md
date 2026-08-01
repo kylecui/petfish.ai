@@ -41,13 +41,21 @@ uv run scripts/pptx_extract.py input.pptx --out output/pptx_inventory.json --mar
    - 逐页：页码、标题候选、正文要点、备注、图片/媒体、评论、异常。
    - 叙事结构：总-分-总、问题-分析-方案、背景-挑战-方法-验证等结构是否清晰。
    - 后续动作：哪些页需要合并、拆分、重写、补图、补数据、改标题。
-4. 如果用户要求视觉审阅、模板审阅、排版问题或“看起来怎么样”，再渲染为图片：
+4. （可选）如果结构化抽取遗漏了表格、图表中的文字，可用markitdown补充全文提取：
+
+```bash
+uv run scripts/pptx_extract.py input.pptx --out output/pptx_inventory.json --markdown output/pptx_summary.md --markitdown
+```
+
+这会在JSON输出中额外添加 `markitdown_text` 字段，包含表格和图表中被XML解析遗漏的文字。需要`markitdown`依赖（`uv run`自动安装）。
+
+5. 如果用户要求视觉审阅、模板审阅、排版问题或"看起来怎么样"，再渲染为图片：
 
 ```bash
 uv run scripts/render_slides.py input.pptx --out output/rendered --resolution 150
 ```
 
-5. 用渲染图做视觉检查：重叠、溢出、低对比度、过密、页边距不足、视觉元素缺失、字体不一致、图表无法读清。
+6. 用渲染图做视觉检查：重叠、溢出、低对比度、过密、页边距不足、视觉元素缺失、字体不一致、图表无法读清。
 
 ## 输出格式建议
 
@@ -80,13 +88,5 @@ uv run scripts/render_slides.py input.pptx --out output/rendered --resolution 15
 - 备注：
 - 媒体/图片：
 - 版式观察：
-- 风险或问题：
-- 建议动作：保留 / 重写 / 拆分 / 合并 / 补图 / 删除
-```
 
-### 为ppt-writer准备的改版brief
-
-```markdown
-# PPT改版Brief
-
-*... (36 more lines in full SKILL.md)*
+*... (44 more lines in full SKILL.md)*

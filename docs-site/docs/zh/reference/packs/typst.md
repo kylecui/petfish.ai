@@ -1,6 +1,6 @@
 # typst
 
-Markdown转PDF — 通过pandoc+Typst pipeline，支持中英文混排、图表编号、drawio导出。
+**Build publication-ready PDF from Markdown via pandoc+Typst pipeline. Handles Chinese-English mixed typography, figure/table per-chapter numbering, drawio diagram export, code block escaping, and thuthesis-compliant formatting.**
 
 | 字段 | 值 |
 |---|---|
@@ -8,7 +8,13 @@ Markdown转PDF — 通过pandoc+Typst pipeline，支持中英文混排、图表�
 | 别名 | `typst` |
 | 版本 | 1.0.1 |
 | 技能数 | 1 |
-| 兼容性 | opencode |
+| 命令数 | 0 |
+| 代理数 | 0 |
+| 兼容性 | N/A |
+
+## 技能列表
+
+- [`typst-pdf-builder`](../skills/typst-pdf-builder.md) — >
 
 ## 安装
 

@@ -6,7 +6,7 @@
 |---|---|
 | 包名 | `research-skill-pack` |
 | 别名 | `research` |
-| 版本 | 0.9.0 |
+| 版本 | 1.0.0 |
 | 技能数 | 54 |
 | 命令数 | 0 |
 | 代理数 | 0 |
@@ -51,7 +51,7 @@
 - [`research-note-capture`](../skills/research-note-capture.md) — 阅读摘录与证据笔记捕获：从PDF/DOC/网页提取关键原文，记录出处位置(page/section/paragraph)、paraphrase与why_it_matters，支持“先摘录不要总结”“读文献摘重点”。Use when user...
 - [`research-quality-reviewer`](../skills/research-quality-reviewer.md) — 研究报告独立质审：检查证据覆盖、引用完整性、逻辑链、反面证据、方法匹配、可执行建议、风险披露与AI腔（AI slop），给出发布前评级。Use when users ask “报告审查/quality review/发布前检查/check ...
 - [`research-report-writer`](../skills/research-report-writer.md) — 基于research brief、evidence ledger与synthesis写正式研究报告/执行摘要，支持科学研究、产品研究、规划研究、白皮书与提案，确保每个claim可追溯evidence_id并披露方法与局限。Use when ...
-- [`research-router`](../skills/research-router.md) — 研究入口与任务路由器。根据用户请求判断研究类型（科学研究、产品研究、规划研究、学习研究、决策研究、风险采购研究、活动体验研究）、复杂度并推荐合适的研究skill链路。Use when the user says "研究", "帮我研究", ...
+- [`research-router`](../skills/research-router.md) — 研究入口与任务路由器。判断研究类型（科学/产品/规划/学习/决策/风险采购/活动体验）、复杂度并推荐合适的路由链路。Use when user says "研究", "帮我研究", "仔细研究", "research", "investig...
 - [`research-source-discovery`](../skills/research-source-discovery.md) — 研究资料发现与来源登记：查找论文、官方文档、竞品材料、政策文件、行业报告、数据集与用户反馈，建立/维护source index并记录search strategy，按authority/relevance/freshness/verifia...
 - [`research-synthesis`](../skills/research-synthesis.md) — 研究综合分析：将evidence ledger转为主题聚类、对比矩阵、缺口分析、矛盾分析与置信度分级，形成key findings与recommendation options。Use when users ask “综合分析/证据整合/对...
 - [`risk-research-brief`](../skills/risk-research-brief.md) — 明确评估对象、采用场景、风险边界与决策要求，形成可执行的风险采购研究简报。Use when the user says "风险评估", "risk assessment", "工具评估", "tool evaluation", "供应商评估...
@@ -71,14 +71,6 @@
 
 ## 安装
 
-=== "PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "research"
-    ```
-
-=== "Bash"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack research
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack research --detect
+```

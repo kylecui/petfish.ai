@@ -89,4 +89,4 @@ Supported profiles:
 - `research`
 - `writing`
 
-*... (483 more lines in full SKILL.md)*
+*... (523 more lines in full SKILL.md)*

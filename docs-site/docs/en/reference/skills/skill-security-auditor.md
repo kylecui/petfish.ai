@@ -1,6 +1,6 @@
 # skill-security-auditor
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 

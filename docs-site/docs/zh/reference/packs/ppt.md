@@ -19,14 +19,6 @@
 
 ## 安装
 
-=== "PowerShell"
-
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "ppt"
-    ```
-
-=== "Bash"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack ppt
-    ```
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack ppt --detect
+```

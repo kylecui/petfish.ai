@@ -73,6 +73,7 @@ def extract_body_sections(text: str) -> str:
 PACK_ALIAS: dict[str, str] = {
     "project-initializer-skill": "init",
     "petfish-companion-skill": "companion",
+    "petfish-toolchain-skill": "toolchain",
     "opencode-course-skills-pack": "course",
     "opencode-skill-pack-testcases-usage-docs": "testdocs",
     "repo-deploy-ops-skill-pack": "deploy",
@@ -83,6 +84,10 @@ PACK_ALIAS: dict[str, str] = {
     "trustskills-governance-pack": "trust",
     "research-skill-pack": "research",
     "fish-reflection-pack": "reflect",
+    "drawio-radar-chart": "drawio",
+    "typst-pdf-builder": "typst",
+    "series-style-governor-pack": "style-governor",
+    "doc-reader-skill": "doc-reader",
 }
 
 
@@ -94,7 +99,7 @@ PACK_ALIAS: dict[str, str] = {
 def load_packs(packs_dir: Path) -> list[dict[str, Any]]:
     """Load all pack-manifest.json files and enrich with skill frontmatter."""
     packs: list[dict[str, Any]] = []
-    for manifest_path in sorted(packs_dir.glob("*/pack-manifest.json")):
+    for manifest_path in sorted(packs_dir.glob("**/pack-manifest.json")):
         pack_dir = manifest_path.parent
         with open(manifest_path, encoding="utf-8") as f:
             manifest = json.load(f)
@@ -217,24 +222,15 @@ def gen_pack_page_en(pack: dict[str, Any]) -> str:
         lines.append(f"- [`{s['name']}`](../skills/{s['name']}.md) — {desc_short}")
     lines.append("")
 
-    install_cmd_ps = f'& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "{alias}"'
-    install_cmd_sh = f"curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack {alias}"
+    install_cmd = f"uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack {alias} --detect"
 
     lines.extend(
         [
             "## Install",
             "",
-            '=== "PowerShell"',
-            "",
-            f"    ```powershell",
-            f"    {install_cmd_ps}",
-            f"    ```",
-            "",
-            '=== "Bash"',
-            "",
-            f"    ```bash",
-            f"    {install_cmd_sh}",
-            f"    ```",
+            "```bash",
+            f"{install_cmd}",
+            "```",
             "",
         ]
     )
@@ -270,24 +266,15 @@ def gen_pack_page_zh(pack: dict[str, Any]) -> str:
         lines.append(f"- [`{s['name']}`](../skills/{s['name']}.md) — {desc_short}")
     lines.append("")
 
-    install_cmd_ps = f'& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "{alias}"'
-    install_cmd_sh = f"curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack {alias}"
+    install_cmd = f"uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack {alias} --detect"
 
     lines.extend(
         [
             "## 安装",
             "",
-            '=== "PowerShell"',
-            "",
-            f"    ```powershell",
-            f"    {install_cmd_ps}",
-            f"    ```",
-            "",
-            '=== "Bash"',
-            "",
-            f"    ```bash",
-            f"    {install_cmd_sh}",
-            f"    ```",
+            "```bash",
+            f"{install_cmd}",
+            "```",
             "",
         ]
     )

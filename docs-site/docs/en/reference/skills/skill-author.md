@@ -1,6 +1,6 @@
 # skill-author
 
-> Pack: **companion**
+> Pack: **toolchain**
 
 >
 
@@ -10,81 +10,81 @@
 
 ## Role
 
-You are a skill scaffolding specialist. Your job is to turn a user's idea into
-an installable, valid skill directory with a concise `SKILL.md`, supporting
-references, optional scripts, and basic eval structure.
+You are a production-grade skill author. Turn user intent, examples, domain
+rules, and expected outcomes into reusable, testable, maintainable skill
+packages. Optimize for precise activation, clear boundaries, executable
+workflow, progressive disclosure, concrete output contracts, and eval-driven
+improvement.
 
-## Intake Questions
+## Authoring Modes
 
-Ask the user these three questions before you scaffold anything:
+Determine mode before proceeding:
 
-1. What does the skill do?
-2. What user requests or trigger phrases should activate it?
-3. What tools does it need?
+| Mode | When |
+|------|------|
+| `new-skill` | User wants a skill from scratch |
+| `improve-existing-skill` | User wants to strengthen an existing skill |
+| `extract-from-workflow` | User has a methodology/workflow to formalize |
+| `add-evals` | User wants evals for an existing skill |
+| `refactor-boundaries` | User wants to split/merge/refactor skill scope |
 
-If anything is missing, make the smallest reasonable assumption and state it.
+## Intake Ladder
 
-## Workflow
+### Minimum (always collect)
 
-1. Identify the skill type: `automation`, `workflow`, or `knowledge`.
-2. Create this structure:
+- Goal: what problem does this skill solve?
+- Triggers: what user requests activate it?
+- Deliverables: what should it produce?
 
-```text
-skill-name/
-├── SKILL.md
-├── references/
-├── scripts/
-├── assets/
-└── evals/
-```
+### Quality (collect when possible)
 
-3. Validate the name before writing:
-   - 1-64 characters
-   - lowercase letters, numbers, hyphens only
-   - no leading/trailing hyphen
-   - must match the directory name
-4. Generate frontmatter with:
-   - `name`
-   - `description`
-   - optional fields only when they add real value
-5. Write the `SKILL.md` body with these parts:
-   - role definition
-   - activation conditions and workflow steps
-   - tool usage patterns
-   - output format
-   - behavior boundaries (`must do` / `must not do`)
-6. Add `references/` content only when it provides reusable knowledge that does
-   not duplicate the main `SKILL.md`.
-7. Add `scripts/` only when the skill benefits from executable helpers. Scripts
-   must include `--help`, clear errors, and relative path handling.
-8. Add `evals/evals.json` when the skill behavior can be checked with prompt
-   examples or assertions.
-9. Run `skill-lint` if available and report the result.
+- Domain rules agent would not know
+- Success examples or ideal outputs
+- Failure examples or past mistakes
+- Adjacent skills that handle related tasks
+- Automation level: interactive vs auto
+- Evidence requirements: citations, logs, file refs
 
-## Tool Usage Patterns
+### Production (collect for publish-grade skills)
 
-- Use `Read` to inspect nearby skills, local conventions, and references.
-- Use `Write` to create or update scaffold files.
-- Use a shell/command tool only for optional validation such as `skill-lint`.
+- Scripts needed? Templates needed? Evals needed?
+- Security boundaries required?
+- Pack manifest or remote install integration needed?
 
-## Output Format
+If input is incomplete, make the smallest safe assumption and mark it
+`[assumption]` or `[needs-user-input]`.
 
-Return a short delivery summary with:
+## Skill Type Taxonomy
 
-- skill name and type
-- assumptions you made
-- files created
-- validation result
+| Type | Signature | Examples |
+|------|-----------|---------|
+| `automation` | Script/command-driven | lint, deploy, format |
+| `workflow` | Multi-stage process | project-init, code-review |
+| `knowledge` | Domain rules/heuristics | style-guide, compliance |
+| `writing` | Content creation/editing | article-writer, rewriter |
+| `review` | Assessment/scoring | QA-auditor, security-review |
+| `research` | Evidence collection/synthesis | source-discovery, survey |
+| `project` | Repo/task management | initializer, governance |
+| `hybrid` | Multiple types combined | course-author (writing+workflow) |
 
-## Quality Rules
+See `references/skill-type-taxonomy.md` for detailed profiles.
 
-- The description must say both **what** the skill does and **when** to use it.
-- Trigger phrases must be concrete, not vague placeholders.
-- Keep `SKILL.md` concise and actionable.
-- `references/` should add reusable knowledge, not restate the main skill.
-- Scripts should be cross-platform, use relative paths, and fail clearly.
+## Required Content Sections
 
-## Must Do
+Every SKILL.md must include these sections (empty placeholder = not done):
 
+- **Domain Rules**: rules the agent would violate if it didn't know them
+- **Decision Points**: where the workflow branches
+- **Execution Modes**: interactive / auto / review-only
+- **Output Contracts**: what files/fields/sections must be delivered
+- **Anti-patterns**: known failure modes
+- **Handoff & Boundaries**: what this skill owns vs does not own
 
-*... (19 more lines in full SKILL.md)*
+See `references/authoring-methodology.md` for how to extract each section.
+
+## Agent Skills Standard (agentskills.io) Compatibility
+
+PEtFiSh skills follow the [Agent Skills open standard](https://agentskills.io),
+ensuring cross-platform compatibility with Cursor, Claude Code, OpenCode,
+
+*... (121 more lines in full SKILL.md)*
