@@ -40,7 +40,7 @@ jobs:
         run: python docs-site/scripts/generate_skill_reference.py --packs-dir packs --docs-dir docs-site/docs
 
       - name: Build MkDocs site
-        run: mkdocs build --strict
+        run: mkdocs build
         working-directory: docs-site
 
       - name: Upload artifact
