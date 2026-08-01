@@ -1,6 +1,6 @@
 ---
 name: research-router
-description: 研究入口与任务路由器。判断研究类型（科学/产品/规划/学习/决策/风险采购/活动体验）、复杂度并推荐合适的skill链路。Use when user says 研究, 帮我研究, 仔细研究, research, investigate, survey, lit review, literature review, 调研, 文献, 综述, 竞品分析, 市场分析, 论文方向, 可行性分析, 技术选型, 方案对比, 现状调研. Also routes agent-initiated research subtasks: feasibility study, architecture research, technology assessment, approach comparison.
+description: 研究入口与任务路由器。判断研究类型（科学/产品/规划/学习/决策/风险采购/活动体验）、复杂度并推荐合适的路由链路。Use when user says 研究, 帮我研究, 仔细研究, research, investigate, survey, lit-review, literature-review, 调研, 文献, 综述, 竞品分析, 市场分析, 论文方向, 可行性分析, 技术选型, 方案对比, 现状调研, market research. Also routes agent-initiated research subtasks: feasibility study, architecture research, technology assessment, approach comparison.
 compatibility: opencode
 license: Apache-2.0
 ---
