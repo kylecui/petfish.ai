@@ -10,7 +10,7 @@ Task-oriented guides for using PEtFiSh skill packs effectively.
 
     ---
 
-    The always-on intelligence layer that runs before every message — topic detection, skill sensing, anti-sycophancy checks.
+    The programmatic intelligence layer (companion-gateway.ts) that runs before every message — mode read, topic detection, skill sensing, failure signals, anti-sycophancy, retry guard, orchestration hints, and web-grounding.
 
     [:octicons-arrow-right-24: Read guide](companion-gateway/index.md)
 
@@ -56,7 +56,7 @@ Task-oriented guides for using PEtFiSh skill packs effectively.
 
     ---
 
-    Guides for PPT, Calibrate, Petfish Style, TestDocs, and Context packs.
+    Guides for PPT, Calibrate, Petfish Style, TestDocs, Context, Drawio, Typst, and Style Governor packs.
 
     [:octicons-arrow-right-24: Read guide](other-packs/index.md)
 
