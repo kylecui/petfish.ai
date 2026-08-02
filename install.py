@@ -944,6 +944,17 @@ def find_pack_dir_enhanced(
         if candidate.is_dir():
             return candidate
 
+    # Check extracted core repo (remote mode: SCRIPT_ROOT is temp dir,
+    # but _ensure_core_repo_extracted downloads the monorepo)
+    core_root = _ensure_core_repo_extracted(github_token=github_token)
+    if core_root:
+        for subdir in ("core", "optional"):
+            # Try exact name and name + "-pack" suffix (directory may differ from manifest name)
+            for candidate_name in (pack_name, pack_name + "-pack"):
+                candidate = core_root / "packs" / subdir / candidate_name
+                if candidate.is_dir() and (candidate / "pack-manifest.json").is_file():
+                    return candidate
+
     # Offline: no network fallback
     if offline:
         return None
@@ -1013,7 +1024,11 @@ def resolve_pack_names(raw: str) -> list[str]:
                 if base.is_dir():
                     for child in sorted(base.iterdir()):
                         if child.is_dir() and (child / "pack-manifest.json").is_file():
-                            result.append(child.name)
+                            # Use manifest name to avoid dir-name vs market-name mismatch
+                            # (e.g. dir "drawio-radar-chart-pack" → manifest name "drawio-radar-chart")
+                            mf = load_manifest(child)
+                            pname = mf.get("name", child.name) if mf else child.name
+                            result.append(pname)
         # Also query market index for optional packs (may include packs not in
         # the core repo snapshot, or community packs)
         raw = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10)
@@ -1862,9 +1877,9 @@ def install_single_pack(
         # Check if it's a remote-only pack
         packs_root = SCRIPT_ROOT / "packs"
         if not packs_root.is_dir():
-            log_error("No packs/ directory found and remote download failed.")
+            log_warn(f"Pack '{pack_name}' not resolvable (no local packs/ dir and remote lookup failed). Skipping.")
             return False
-        log_error(f"Pack not found: {pack_name}")
+        log_warn(f"Pack '{pack_name}' not found locally. Skipping.")
         return False
 
     # Load manifest
