@@ -109,10 +109,16 @@ interface BriefMetrics {
 }
 
 interface InjectedBlockState {
-  registryHash: string
-  warmHash: string
-  registryBlock: string
-  warmBlock: string
+  // Legacy fields (kept for backward compat reading old state files)
+  registryHash?: string
+  warmHash?: string
+  registryBlock?: string
+  warmBlock?: string
+  // v1.3: merged Layer B (registry + warm)
+  layerBHash?: string
+  layerBBlock?: string
+  // v1.3: track which topic IDs have had their archive summary injected this session
+  archivedTopicInjected?: string[]
   opencodeVersion: string
   adaptiveState?: AdaptiveState
   _brief_metrics?: BriefMetrics
@@ -178,12 +184,14 @@ let _patchStateLogged = false
  * Tries `opencode --version` first, then falls back to reading the binary.
  */
 function getOpenCodeVersion(): string {
+  if (_cachedOpenCodeVersion !== null) return _cachedOpenCodeVersion
   try {
     const ver = execSync("opencode --version", { encoding: "utf-8", timeout: 5000 }).trim()
-    return ver || "unknown"
+    _cachedOpenCodeVersion = ver || "unknown"
   } catch {
-    return "unknown"
+    _cachedOpenCodeVersion = "unknown"
   }
+  return _cachedOpenCodeVersion
 }
 
 /**
@@ -986,14 +994,19 @@ function _writeLog(msg: string): void {
   const logPath = join(_logDir, "plugin-debug.log")
   const ts = new Date().toISOString()
   const line = ts + " " + _PREFIX + msg + "\n"
-  // Fire-and-forget write + rotate
-  appendFile(logPath, line).catch(function() {})
-  // Rotate check (best-effort, non-blocking)
-  stat(logPath).then(function(s) {
-    if (s.size > _LOG_ROTATE_SIZE) {
-      rename(logPath, logPath + ".1").catch(function() {})
-    }
-  }).catch(function() {})
+  // Write first, then rotate if needed — both in the same promise chain so the
+  // rename only happens after the append completes (fixes the previous race where
+  // fire-and-forget stat+rename could interleave with a concurrent appendFile).
+  appendFile(logPath, line)
+    .then(function() {
+      return stat(logPath)
+    })
+    .then(function(s) {
+      if (s.size > _LOG_ROTATE_SIZE) {
+        return rename(logPath, logPath + ".1").catch(function() {})
+      }
+    })
+    .catch(function() {})
 }
 
 function _log(msg: string): void {
@@ -1049,6 +1062,9 @@ function getDetector(): TopicDetector {
 
 // v1.2: Resolved adaptive mode (set during injection, read by formatActiveFocusBlock)
 let _adaptiveResolvedMode: string = "compact"
+// v1.2: Current adaptive state (set during injection, used by writeInjectedState)
+// Kept module-level so it survives the prevState==null branch.
+let _currentAdaptiveState: AdaptiveState | undefined = undefined
 
 async function readJSON<T>(path: string): Promise<T | null> {
   try {
@@ -1273,7 +1289,69 @@ function formatWarmBriefBlock(
 }
 
 /**
- * #166: Extract a reflective brief from a topic summary.
+ * v1.3 Cache-First: Format merged Layer B block (Registry + Warm Brief).
+ *
+ * This replaces the separate formatRegistryBlock + formatWarmBriefBlock calls.
+ * By merging them into one block that changes only when topics are created,
+ * deleted, or their status changes, we maximize prefix cache hits:
+ *   - Previously: 2 separate pushes → cache break at Warm block boundary
+ *   - Now: 1 merged push, skip entirely when content is unchanged
+ *
+ * The returned string is deterministically sorted for byte-identical output.
+ */
+function formatLayerBBlock(
+  registryView: { active_topic: string; topics: Record<string, { title: string; status: string }> },
+  graph: TopicGraph | null,
+  opts: Required<PluginOptions>,
+): string {
+  // --- Registry section ---
+  const lines: string[] = [
+    "## Topics",
+    "",
+  ]
+  const sorted = Object.entries(registryView.topics)
+    .sort(function(a, b) { return a[0].localeCompare(b[0]) })
+  for (const item of sorted) {
+    const marker = item[0] === registryView.active_topic ? "→" : " "
+    const statusTag = item[1].status !== "active" ? "/" + item[1].status : ""
+    lines.push(marker + " " + item[0] + statusTag + " " + item[1].title)
+  }
+  lines.push("")
+
+  // --- Warm Brief section ---
+  const warmTopics = Object.entries(registryView.topics)
+    .filter(function(entry) { return entry[0] !== registryView.active_topic })
+    .filter(function(entry) { const s = entry[1].status; return s === "active" || s === "warm" })
+    .sort(function(a, b) { return a[0].localeCompare(b[0]) })
+    .slice(0, opts.maxTopics)
+
+  if (warmTopics.length === 0) {
+    lines.push("## Related")
+    lines.push("—")
+    lines.push("")
+  } else {
+    lines.push("## Related")
+    lines.push("")
+    for (const item of warmTopics) {
+      let relation = ""
+      if (graph && graph.edges) {
+        const edge = graph.edges.find(function(e) {
+          return (e.source === registryView.active_topic && e.target === item[0]) ||
+                 (e.target === registryView.active_topic && e.source === item[0])
+        })
+        if (edge) relation = "·" + edge.relation
+      }
+      const statusTag = (item[1].status !== "active" && item[1].status !== "warm")
+        ? "/" + item[1].status : ""
+      lines.push("- " + item[0] + statusTag + " " + item[1].title + relation)
+    }
+    lines.push("")
+  }
+
+  return lines.join("\n")
+}
+
+
  * Tries to find the "current position" within the summary:
  *   - If summary contains "At:" or "Progress:" lines, extract those
  *   - Otherwise take first sentence (up to first period) or first 120 chars
@@ -1683,6 +1761,11 @@ let _clientProbeLogged = false
 let _noTopicWarned = false
 let _realtimeFallbackWarned = false
 let _debugEnabled = false
+// v1.3: in-memory set of topic IDs for which archive summary was already injected
+// this process lifetime. Prevents re-injecting the same archive block every turn.
+const _archiveInjectedTopics = new Set<string>()
+// v1.3: cache getOpenCodeVersion() for the process lifetime to avoid repeated execSync
+let _cachedOpenCodeVersion: string | null = null
 
 async function resolvePluginOptions(directory: string, fnOptions: unknown): Promise<Required<PluginOptions>> {
   const defaults: Required<PluginOptions> = {
@@ -1994,11 +2077,13 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         }
       }
 
-      // Format and inject (#164: cache-stable 3-block architecture)
-      const registryBlock = formatRegistryBlock(registryView, pluginOpts)
-      const warmBlock = formatWarmBriefBlock(registryView, graph, pluginOpts)
+      // v1.3 Cache-First: Build merged Layer B block (Registry + Warm Brief).
+      // Layer B only changes when topics are created/deleted/status-changed.
+      // When content hash is unchanged from last turn, we skip the push entirely
+      // so the system prompt prefix stays byte-identical → max prefix cache hits.
+      const layerBBlock = formatLayerBBlock(registryView, graph, pluginOpts)
 
-      // #164: Read previous state before building active block (adaptive needs it)
+      // #164: Read previous state (adaptive + layer B hash)
       const prevState = await readInjectedState(fishTrailDir)
 
       // v1.2: Adaptive compression — measure signal and resolve mode
@@ -2022,56 +2107,29 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
           (prevAdaptive ? prevAdaptive.roundCounter : 0) + 1,
         )
         _adaptiveResolvedMode = adaptiveState.mode
-        // Persist in injected state for next round
-        if (prevState) {
-          prevState.adaptiveState = adaptiveState
-        }
+        // Always persist the new adaptive state regardless of whether prevState existed.
+        // Bug fix: previously only updated prevState when it was non-null, so the first
+        // turn of a new session never wrote adaptiveState and the next turn restarted
+        // from "unknown" mode.
+        _currentAdaptiveState = adaptiveState
         _log("adaptive signal=" + String(signal) + " mode=" + adaptiveState.mode + " round=" + adaptiveState.roundCounter)
       }
 
-      const activeBlock = formatActiveFocusBlock(registryView, activeTopic, detectionResult, pluginOpts)
-
-      const registryHash = simpleHash(registryBlock)
-      const warmHash = simpleHash(warmBlock)
-      const registryChanged = !prevState || prevState.registryHash !== registryHash
-      const warmChanged = !prevState || prevState.warmHash !== warmHash
-      // Active block always changes (volatile by design)
-
-      // Push 3 separate blocks to output.system
-      // Stable blocks first, volatile last — optimizes prefix cache behavior
-      output.system.push(registryBlock)
-      output.system.push(warmBlock)
-      output.system.push(activeBlock)
-
-      // Restore archived messages for the active topic (if any exist)
-      // When topic-context-filter removed messages belonging to this topic
-      // during a different topic's active period, they were archived to
-      // message-archive/<topic_id>.jsonl. Here we inject a summary so the
-      // model has context about previously-discussed content.
-      try {
-        const archivePath = join(fishTrailDir, "message-archive", `${activeTopicId}.jsonl`)
-        const archiveContent = await readFile(archivePath, "utf-8")
-        if (archiveContent.trim()) {
-          const lines = archiveContent.trim().split("\n")
-          const totalArchived = lines.length
-          const recent = lines.slice(-5) // Last 5 archived messages
-          const previews: string[] = []
-          for (const line of recent) {
-            try {
-              const entry = JSON.parse(line)
-              const preview = (entry.text ?? "").slice(0, 120)
-              previews.push(`  [${entry.role}] ${preview}...`)
-            } catch { /* skip invalid lines */ }
-          }
-          if (previews.length > 0) {
-            output.system.push(
-              "## Archived Context (restored)\n" +
-              `${totalArchived} messages from this topic were previously filtered out ` +
-              `when another topic was active. Recent ${previews.length}:\n${previews.join("\n")}`,
-            )
-          }
-        }
-      } catch { /* no archive file — normal for first visit to this topic */ }
+      // v1.3 Cache-First: Only push Layer B when content has changed.
+      // The Active Focus block (volatile) is NO LONGER pushed to system here —
+      // it is injected per-turn into the user message prefix by the
+      // experimental.chat.messages.transform hook below, so the system prompt
+      // prefix remains stable and benefits from provider-side prefix caching.
+      const layerBHash = simpleHash(layerBBlock)
+      const layerBChanged = !prevState || (prevState.layerBHash ?? "") !== layerBHash
+      if (layerBChanged) {
+        output.system.push(layerBBlock)
+      } else {
+        // Re-push the stored stable block to keep system prompt consistent.
+        // Using the persisted string guarantees byte-identical content.
+        output.system.push(prevState!.layerBBlock ?? layerBBlock)
+        _log("Layer B cache HIT — skipping push, reusing stored block")
+      }
 
       // v1.2: Compute brief metrics (every 10 rounds or if not yet computed)
       const prevRoundCount = prevState?.adaptiveState?.roundCounter || 0
@@ -2081,27 +2139,130 @@ const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
         ? await computeBriefMetrics(fishTrailDir)
         : prevMetrics
 
+      // Build injected-topic list: merge disk state with in-memory set
+      const diskInjected = prevState?.archivedTopicInjected ?? []
+      const allInjected = Array.from(new Set([...diskInjected, ..._archiveInjectedTopics]))
+
       await writeInjectedState(fishTrailDir, {
-        registryHash,
-        warmHash,
-        registryBlock,
-        warmBlock,
+        layerBHash,
+        layerBBlock,
         opencodeVersion: getOpenCodeVersion(),
-        adaptiveState: prevState ? prevState.adaptiveState : undefined,
+        adaptiveState: _currentAdaptiveState,
         _brief_metrics: briefMetrics,
+        archivedTopicInjected: allInjected,
       })
 
       const relatedCount = Object.keys(registryView.topics).length - 1
       const modeTag = pluginOpts.detectionMode === "realtime" ? "realtime" : "disk"
-      const cacheTag = "registry=" + (registryChanged ? "MISS" : "HIT") +
-        ", warm=" + (warmChanged ? "MISS" : "HIT") +
-        ", active=MISS"
+      const cacheTag = "layerB=" + (layerBChanged ? "MISS" : "HIT") + ", active=msg-prefix"
       _log(
-        "Injected 3-block context (" + modeTag + " mode): " +
+        "v1.3 cache-first context (" + modeTag + " mode): " +
         "active=" + activeTopicId + ", related=" + relatedCount + ", cache=" + cacheTag,
       )
     },
+
+    // v1.3 Cache-First: inject volatile Active Focus as a prefix on the latest
+    // user message instead of the system prompt.  This keeps the system prompt
+    // prefix stable (Layer A + Layer B only) and lets the provider cache it
+    // across turns even when topic details change every round.
+    //
+    // Also handles lazy archive restoration: inject an archive summary only on
+    // the first turn that the active topic is seen this session (not every turn).
+    "experimental.chat.messages.transform": async (_input, output) => {
+      try {
+        const pluginOpts = await pluginOptsPromise
+        const fishTrailDir = join(directory, FISH_TRAIL_DIR)
+
+        // Resolve active topic
+        const activeTopicId = await resolveActiveTopic(fishTrailDir)
+        if (!activeTopicId) return
+
+        // Read topic data (needed for brief)
+        let activeTopic: TopicData | null = null
+        try {
+          const topicFiles = await readdir(join(fishTrailDir, "topics"))
+          const matchFile = topicFiles.find(function(f) { return f === activeTopicId + ".json" })
+          if (matchFile) {
+            activeTopic = await readJSON<TopicData>(join(fishTrailDir, "topics", matchFile))
+          }
+        } catch { /* ok */ }
+
+        // Build compact active-focus prefix line
+        const title = activeTopic?.title || activeTopicId
+        const scopeExcerpt = activeTopic?.scope ? " · " + truncate(activeTopic.scope, 60) : ""
+        const brief = (pluginOpts.reflectiveBriefEnabled && activeTopic?.reflective_brief)
+          ? activeTopic.reflective_brief
+          : reflectiveBrief(activeTopic?.summary, 100)
+        const briefLine = brief ? "\n" + brief : ""
+        const focusPrefix = "[Focus: " + activeTopicId + " " + title + scopeExcerpt + briefLine + "]"
+
+        // Inject focus prefix before the last user message
+        const messages = output.messages as Array<{ info: { role: string }; parts: Array<{ type: string; text?: string }> }>
+        for (let i = messages.length - 1; i >= 0; i--) {
+          if (messages[i]?.info?.role === "user") {
+            const parts = messages[i].parts
+            if (Array.isArray(parts) && parts.length > 0) {
+              // Prepend to the first text part
+              const firstText = parts.find(function(p) { return p.type === "text" })
+              if (firstText) {
+                firstText.text = focusPrefix + "\n\n" + (firstText.text ?? "")
+              } else {
+                parts.unshift({ type: "text", text: focusPrefix + "\n\n" })
+              }
+            }
+            break
+          }
+        }
+
+        // Lazy archive restoration: inject archive summary only on first visit
+        // to this topic this session to avoid re-injecting every turn.
+        const alreadyInjected = _archiveInjectedTopics.has(activeTopicId)
+        if (!alreadyInjected) {
+          try {
+            const archivePath = join(fishTrailDir, "message-archive", `${activeTopicId}.jsonl`)
+            const archiveContent = await readFile(archivePath, "utf-8")
+            if (archiveContent.trim()) {
+              const lines = archiveContent.trim().split("\n")
+              const totalArchived = lines.length
+              const recent = lines.slice(-5)
+              const previews: string[] = []
+              for (const line of recent) {
+                try {
+                  const entry = JSON.parse(line)
+                  const preview = (entry.text ?? "").slice(0, 120)
+                  previews.push("  [" + entry.role + "] " + preview + "...")
+                } catch { /* skip invalid */ }
+              }
+              if (previews.length > 0) {
+                // Inject as a synthetic assistant message before the last user turn
+                const archiveSummary = "## Archived Context (restored — shown once)\n" +
+                  totalArchived + " messages from this topic were previously filtered out " +
+                  "when another topic was active. Recent " + previews.length + ":\n" +
+                  previews.join("\n")
+                // Find insertion point: before the last user message
+                const msgs = output.messages as Array<{ info: { role: string }; parts: Array<{ type: string; text?: string }> }>
+                for (let i = msgs.length - 1; i >= 0; i--) {
+                  if (msgs[i]?.info?.role === "user") {
+                    msgs.splice(i, 0, {
+                      info: { role: "assistant" },
+                      parts: [{ type: "text", text: archiveSummary }],
+                    })
+                    break
+                  }
+                }
+              }
+            }
+          } catch { /* no archive — normal */ }
+          // Mark as injected for this session regardless of whether archive existed
+          _archiveInjectedTopics.add(activeTopicId)
+        }
+      } catch (e) {
+        // Never break the session
+        _warn("messages.transform error: " + String(e))
+      }
+    },
   }
 }
+
 
 export default plugin

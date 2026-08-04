@@ -295,17 +295,24 @@ const plugin: Plugin = async ({ directory }, options) => {
           return
         }
 
-        // Load ALL topics for categorization and effective-topic detection
+        // Load ALL topics for categorization and effective-topic detection.
+        // P2 perf: read all topic files in parallel instead of serially.
         const allTopicKeywords: Map<string, { keywords: Set<string>, title: string }> = new Map()
         allTopicKeywords.set(registryTopicId, { keywords: registryKeywords, title: registryTopic.title })
-        for (const [topicId, topicInfo] of Object.entries(registry!.topics)) {
-          if (topicId === registryTopicId || topicInfo.status === "archived") continue
-          const otherTopicPath = join(directory, FISH_TRAIL_DIR, "topics", `${topicId}.json`)
-          const otherTopic = await readJSON<TopicData>(otherTopicPath)
-          if (otherTopic?.title) {
+        const otherTopicEntries = Object.entries(registry!.topics).filter(
+          function([topicId, topicInfo]) { return topicId !== registryTopicId && topicInfo.status !== "archived" }
+        )
+        const otherTopicResults = await Promise.all(
+          otherTopicEntries.map(function([topicId]) {
+            return readJSON<TopicData>(join(directory, FISH_TRAIL_DIR, "topics", topicId + ".json"))
+              .then(function(data) { return { topicId, data } })
+          })
+        )
+        for (const { topicId, data } of otherTopicResults) {
+          if (data?.title) {
             allTopicKeywords.set(topicId, {
-              keywords: buildKeywordSet(otherTopic),
-              title: otherTopic.title,
+              keywords: buildKeywordSet(data),
+              title: data.title,
             })
           }
         }
@@ -409,17 +416,20 @@ const plugin: Plugin = async ({ directory }, options) => {
 
           scores[i] = scoreMessage(text, keywords)
 
-          // Track domains for single-topic guard
-          if (scores[i] > 0) {
-            // This message hits our active topic keywords — not "off-topic"
-          } else {
-            // Check if it hits OTHER topic domains
-            const domains = getMatchedDomains(text)
-            for (const d of domains) allMatchedDomains.add(d)
-          }
+          // Track domains for single-topic guard.
+          // We collect matched domains from ALL messages (not just off-topic ones).
+          // The guard fires when ALL messages share ≤1 domain — meaning there's
+          // no meaningful cross-topic pollution to filter.
+          // Bug fix: the previous code only collected domains from score==0 messages,
+          // so when every message was on-topic (score>0) allMatchedDomains stayed empty
+          // and size===0 ≤ 1 triggered a false "single_topic" skip even when there were
+          // messages from multiple topics with overlapping active-topic keywords.
+          const domains = getMatchedDomains(text)
+          for (const d of domains) allMatchedDomains.add(d)
         }
 
-        // Single-topic guard: if no OTHER topic domains detected, return early
+        // Single-topic guard: if the whole conversation spans ≤1 domain,
+        // there is nothing cross-topic to filter — skip.
         if (allMatchedDomains.size <= 1) {
           await logFilter({ action: "skip", reason: "single_topic", domains: [...allMatchedDomains] })
           return
@@ -512,10 +522,12 @@ const plugin: Plugin = async ({ directory }, options) => {
         // Only splice if we actually reduced messages
         if (filtered.length < messages.length) {
 
-          // Archive removed messages before splicing (prevent information loss)
-          // Each message is categorized by best-matching topic and archived to
-          // .petfish/fish-trail/message-archive/<owning_topic_id>.jsonl
-          // so switching to that topic can restore its context later.
+          // Archive removed messages BEFORE splicing to prevent information loss.
+          // Bug fix: previously the archive was inside the same block as splice but
+          // the bare `catch {}` swallowed any archive failure, allowing splice to
+          // proceed and permanently drop messages that were never archived.
+          // Now we track archive success and abort the splice if archiving fails.
+          let archiveOk = true
           try {
             const archiveDir = join(directory, ".petfish", "fish-trail", "message-archive")
             await mkdir(archiveDir, { recursive: true }).catch(() => {})
@@ -553,9 +565,14 @@ const plugin: Plugin = async ({ directory }, options) => {
               const topicArchivePath = join(archiveDir, `${topicId}.jsonl`)
               await appendFile(topicArchivePath, entries.join("\n") + "\n", "utf-8")
             }
-          } catch {
-            // Best-effort archiving — don't break filtering if archive fails
+          } catch (archiveErr) {
+            // Archive failed — abort filtering to prevent message loss.
+            // The messages stay in the conversation unfiltered.
+            archiveOk = false
+            await logFilter({ action: "skip", reason: "archive_failed", error: String(archiveErr) })
           }
+
+          if (!archiveOk) return
 
           output.messages.splice(0, output.messages.length, ...filtered)
 
