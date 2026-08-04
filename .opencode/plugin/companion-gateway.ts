@@ -268,11 +268,6 @@ const plugin: Plugin = async ({ directory }, options) => {
         // --- Build injection ---
         const sections: string[] = []
 
-        sections.push("\n\n## Companion Gateway (Programmatic)\n")
-        sections.push(
-          `**Mode**: depth=${mode.depth}, rigor=${mode.rigor}\n`
-        )
-
         // Failure Signal
         if (failurePack && failurePack !== "unknown") {
           sections.push(

@@ -57,18 +57,20 @@ Tell the user which OS and platform you detected.
 
 Ask: "What type of project is this?"
 
-Offer these choices:
-1. **code** — General coding project (installs: deploy, petfish, testdocs)
-2. **course** — Course development (installs: course, petfish)
-3. **ops** — Operations/infrastructure (installs: deploy, petfish)
-4. **security** — Security research (installs: deploy, petfish, testdocs, trust)
-5. **research** — Research project (installs: petfish, research)
-6. **writing** — Writing/documentation (installs: petfish, ppt)
-7. **minimal** — Just the basics (installs: petfish only)
-8. **comprehensive** — Everything (installs: course, deploy, petfish, ppt, testdocs, trust, context, research, reflect)
-9. **custom** — Let me choose specific packs
+Offer these choices (role-based profiles, recommended):
+1. **starter** — Just getting started (installs: petfish only)
+2. **developer** — Daily coding (installs: deploy, petfish, testdocs, calibrate)
+3. **researcher** — Academic/research (installs: petfish, research, doc-reader, calibrate)
+4. **writer** — Content creation (installs: petfish, ppt, doc-reader, research)
+5. **educator** — Course development (installs: petfish, course, ppt, doc-reader, testdocs)
+6. **ops-engineer** — DevOps/security (installs: petfish, deploy, trust, calibrate)
+7. **power-user** — Full-featured (installs: petfish, deploy, testdocs, trust, research, calibrate, reflect, ppt, doc-reader)
+8. **custom** — Let me choose specific packs
 
-If user chooses **research** or any profile that includes the research pack, ask a follow-up question:
+Legacy profiles (still supported):
+- **code** → deploy, petfish, testdocs | **ops** → deploy, petfish | **minimal** → petfish | **comprehensive** → everything
+
+If user chooses **researcher**, **developer**, **writer**, or any profile that includes the research pack, ask a follow-up question:
 
 ```
 What kind of research will this project focus on?
@@ -126,24 +128,24 @@ Install all selected packs in one command:
 uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <ALIAS1,ALIAS2,...> --platform <PLATFORM>
 ```
 
-Replace `<ALIAS1,ALIAS2,...>` with a comma-separated list of the packs the user selected (e.g. `course,petfish` for the course profile, or `deploy,petfish,testdocs` for the code profile).
+Replace `<ALIAS1,ALIAS2,...>` with a comma-separated list of the packs the user selected (e.g. `course,petfish` for the educator profile, or `deploy,petfish,testdocs,calibrate` for the developer profile).
 
-Example — **course** profile:
+Example — **educator** profile:
 
 ```bash
-uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack course,petfish --platform opencode
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack course,petfish,ppt,doc-reader,testdocs --platform opencode
 ```
 
-Example — **code** profile (init + companion already installed in 3a):
+Example — **developer** profile (init + companion already installed in 3a):
 
 ```bash
-uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs --platform claude
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs,calibrate --platform claude
 ```
 
-Example — **comprehensive** profile (all packs at once, init+companion already done):
+Example — **power-user** profile (all packs at once, init+companion already done):
 
 ```bash
-uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack course,deploy,petfish,ppt,testdocs,trust,context,research,reflect --platform opencode
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs,trust,research,calibrate,reflect,ppt,doc-reader --platform opencode
 ```
 
 > **Core vs Optional**: Core packs (init, companion, petfish, toolchain) download directly from the petfish.ai release. Optional packs (course, research, etc.) resolve via petfish-market — same command, same experience. The installer queries the market index automatically when a pack is not found in the core set.

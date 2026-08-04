@@ -22,7 +22,7 @@
     [
       ".opencode/plugin/system-prompt-rules.ts",
       {
-        "mode": "all"
+        "mode": "smart"
       }
     ],
     [

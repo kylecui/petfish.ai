@@ -68,6 +68,8 @@ jobs:
     needs: [fish-trail-tests, benchmark-eval]
     if: always()
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 

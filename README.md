@@ -144,17 +144,34 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `style-governor` | Cross-document style consistency, terminology drift detection, conservative rewriting | Project |
 
 ## Profile → Auto-Install Mapping
+
+Role-based profiles (recommended):
+
+| Profile | Auto-installed Packs | Best For |
+|---|---|---|
+| `starter` | `petfish` | Just getting started |
+| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate` | Daily coding |
+| `researcher` | `petfish`, `research`, `doc-reader`, `calibrate` | Academic / research |
+| `writer` | `petfish`, `ppt`, `doc-reader`, `research` | Content creation |
+| `educator` | `petfish`, `course`, `ppt`, `doc-reader`, `testdocs` | Course development |
+| `ops-engineer` | `petfish`, `deploy`, `trust`, `calibrate` | DevOps / security |
+| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader` | Full-featured setup |
+
+Legacy profiles (kept for backward compatibility):
+
 | Profile | Auto-installed Packs |
 |---|---|
 | `minimal` | `petfish` |
-| `course` | `course`, `petfish` |
+| `course` | `course`, `petfish`, `doc-reader` |
 | `code` | `deploy`, `petfish`, `testdocs` |
 | `ops` | `deploy`, `petfish` |
 | `security` | `deploy`, `petfish`, `testdocs`, `trust` |
-| `research` | `petfish`, `research` |
+| `research` | `petfish`, `research`, `doc-reader` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
 | `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor` |
+
+> Use `uv run catalog_query.py --profile list` to see all profiles including custom ones you've saved.
 
 ---
 
@@ -349,6 +366,15 @@ petfish.ai/
 ---
 
 ## Version History
+
+### v3.2 — Flexible Skills Management + Role-Based Profiles
+
+- **v3.2.0**: Flexible skills management overhaul. `catalog_query.py` rewritten with 7 role-based profiles: `starter`, `developer`, `researcher`, `writer`, `educator`, `ops-engineer`, `power-user` (all legacy profiles preserved for backward compat). Custom profile CRUD: `--profile-save`, `--profile-delete`, `--profile-install`, `--profile list`. Recommends system: `pack-manifest.json` `recommends`/`recommends_reason` shown on install. Refactored registry I/O (`_find_registry_path` + `_load_registry_data` + `_save_registry_data`) for read-write support. `custom_profiles` field added to `installed-packs.json`. Cache-first context architecture (fish-trail P0 bug fixes). Token consumption optimized for prompt cache efficiency. Updated README profile table + `docs/agent-install.md` + `fish-init/SKILL.md`.
+
+### v3.1 — Performance & Cache Architecture
+
+- **v3.1.0**: Token consumption optimization and prompt cache efficiency improvements.
+
 ### v3.0 — Companion Overhaul
 
 - **v3.0.0**: Programmatic companion-gateway.ts (6-step enforcement via TypeScript plugin). topic-context-filter fixes (placeholder bug, effective topic detection, per-topic message archiving). Legacy installers deleted (install.py sole entry). skill-index.json (100 skills). Market CLI. Web-grounding rules. 13/13 registry consolidated to monorepo. 102/102 agentskills.io compliant. Multi-agent orchestration design (Momus-approved, Phases 0-5 implemented: task() spike, skill I/O contracts, orchestration hints, dispatch tracking, result aggregation, autonomy levels).
