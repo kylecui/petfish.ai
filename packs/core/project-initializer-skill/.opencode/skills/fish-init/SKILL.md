@@ -1,6 +1,6 @@
 ---
 name: project-initializer
-description: Initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.md/README/.opencode/docs/tasks/qa/mcp templates, run profile setup (minimal/course/code/ops/security/research/writing/skills-package/comprehensive), configure uv dev env, and provide post-init wizard + pack install guidance. Enforces safe no-overwrite init with explicit confirmation for risky operations.
+description: Initialize/scaffold/bootstrap AI-agent workspaces, generate AGENTS.md/README/.opencode/docs/tasks/qa/mcp templates, run profile setup (starter/developer/researcher/writer/educator/ops-engineer/power-user or legacy: minimal/course/code/ops/security/research/writing/skills-package/comprehensive), configure uv dev env, and provide post-init wizard + pack install guidance. Enforces safe no-overwrite init with explicit confirmation for risky operations.
 license: Proprietary. Adapt for internal use.
 compatibility: Designed for OpenCode project-level skills. Optional script requires Python 3.10+; uv is recommended for Python development projects.
 metadata:
@@ -23,7 +23,7 @@ Use this skill for requests such as:
 
 - Initialize a project, repo, workspace, OpenCode project, AI-assisted project, or skill package.
 - Generate `AGENTS.md`, `.opencode/skills`, project templates, QA templates, task plans, or MCP configuration examples.
-- Set up a course, code, ops, security, research, writing, skills-package, comprehensive, or minimal project.
+- Set up a starter, developer, researcher, writer, educator, ops-engineer, power-user, course, code, ops, security, research, writing, skills-package, comprehensive, or minimal project.
 - Prepare a project for long-term collaboration between human maintainers and AI agents.
 
 Do not use this skill for ordinary one-off file editing unrelated to project initialization.
@@ -56,7 +56,7 @@ If the user has already described enough context, infer the project profile and 
 
 Ask no more than five questions at once. Prefer these:
 
-1. What is the project mainly for: course, code, ops, security, research, writing, skills package, comprehensive, or minimal?
+1. What is the project mainly for: starter, developer, researcher, writer, educator, ops-engineer, power-user, course, code, ops, security, research, writing, skills package, comprehensive, or minimal?
 2. Which directory should be initialized? Use the current directory if unspecified.
 3. May I create `AGENTS.md`, `README.md`, `.opencode/`, `docs/`, `tasks/`, `qa/`, and related files without overwriting existing files?
 4. Is a development environment needed, such as Python `uv`, `pytest`, `ruff`, `mypy`, Node, or frontend tooling?
@@ -80,7 +80,17 @@ Risk operations:
 Recommended initialization plan:
 ```
 
-Supported profiles:
+Supported profiles (role-based, recommended):
+
+- `starter` — writing style and basic assistance
+- `developer` — coding with deployment, test docs, and decision review
+- `researcher` — deep research, document reading, judgment calibration
+- `writer` — writing style, presentations, doc reading, research
+- `educator` — full teaching and course development toolchain
+- `ops-engineer` — DevOps/security with deployment, trust governance, calibration
+- `power-user` — full-featured setup (add course/context as needed)
+
+Legacy profiles (still supported for backward compatibility):
 
 - `minimal`
 - `course`
@@ -92,7 +102,7 @@ Supported profiles:
 - `skills-package`
 - `comprehensive`
 
-If multiple substantial intents are present, use `comprehensive` and tailor the directories. Do not create unnecessary empty modules.
+If multiple substantial intents are present, use `power-user` and tailor the directories. Do not create unnecessary empty modules.
 
 #### Research Domain Clarification
 
@@ -223,15 +233,22 @@ rigor: false
 
 | Profile | Default Depth | Default Rigor | Rationale |
 |---|---|---|---|
-| `minimal` | balanced | false | Lightweight projects don't need ceremony |
+| `starter` | balanced | false | Lightweight projects don't need ceremony |
+| `developer` | balanced | false | Standard development flow |
+| `researcher` | thorough | true (forced) | Research needs rigorous methodology |
+| `writer` | balanced | false | Creative flow shouldn't be over-constrained |
+| `educator` | balanced | false | Iterative content development |
+| `ops-engineer` | balanced | true | Ops changes need planning discipline |
+| `power-user` | balanced | false | User decides per-task |
+| `minimal` | balanced | false | Legacy alias for starter |
 | `course` | balanced | false | Iterative content development |
 | `code` | balanced | false | Standard development flow |
 | `ops` | balanced | true | Ops changes need planning discipline |
 | `security` | thorough | true (forced) | Security work requires evidence-driven approach |
-| `research` | thorough | true (forced) | Research needs rigorous methodology |
+| `research` | thorough | true (forced) | Legacy alias for researcher |
 | `writing` | balanced | false | Creative flow shouldn't be over-constrained |
 | `skills-package` | balanced | false | Standard development |
-| `comprehensive` | balanced | false | User decides per-task |
+| `comprehensive` | balanced | false | Legacy alias for power-user |
 
 The file is generated by `init_project.py` after git initialization and before the final report. Users can change it anytime; Companion Gateway reads it fresh each session.
 
@@ -377,17 +394,24 @@ Profiles define the project's NEEDS. The agent resolves these needs against the 
 
 | Profile | Semantic Needs | Typical Resolution |
 |---|---|---|
-| `minimal` | Writing style only | petfish |
-| `course` | Course development + style | course, petfish |
-| `code` | Development, testing, deployment, style | deploy, testdocs, petfish |
-| `ops` | Operations, deployment, style | deploy, petfish |
-| `security` | Security governance, testing, deployment, style | deploy, testdocs, trust, petfish |
-| `research` | Research workbench, style | research, petfish |
-| `writing` | Writing, presentations, style | ppt, petfish |
-| `skills-package` | Style, testing (for skill QA) | petfish, testdocs |
-| `comprehensive` | All available packs | (resolved from full registry — install everything) |
+| `starter` | Writing style only | petfish |
+| `developer` | Development, testing, deployment, style, decision review | deploy, testdocs, calibrate, petfish |
+| `researcher` | Research workbench, document reading, style, judgment calibration | research, doc-reader, calibrate, petfish |
+| `writer` | Writing, presentations, document reading, research, style | ppt, doc-reader, research, petfish |
+| `educator` | Course development, presentations, document reading, testing, style | course, ppt, doc-reader, testdocs, petfish |
+| `ops-engineer` | Operations, deployment, trust governance, decision calibration, style | deploy, trust, calibrate, petfish |
+| `power-user` | Full-featured (all except course/context) | deploy, testdocs, trust, research, calibrate, reflect, ppt, doc-reader, petfish |
+| `minimal` | Writing style only (legacy alias for starter) | petfish |
+| `course` | Course development + style (legacy) | course, petfish |
+| `code` | Development, testing, deployment, style (legacy alias for developer) | deploy, testdocs, petfish |
+| `ops` | Operations, deployment, style (legacy alias for ops-engineer) | deploy, petfish |
+| `security` | Security governance, testing, deployment, style (legacy) | deploy, testdocs, trust, petfish |
+| `research` | Research workbench, style (legacy alias for researcher) | research, petfish |
+| `writing` | Writing, presentations, style (legacy alias for writer) | ppt, petfish |
+| `skills-package` | Style, testing (for skill QA) (legacy) | petfish, testdocs |
+| `comprehensive` | All available packs (legacy alias for power-user) | (resolved from full registry — install everything) |
 
-For `comprehensive`: install ALL packs returned by `list_available_packs`.
+For `comprehensive` or `power-user`: install ALL packs returned by `list_available_packs`.
 For other profiles: match semantic needs to pack descriptions from the registry. If unsure whether a pack fits a need, include it in the optional list for user review.
 
 #### Research Domain Clarification

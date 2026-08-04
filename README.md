@@ -144,17 +144,34 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `style-governor` | Cross-document style consistency, terminology drift detection, conservative rewriting | Project |
 
 ## Profile → Auto-Install Mapping
+
+Role-based profiles (recommended):
+
+| Profile | Auto-installed Packs | Best For |
+|---|---|---|
+| `starter` | `petfish` | Just getting started |
+| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate` | Daily coding |
+| `researcher` | `petfish`, `research`, `doc-reader`, `calibrate` | Academic / research |
+| `writer` | `petfish`, `ppt`, `doc-reader`, `research` | Content creation |
+| `educator` | `petfish`, `course`, `ppt`, `doc-reader`, `testdocs` | Course development |
+| `ops-engineer` | `petfish`, `deploy`, `trust`, `calibrate` | DevOps / security |
+| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader` | Full-featured setup |
+
+Legacy profiles (kept for backward compatibility):
+
 | Profile | Auto-installed Packs |
 |---|---|
 | `minimal` | `petfish` |
-| `course` | `course`, `petfish` |
+| `course` | `course`, `petfish`, `doc-reader` |
 | `code` | `deploy`, `petfish`, `testdocs` |
 | `ops` | `deploy`, `petfish` |
 | `security` | `deploy`, `petfish`, `testdocs`, `trust` |
-| `research` | `petfish`, `research` |
+| `research` | `petfish`, `research`, `doc-reader` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
 | `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor` |
+
+> Use `uv run catalog_query.py --profile list` to see all profiles including custom ones you've saved.
 
 ---
 

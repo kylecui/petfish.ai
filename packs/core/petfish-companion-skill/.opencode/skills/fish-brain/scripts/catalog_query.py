@@ -321,7 +321,36 @@ def query_market(alias: str) -> dict | None:
     return None
 
 
-PROFILES = {
+# ---------------------------------------------------------------------------
+# Built-in profiles (role/scenario-based)
+#
+# Design principles:
+#   - Each profile represents a user *role/scenario*, not a feature bundle.
+#   - Core packs (context, toolchain, init, companion) are auto-installed and
+#     intentionally omitted here — they are not optional add-ons.
+#   - Legacy profile names are kept as aliases for backward compatibility.
+# ---------------------------------------------------------------------------
+
+PROFILES: dict[str, list[str]] = {
+    # --- Role-based profiles (v2) ---
+    "starter": ["petfish"],
+    "developer": ["petfish", "deploy", "testdocs", "calibrate"],
+    "researcher": ["petfish", "research", "doc-reader", "calibrate"],
+    "writer": ["petfish", "ppt", "doc-reader", "research"],
+    "educator": ["petfish", "course", "ppt", "doc-reader", "testdocs"],
+    "ops-engineer": ["petfish", "deploy", "trust", "calibrate"],
+    "power-user": [
+        "petfish",
+        "deploy",
+        "testdocs",
+        "trust",
+        "research",
+        "calibrate",
+        "reflect",
+        "ppt",
+        "doc-reader",
+    ],
+    # --- Kept for backward compatibility ---
     "minimal": ["petfish"],
     "course": ["course", "petfish", "doc-reader"],
     "code": ["deploy", "petfish", "testdocs"],
@@ -342,6 +371,27 @@ PROFILES = {
         "reflect",
         "doc-reader",
     ],
+}
+
+# Human-readable descriptions for built-in profiles
+PROFILE_DESCRIPTIONS: dict[str, str] = {
+    "starter": "Just getting started — writing style and basic assistance",
+    "developer": "Daily coding — deployment, test docs, and decision review",
+    "researcher": "Academic/research — deep research, document reading, judgment calibration",
+    "writer": "Content creation — writing style, presentations, doc reading, research",
+    "educator": "Course development — full teaching toolchain",
+    "ops-engineer": "DevOps/security — deployment, trust governance, decision calibration",
+    "power-user": "Full-featured setup (add course/context as needed)",
+    # legacy
+    "minimal": "Minimal — writing style only (legacy alias for starter)",
+    "course": "Course development (legacy)",
+    "code": "Coding projects (legacy alias for developer)",
+    "ops": "Ops projects (legacy alias for ops-engineer)",
+    "security": "Security-focused projects (legacy)",
+    "writing": "Writing projects (legacy alias for writer)",
+    "skills-package": "Skill pack development (legacy)",
+    "research": "Research projects (legacy alias for researcher)",
+    "comprehensive": "All optional packs (legacy alias for power-user)",
 }
 
 
@@ -381,24 +431,14 @@ _REGISTRY_PATHS = [
 ]
 
 
-def _load_installed_registry(target: Path | None = None) -> dict:
-    """Load installed-packs.json from the target project or global paths.
-
-    Returns a dict of pack_name -> {version, installed_at, ...} or empty dict.
-    """
-    # Search from target first (backward compatible default: CWD)
+def _find_registry_path(target: Path | None = None) -> Path | None:
+    """Find the installed-packs.json path for the given target (or CWD)."""
     base = target if target is not None else Path.cwd()
     for rel in _REGISTRY_PATHS:
         path = base / rel
         if path.exists():
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                return data.get("packs", {})
-            except (json.JSONDecodeError, OSError):
-                continue
+            return path
 
-    # Fallback: global registry paths
     home = Path.home()
     global_candidates = [
         home / ".config/opencode/installed-packs.json",
@@ -411,14 +451,49 @@ def _load_installed_registry(target: Path | None = None) -> dict:
     ]
     for path in global_candidates:
         if path.exists():
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                return data.get("packs", {})
-            except (json.JSONDecodeError, OSError):
-                continue
+            return path
+    return None
 
-    return {}
+
+def _load_registry_data(target: Path | None = None) -> dict:
+    """Load and return the full installed-packs.json data dict (all keys)."""
+    path = _find_registry_path(target)
+    if path is None:
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _save_registry_data(data: dict, target: Path | None = None) -> Path | None:
+    """Write data back to installed-packs.json, returning the path used or None."""
+    path = _find_registry_path(target)
+    if path is None:
+        # Default to .opencode/installed-packs.json in target/CWD
+        base = target if target is not None else Path.cwd()
+        path = base / ".opencode" / "installed-packs.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return path
+    except OSError:
+        return None
+
+
+def _load_installed_registry(target: Path | None = None) -> dict:
+    """Load installed-packs.json from the target project or global paths.
+
+    Returns a dict of pack_name -> {version, installed_at, ...} or empty dict.
+    """
+    return _load_registry_data(target).get("packs", {})
+
+
+def _load_custom_profiles(target: Path | None = None) -> dict[str, list[str]]:
+    """Return user-defined custom profiles from installed-packs.json."""
+    return _load_registry_data(target).get("custom_profiles", {})
 
 
 def build_catalog(target: Path | None = None) -> list[dict]:
@@ -456,6 +531,11 @@ def build_catalog(target: Path | None = None) -> list[dict]:
             entry["agent_count"] = manifest.get(
                 "agent_count", len(manifest.get("agents", []))
             )
+            # Soft-dependency hints (pack-manifest.json recommends field)
+            if manifest.get("recommends"):
+                entry["recommends"] = manifest["recommends"]
+            if manifest.get("recommends_reason"):
+                entry["recommends_reason"] = manifest["recommends_reason"]
         else:
             # Fallback: try installed-packs.json registry
             if installed_registry is None:
@@ -558,28 +638,178 @@ def search_packs(term: str, as_json: bool = False, target: Path | None = None):
 
 
 def show_profile(name: str, as_json: bool = False, target: Path | None = None):
-    """Show packs for a given profile."""
-    if name not in PROFILES:
-        print(f"Unknown profile '{name}'. Available: {', '.join(PROFILES.keys())}")
+    """Show packs for a given profile (built-in or custom)."""
+    custom = _load_custom_profiles(target)
+    all_profiles = {**PROFILES, **custom}
+
+    if name == "list":
+        _list_profiles(as_json=as_json, target=target)
+        return
+
+    if name not in all_profiles:
+        print(f"Unknown profile '{name}'. Available: {', '.join(sorted(all_profiles.keys()))}")
         sys.exit(1)
 
     catalog = build_catalog(target)
-    aliases = PROFILES[name]
+    aliases = all_profiles[name]
     packs = [p for p in catalog if p["alias"] in aliases]
+    is_custom = name in custom
 
     if as_json:
         print(
-            json.dumps({"profile": name, "packs": packs}, ensure_ascii=False, indent=2)
+            json.dumps(
+                {"profile": name, "is_custom": is_custom, "packs": packs},
+                ensure_ascii=False,
+                indent=2,
+            )
         )
         return
 
-    print(f"Profile: {name}")
+    label = "custom" if is_custom else "built-in"
+    desc = PROFILE_DESCRIPTIONS.get(name, "")
+    print(f"Profile: {name}  [{label}]")
+    if desc:
+        print(f"  {desc}")
     print(f"Auto-installed packs ({len(aliases)}):\n")
     for p in packs:
         counts = _counts_str(p)
-        desc = p.get("description", p["pack"])
-        print(f"  {p['alias'].ljust(14)} {desc}  {counts}")
+        desc_p = p.get("description", p["pack"])
+        print(f"  {p['alias'].ljust(14)} {desc_p}  {counts}")
     print()
+
+
+def _list_profiles(as_json: bool = False, target: Path | None = None):
+    """List all built-in and custom profiles."""
+    custom = _load_custom_profiles(target)
+    built_in_new = ["starter", "developer", "researcher", "writer", "educator", "ops-engineer", "power-user"]
+    built_in_legacy = [k for k in PROFILES if k not in built_in_new]
+
+    if as_json:
+        result = {
+            "built_in": {k: PROFILES[k] for k in built_in_new},
+            "legacy": {k: PROFILES[k] for k in built_in_legacy},
+            "custom": custom,
+        }
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+
+    print("Built-in profiles:")
+    for name in built_in_new:
+        packs_str = ", ".join(PROFILES[name])
+        desc = PROFILE_DESCRIPTIONS.get(name, "")
+        print(f"  {name.ljust(15)} [{packs_str}]")
+        if desc:
+            print(f"  {''.ljust(15)}  {desc}")
+    print()
+    print("Legacy profiles (kept for compatibility):")
+    for name in built_in_legacy:
+        packs_str = ", ".join(PROFILES[name])
+        print(f"  {name.ljust(15)} [{packs_str}]")
+    if custom:
+        print()
+        print("Custom profiles:")
+        for name, aliases in custom.items():
+            print(f"  {name.ljust(15)} [{', '.join(aliases)}]")
+    print()
+    print("Use --profile <name> to see details, or --profile list to see this summary.")
+    print("Use --profile-save <name> to save current installed packs as a profile.")
+
+
+def save_profile(name: str, as_json: bool = False, target: Path | None = None):
+    """Save currently installed packs as a named custom profile."""
+    if name in PROFILES:
+        msg = f"'{name}' is a built-in profile name. Choose a different name."
+        if as_json:
+            print(json.dumps({"error": msg}, ensure_ascii=False, indent=2))
+        else:
+            print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(1)
+
+    installed = _load_installed_registry(target)
+    # Map installed pack names back to aliases
+    pack_to_alias = {v: k for k, v in ALIAS_MAP.items() if k in ALIAS_MAP}
+    aliases = sorted(
+        set(pack_to_alias.get(pname, pname) for pname in installed.keys())
+    )
+    if not aliases:
+        msg = "No packs installed. Install some packs first, then save a profile."
+        if as_json:
+            print(json.dumps({"error": msg}, ensure_ascii=False, indent=2))
+        else:
+            print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(1)
+
+    data = _load_registry_data(target)
+    data.setdefault("custom_profiles", {})[name] = aliases
+    path = _save_registry_data(data, target)
+
+    if as_json:
+        print(json.dumps({"profile": name, "aliases": aliases, "saved_to": str(path)}, ensure_ascii=False, indent=2))
+    else:
+        print(f"✅ Profile '{name}' saved with packs: {', '.join(aliases)}")
+        if path:
+            print(f"   Stored in: {path}")
+
+
+def delete_profile(name: str, as_json: bool = False, target: Path | None = None):
+    """Delete a custom profile by name."""
+    if name in PROFILES:
+        msg = f"'{name}' is a built-in profile and cannot be deleted."
+        if as_json:
+            print(json.dumps({"error": msg}, ensure_ascii=False, indent=2))
+        else:
+            print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(1)
+
+    data = _load_registry_data(target)
+    custom = data.get("custom_profiles", {})
+    if name not in custom:
+        msg = f"Custom profile '{name}' not found."
+        if as_json:
+            print(json.dumps({"error": msg}, ensure_ascii=False, indent=2))
+        else:
+            print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(1)
+
+    del custom[name]
+    data["custom_profiles"] = custom
+    path = _save_registry_data(data, target)
+
+    if as_json:
+        print(json.dumps({"deleted": name, "saved_to": str(path)}, ensure_ascii=False, indent=2))
+    else:
+        print(f"🗑️  Custom profile '{name}' deleted.")
+
+
+def show_profile_recommends(name: str, as_json: bool = False, target: Path | None = None):
+    """Show install command for all packs in a profile."""
+    custom = _load_custom_profiles(target)
+    all_profiles = {**PROFILES, **custom}
+
+    if name not in all_profiles:
+        print(f"Unknown profile '{name}'. Use --profile list to see available profiles.")
+        sys.exit(1)
+
+    aliases = all_profiles[name]
+    installed = _load_installed_registry(target)
+    installed_aliases = {PACK_TO_ALIAS.get(p, p) for p in installed.keys()}
+    missing = [a for a in aliases if a not in installed_aliases]
+
+    if as_json:
+        print(json.dumps({"profile": name, "missing": missing, "installed": list(installed_aliases & set(aliases))}, ensure_ascii=False, indent=2))
+        return
+
+    if not missing:
+        print(f"✅ All packs for profile '{name}' are already installed.")
+        return
+
+    packs_str = ",".join(missing)
+    cmd = (
+        "uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py"
+        f" --pack {packs_str}"
+    )
+    print(f"Profile '{name}' — missing packs: {', '.join(missing)}")
+    print(f"\nInstall command:\n  {cmd}")
 
 
 def show_triggers(as_json: bool = False):
@@ -744,6 +974,17 @@ def show_install_command(alias: str, as_json: bool = False):
     print(f"To install '{alias}', run:")
     print(command)
 
+    # Show soft-dependency hints from manifest
+    catalog = build_catalog()
+    for entry in catalog:
+        if entry["alias"] == alias and entry.get("recommends"):
+            rec_names = ", ".join(entry["recommends"])
+            reason = entry.get("recommends_reason", "")
+            print()
+            print(f"💡 '{alias}' recommends also installing: {rec_names}")
+            if reason:
+                print(f"   {reason}")
+
 
 def main():
     parser = argparse.ArgumentParser(description="PEtFiSh Skill Catalog Query")
@@ -756,7 +997,30 @@ def main():
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument("--list", action="store_true", help="List all packs")
     group.add_argument("--search", type=str, help="Search by keyword")
-    group.add_argument("--profile", type=str, help="Show packs for a profile")
+    group.add_argument(
+        "--profile",
+        type=str,
+        metavar="NAME",
+        help="Show packs for a profile; use 'list' to list all profiles",
+    )
+    group.add_argument(
+        "--profile-save",
+        type=str,
+        metavar="NAME",
+        help="Save currently installed packs as a named custom profile",
+    )
+    group.add_argument(
+        "--profile-delete",
+        type=str,
+        metavar="NAME",
+        help="Delete a custom profile by name",
+    )
+    group.add_argument(
+        "--profile-install",
+        type=str,
+        metavar="NAME",
+        help="Show install command for missing packs in a profile",
+    )
     group.add_argument(
         "--upgrade", action="store_true", help="Show command to upgrade packs"
     )
@@ -803,18 +1067,24 @@ def main():
         return
 
     check_failures_text = getattr(args, "check_failures", None)
+    profile_save = getattr(args, "profile_save", None)
+    profile_delete = getattr(args, "profile_delete", None)
+    profile_install = getattr(args, "profile_install", None)
 
     if not (
         args.list
         or args.search
         or args.profile
+        or profile_save
+        or profile_delete
+        or profile_install
         or args.upgrade
         or check_failures_text
         or args.uninstall
         or args.install
     ):
         parser.error(
-            "one mode is required: subcommand or one of --list/--search/--profile/--upgrade/--check-failures/--uninstall/--install"
+            "one mode is required: subcommand or one of --list/--search/--profile/--profile-save/--profile-delete/--profile-install/--upgrade/--check-failures/--uninstall/--install"
         )
 
     if args.list:
@@ -823,6 +1093,12 @@ def main():
         search_packs(args.search, as_json=args.json, target=target)
     elif args.profile:
         show_profile(args.profile, as_json=args.json, target=target)
+    elif profile_save:
+        save_profile(profile_save, as_json=args.json, target=target)
+    elif profile_delete:
+        delete_profile(profile_delete, as_json=args.json, target=target)
+    elif profile_install:
+        show_profile_recommends(profile_install, as_json=args.json, target=target)
     elif args.upgrade:
         show_upgrade_command(as_json=args.json)
     elif check_failures_text:

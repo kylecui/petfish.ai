@@ -198,5 +198,9 @@
     "evals/trigger/experience-event-trigger-evals.json",
     "evals/trigger/adapter-trigger-evals.json",
     "evals/output/mvp-evals.json"
-  ]
+  ],
+  "recommends": [
+    "doc-reader-skill"
+  ],
+  "recommends_reason": "doc-reader enables reading PDFs and DOCX files as direct input to research workflows"
 }
