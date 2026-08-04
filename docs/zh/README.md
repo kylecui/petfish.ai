@@ -22,7 +22,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  ><(((^>  胖鱼 PEtFiSh v3.0                       │
+│  ><(((^>  胖鱼 PEtFiSh v3.2                       │
 │                                                     │
 │  常伴  每一轮交互都在                                │
 │  守护  感知缺口、守护上下文、阻断污染                │
@@ -212,6 +212,14 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v3.2 — 灵活 Skills 管理 + 角色化 Profiles
+
+- **v3.2.0**: Skills 管理全面灵活化。`catalog_query.py` 重写，新增 7 个角色化 profiles：`starter`、`developer`、`researcher`、`writer`、`educator`、`ops-engineer`、`power-user`（旧版 profiles 全部保留向后兼容）。自定义 Profile CRUD：`--profile-save`、`--profile-delete`、`--profile-install`、`--profile list`。推荐系统：安装 pack 时显示 `pack-manifest.json` 中 `recommends`/`recommends_reason` 字段的推荐提示。Registry I/O 重构（`_find_registry_path` + `_load_registry_data` + `_save_registry_data`），支持读写。`installed-packs.json` 新增 `custom_profiles` 字段。fish-trail P0 bug 修复 + 缓存优先上下文架构。token 消耗优化提升 prompt cache 效率。README profile 表 + `docs/agent-install.md` + `fish-init/SKILL.md` 同步更新。
+
+### v3.1 — 性能优化与缓存架构
+
+- **v3.1.0**: Token 消耗优化，提升 prompt cache 效率。
 
 ### v3.0 — Companion全面改造
 
