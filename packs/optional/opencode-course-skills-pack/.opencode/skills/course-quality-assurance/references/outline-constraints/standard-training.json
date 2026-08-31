@@ -1,0 +1,8 @@
+{
+  "module_count": { "min": 2, "max": 12 },
+  "lab_ratio": { "min": 0.2, "max": 0.6 },
+  "required_assessment_types": ["quiz", "assignment"],
+  "total_hours": { "min": 4, "max": 48 },
+  "lessons_per_module_max": 8,
+  "first_module_type": "introduction"
+}

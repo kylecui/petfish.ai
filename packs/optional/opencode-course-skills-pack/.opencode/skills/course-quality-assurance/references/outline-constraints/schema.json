@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Course outline constraints",
+  "description": "Machine-checkable outline constraints for a course type. Semantics: ranges + required-only, NEVER equality. Only fields present in a preset file are checked; absent fields are unconstrained.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "module_count": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Allowed range for the number of modules in docs/01-outline/.",
+      "properties": {
+        "min": { "type": "integer", "minimum": 1 },
+        "max": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "lab_ratio": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Allowed range for labs / modules (0-1 float).",
+      "properties": {
+        "min": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "required_assessment_types": {
+      "type": "array",
+      "description": "Assessment types that must be declared in the outline. Required-only semantics: listed types must appear, additional types are allowed.",
+      "items": {
+        "type": "string",
+        "enum": ["quiz", "assignment", "project", "lab_report", "presentation"]
+      },
+      "uniqueItems": true
+    },
+    "total_hours": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Allowed range for total course hours, checked only when the outline declares total hours.",
+      "properties": {
+        "min": { "type": "number", "exclusiveMinimum": 0 },
+        "max": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "lessons_per_module_max": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Upper bound for lessons referenced inside a single module."
+    },
+    "first_module_type": {
+      "type": "string",
+      "description": "Expected type of the first module (e.g. \"introduction\"). Matched against the first module file name/heading, case-insensitive."
+    }
+  }
+}

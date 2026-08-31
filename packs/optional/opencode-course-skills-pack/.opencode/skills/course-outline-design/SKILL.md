@@ -48,6 +48,14 @@ Use this structure unless the user already has a required format:
 ## Risks and adjustment notes
 ```
 
+# Constraint self-check
+
+Before delivering an outline, confirm the constraint file with the user and self-check the outline against it:
+
+- If `docs/00-project/course-type.yaml` declares a course `type`, load the matching preset from `course-quality-assurance/references/outline-constraints/` and verify the outline stays in range (module count, lab ratio, required assessment types, total hours, lessons per module, first module type).
+- Constraints are ranges + required-only, never equality targets — do not pad or trim modules just to hit an exact number.
+- Generation-side prevention beats detection-side discovery: resolve violations in the outline before handoff instead of letting QA find them later (`qa_scan.py` check #9).
+
 # Gotchas
 
 - Do not turn an outline into full lesson content.
