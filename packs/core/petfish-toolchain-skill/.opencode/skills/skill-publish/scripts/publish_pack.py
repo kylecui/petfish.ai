@@ -163,7 +163,9 @@ def generate_index_json(output_dir: Path, dry_run: bool = False) -> dict:
     Reads each registry entry JSON, aggregates packs into an index, and writes
     index.json to output_dir's parent (the market repo root).
 
-    Preserves any existing skills[] entries from the current index.json.
+    Preserves any existing skills[] entries from the current index.json and
+    derives skill summary entries from the packs being written (new wins on
+    name collision), keeping both index keys in sync.
 
     Returns the generated index dict.
     """
@@ -203,14 +205,37 @@ def generate_index_json(output_dir: Path, dry_run: bool = False) -> dict:
         except (json.JSONDecodeError, OSError):
             pass  # Start fresh if unreadable
 
+    # Build skill summary entries from the packs being written, merged with
+    # existing skills[] entries — deduplicated by name, new wins.
+    skills_by_name: dict[str, dict] = {}
+    for skill in existing_skills:
+        if skill.get("name"):
+            skills_by_name[skill["name"]] = skill
+    for pack in packs:
+        aliases = pack.get("alias", []) or []
+        name = aliases[0] if aliases else pack.get("name", "")
+        if not name:
+            continue
+        repo = pack.get("repo", "")
+        skills_by_name[name] = {
+            "name": name,
+            "description": pack.get("description", ""),
+            "pack": pack.get("name", ""),
+            "type": "skill",
+            "source": "petfish-market",
+            "url": f"https://github.com/{repo}" if repo else "",
+            "install": f"uv run install.py --pack {name}",
+        }
+    merged_skills = list(skills_by_name.values())
+
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     index = {
         "version": 2,
         "generated_at": generated_at,
-        "skill_count": 0,
+        "skill_count": len(merged_skills),
         "pack_count": len(packs),
-        "skills": existing_skills,
+        "skills": merged_skills,
         "packs": packs,
     }
 

@@ -382,11 +382,12 @@ After `init_project.py` completes successfully, recommend and install skill pack
 
 #### Pack Discovery (Dynamic)
 
-1. Call `skill-registry list_available_packs` to get all installable packs (core + optional + community).
-2. Call `skill-registry list_installed_packs` to check what is already installed at the target.
-3. Use the profile semantics below to determine which packs to recommend.
-4. Present the recommendation and ask the user to confirm, add, or remove packs.
-5. If `skill-registry` MCP is unavailable, fall back to the profile semantics as defaults.
+1. Read `.opencode/skill-index.json` (installed skill entries) to see what is already available at the target.
+2. Use the profile semantics below to determine which packs to recommend.
+3. Present the recommendation and ask the user to confirm, add, or remove packs.
+4. If the index file is unavailable, fall back to the profile semantics as defaults.
+
+> **Note**: The `skill-registry` MCP tools (`list_available_packs`, `list_installed_packs`, `search_skills`) are dev-workspace-only and not guaranteed to be deployed in user projects. Do not rely on them here — read `.opencode/skill-index.json` instead.
 
 #### Profile Semantics (Needs, Not Pack Names)
 
@@ -422,7 +423,7 @@ If the resolved recommendation includes the `research` pack, trigger the Researc
 
 If no standard profile fits, or the user provides a custom description:
 1. Extract 2-3 domain keywords from the user's intent
-2. Call `skill-registry search_skills` for each keyword
+2. Search `.opencode/skill-index.json` for each keyword
 3. Collect unique parent packs from matched skills
 4. Present matched packs first, then remaining available packs as optional
 5. Ask user to confirm
@@ -445,18 +446,10 @@ Would you like to add or remove any packs? (Enter pack names, or "proceed")
 
 1. After initialization, inform the user: "正在安装推荐的petfish技能包..." / "Installing recommended petfish skill packs..."
 2. Detect the platform: if the project has `.agents/` directory, use `--platform antigravity`; if `.opencode/`, use `--platform opencode`; if both, use `--platform all`.
-3. Run the remote installer for each confirmed pack.
-
-Windows (PowerShell):
-
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack <pack_alias> -Target <project_dir> -Platform <detected_platform>
-```
-
-macOS/Linux/WSL (Bash):
+3. Run the unified Python installer for each confirmed pack:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack <pack_alias> --target <project_dir> --platform <detected_platform>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack <pack_alias> --platform <detected_platform> --target <project_dir>
 ```
 
 4. If the installer fails (e.g. no network), provide manual installation instructions instead of failing the entire initialization.
@@ -582,7 +575,7 @@ Chinese:
 已完成：[list completed steps]
 已跳过：[list skipped steps]（随时可以手动完成）
 
-💡 提示：刚才安装的技能包已经可以立即使用，无需重启。你可以直接在对话中调用它们。
+💡 提示：新安装的技能包会在下次会话启动时加载，当前会话中不可用。请退出并重新启动你的AI编码工具后再使用它们。
 ```
 
 English:
@@ -593,7 +586,7 @@ English:
 Completed: [list completed steps]
 Skipped: [list skipped steps] (you can do these manually anytime)
 
-💡 Tip: The skill packs installed just now are ready to use immediately — no restart needed. You can invoke them directly in this conversation.
+💡 Tip: Newly installed skill packs load at session start. They are NOT available in the current session — exit and re-launch your AI coding tool before using them.
 ```
 
 If any steps were skipped, briefly list the manual commands the user can run later.
@@ -605,7 +598,7 @@ PEtFiSh packs are divided into two categories:
 - **Core packs**: companion, toolchain, init, petfish — always installed from petfish.ai
 - **Optional packs**: research, course, deploy, ppt, testdocs, calibrate, trust, reflect, and others — distributed via petfish-market
 
-**Do NOT hardcode pack counts** — new packs are added regularly. Use `skill-registry list_available_packs` for the current list.
+**Do NOT hardcode pack counts** — new packs are added regularly. Read `.opencode/skill-index.json` for the current list.
 
 Profile → Pack mapping is resolved dynamically via profile semantics (Section 11). The install command (`/petfish install <alias>`) handles core/optional routing transparently.
 

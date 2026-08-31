@@ -146,36 +146,67 @@ PETFISH_MARKET_INDEX_URL = (
 
 
 def search_petfish_market(query: str, limit: int) -> list[dict]:
-    """Search the PEtFiSh Market community skill index."""
+    """Search the PEtFiSh Market community skill index.
+
+    Reads both the ``skills`` key (historical/community skills) and the
+    ``packs`` key (official market packs, written by publish_pack.py).
+    Entries are deduplicated by name — skills-key entries win over
+    pack-derived entries. Behavior is unchanged when only one key exists.
+    """
     data = _http_get(PETFISH_MARKET_INDEX_URL)
-    if not data or "skills" not in data:
+    if not data:
         return []
 
     q = query.lower()
-    results = []
-    for skill in data["skills"]:
+    results: dict[str, dict] = {}
+
+    # skills-key entries (historical / community skills) win on name collision
+    for skill in data.get("skills", []):
         searchable = " ".join(
             str(skill.get(f, ""))
             for f in ("name", "display_name", "description", "author")
         ).lower()
         if q in searchable:
             repo = skill.get("repo", "")
-            ref = skill.get("ref", "")
-            results.append(
-                {
-                    "source": "petfish-market",
-                    "name": skill.get("display_name", skill.get("name", "")),
-                    "description": skill.get("description", ""),
-                    "type": "skill",
-                    "author": skill.get("author", ""),
-                    "version": skill.get("version", ""),
-                    "license": skill.get("license", ""),
-                    "platforms": skill.get("platforms", []),
-                    "url": f"https://github.com/{repo}" if repo else "",
-                    "install": f"community/{skill.get('name', '')}",
-                }
-            )
-    return results[:limit]
+            results[skill.get("display_name", skill.get("name", ""))] = {
+                "source": "petfish-market",
+                "name": skill.get("display_name", skill.get("name", "")),
+                "description": skill.get("description", ""),
+                "type": "skill",
+                "author": skill.get("author", ""),
+                "version": skill.get("version", ""),
+                "license": skill.get("license", ""),
+                "platforms": skill.get("platforms", []),
+                "url": f"https://github.com/{repo}" if repo else "",
+                "install": f"community/{skill.get('name', '')}",
+            }
+
+    # packs-key entries (official market packs) — derived, dedup by name
+    for pack in data.get("packs", []):
+        aliases = pack.get("alias", []) or []
+        name = aliases[0] if aliases else pack.get("name", "")
+        if not name or name in results:
+            continue  # skills-key entry wins
+        searchable = " ".join(
+            [str(pack.get("name", "")), str(pack.get("description", ""))]
+            + [str(a) for a in aliases]
+        ).lower()
+        if q in searchable:
+            repo = pack.get("repo", "")
+            results[name] = {
+                "source": "petfish-market",
+                "name": name,
+                "description": pack.get("description", ""),
+                "type": "skill",
+                "author": pack.get("author", ""),
+                "version": pack.get("version", ""),
+                "license": pack.get("license", ""),
+                "platforms": pack.get("platforms", []),
+                "url": f"https://github.com/{repo}" if repo else "",
+                "install": f"uv run install.py --pack {name}",
+            }
+
+    return list(results.values())[:limit]
 
 
 # ---------------------------------------------------------------------------

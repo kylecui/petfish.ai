@@ -9,10 +9,17 @@ Functions:
     classify_failure_signal(entry) -> {predicted_signal, predicted_detect}
     classify_topic(entry)          -> {predicted_relation, predicted_risk}
     classify_skill_sense(entry)    -> {predicted_skill, predicted_detect}
-    TRIGGERS                       -> dict of pack keywords (for anti-sycophancy detection)
+    TRIGGERS                       -> pack keywords, imported from catalog_query.py
+                                      (single source of truth; was a drifted local copy)
+    domains_from_index(index)      -> extract domains map from skill-index.json content
 """
 import re
 from typing import Any
+
+try:
+    from catalog_query import TRIGGERS as _CATALOG_TRIGGERS
+except Exception:  # pragma: no cover — catalog_query sits in the same scripts/ dir
+    _CATALOG_TRIGGERS = {}
 
 # ===========================================================================
 # 1. Failure Signal Classifier (mirrors failure_signal_eval.py)
@@ -80,17 +87,9 @@ def classify_topic(entry: dict) -> dict[str, Any]:
 # 3. Skill Sense Classifier (mirrors skill_sense_eval.py)
 # ===========================================================================
 
-TRIGGERS: dict[str, list[str]] = {
-    "deploy": ["部署", "上线", "deploy", "docker", "服务器", "运维", "回滚", "health check", "systemctl", "nginx", "ci/cd", "ci-cd", "pipeline"],
-    "course": ["课程", "教学", "大纲", "课时", "模块", "学员", "教师", "实验", "QA", "QC", "发布", "讲义", "outline", "syllabus", "course outline"],
-    "petfish": ["说人话", "润色", "去AI味", "风格", "改写", "rewrite", "polish", "humanize"],
-    "ppt": ["PPT", "幻灯片", "演示", "slide", "deck", "presentation", "PPTX"],
-    "testdocs": ["测试用例", "test case", "测试矩阵", "文档", "README", "usage docs", "API docs"],
-    "calibrate": ["评审", "评价", "批判", "review", "critique", "feedback", "judgment", "decision", "evaluation", "校准", "迎合", "sycophancy", "方案评估", "可行性分析", "code review", "这个想法怎么样", "你觉得呢", "对吗", "是不是", "好吗", "合理吗", "你觉得"],
-    "research": ["研究", "帮我研究", "仔细研究", "调研", "文献", "literature", "research", "investigate", "来源", "证据", "evidence", "综述", "论文", "学术", "academic", "citation", "source verification", "市场分析", "竞品分析", "论文方向", "规划方案"],
-    "context": ["话题", "上下文", "topic", "context", "污染", "继承", "隔离", "话题切换", "话题治理", "context package", "topic detect", "contamination"],
-    "trust": ["skill trust", "skill安全", "治理", "可信度", "trust scan", "governance", "risk score", "redline"],
-}
+# Single source of truth: catalog_query.py TRIGGERS (sibling import above).
+# Key drift is a defect — reconcile catalog_query.py, not this file.
+TRIGGERS: dict[str, list[str]] = _CATALOG_TRIGGERS
 
 _CONTEXT_QUESTION_MARKERS = ["是什么意思", "是什么", "翻译", "translate", "解释一下", "define", "定义", "什么叫", "什么是"]
 _NON_ACTION_COMPOUNDS = ["课程表", "考试", "课表"]
@@ -107,3 +106,31 @@ def classify_skill_sense(entry: dict) -> dict[str, Any]:
             if kw.lower() in msg_lower:
                 return {"predicted_skill": skill, "predicted_detect": True}
     return {"predicted_skill": None, "predicted_detect": False}
+
+
+def domains_from_index(index: dict) -> dict[str, list[str]]:
+    """Extract a domains map ({alias: keywords}) from skill-index.json content.
+
+    Mirrors companion-gateway.ts loadSkillDomains parsing: prefers the
+    top-level "domains" map; falls back to aggregating per-skill triggers
+    grouped by "domain"; returns {} for legacy formats (silent degradation).
+    """
+    out: dict[str, list[str]] = {}
+    domains = index.get("domains")
+    if isinstance(domains, dict):
+        for alias, info in domains.items():
+            kws = info.get("keywords") if isinstance(info, dict) else None
+            if isinstance(kws, list) and kws:
+                out[alias] = list(kws)
+        return out
+    skills = index.get("skills")
+    if isinstance(skills, list):
+        for s in skills:
+            if (
+                isinstance(s, dict)
+                and s.get("domain")
+                and isinstance(s.get("triggers"), list)
+                and s["triggers"]
+            ):
+                out[s["domain"]] = out.get(s["domain"], []) + list(s["triggers"])
+    return out

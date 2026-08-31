@@ -14,11 +14,91 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 import sys
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+
+MARKET_INDEX_URL = "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json"
+COMMUNITY_PACKS_URL = "https://raw.githubusercontent.com/kylecui/petfish.ai/master/community-packs.json"
+
+
+def load_catalog(skills_dir: Path):
+    """Import catalog_query (single source of TRIGGERS/ALIAS_MAP), best-effort."""
+    candidates = [
+        skills_dir / "fish-brain" / "scripts" / "catalog_query.py",  # installed layout
+        Path(__file__).resolve().parent.parent / "packs" / "core"
+        / "petfish-companion-skill" / ".opencode" / "skills" / "fish-brain"
+        / "scripts" / "catalog_query.py",  # repo layout
+    ]
+    for path in candidates:
+        if path.is_file():
+            spec = importlib.util.spec_from_file_location("petfish_catalog_query", path)
+            if spec and spec.loader:
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                return mod
+    return None
+
+
+def fetch_json(url: str, timeout: float = 5.0):
+    """Best-effort JSON fetch; returns None on any failure."""
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+
+
+def build_domains(catalog) -> dict:
+    """domains map: alias -> {keywords, pack} from catalog TRIGGERS/ALIAS_MAP."""
+    if catalog is None:
+        return {}
+    alias_map = getattr(catalog, "ALIAS_MAP", {}) or {}
+    domains: dict = {}
+    for alias, keywords in (getattr(catalog, "TRIGGERS", {}) or {}).items():
+        domains[alias] = {
+            "keywords": list(keywords),
+            "pack": alias_map.get(alias, alias),
+        }
+    return domains
+
+
+def build_available_packs() -> dict:
+    """Best-effort market + community pack listings (never fails)."""
+    market = fetch_json(MARKET_INDEX_URL) or {}
+    market_packs = [
+        {
+            "name": p.get("name", ""),
+            "alias": (p.get("alias") or [None])[0],
+            "description": p.get("description", ""),
+            "version": p.get("version", ""),
+            "skill_count": p.get("skill_count", 0),
+            "source": "market",
+        }
+        for p in market.get("packs", [])
+        if isinstance(p, dict)
+    ]
+    local_community = Path("community-packs.json")
+    community_data = (
+        json.loads(local_community.read_text(encoding="utf-8"))
+        if local_community.is_file()
+        else fetch_json(COMMUNITY_PACKS_URL)
+    ) or {}
+    community_packs = [
+        {
+            "name": p.get("name", ""),
+            "description": p.get("description", ""),
+            "repo": p.get("repo", ""),
+            "source": "community",
+        }
+        for p in community_data.get("packs", [])
+        if isinstance(p, dict)
+    ]
+    return {"market": market_packs, "community": community_packs}
 
 
 def parse_frontmatter(content: str) -> dict:
@@ -120,12 +200,37 @@ def index_skill(skill_dir: Path) -> dict | None:
     return entry
 
 
+def collect_skill_dirs(skills_dir: Path) -> list[Path]:
+    """Collect candidate skill dirs: skills_dir children + repo packs layout.
+
+    In a user project (installed layout) packs/ does not exist and behavior
+    is unchanged. In the petfish.ai dev repo, pack skills live under
+    packs/{core,optional}/<pack>/.opencode/skills/ and are unioned in.
+    """
+    dirs: list[Path] = []
+    seen: set[str] = set()
+
+    def add_children(parent: Path) -> None:
+        if not parent.is_dir():
+            return
+        for child in sorted(parent.iterdir()):
+            if child.is_dir() and child.name not in seen:
+                seen.add(child.name)
+                dirs.append(child)
+
+    add_children(skills_dir)
+    cwd = Path.cwd()
+    for packs_root in (cwd / "packs" / "core", cwd / "packs" / "optional"):
+        if packs_root.is_dir():
+            for pack_dir in sorted(packs_root.iterdir()):
+                add_children(pack_dir / ".opencode" / "skills")
+    return dirs
+
+
 def generate_index(skills_dir: Path) -> dict:
     """Generate the full skill index."""
     skills = []
-    for skill_dir in sorted(skills_dir.iterdir()):
-        if not skill_dir.is_dir():
-            continue
+    for skill_dir in collect_skill_dirs(skills_dir):
         entry = index_skill(skill_dir)
         if entry:
             skills.append(entry)
@@ -134,6 +239,8 @@ def generate_index(skills_dir: Path) -> dict:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "skill_count": len(skills),
         "skills": skills,
+        "domains": build_domains(load_catalog(skills_dir)),
+        "available_packs": build_available_packs(),
     }
 
 
@@ -153,8 +260,12 @@ def main():
 
     skills_dir = Path(args.skills_dir)
     if not skills_dir.is_dir():
-        print(f"Error: skills directory not found: {skills_dir}", file=sys.stderr)
-        sys.exit(1)
+        repo_layout = (Path.cwd() / "packs" / "core").is_dir() or (
+            Path.cwd() / "packs" / "optional"
+        ).is_dir()
+        if not repo_layout:
+            print(f"Error: skills directory not found: {skills_dir}", file=sys.stderr)
+            sys.exit(1)
 
     index = generate_index(skills_dir)
 
