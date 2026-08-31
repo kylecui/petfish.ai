@@ -60,7 +60,7 @@ const TOPIC_TO_RULES: Record<string, string[]> = {
   writing: ["petfish-style.md"],
   style: ["petfish-style.md"],
   petfish: ["petfish-companion.md"],
-  skill: ["petfish-companion.md"],
+  skill: ["petfish-toolchain.md"],
   review: ["anti-sycophancy.md"],
   calibration: ["anti-sycophancy.md"],
   topic: ["fish-trail.md"],
