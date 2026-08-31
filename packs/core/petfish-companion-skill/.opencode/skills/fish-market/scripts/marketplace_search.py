@@ -2,7 +2,9 @@
 """
 PEtFiSh Marketplace Connector — Unified skill/MCP search across multiple sources.
 
-Searches: PEtFiSh local catalog → PEtFiSh Market (community) → Glama → Smithery → SkillKit → anthropics/skills → GitHub
+Search order (marketplaces first, GitHub LAST — ready-made beats mining):
+  PEtFiSh local/market/community → ClaudSkills (69K+ SKILL.md) → PulseMCP →
+  Official MCP Registry → Glama → Smithery → SkillKit (local) → anthropics/skills → GitHub
 
 Usage:
   uv run marketplace_search.py --query "pdf processing"
@@ -14,10 +16,13 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import quote
 
 # ---------------------------------------------------------------------------
 # Local catalog (PEtFiSh core packs only)
@@ -210,13 +215,17 @@ def search_petfish_market(query: str, limit: int) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Source: Glama (free, no auth)
+# Source: Glama (public API since 2026 requires GLAMA_API_KEY; graceful without)
 # ---------------------------------------------------------------------------
 
 
 def search_glama(query: str, limit: int) -> list[dict]:
-    url = f"https://glama.ai/api/mcp/v1/servers?query={urllib.request.quote(query)}&limit={limit}"
-    data = _http_get(url)
+    url = f"https://glama.ai/api/mcp/v1/servers?query={quote(query)}&limit={limit}"
+    headers = None
+    key = os.environ.get("GLAMA_API_KEY")
+    if key:
+        headers = {"Authorization": f"Bearer {key}"}
+    data = _http_get(url, headers)
     if not data or "servers" not in data:
         return []
 
@@ -249,7 +258,7 @@ def search_smithery(query: str, limit: int) -> list[dict]:
     if not api_key:
         return []
 
-    url = f"https://registry.smithery.ai/servers?q={urllib.request.quote(query)}&pageSize={limit}"
+    url = f"https://registry.smithery.ai/servers?q={quote(query)}&pageSize={limit}"
     data = _http_get(url, headers={"Authorization": f"Bearer {api_key}"})
     if not data or "servers" not in data:
         return []
@@ -278,7 +287,7 @@ def search_smithery(query: str, limit: int) -> list[dict]:
 
 
 def search_skillkit(query: str, limit: int) -> list[dict]:
-    url = f"http://localhost:3737/search?q={urllib.request.quote(query)}&limit={limit}"
+    url = f"http://localhost:3737/search?q={quote(query)}&limit={limit}"
     data = _http_get(url)
     if not data or "skills" not in data:
         return []
@@ -342,7 +351,7 @@ def search_anthropics(query: str, limit: int) -> list[dict]:
 
 
 def search_github(query: str, limit: int) -> list[dict]:
-    url = f"https://api.github.com/search/repositories?q={urllib.request.quote(query)}+topic:ai-skills&sort=stars&per_page={limit}"
+    url = f"https://api.github.com/search/repositories?q={quote(query)}+topic:ai-skills&sort=stars&per_page={limit}"
     headers = {}
     gh_token = os.environ.get("GITHUB_TOKEN", "")
     if gh_token:
@@ -369,13 +378,147 @@ def search_github(query: str, limit: int) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# New sources (2026 marketplace research: marketplaces first, GitHub last)
+# ---------------------------------------------------------------------------
+
+CLAUDSKILLS_DUMP_URL = "https://claudskills.com/data/skills.json"
+
+
+def _project_root() -> Path:
+    """Locate the project root (nearest ancestor containing .opencode/)."""
+    for parent in Path(__file__).resolve().parents:
+        if (parent / ".opencode").is_dir():
+            return parent
+    return Path.cwd()
+
+
+def search_claudskills(query: str, limit: int) -> list[dict]:
+    """ClaudSkills aggregator dump (69K+ SKILL.md files, upstream refreshes 2x daily).
+
+    Full-dump download with a 24h local cache (.petfish/cache/), client-side filter.
+    Largest machine-readable SKILL.md index as of 2026.
+    """
+    cache = _project_root() / ".petfish" / "cache" / "claudskills.json"
+    data = None
+    try:
+        if cache.is_file() and time.time() - cache.stat().st_mtime < 86400:
+            data = json.loads(cache.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        data = None
+    if data is None:
+        try:
+            req = urllib.request.Request(
+                CLAUDSKILLS_DUMP_URL, headers={"User-Agent": "petfish-marketplace/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                raw = resp.read()
+        except Exception:
+            return []
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return []
+        try:
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            cache.write_bytes(raw)
+        except OSError:
+            pass
+    items = data.get("skills") if isinstance(data, dict) else data
+    if not isinstance(items, list):
+        return []
+    ql = query.lower()
+    out: list[dict] = []
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        name = str(it.get("name") or it.get("title") or "")
+        desc = str(it.get("description") or it.get("summary") or "")
+        if (ql in name.lower()) or (ql in desc.lower()):
+            out.append(
+                {
+                    "name": name,
+                    "description": desc[:200],
+                    "type": "skill",
+                    "source": "claudskills",
+                    "url": str(
+                        it.get("url") or it.get("repo") or it.get("source") or "https://claudskills.com"
+                    ),
+                }
+            )
+            if len(out) >= limit:
+                break
+    return out
+
+
+def search_pulsemcp(query: str, limit: int) -> list[dict]:
+    """PulseMCP (curated MCP registry, daily updates; one of the two default
+    names builders reach for per 2026 community research)."""
+    data = _http_get(f"https://pulsemcp.com/api/servers?search={quote(query)}&limit={limit}")
+    if not isinstance(data, dict):
+        return []
+    items = data.get("servers") or data.get("results") or []
+    out: list[dict] = []
+    for it in items if isinstance(items, list) else []:
+        if not isinstance(it, dict):
+            continue
+        out.append(
+            {
+                "name": str(it.get("name") or it.get("title") or "?"),
+                "description": str(it.get("description") or "")[:200],
+                "type": "mcp",
+                "source": "pulsemcp",
+                "url": str(it.get("url") or "https://pulsemcp.com"),
+            }
+        )
+    return out[:limit]
+
+
+def search_mcp_registry(query: str, limit: int) -> list[dict]:
+    """Official MCP Registry (registry.modelcontextprotocol.io, public read API).
+    Canonical metadata layer that other directories sync from.
+    Item shape: {"servers": [{"server": {name/description/remotes...}, "_meta": ...}]}"""
+    data = _http_get(f"https://registry.modelcontextprotocol.io/v0.1/servers?q={quote(query)}&limit={limit}")
+    if not isinstance(data, dict):
+        return []
+    items = data.get("servers") or []
+    out: list[dict] = []
+    for it in items if isinstance(items, list) else []:
+        if not isinstance(it, dict):
+            continue
+        payload = it.get("server") if isinstance(it.get("server"), dict) else it
+        remotes = payload.get("remotes") if isinstance(payload.get("remotes"), list) else []
+        url = ""
+        if remotes and isinstance(remotes[0], dict):
+            url = str(remotes[0].get("url") or "")
+        repo = payload.get("repository")
+        if isinstance(repo, dict):
+            url = str(repo.get("url") or url)
+        out.append(
+            {
+                "name": str(payload.get("title") or payload.get("name") or "?"),
+                "description": str(payload.get("description") or "")[:200],
+                "type": "mcp",
+                "source": "mcp-registry",
+                "url": url,
+            }
+        )
+    return out[:limit]
+
+
+# ---------------------------------------------------------------------------
 # Aggregator
 # ---------------------------------------------------------------------------
 
+# Source order = priority order. 2026 landscape: marketplaces with public APIs
+# first (ready-made results, seconds), curated GitHub repos next, raw GitHub
+# code search LAST (slow path — only ahead of "create a new skill").
 ALL_SOURCES = {
     "petfish": search_local,
     "petfish-market": search_petfish_market,
     "community": search_community_registry,
+    "claudskills": search_claudskills,
+    "pulsemcp": search_pulsemcp,
+    "mcp-registry": search_mcp_registry,
     "glama": search_glama,
     "smithery": search_smithery,
     "skillkit": search_skillkit,
@@ -387,11 +530,14 @@ SOURCE_LABELS = {
     "petfish": "🐟 PEtFiSh (本地)",
     "community": "🐟 PEtFiSh Community (注册表)",
     "petfish-market": "🐟 PEtFiSh Market (社区)",
+    "claudskills": "📚 ClaudSkills (SKILL聚合 69K+)",
+    "pulsemcp": "🌐 PulseMCP (MCP)",
+    "mcp-registry": "🏛️ MCP Official Registry",
     "glama": "🌐 Glama (MCP)",
     "smithery": "🔧 Smithery (MCP)",
-    "skillkit": "📦 SkillKit",
+    "skillkit": "📦 SkillKit (本地聚合)",
     "anthropics": "🏛️ anthropics/skills",
-    "github": "🐙 GitHub",
+    "github": "🐙 GitHub (最后手段)",
 }
 
 
@@ -414,7 +560,15 @@ def search_all(query: str, sources: list[str], limit: int, type_filter: str) -> 
             errors.append(f"{src}: {e}")
             all_results[src] = []
 
-    return {"query": query, "results": all_results, "errors": errors}
+    result = {"query": query, "results": all_results, "errors": errors}
+    total = sum(len(v) for v in all_results.values())
+    if total == 0 and re.search(r"[\u4e00-\u9fff]", query):
+        result["hint"] = (
+            "中文关键词可能未被英文市场索引 — 建议翻译成英文关键词重试"
+            "（例：甘特图 → gantt chart、题库 → question bank）。"
+            "英文重试仍无结果时，再考虑 GitHub 挖掘（慢路径，最后手段）或 /petfish create。"
+        )
+    return result
 
 
 def print_text(data: dict):
@@ -457,6 +611,9 @@ def print_text(data: dict):
             print()
             idx += 1
 
+    if data.get("hint"):
+        print(f"  💡 {data['hint']}\n")
+
     if errors:
         print("  ⚠️ Errors:")
         for e in errors:
@@ -472,7 +629,7 @@ def main():
         "-s",
         type=str,
         default="",
-        help="Comma-separated sources: petfish,community,petfish-market,glama,smithery,skillkit,anthropics,github (default: all)",
+        help="Comma-separated sources: petfish,petfish-market,community,claudskills,pulsemcp,mcp-registry,glama,smithery,skillkit,anthropics,github (default: all, in priority order)",
     )
     parser.add_argument(
         "--limit", "-l", type=int, default=5, help="Max results per source (default: 5)"

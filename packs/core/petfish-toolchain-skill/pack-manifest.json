@@ -1,6 +1,6 @@
 {
   "name": "petfish-toolchain-skill",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "legacy_names": ["toolchain"],
   "description": "PEtFiSh Skill Toolchain — Author, lint, audit, gate, optimize, evaluate, mine, and track skills",
   "compatibility": "opencode",

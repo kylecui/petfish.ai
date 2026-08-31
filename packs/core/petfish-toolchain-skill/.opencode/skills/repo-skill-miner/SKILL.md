@@ -28,7 +28,16 @@ into PEtFiSh skills.
 
 ## Core workflow
 
-Two-phase mining: script signals first, then agent semantic mining on top.
+**Phase 0 — Market pre-check (mandatory before any mining)**
+
+GitHub is the LAST resort for skill sourcing (just ahead of creating from
+scratch). Before mining, confirm the marketplaces truly have nothing:
+
+1. Run fish-market search with the keyword — **retry with an English keyword
+   if the Chinese query returns zero** (e.g. 甘特图 → gantt chart).
+2. If nothing: try `npx skills find <keyword>` (skills.sh, 73+ agent ecosystem).
+3. Only when both are empty, proceed to mining — and tell the user this is
+   the slow path (minutes, not seconds).
 
 **Phase 1 — Signal collection (script, fast)**
 
