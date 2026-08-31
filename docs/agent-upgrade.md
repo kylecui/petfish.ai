@@ -90,6 +90,37 @@ Replace `<PLATFORM>` with the detected platform (e.g. `opencode`, `claude`, `cod
 
 ---
 
+## Step 3.5: Verify plugin and rules delivery (opencode only)
+
+The installer delivers two things this guide historically never verified. After Step 3, check both:
+
+1. **Plugin files** — `.opencode/plugin/` must contain:
+
+   ```bash
+   ls .opencode/plugin/
+   ```
+
+   Expected: `system-prompt-rules.ts`, `system-prompt-context-inject.ts`, `companion-gateway.ts`, `topic-context-filter.ts`, `fish-trail-compaction.ts`. If any are missing, re-run Step 3 with `--force`.
+
+2. **opencode.json plugin registration** — the `plugin` array must contain 4 registrations (`fish-trail-compaction.ts` is intentionally NOT registered):
+
+   ```bash
+   grep -c "opencode/plugin" opencode.json
+   ```
+
+   Expected: 4 or more. If fewer, re-run Step 3 with `--force`.
+
+3. **L1 rules files** — pack rules live in `.opencode/agents-rules/`, **NOT** in AGENTS.md (by design since v0.11; they are injected by the `system-prompt-rules.ts` plugin):
+
+   ```bash
+   grep -l "Gateway Trace" .opencode/agents-rules/petfish-companion.md
+   ls .opencode/agents-rules/petfish-toolchain.md
+   ```
+
+   Both must succeed. If `petfish-companion.md` has no "Gateway Trace" or `petfish-toolchain.md` is missing, re-run Step 3 with `--force` (fixes the pre-v3.x rules-file collision where the toolchain pack overwrote companion rules).
+
+---
+
 ## Step 4: Handle legacy pack cleanup
 
 After upgrade, check if old pack directories remain:
@@ -217,10 +248,10 @@ Changes applied:
 - State dir: auto-migrates .ai-context → .petfish/fish-trail/
 - New: context firewall, topic graph validation
 
-v1.2.0 Companion enhancements:
-- Contract-Driven Gateway Atoms: each Gateway step has explicit contracts + validators
-- Implementation discipline (minimum-code): read-before-write + 6-question check
-- Verify Gateway atoms anytime:
+Companion Gateway v3.x:
+- Programmatic gateway enforcement via companion-gateway.ts (registered in opencode.json)
+- Pack rules in .opencode/agents-rules/ (petfish-companion.md keeps Gateway Trace; petfish-toolchain.md split out)
+- Verify Gateway behavior anytime:
   uv run <skills_dir>/fish-brain/validators/test_failure_signal.py
 
 Next steps:
@@ -252,6 +283,9 @@ For very old installations (pre-v0.4, no context-router at all), Steps 4-7 can b
 - **Topic data missing after upgrade**: The auto-migration only runs once. If `.ai-context/` was deleted before the server migrated it, data is lost. Check `.petfish/fish-trail/` for your topics.
 - **AGENTS.md has duplicate pack markers**: If both old (`context-router-skill`) and new (`fish-trail`) markers exist, remove the old ones manually.
 - **Legacy skill entries visible in Codex after upgrade (#241)**: Codex caches skill discovery metadata at the thread level. After upgrading from `petfish-companion` → `fish-brain`, existing threads may still show stale `petfish-companion` entries even after global cleanup. **Fix: start a fresh Codex thread** — new threads use the current filesystem state. Also check these global dirs for legacy skills to back up and remove: `~/.agents/skills/petfish-companion`, `~/.codex/skills/petfish-companion`, `~/.agents/skills/marketplace-connector`. The installer now detects and warns about these on upgrade.
+- **Plugin files missing after upgrade**: The installer deploys `lib/plugin/*.ts` on every L1 pack install (project scope, opencode platform). If `.opencode/plugin/` is missing files, re-run Step 3 with `--force`. Note: remote installs before 2026-07-06 silently skipped ALL plugins (#267) — always upgrade with the current `install.py`.
+- **No "Gateway Trace" in `.opencode/agents-rules/petfish-companion.md`**: Upgrades between 2026-06-18 and the v3.x fix overwrote this file with toolchain rules (L1 filename collision: both packs mapped to `petfish-companion.md`). Re-run Step 3 with `--force` to restore companion rules and create the separate `petfish-toolchain.md`.
+- **opencode.json lost custom plugin entries**: `--force` upgrades deep-merge pack example configs and may replace the `plugin` array wholesale; re-add your own plugin entries manually afterwards.
 
 ---
 
