@@ -2,11 +2,30 @@
   "mcp": {
     "skill-registry": {
       "type": "local",
-      "command": ["uv", "run", "python", ".opencode/mcp/skill-registry/server.py"]
+      "command": [
+        "uv",
+        "run",
+        "python",
+        ".opencode/mcp/skill-registry/server.py"
+      ]
     },
     "usage-cost": {
       "type": "local",
-      "command": ["uv", "run", "python", ".opencode/mcp/usage-cost/server.py"]
+      "command": [
+        "uv",
+        "run",
+        "python",
+        ".opencode/mcp/usage-cost/server.py"
+      ]
+    },
+    "skill-vault": {
+      "command": [
+        "uv",
+        "run",
+        "python",
+        ".opencode/mcp/skill-vault/server.py"
+      ],
+      "type": "local"
     }
   },
   "permission": {
