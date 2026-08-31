@@ -1308,14 +1308,50 @@ def copy_command(src_file: Path, dest_dir: Path, force: bool) -> bool:
         return False
 
 
+def resolve_skill_parent_packs(skill_names: list[str]) -> list[str]:
+    """Map skill names to parent pack(s) via local pack manifests (F2).
+
+    Market fallback is not possible today: the market index records
+    skill_count per pack but not per-skill names. When no local packs/
+    exists, callers should instruct the user to pass --pack explicitly.
+    """
+    packs_root = SCRIPT_ROOT / "packs"
+    found: dict[str, None] = {}
+    wanted = set(skill_names)
+    for group in ("core", "optional"):
+        root = packs_root / group
+        if not root.is_dir():
+            continue
+        for pack_dir in root.iterdir():
+            mf = pack_dir / "pack-manifest.json"
+            if not mf.is_file():
+                continue
+            try:
+                data = json.loads(mf.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            for se in data.get("skills", []):
+                nm = se.get("name", "") if isinstance(se, dict) else se
+                if nm in wanted:
+                    found.setdefault(pack_dir.name, None)
+    return list(found)
+
+
 def install_pack_files(
     pack_dir: Path,
     target: Path,
     plat_dirs: dict,
     force: bool,
     manifest: dict,
+    skill_filter: list[str] | None = None,
 ) -> tuple[list[str], list[str], list[str]]:
     """Install skill/command/agent files from pack to target.
+
+    Args:
+        skill_filter: optional list of skill names — when set, only those
+            skills are installed (F2 granular install). Pack-level
+            infrastructure (rules/plugins/AGENTS.md) is still deployed.
+
     Returns (installed_skills, installed_commands, installed_agents).
     """
     installed_skills = []
@@ -1344,6 +1380,8 @@ def install_pack_files(
                 skill_name = skill_entry
             if not skill_name or not isinstance(skill_name, str):
                 continue
+            if skill_filter and skill_name not in skill_filter:
+                continue
             src = pack_skills / skill_name
             if not src.is_dir():
                 # Try to find it as a subdirectory
@@ -1361,6 +1399,19 @@ def install_pack_files(
             else:
                 if dest.exists():
                     log_warn(f"Skills/{skill_name} already exists (use --force to overwrite)")
+
+    # F2: report filter names that did not match this pack's skills
+    if skill_filter:
+        pack_skill_names = {
+            (se.get("name", "") if isinstance(se, dict) else se)
+            for se in manifest.get("skills", [])
+        }
+        for s in skill_filter:
+            if s in pack_skill_names and s not in installed_skills:
+                log_warn(f"Skill '{s}' not copied (already present? use --force)")
+            elif s not in pack_skill_names:
+                available = ", ".join(sorted(n for n in pack_skill_names if n)) or "none"
+                log_error(f"Skill '{s}' not found in this pack (available: {available})")
 
     # Copy commands
     if commands_dir and pack_commands.is_dir():
@@ -1874,6 +1925,7 @@ def install_single_pack(
     use_global: bool = False,
     offline: bool = False,
     github_token: str | None = None,
+    skill_filter: list[str] | None = None,
 ) -> bool:
     """Install a single pack. Returns True on success."""
     # Find pack directory (with market fallback)
@@ -1901,7 +1953,9 @@ def install_single_pack(
     installed_ver = existing.get("version") if isinstance(existing, dict) else None
     ver_status = compare_versions(installed_ver, source_ver, legacy_names, registry)
 
-    if ver_status == "same" and not force:
+    # F2: with --skill, adding skills to an already-installed pack is valid —
+    # do not early-return on "same" version
+    if ver_status == "same" and not force and not skill_filter:
         log_warn(f"{pack_name} v{source_ver} already installed (use --force to reinstall)")
         return True  # Not an error
 
@@ -1919,7 +1973,7 @@ def install_single_pack(
 
     # Step 1: Copy skills/agents/commands (existing Phase 0+1)
     installed_skills, installed_commands, installed_agents = install_pack_files(
-        pack_dir, target, plat_dirs, force, manifest
+        pack_dir, target, plat_dirs, force, manifest, skill_filter=skill_filter
     )
 
     # Step 2: Write L1 rules file (opencode platform only, for L1 packs)
@@ -1998,12 +2052,15 @@ def install_single_pack(
                 target, plat_name, platforms_data, force
             )
 
-    # Step 7: Update registry
+    # Step 7: Update registry (F2: merge skill lists on partial --skill installs)
+    reg_skills = installed_skills
+    if skill_filter and isinstance(existing, dict):
+        reg_skills = list(dict.fromkeys((existing.get("skills") or []) + installed_skills))
     update_registry(
         registry,
         pack_name,
         manifest,
-        installed_skills,
+        reg_skills,
         installed_commands,
         installed_agents,
     )
@@ -2151,8 +2208,13 @@ def uninstall_pack(
     script_root: Path,
     offline: bool,
     github_token: str | None = None,
+    skill_filter: list[str] | None = None,
 ) -> int:
-    """Uninstall a pack. Returns number of items removed."""
+    """Uninstall a pack. Returns number of items removed.
+
+    With skill_filter, only those skills are removed (F2 granular uninstall);
+    the registry entry is kept while other skills remain.
+    """
     # Resolve pack name from alias
     is_community = pack_alias.startswith("community/")
     if is_community:
@@ -2197,16 +2259,34 @@ def uninstall_pack(
     print(f"\n  Uninstalling pack: {pack_name} (alias: {pack_alias})", file=sys.stderr)
     removed = 0
 
-    # Read skills/commands/agents list
-    if is_community:
-        entry = packs.get(pack_name) or {}
-        skills_list = entry.get("skills", [])
-        commands_list = entry.get("commands", [])
-        agents_list = entry.get("agents", [])
-    else:
-        skills_list = (manifest or {}).get("skills", [])
-        commands_list = (manifest or {}).get("commands", [])
-        agents_list = (manifest or {}).get("agents", [])
+    # Read skills/commands/agents list — registry is authoritative for what
+    # was actually installed (partial --skill installs), fallback to manifest
+    entry = packs.get(pack_name) or {}
+    skills_list = entry.get("skills") or (manifest or {}).get("skills", [])
+    commands_list = entry.get("commands") or (manifest or {}).get("commands", [])
+    agents_list = entry.get("agents") or (manifest or {}).get("agents", [])
+
+    # F2: granular skill removal — only the filtered skills, registry kept
+    # while other skills remain
+    if skill_filter:
+        skills_dir_partial = plat_dirs.get("skills_dir")
+        if skills_dir_partial:
+            for skill_name in skill_filter:
+                skill_dir = Path(skills_dir_partial) / skill_name
+                if skill_dir.is_dir():
+                    shutil.rmtree(skill_dir, ignore_errors=True)
+                    log(f"    - skills/{skill_name}")
+                    removed += 1
+        if pack_name in packs and isinstance(packs[pack_name], dict):
+            remaining = [s for s in (packs[pack_name].get("skills") or []) if s not in skill_filter]
+            packs[pack_name]["skills"] = remaining
+            if not remaining:
+                del packs[pack_name]
+            registry["packs"] = packs
+            save_registry(reg_path, registry)
+            log_success("installed-packs.json (registry updated)")
+        print(f"\n  Uninstall complete: {removed} items removed.", file=sys.stderr)
+        return removed
 
     # Remove skill directories
     skills_dir = plat_dirs.get("skills_dir")
@@ -2691,6 +2771,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Comma-separated pack aliases or names (e.g. 'init,companion')",
     )
     parser.add_argument(
+        "--skill",
+        dest="skill_filter",
+        action="append",
+        default=None,
+        metavar="NAME",
+        help="Install only the given skill(s) from the pack (repeatable). "
+        "Without --pack, the parent pack is resolved from local manifests.",
+    )
+    parser.add_argument(
         "--target", "-t",
         default=".",
         help="Target directory (default: current directory)",
@@ -2758,6 +2847,9 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
+    # F2: skill-granular filter (dedup, order-preserving)
+    skill_filter = list(dict.fromkeys(args.skill_filter)) if args.skill_filter else None
+
     # Load platforms data
     platforms_data = load_platforms()
 
@@ -2801,6 +2893,7 @@ def main():
                 total_removed += uninstall_pack(
                     pack_alias, target, plat_dirs, platforms_data, SCRIPT_ROOT,
                     offline=args.offline, github_token=args.github_token,
+                    skill_filter=skill_filter,
                 )
 
         banner(f"Uninstall done: {total_removed} total items removed")
@@ -2819,8 +2912,22 @@ def main():
         print("\nERROR: No pack specified. Use --pack <alias> or a positional argument.", file=sys.stderr)
         return 1
 
-    # Resolve pack names
-    pack_names = resolve_pack_names(pack_spec)
+    # Resolve pack names (F2: --skill without --pack resolves parent packs
+    # from local manifests)
+    if pack_spec:
+        pack_names = resolve_pack_names(pack_spec)
+    elif skill_filter:
+        pack_names = resolve_skill_parent_packs(skill_filter)
+        if not pack_names:
+            log_error(
+                "Cannot resolve parent pack for skill(s): "
+                + ", ".join(skill_filter)
+                + ". Specify --pack explicitly."
+            )
+            return 1
+        log(f"Resolved skill(s) to pack(s): {', '.join(pack_names)}")
+    else:
+        pack_names = []
     if not pack_names:
         log_error("No valid packs specified.")
         return 1
@@ -2924,6 +3031,7 @@ def main():
                         use_global=True,
                         offline=args.offline,
                         github_token=args.github_token,
+                        skill_filter=skill_filter,
                     )
                     if install_ok:
                         success_count += 1
@@ -2947,6 +3055,7 @@ def main():
                         use_global=False,
                         offline=args.offline,
                         github_token=args.github_token,
+                        skill_filter=skill_filter,
                     )
                     if install_ok:
                         success_count += 1
@@ -2959,6 +3068,7 @@ def main():
                     use_global=False,
                     offline=args.offline,
                     github_token=args.github_token,
+                    skill_filter=skill_filter,
                 )
                 if install_ok:
                     success_count += 1
@@ -2982,6 +3092,7 @@ def main():
                         use_global=args.global_install,
                         offline=args.offline,
                         github_token=args.github_token,
+                        skill_filter=skill_filter,
                     )
                     if install_ok:
                         success_count += 1
@@ -2994,6 +3105,7 @@ def main():
                     use_global=args.global_install,
                     offline=args.offline,
                     github_token=args.github_token,
+                    skill_filter=skill_filter,
                 )
                 if install_ok:
                     success_count += 1
