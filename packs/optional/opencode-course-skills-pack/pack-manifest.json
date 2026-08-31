@@ -1,14 +1,16 @@
 {
   "name": "opencode-course-skills-pack",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "legacy_names": [],
   "description": "课程开发全生命周期 — 规划、提纲、正文、实验、资料、QA/QC、发布",
   "compatibility": "opencode",
-  "skill_count": 15,
-  "command_count": 10,
+  "skill_count": 17,
+  "command_count": 12,
   "agent_count": 8,
   "skills": [
+    "course-assessment-design",
     "course-content-authoring",
+    "course-delivery-review",
     "course-development-orchestrator",
     "course-directory-structure",
     "course-lab-design",
@@ -25,6 +27,7 @@
     "skill-reference-discovery"
   ],
   "commands": [
+    "course-assessment",
     "course-audit",
     "course-content",
     "course-init",
@@ -34,6 +37,7 @@
     "course-qa",
     "course-qc",
     "course-release-ready",
+    "course-slides",
     "course-source-review"
   ],
   "agents": [

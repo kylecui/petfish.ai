@@ -28,14 +28,27 @@ into PEtFiSh skills.
 
 ## Core workflow
 
+Two-phase mining: script signals first, then agent semantic mining on top.
+
+**Phase 1 — Signal collection (script, fast)**
+
 1. Clone or access the target repo, or use the provided local path.
-2. Scan the README, directory structure, scripts, workflows, CI configs,
-   Dockerfiles, Makefiles, and other obvious automation entrypoints.
-3. Identify candidate workflows that are reusable, automatable, and have clear
-   inputs and outputs.
-4. For each candidate, assess complexity, required tools, security
-   implications, and priority.
-5. Generate a mining report in markdown format.
+2. Run `mine_repo.py` to collect domain signals, automation entrypoints, and
+   template-based candidate hints. **Template candidates are signals, not
+   conclusions** — the 6 hardcoded templates cannot see cross-file patterns,
+   doc pipelines, or domain workflows. Never ship them unreviewed.
+
+**Phase 2 — Semantic mining (agent, primary)**
+
+3. Read what templates cannot: README narrative, docs/ structure, template
+   contents, quality loops (CI/evals/validators), multi-file pipelines, and
+   any workflow the signal phase flagged but could not articulate.
+4. Identify candidate workflows the templates missed — especially pipeline
+   orchestration, review loops, and content-production patterns.
+5. Merge Phase-1 signals with Phase-2 semantic candidates, then apply the
+   evaluation rules below to the merged list.
+6. Generate a mining report in markdown; hand off accepted candidates to
+   `skill-author`.
 
 ## Evaluation rules
 

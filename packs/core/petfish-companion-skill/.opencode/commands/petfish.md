@@ -5,7 +5,7 @@ description: >
   跨市场搜索skill、创建新skill、验证skill质量、
   获取安装建议、检测当前平台。
   Trigger: /petfish [subcommand]
-  Subcommands: status, catalog, suggest, install <alias>, detect, search <keyword>, create <name>, lint [path], mine <repo>, audit <path>, gate <path>, optimize <path>, eval <path>, stats
+  Subcommands: status, catalog, suggest, install <alias>, load <name|keyword>, detect, search <keyword>, create <name>, lint [path], mine <repo>, audit <path>, gate <path>, optimize <path>, eval <path>, stats
 ---
 
 # /petfish — 胖鱼PEtFiSh Companion
@@ -43,6 +43,18 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --list
 ```bash
 uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --search "<keyword>"
 ```
+
+### /petfish load <name|keyword> [--install]
+
+按需加载技能（skill-vault动态加载链，v3.3.0+）：
+
+1. `<keyword>`时先跨市场搜索：`uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<keyword>" --json`
+2. 展示命中项供用户选择；`<name>`直达
+3. 经skill-vault MCP的`vault_stage(source)`入库（source=该skill的SKILL.md文件级raw URL或本地路径）
+4. `vault_fetch(name)`取正文，**本会话立即可用**
+5. `--install`时追加`vault_install(name)`持久化，提示重启后原生可用
+
+无skill-vault MCP（未升级v3.3.0+）时降级为提示`/petfish install <pack>`常规安装。
 
 ### /petfish suggest
 

@@ -64,3 +64,4 @@ Before delivering an outline, confirm the constraint file with the user and self
 - Do not ignore assessment and lab placement while outlining.
 
 See `assets/syllabus-template.md`.
+See also `references/assessment-planning.md`（测评规划参考：形成性/总结性配比、题型-目标匹配矩阵——按需读取，勿内联进正文或提示词）。

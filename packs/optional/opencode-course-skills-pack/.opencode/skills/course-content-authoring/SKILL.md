@@ -67,3 +67,4 @@ A lesson is NOT complete until every item holds:
 See:
 - `assets/lesson-template.md`
 - `references/teaching-flow-patterns.md`
+- `references/pedagogy-compact.md`（教学法速查：Bloom动词表/认知负荷三原则/样例渐退/误解前置/检索练习——按需读取，勿内联进正文或提示词）

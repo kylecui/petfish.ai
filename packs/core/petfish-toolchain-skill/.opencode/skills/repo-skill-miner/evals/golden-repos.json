@@ -1,0 +1,36 @@
+{
+  "description": "Golden repos for repo-skill-miner evaluation (P3). Each case: repo, expected candidate domains the two-phase mining (signals + semantic) must surface, and negatives that must NOT be proposed. Used for manual regression: rerun the mining workflow on these repos and check coverage.",
+  "cases": [
+    {
+      "repo": "https://github.com/OpenMAIC-team/OpenMAIC",
+      "expected_domains": [
+        "course-outline-constraint-generation",
+        "curriculum-planning-gates",
+        "lesson-stage-generation-with-done-checklist",
+        "eval-harness-llm-judge",
+        "deep-research-course-material"
+      ],
+      "must_not_propose": ["runtime-server-ops", "frontend-ui-changes"],
+      "notes": "THU multi-agent classroom platform; 23 course skills are the ground truth subset. Templates alone find <50% — semantic phase must read skills/ structure and templates/."
+    },
+    {
+      "repo": "https://github.com/kylecui/petfish.ai",
+      "expected_domains": [
+        "pack-install-upgrade-lifecycle",
+        "release-gate-verification",
+        "skill-quality-lint-and-gate",
+        "marketplace-publish"
+      ],
+      "must_not_propose": ["website-content-editing"],
+      "notes": "Self-referential case: these capabilities already exist as skills here — validates mining finds what we already know is skill-worthy."
+    },
+    {
+      "repo": "https://github.com/docker/getting-started",
+      "expected_domains": [
+        "container-onboarding-lab-generation"
+      ],
+      "must_not_propose": ["app-feature-development"],
+      "notes": "Small repo, low signal density — validates the miner does not hallucinate candidates from noise (precision check)."
+    }
+  ]
+}

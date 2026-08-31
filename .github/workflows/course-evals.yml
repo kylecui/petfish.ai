@@ -1,0 +1,38 @@
+name: Course Pack Evals
+
+on:
+  pull_request:
+    paths:
+      - 'packs/optional/opencode-course-skills-pack/**'
+
+concurrency:
+  group: course-evals-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  course-evals-static:
+    name: course-evals-static
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Run course evals (static gate, no API key required)
+        working-directory: packs/optional/opencode-course-skills-pack
+        run: uv run --no-project python evals/runner.py --mode static
+
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: course-evals-report
+          path: packs/optional/opencode-course-skills-pack/evals/report.md
+          if-no-files-found: ignore

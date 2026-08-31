@@ -53,3 +53,4 @@ Prefer two linked artifacts:
 See:
 - `assets/lab-template.md`
 - `references/lab-review-checklist.md`
+- `references/interactive-artifacts.md`

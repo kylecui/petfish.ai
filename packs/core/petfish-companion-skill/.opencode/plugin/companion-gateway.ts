@@ -66,19 +66,26 @@ interface VaultCandidate {
   source: string
 }
 
-let cachedDomains: Record<string, string[]> | null = null
+interface DomainMeta {
+  keywords: string[]
+  pack: string
+}
+
+let cachedDomainsMeta: Record<string, DomainMeta> | null = null
 let cachedCandidates: VaultCandidate[] | null = null
+let cachedInstalledPacks: Set<string> | null = null
 
 async function loadSkillIndex(directory: string): Promise<void> {
-  if (cachedDomains && cachedCandidates) return
-  const domains: Record<string, string[]> = {}
+  if (cachedDomainsMeta && cachedCandidates && cachedInstalledPacks) return
+  const domainsMeta: Record<string, DomainMeta> = {}
   const candidates: VaultCandidate[] = []
+  const installedPacks = new Set<string>()
   try {
     const indexPath = join(directory, ".opencode", "skill-index.json")
     const content = await readFile(indexPath, "utf-8")
     const index = JSON.parse(content) as {
-      domains?: Record<string, { keywords?: string[] }>
-      skills?: Array<{ domain?: string; triggers?: string[]; name?: string }>
+      domains?: Record<string, { keywords?: string[]; pack?: string }>
+      skills?: Array<{ domain?: string; triggers?: string[]; name?: string; pack?: string }>
       available_packs?: {
         market?: Array<{ name?: string; alias?: string; description?: string }>
         community?: Array<{ name?: string; description?: string }>
@@ -87,32 +94,40 @@ async function loadSkillIndex(directory: string): Promise<void> {
     if (index.domains && typeof index.domains === "object") {
       for (const [alias, info] of Object.entries(index.domains)) {
         const kws = (info as { keywords?: string[] })?.keywords
-        if (Array.isArray(kws) && kws.length) domains[alias] = kws
+        if (Array.isArray(kws) && kws.length) {
+          domainsMeta[alias] = {
+            keywords: kws,
+            pack: String((info as { pack?: string })?.pack ?? ""),
+          }
+        }
       }
     } else if (Array.isArray(index.skills)) {
       // legacy format: aggregate per-skill triggers grouped by domain field
       for (const s of index.skills) {
         if (s.domain && Array.isArray(s.triggers) && s.triggers.length) {
-          domains[s.domain] = (domains[s.domain] ?? []).concat(s.triggers)
+          if (!domainsMeta[s.domain]) domainsMeta[s.domain] = { keywords: [], pack: "" }
+          domainsMeta[s.domain].keywords = domainsMeta[s.domain].keywords.concat(s.triggers)
         }
       }
     }
 
-    const installed = new Set(
-      (index.skills ?? [])
-        .map((s) => (s && typeof s === "object" && s.name ? String(s.name) : ""))
-        .filter(Boolean),
-    )
+    for (const s of index.skills ?? []) {
+      if (s && typeof s === "object") {
+        if (s.pack) installedPacks.add(String(s.pack))
+      }
+    }
     const packs = index.available_packs ?? {}
     for (const p of packs.market ?? []) {
       const name = String(p?.alias || p?.name || "")
-      if (name && !installed.has(name)) {
+      const packName = String(p?.name ?? "")
+      if (packName && installedPacks.has(packName)) continue
+      if (name && !installedPacks.has(packName)) {
         candidates.push({ name, desc: String(p?.description ?? "").slice(0, 120), source: "market" })
       }
     }
     for (const p of packs.community ?? []) {
       const name = String(p?.name ?? "")
-      if (name && !installed.has(name)) {
+      if (name && !installedPacks.has(name)) {
         candidates.push({ name, desc: String(p?.description ?? "").slice(0, 120), source: "community" })
       }
     }
@@ -140,18 +155,22 @@ async function loadSkillIndex(directory: string): Promise<void> {
     // no vault dir
   }
 
-  cachedDomains = domains
+  cachedDomainsMeta = domainsMeta
   cachedCandidates = candidates
+  cachedInstalledPacks = installedPacks
 }
 
 function buildDiscoveryBlock(
   skillMatches: string[],
-  domains: Record<string, string[]>,
+  domainsMeta: Record<string, DomainMeta>,
   candidates: VaultCandidate[],
 ): string | null {
   if (!skillMatches.length || !candidates.length) return null
   const keywords: string[] = [...skillMatches]
-  for (const d of skillMatches) keywords.push(...(domains[d] ?? []))
+  for (const d of skillMatches) {
+    const meta = domainsMeta[d]
+    if (meta) keywords.push(...meta.keywords)
+  }
   const scored = candidates
     .map((c) => {
       const hay = (c.name + " " + c.desc).toLowerCase()
@@ -219,11 +238,11 @@ function detectFailureSignal(assistantText: string): string | null {
 
 async function runSkillSense(userMessage: string, directory: string): Promise<string[]> {
   await loadSkillIndex(directory)
-  const domains = cachedDomains ?? {}
+  const domainsMeta = cachedDomainsMeta ?? {}
   const lower = userMessage.toLowerCase()
   const matches: string[] = []
-  for (const [domain, keywords] of Object.entries(domains)) {
-    if (keywords.some((kw) => lower.includes(kw.toLowerCase()))) {
+  for (const [domain, meta] of Object.entries(domainsMeta)) {
+    if (meta.keywords.some((kw) => lower.includes(kw.toLowerCase()))) {
       matches.push(domain)
     }
   }
@@ -397,14 +416,29 @@ const plugin: Plugin = async ({ directory }, options) => {
           )
         }
 
-        // P1.2: Skill Vault discovery block (top-3, 1500-char budget)
-        const vaultBlock = buildDiscoveryBlock(
-          skillMatches,
-          cachedDomains ?? {},
-          cachedCandidates ?? [],
-        )
-        if (vaultBlock) {
-          sections.push(vaultBlock + "\n")
+        // P1.2 + P2.1: gap-aware Skill Vault discovery (installed packs excluded;
+        // no candidates -> auto-search instruction)
+        const installedPacks = cachedInstalledPacks ?? new Set<string>()
+        const domainsMeta = cachedDomainsMeta ?? {}
+        const gapDomains = skillMatches.filter((d) => {
+          const pack = domainsMeta[d]?.pack
+          if (!pack) return true // unknown pack attribution — let the agent judge
+          return !installedPacks.has(pack)
+        })
+        if (gapDomains.length > 0) {
+          const vaultBlock = buildDiscoveryBlock(gapDomains, domainsMeta, cachedCandidates ?? [])
+          if (vaultBlock) {
+            sections.push(vaultBlock + "\n")
+          } else {
+            const kw = gapDomains
+              .slice(0, 2)
+              .flatMap((d) => [d, ...(domainsMeta[d]?.keywords.slice(0, 2) ?? [])])
+              .slice(0, 5)
+              .join(" ")
+            sections.push(
+              `**Skill Vault**: 检测到相关领域（${gapDomains.join(", ")}）但已安装技能与vault中均无匹配。可运行 \`uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "${kw}" --json\` 搜索市场；命中后经 skill-vault 的 \`vault_stage(source)\` 入库、\`vault_fetch(name)\` 即用、\`vault_install(name)\` 持久化（重启后原生可用）。\n`,
+            )
+          }
         }
 
         // Phase 2: Orchestration Hint (skill-dispatch signal)
