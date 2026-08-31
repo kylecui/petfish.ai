@@ -1,6 +1,6 @@
 {
   "name": "petfish-toolchain-skill",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "legacy_names": ["toolchain"],
   "description": "PEtFiSh Skill Toolchain — Author, lint, audit, gate, optimize, evaluate, mine, and track skills",
   "compatibility": "opencode",
@@ -32,6 +32,7 @@
     ".opencode/skills/skill-lint/scripts/lint_skill.py",
     ".opencode/skills/repo-skill-miner/SKILL.md",
     ".opencode/skills/repo-skill-miner/references/mining-methodology.md",
+    ".opencode/skills/repo-skill-miner/evals/golden-repos.json",
     ".opencode/skills/repo-skill-miner/scripts/mine_repo.py",
     ".opencode/skills/skill-security-auditor/SKILL.md",
     ".opencode/skills/skill-security-auditor/references/security-checklist.md",

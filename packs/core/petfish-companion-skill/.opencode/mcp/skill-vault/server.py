@@ -196,6 +196,25 @@ def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+USAGE_LOG = PROJECT_ROOT / ".opencode" / "skill-usage.jsonl"
+
+
+def _log_usage(event: str, name: str, source: str = "") -> None:
+    """Append a usage event (growth data; consumed by skill-usage-tracker)."""
+    try:
+        USAGE_LOG.parent.mkdir(parents=True, exist_ok=True)
+        entry = {
+            "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "event": event,
+            "name": name,
+            "source": source,
+        }
+        with USAGE_LOG.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
+
+
 def _is_url_allowed(url: str) -> bool:
     m = re.match(r"^https?://([^/]+)/", url)
     return bool(m) and m.group(1).lower() in ALLOWED_HOSTS
@@ -400,6 +419,7 @@ def tool_vault_fetch(args: Dict[str, Any]) -> Dict[str, Any]:
     fetched[name] = {"sha256": digest, "ts": time.time()}
     state["active"]["expires"] = time.time() + STATE_TTL_SECONDS
     _save_state(state)
+    _log_usage("fetch", name, "vault")
     return {
         "name": name,
         "sha256": digest,
@@ -447,6 +467,7 @@ def tool_vault_stage(args: Dict[str, Any]) -> Dict[str, Any]:
         shutil.rmtree(dest, ignore_errors=True)
         raise ValueError(f"lint ERRORs ({lint['errors']}) — skill rejected and removed from vault")
 
+    _log_usage("stage", name, "url" if re.match(r"^https?://", source) else "local")
     return {"name": name, "staged": True, "path": f".opencode/skill-vault/{name}", "lint": lint}
 
 
@@ -462,6 +483,7 @@ def tool_vault_install(args: Dict[str, Any]) -> Dict[str, Any]:
     dest = SKILLS_DIR / name
     _safe_copytree(skill_dir, dest)
     index_ok = _regenerate_index()
+    _log_usage("install", name, "vault")
     return {"name": name, "installed": True, "restart_required": True, "index_regenerated": index_ok}
 
 

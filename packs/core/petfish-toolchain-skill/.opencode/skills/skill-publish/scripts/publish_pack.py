@@ -18,6 +18,7 @@ Exit codes: 0 = success, 1 = error
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -156,6 +157,27 @@ def validate_ref_exists(ref: str, repo: str = "kylecui/petfish.ai") -> bool:
         return True  # don't block if gh is unavailable
 
 
+def _derive_triggers(name: str, description: str, cap: int = 8) -> list[str]:
+    """Derive market-side trigger keywords from name + description (P3).
+
+    CJK words (2-4 chars) and latin tokens (>=3 chars), deduplicated, capped.
+    Market entries carry these so gateway domain matching works for
+    not-yet-installed packs (fills the gap left by F3's local-only triggers).
+    """
+    tokens: list[str] = [name.lower()]
+    tokens.extend(re.findall(r"[\u4e00-\u9fff]{2,4}", description))
+    tokens.extend(w.lower() for w in re.findall(r"[A-Za-z][A-Za-z0-9_-]{2,}", description))
+    seen: set[str] = set()
+    out: list[str] = []
+    for t in tokens:
+        if t and t not in seen:
+            seen.add(t)
+            out.append(t)
+        if len(out) >= cap:
+            break
+    return out
+
+
 def generate_index_json(output_dir: Path, dry_run: bool = False) -> dict:
     """
     Regenerate index.json from all *.json files in output_dir (registry/official/).
@@ -225,6 +247,7 @@ def generate_index_json(output_dir: Path, dry_run: bool = False) -> dict:
             "source": "petfish-market",
             "url": f"https://github.com/{repo}" if repo else "",
             "install": f"uv run install.py --pack {name}",
+            "triggers": _derive_triggers(name, pack.get("description", "")),
         }
     merged_skills = list(skills_by_name.values())
 

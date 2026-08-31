@@ -1,6 +1,6 @@
 {
   "name": "petfish-companion-skill",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "legacy_names": ["companion"],
   "description": "PEtFiSh Brain (鱼伴) — Sensing, routing, registry query, and marketplace search",
   "compatibility": "opencode",
