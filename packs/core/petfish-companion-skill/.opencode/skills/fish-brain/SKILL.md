@@ -103,7 +103,7 @@ uv run catalog_query.py --check-failures "<上轮assistant文本片段>" [--targ
 
 **触发时行为：**
 - 推断最相关的关键词
-- 建议：`💡 检测到能力缺口 — 可以运行 /petfish search <关键词> 看看是否有匹配的skill或MCP server。`
+- 建议：`💡 检测到能力缺口 — 可以运行 /petfish load <关键词>（按需加载即用）或 /petfish search <关键词> 看看是否有匹配的skill或MCP server。`
 
 **排除条件（以下情况不触发Tier 2）：**
 - 普通编码任务（写函数、调bug、重构、加注释）
@@ -279,6 +279,8 @@ uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<keyw
 ```
 
 搜索范围按优先级：胖鱼自有仓库 → 三方市场（SkillKit/Smithery/Glama）→ GitHub高星仓库 → GitHub低星仓库。
+
+按需加载（v3.3.0+，skill-vault MCP）：`/petfish load <name|keyword> [--install]`——搜索→`vault_stage`入库→`vault_fetch`本会话即用→`--install`时`vault_install`持久化（重启原生可用）。无skill-vault时降级为常规安装提示。
 
 ### 4.6 /petfish create \<name\>
 

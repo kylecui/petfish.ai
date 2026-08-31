@@ -227,6 +227,41 @@ def collect_skill_dirs(skills_dir: Path) -> list[Path]:
     return dirs
 
 
+def build_pack_attribution() -> dict[str, str]:
+    """Map skill name -> parent pack name. Registry first (installed layout),
+    then repo pack manifests (dev layout). Best-effort."""
+    attribution: dict[str, str] = {}
+    # 1) installed registry (.opencode/installed-packs.json): packs -> skills list
+    reg = Path(".opencode") / "installed-packs.json"
+    try:
+        data = json.loads(reg.read_text(encoding="utf-8"))
+        for pack_name, entry in (data.get("packs") or {}).items():
+            if isinstance(entry, dict):
+                for s in entry.get("skills") or []:
+                    if isinstance(s, str) and s:
+                        attribution.setdefault(s, pack_name)
+    except (OSError, json.JSONDecodeError):
+        pass
+    # 2) repo manifests (dev layout)
+    for group in ("core", "optional"):
+        root = Path.cwd() / "packs" / group
+        if not root.is_dir():
+            continue
+        for pack_dir in root.iterdir():
+            mf = pack_dir / "pack-manifest.json"
+            if not mf.is_file():
+                continue
+            try:
+                data = json.loads(mf.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            for se in data.get("skills", []):
+                nm = se.get("name", "") if isinstance(se, dict) else se
+                if isinstance(nm, str) and nm:
+                    attribution.setdefault(nm, pack_dir.name)
+    return attribution
+
+
 def generate_index(skills_dir: Path) -> dict:
     """Generate the full skill index."""
     skills = []
@@ -234,6 +269,11 @@ def generate_index(skills_dir: Path) -> dict:
         entry = index_skill(skill_dir)
         if entry:
             skills.append(entry)
+
+    attribution = build_pack_attribution()
+    for entry in skills:
+        if entry["name"] in attribution:
+            entry["pack"] = attribution[entry["name"]]
 
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
