@@ -91,3 +91,30 @@ uv run <doc-reader-path>/scripts/doc_to_markdown.py input.pdf --output temp/revi
 - Do not discard appendices if they contain definitions or lab constraints.
 
 See `assets/source-review-template.md`.
+
+# 素材管线集成
+
+参考资料（PDF/DOCX/XLSX/HTML/EPUB）进入课程输入的默认流水线：
+
+1. **转换**：用 doc-reader pack 将原始文件转为 Markdown：
+
+```bash
+cd .opencode/skills/doc-reader
+uv run scripts/doc_to_markdown.py references/<input>.pdf --output temp/review/<input>.md
+```
+
+doc-reader 未安装时，先提示安装（等价物二选一）：
+
+- `/petfish install doc-reader`
+- `uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack doc-reader`
+
+未安装且用户暂不安装时，回退到 agent 原生读取，并明确提示转换质量可能不稳定（扫描版 PDF 无 OCR）。
+
+2. **提炼**：在转换后的 Markdown 上执行本 skill 的 intake workflow，将摘录整理为结构化笔记
+   （审阅摘要 / 差距分析 / 提纲修订建议 / 实验设计输入），笔记进入 `docs/06-qa/` 或工作区笔记位置。
+
+3. **入课**：只将**提炼结论**写入课程输入（`docs/01-outline/`、`docs/02-content/`、`docs/03-labs/`）。
+   `references/` 原件与 `temp/` 转换中间产物都不是交付物，不得直接复制进 `docs/` 或 `release/`。
+
+管线纪律：转换 ≠ 分析（doc-reader 只负责转格式）；提炼结论必须标注来源文件；
+冲突来源并列呈现，不静默合并。

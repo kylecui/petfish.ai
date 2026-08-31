@@ -12,11 +12,13 @@
 - development-plan-governance
 - course-outline-design
 - course-content-authoring
+- course-assessment-design
 - course-lab-design
 - learner-materials
 - instructor-reference-materials
 - course-quality-assurance
 - course-quality-control-reporting
+- course-delivery-review
 - course-methodology-playbook
 - skill-reference-discovery
 
