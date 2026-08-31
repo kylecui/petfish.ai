@@ -1,6 +1,8 @@
 # PEtFiSh Upgrade Guide (for AI Agents)
 
 > If you are an AI coding assistant reading this document, follow the steps below to upgrade PEtFiSh for the user. Do NOT summarize or skip steps. Execute them in order.
+>
+> **本流程面向自然语言用户**：以下所有命令都由你（agent）执行，用户全程只需对话——不要让用户手敲任何CLI命令；最终按Step 8的模板用一段可读的中文报告收尾。
 
 ---
 
@@ -245,26 +247,28 @@ Should show updated pack versions. Then confirm fish-trail MCP is working:
 # The fish-trail MCP should auto-start and show 31 tools
 ```
 
-Tell the user:
+Tell the user (paste the verify summary line from Step 3.5 into the report):
 
 ```
-><(((^> PEtFiSh upgraded!
+><(((^> 胖鱼 PEtFiSh 升级完成！
 
-Changes applied:
-- [list upgraded packs]
-- fish-trail: 31 MCP tools (topic routing, reporting, validation)
-- State dir: auto-migrates .ai-context → .petfish/fish-trail/
-- New: context firewall, topic graph validation
+📦 本次升级
+- [逐pack列出：名称 旧版本 → 新版本]
+- 安装体检：10 PASS / 0 FAIL — 安装健康（如非全PASS，列出FAIL项及已执行的修复）
 
-Companion Gateway v3.x:
-- Programmatic gateway enforcement via companion-gateway.ts (registered in opencode.json)
-- Pack rules in .opencode/agents-rules/ (petfish-companion.md keeps Gateway Trace; petfish-toolchain.md split out)
-- Verify Gateway behavior anytime:
-  uv run <skills_dir>/fish-brain/validators/test_failure_signal.py
+✨ 本次到位的能力
+- Skill Vault按需加载：遇到未安装领域时自动提示可加载技能，本会话即用
+- Gateway Trace：每轮回复开头的🐟可观测性行（指令层已随本次升级送达）
+- 课程双确认门：下次课程创作会先澄清执行帧、大纲确认后才动笔
+- /petfish load <关键词>：按需加载技能的一条龙命令
 
-Next steps:
-  /petfish catalog    — See all available skills (including new ones)
-  /petfish stats      — Check usage statistics
+🔄 请重启AI编码工具（新插件/技能在启动时加载）：
+[按平台给出一行具体操作，见上表]
+
+💡 重启后可以直接这样体验
+- 对话输入"帮我办一场研讨会"→ 观察Skill Vault发现块提示并按需加载
+- 输入 /petfish verify → 10项安装体检随时复查
+- 输入 /petfish load 甘特图 → 试试搜索并加载一个新技能
 ```
 
 ---
