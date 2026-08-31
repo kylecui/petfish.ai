@@ -76,6 +76,27 @@ If the request is narrow and clearly belongs to one specialized skill, let that 
    - artifact locations
    - QA status
 
+# Confirmation gates (Gate 1 / Gate 2)
+
+Two interaction gates refine the default workflow between requirements gathering (step 3, execution frame) and downstream production (step 4, routing). They are refinements of the existing flow — the quality gates defined in the project `AGENTS.md` (§8) remain unchanged, and these gates do not replace them.
+
+## Gate 1 — 执行帧澄清 (execution-frame clarification)
+
+Before finalizing the execution frame (workflow step 3):
+
+- Ask at most **3 rounds** of clarifying questions, **ONE question per round** (use the question tool).
+- Select questions from `references/clarification-bank.md`, grouped by course type (standard-training / workshop / k12 / vocational).
+- Always offer an explicit **skip** option; if the user skips, record the clarification as `skipped` and proceed with stated assumptions.
+- Once the frame is confirmed, persist the course type to `docs/00-project/course-type.yaml` (field `type:`, e.g. `type: standard-training`) so that `qa_scan.py` check #9 can validate the outline against the matching constraints preset.
+
+## Gate 2 — 大纲 sign-off (outline sign-off)
+
+After `course-outline-design` delivers the outline and before routing to `course-content-authoring`:
+
+- Present the outline summary and require an **explicit user confirmation phrase** (e.g. "确认开始内容创作").
+- One-time confirmation for the whole outline — not per module.
+- Without this confirmation, do NOT route to content authoring; iterate on the outline instead.
+
 # Output rules
 
 - Prefer Markdown unless the user explicitly asks for another format.

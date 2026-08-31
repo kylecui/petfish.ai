@@ -130,3 +130,39 @@
 - OpenCode `cfg.skills.urls`与vault机制是否冲突（urls拉取的缓存目录与vault目录是否重叠）——实施P1前实验确认
 - 市场pack的skill在无triggers数据下，description匹配的实际召回质量——P1末做10用例小样本评测
 - vault_fetch正文进入上下文后的实际token消耗分布（60KB预算是否需下调）——P1验收时实测
+
+## 附录A：P1设计快照（实施前固化，Council执行者建议）
+
+### A.1 目录布局
+
+```
+.opencode/skill-vault/        # staged skills（项目级）
+  <skill-name>/
+    SKILL.md
+    ...技能文件树
+.petfish/skill-vault/
+  state.json                  # fetch去重状态（单active槽，7天过期）
+```
+
+vault放`.opencode/`而非`.petfish/`：`.petfish/`语义是运行时状态且已被gitignore惯例覆盖；vault是"待转正技能"。Momus待裁决#3确认：OpenCode skill发现只扫`.opencode/skills/`，vault不会被误扫。
+
+### A.2 state.json schema（简化：单active会话槽）
+
+```json
+{"active": {"fetched": {"<skill>": {"sha256": "...", "ts": "..."}}, "expires": "<ISO+7d>"}}
+```
+
+### A.3 四工具返回格式
+
+- `vault_index(filter?)` → `{"skills": [{"name","description","source": "vault|market|community|installed","pack"}], "total"}`
+- `vault_fetch(name)` → 首次 `{"name","sha256","content":"<SKILL.md全文≤60KB>","truncated","files"}`；同会话重复 `{"name","sha256","already_loaded":true,"files"}`
+- `vault_stage(source)` → `{"name","staged":true,"path","lint":{"errors","warnings"|"skipped":true}}`（lint ERROR即拒收删除）
+- `vault_install(name)` → `{"name","installed":true,"restart_required":true,"index_regenerated":true}`
+
+### A.4 P1边界（vault_stage源类型）
+
+P1的stage支持：raw GitHub URL（指向SKILL.md）+ 本地路径。市场pack tarball级staging归P2（搜索→staging闭环）——单skill粒度先跑通全链路。镜像回退：raw.githubusercontent失败→ghfast.top→ghproxy.com。
+
+### A.5 安全参数
+
+域白名单（raw.githubusercontent.com/github.com/ghfast.top/ghproxy.com）；单skill≤2MB；SKILL.md返回截断60KB；zip-slip用resolve后前缀校验；lint快检可导入lint_skill.py则跑ERROR级，否则skip标注。

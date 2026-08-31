@@ -13,6 +13,31 @@ from pathlib import Path
 INTERNAL_MARKERS = ["待补充", "TODO", "TBD", "后面再写", "FIXME"]
 LEAK_KEYWORDS = ["答案", "answer", "instructor", "教师"]
 
+CONSTRAINTS_DIR = (
+    Path(__file__).resolve().parent.parent / "references" / "outline-constraints"
+)
+
+ASSESSMENT_ALIASES = {
+    "quiz": ["quiz", "测验", "小测"],
+    "assignment": ["assignment", "作业"],
+    "project": ["project", "项目"],
+    "lab_report": ["lab_report", "lab report", "实验报告"],
+    "presentation": ["presentation", "演示", "汇报"],
+}
+
+FIRST_MODULE_TYPE_ALIASES = {
+    "introduction": ["introduction", "intro", "导论", "入门", "简介", "概述", "介绍"],
+}
+
+# Lesson structure completeness markers (check #10). Presence check only —
+# it verifies explicit section markers exist, NOT semantic quality.
+LESSON_SECTION_MARKERS = {
+    "objective": ["目标", "objective"],
+    "example": ["示例", "example"],
+    "exercise": ["练习", "exercise"],
+    "duration": ["时长", "duration"],
+}
+
 
 @dataclass
 class Issue:
@@ -99,6 +124,59 @@ def expected_sequence(numbers: list[int]) -> list[int]:
     if not numbers:
         return []
     return list(range(min(numbers), max(numbers) + 1))
+
+
+def detect_module_files(outline_files: list[Path]) -> list[Path]:
+    """Module files follow the ``module-NN-*`` (optionally ``NN-module-NN``) convention."""
+    pattern = re.compile(r"^(?:\d{2}-)?module-\d+")
+    return sorted(p for p in outline_files if pattern.match(p.stem))
+
+
+def count_module_headings(outline_text: str) -> int:
+    """Fallback for per-outline structure: count module headings in one outline doc."""
+    return len(
+        re.findall(r"^#{2,3}\s*(?:模块|module)\b", outline_text, flags=re.IGNORECASE | re.MULTILINE)
+    )
+
+
+def count_labs(labs_dir: Path) -> int:
+    if not labs_dir.exists() or not labs_dir.is_dir():
+        return 0
+    subdirs = [p for p in labs_dir.iterdir() if p.is_dir()]
+    top_level_docs = [p for p in labs_dir.glob("*.md") if p.is_file()]
+    return len(subdirs) + len(top_level_docs)
+
+
+def declared_total_hours(outline_text: str) -> float | None:
+    match = re.search(
+        r"(?:total_hours|总课时|总学时)\s*[:：]\s*(\d+(?:\.\d+)?)",
+        outline_text,
+        flags=re.IGNORECASE,
+    )
+    return float(match.group(1)) if match else None
+
+
+def range_violation(value: float, bounds: dict[str, object]) -> bool:
+    lo = bounds.get("min")
+    hi = bounds.get("max")
+    if isinstance(lo, (int, float)) and value < float(lo):
+        return True
+    if isinstance(hi, (int, float)) and value > float(hi):
+        return True
+    return False
+
+
+def section_marker_present(text: str, keywords: list[str]) -> bool:
+    kw = "|".join(re.escape(k) for k in keywords)
+    if re.search(rf"^\s*#{{1,6}}\s+.*(?:{kw})", text, flags=re.IGNORECASE | re.MULTILINE):
+        return True
+    return bool(
+        re.search(
+            rf"^\s*(?:\*\*|__)?\s*(?:{kw})\s*(?:\*\*|__)?\s*[:：]",
+            text,
+            flags=re.IGNORECASE | re.MULTILINE,
+        )
+    )
 
 
 def scan(root: Path) -> dict[str, object]:
@@ -296,7 +374,200 @@ def scan(root: Path) -> dict[str, object]:
                 )
             )
 
-    # 8) Release readiness + scoring
+    # 9) Outline constraints (driven by docs/00-project/course-type.yaml)
+    course_type_file = root / "docs/00-project/course-type.yaml"
+    if course_type_file.is_file():
+        type_match = re.search(
+            r"^\s*type\s*:\s*[\"']?([A-Za-z0-9_-]+)",
+            read_text(course_type_file),
+            flags=re.MULTILINE,
+        )
+        if type_match:
+            course_type = type_match.group(1)
+            preset_path = CONSTRAINTS_DIR / f"{course_type}.json"
+            constraints: dict[str, object] | None = None
+            if not preset_path.is_file():
+                issues.append(
+                    Issue(
+                        severity="minor",
+                        clazz="structural",
+                        file="docs/00-project/course-type.yaml",
+                        description=f'No outline-constraints preset found for course type "{course_type}".',
+                    )
+                )
+            else:
+                try:
+                    loaded = json.loads(read_text(preset_path))
+                    constraints = loaded if isinstance(loaded, dict) else None
+                except json.JSONDecodeError:
+                    constraints = None
+                if constraints is None:
+                    issues.append(
+                        Issue(
+                            severity="minor",
+                            clazz="structural",
+                            file=relpath(preset_path, root),
+                            description="Outline-constraints preset is not a valid JSON object.",
+                        )
+                    )
+            if constraints:
+                module_files = detect_module_files(outline_files)
+                module_count: int | None = None
+                if module_files:
+                    module_count = len(module_files)
+                elif outline_text:
+                    heading_count = count_module_headings(outline_text)
+                    if heading_count:
+                        module_count = heading_count
+
+                mc_bounds = constraints.get("module_count")
+                if (
+                    isinstance(mc_bounds, dict)
+                    and module_count is not None
+                    and range_violation(module_count, mc_bounds)
+                ):
+                    issues.append(
+                        Issue(
+                            severity="blocker",
+                            clazz="structural",
+                            file="docs/01-outline",
+                            description=(
+                                f"Module count {module_count} is outside the allowed range "
+                                f"[{mc_bounds.get('min')}, {mc_bounds.get('max')}] for course type "
+                                f'"{course_type}".'
+                            ),
+                        )
+                    )
+
+                lr_bounds = constraints.get("lab_ratio")
+                if isinstance(lr_bounds, dict) and module_count:
+                    ratio = count_labs(labs_dir) / module_count
+                    if range_violation(ratio, lr_bounds):
+                        issues.append(
+                            Issue(
+                                severity="major",
+                                clazz="pedagogical",
+                                file="docs/01-outline",
+                                description=(
+                                    f"Lab ratio {ratio:.2f} (labs/modules) is outside the allowed "
+                                    f"range [{lr_bounds.get('min')}, {lr_bounds.get('max')}] for "
+                                    f'course type "{course_type}".'
+                                ),
+                            )
+                        )
+
+                th_bounds = constraints.get("total_hours")
+                hours = declared_total_hours(outline_text)
+                if (
+                    isinstance(th_bounds, dict)
+                    and hours is not None
+                    and range_violation(hours, th_bounds)
+                ):
+                    issues.append(
+                        Issue(
+                            severity="minor",
+                            clazz="pedagogical",
+                            file="docs/01-outline",
+                            description=(
+                                f"Declared total hours {hours} is outside the allowed range "
+                                f"[{th_bounds.get('min')}, {th_bounds.get('max')}] for course type "
+                                f'"{course_type}".'
+                            ),
+                        )
+                    )
+
+                required_types = constraints.get("required_assessment_types")
+                if isinstance(required_types, list):
+                    for assessment_type in required_types:
+                        aliases = ASSESSMENT_ALIASES.get(
+                            str(assessment_type), [str(assessment_type)]
+                        )
+                        if not any(
+                            re.search(re.escape(a), outline_text, flags=re.IGNORECASE)
+                            for a in aliases
+                        ):
+                            issues.append(
+                                Issue(
+                                    severity="minor",
+                                    clazz="pedagogical",
+                                    file="docs/01-outline",
+                                    description=(
+                                        f'Outline does not declare required assessment type '
+                                        f'"{assessment_type}" for course type "{course_type}".'
+                                    ),
+                                )
+                            )
+
+                lessons_max = constraints.get("lessons_per_module_max")
+                if isinstance(lessons_max, int):
+                    for module_file in module_files:
+                        lesson_refs = len(
+                            re.findall(
+                                r"\blesson[-\s]?\d+|第\s*\d+\s*[课讲]",
+                                read_text(module_file),
+                                flags=re.IGNORECASE,
+                            )
+                        )
+                        if lesson_refs > lessons_max:
+                            issues.append(
+                                Issue(
+                                    severity="minor",
+                                    clazz="structural",
+                                    file=relpath(module_file, root),
+                                    description=(
+                                        f"Module references {lesson_refs} lessons, exceeding "
+                                        f"lessons_per_module_max {lessons_max} for course type "
+                                        f'"{course_type}".'
+                                    ),
+                                )
+                            )
+
+                first_type = constraints.get("first_module_type")
+                if isinstance(first_type, str) and module_files:
+                    first_module = module_files[0]
+                    haystack = (
+                        first_module.stem + "\n" + read_text(first_module)[:500]
+                    ).lower()
+                    aliases = FIRST_MODULE_TYPE_ALIASES.get(first_type.lower(), [first_type])
+                    if not any(a.lower() in haystack for a in aliases):
+                        issues.append(
+                            Issue(
+                                severity="minor",
+                                clazz="pedagogical",
+                                file=relpath(first_module, root),
+                                description=(
+                                    f'First module is expected to be of type "{first_type}" '
+                                    f'for course type "{course_type}".'
+                                ),
+                            )
+                        )
+
+    # 10) Lesson structure completeness (presence check only, NOT semantic quality)
+    for md in content_files:
+        text = read_text(md)
+        present = {
+            name
+            for name, keywords in LESSON_SECTION_MARKERS.items()
+            if section_marker_present(text, keywords)
+        }
+        if not present:
+            continue  # no marker structure at all: non-lesson asset, skip
+        missing = [name for name in LESSON_SECTION_MARKERS if name not in present]
+        if missing:
+            issues.append(
+                Issue(
+                    severity="major",
+                    clazz="structural",
+                    file=relpath(md, root),
+                    description=(
+                        "Lesson structure completeness: missing section markers: "
+                        + ", ".join(missing)
+                        + " (presence check only, not semantic quality)."
+                    ),
+                )
+            )
+
+    # 11) Release readiness + scoring
     deduction = {"blocker": 20, "major": 10, "minor": 3, "suggestion": 1}
     score = 100
     blockers = 0

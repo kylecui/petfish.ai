@@ -42,6 +42,21 @@ When reviewing existing content, look for:
 - excessive density
 - lack of learner checkpoints
 
+# Done-Checklist
+
+A lesson is NOT complete until every item holds:
+
+- [ ] Objective is measurable (action verb + observable behavior)
+- [ ] Prerequisites stated explicitly
+- [ ] At least one worked example
+- [ ] At least one misconception exposed
+- [ ] Exercises carry grading criteria
+- [ ] Summary ties back to the objective
+- [ ] Duration budget aligns with the outline allocation
+- [ ] Persisted to `docs/02-content` — **未写入 docs/02-content = 未完成** (not persisted = not done)
+
+`qa_scan.py` check #10 verifies the presence of the explicit section markers (objective / example / exercise / duration). It is a structure completeness check, not a semantic quality assessment — passing it does not prove the lesson teaches well.
+
 # Gotchas
 
 - Do not duplicate the outline file inside every chapter.
