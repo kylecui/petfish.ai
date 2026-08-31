@@ -826,32 +826,85 @@ def show_triggers(as_json: bool = False):
         print(f"{row['alias']}: {', '.join(row['triggers'])}")
 
 
+# F5: lightweight project-structure signals for /petfish suggest.
+# Pure file-presence checks (no content reads). (signal_key, paths, boosted aliases)
+PROJECT_SIGNALS: list[tuple[str, list[str], list[str]]] = [
+    ("python-project", ["pyproject.toml", "requirements.txt", "setup.py"], ["testdocs", "research"]),
+    ("node-project", ["package.json"], ["testdocs"]),
+    ("go-project", ["go.mod"], ["deploy"]),
+    ("rust-project", ["Cargo.toml"], ["deploy"]),
+    ("docker", ["Dockerfile", "docker-compose.yml", "compose.yaml"], ["deploy"]),
+    ("ci-workflows", [".github/workflows"], ["deploy", "testdocs"]),
+    ("course-workspace", ["docs/01-outline", "docs/03-labs"], ["course"]),
+    ("petfish-state", [".petfish"], ["context", "petfish"]),
+    ("research-workspace", ["research/00_brief", "research/01_sources"], ["research"]),
+    ("docs-project", ["docs"], ["petfish"]),
+    ("skills-dev", ["packs"], ["companion", "toolchain"]),
+]
+
+
+def _scan_project_signals(target: Path | None) -> list[str]:
+    """Best-effort project-structure signal scan (file presence only)."""
+    root = Path(target) if target else Path.cwd()
+    if not root.is_dir():
+        return []
+    hits: list[str] = []
+    for key, paths, _aliases in PROJECT_SIGNALS:
+        for p in paths:
+            if (root / p).exists():
+                hits.append(key)
+                break
+    return hits
+
+
+def _signal_weights(signals: list[str]) -> dict[str, int]:
+    weights: dict[str, int] = {}
+    for key, _paths, aliases in PROJECT_SIGNALS:
+        if key in signals:
+            for alias in aliases:
+                weights[alias] = weights.get(alias, 0) + 1
+    return weights
+
+
 def suggest_packs(as_json: bool = False, target: Path | None = None):
-    """Suggest known packs that are currently not installed."""
+    """Suggest packs not installed, ranked by lightweight project signals (F5)."""
     catalog = build_catalog(target)
     installed = _load_installed_registry(target)
+    signals = _scan_project_signals(target)
+    weights = _signal_weights(signals)
     suggestions = [
         {
             "alias": p["alias"],
             "pack": p["pack"],
             "install_scope": p["install_scope"],
             "description": p.get("description", ""),
+            "signal_weight": weights.get(p["alias"], 0),
         }
         for p in catalog
         if p["pack"] not in installed
     ]
+    suggestions.sort(key=lambda s: (-s["signal_weight"], s["alias"]))
 
     if as_json:
-        print(json.dumps(suggestions, ensure_ascii=False, indent=2))
+        print(
+            json.dumps(
+                {"project_signals": signals, "suggestions": suggestions},
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
         return
 
     if not suggestions:
         print("No suggestions. All known packs are already installed.")
         return
 
+    if signals:
+        print(f"Project signals: {', '.join(signals)}")
     print("Suggested packs:")
     for row in suggestions:
-        print(f"  {row['alias']} ({row['pack']})")
+        marker = f" [signal x{row['signal_weight']}]" if row["signal_weight"] else ""
+        print(f"  {row['alias']} ({row['pack']}){marker}")
 
 
 def show_counts(as_json: bool = False, target: Path | None = None):
