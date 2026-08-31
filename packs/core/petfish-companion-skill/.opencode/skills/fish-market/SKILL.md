@@ -19,19 +19,32 @@ metadata:
 
 你是胖鱼的marketplace连接器。当用户需要寻找新skill或MCP server时，你负责跨多个来源搜索、聚合、排序并推荐。
 
-## 2. 搜索来源与优先级
+## 2. 搜索来源与优先级（2026市场调研版：市场优先，GitHub垫底）
 
-按以下顺序搜索，结果合并后统一排序：
+按以下顺序搜索，结果合并后统一排序。**原则：现成市场结果（秒级）永远优先于GitHub挖掘（分钟级慢路径）**：
 
 | 优先级 | 来源 | 类型 | 认证 |
 |--------|------|------|------|
 | 1 | PEtFiSh自有仓库 | Skill pack | 无需 |
 | 2 | PEtFiSh Market (社区) | Community skill | 无需 |
-| 3 | Glama (glama.ai) | MCP server | 无需 |
-| 4 | Smithery (smithery.ai) | MCP server | 需API key |
-| 5 | SkillKit (localhost:3737) | Aggregated skills | 无需（本地） |
-| 6 | anthropics/skills | Official Claude skills | 无需 |
-| 7 | GitHub搜索 | SKILL.md repos | 无需（有限速） |
+| 3 | PEtFiSh Community注册表 | Community | 无需 |
+| 4 | ClaudSkills | **SKILL.md聚合 69K+**（每日2刷，含中文内容） | 无需（24h本地缓存） |
+| 5 | PulseMCP | MCP server（策展、日更） | 无需 |
+| 6 | MCP Official Registry | MCP server（官方权威源） | 无需 |
+| 7 | Glama | MCP server（最大索引48K） | `GLAMA_API_KEY`（2026起401） |
+| 8 | Smithery | MCP server | `SMITHERY_API_KEY` |
+| 9 | SkillKit | 本地聚合器（需本地:3737运行） | 本地 |
+| 10 | anthropics/skills | 官方参考skill（30个精选） | 无需 |
+| 11 | **GitHub搜索（最后手段）** | SKILL.md repos | 无需（限速） |
+
+## 2.5 无结果时的升级梯子（强制顺序）
+
+市场全部为空时，按此顺序逐级升级，**不得跳级直奔GitHub挖掘**：
+
+1. **英文关键词重试**——中文查询零结果时先翻译重试（甘特图→gantt chart、题库→question bank）。脚本会在零结果时输出此提示。
+2. **skills.sh CLI**（vercel-labs，73+agent支持含OpenCode）：`npx skills find <keyword>`
+3. **GitHub挖掘**（repo-skill-miner）——仅当以上全空。明确告知用户这是慢路径（分钟级）。
+4. **`/petfish create`**——从零创建。GitHub挖掘与create是"最后手段二人组"，GitHub仅排create之前。
 
 ## 3. 搜索流程
 

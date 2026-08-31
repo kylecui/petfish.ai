@@ -56,13 +56,16 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --search "<ke
 
 ### /petfish load <name|keyword> [--install]
 
-按需加载技能（skill-vault动态加载链，v3.3.0+）：
+按需加载技能（skill-vault动态加载链，v3.3.0+）。**发现路径按"市场优先、GitHub垫底"强制排序**：
 
-1. `<keyword>`时先跨市场搜索：`uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<keyword>" --json`
-2. 展示命中项供用户选择；`<name>`直达
-3. 经skill-vault MCP的`vault_stage(source)`入库（source=该skill的SKILL.md文件级raw URL或本地路径）
-4. `vault_fetch(name)`取正文，**本会话立即可用**
-5. `--install`时追加`vault_install(name)`持久化，提示重启后原生可用
+1. `<keyword>`时先查已装近似能力（零成本，若够用直接建议）
+2. **市场搜索**（11源按优先级：ClaudSkills/PulseMCP/官方Registry/Glama/Smithery…）：`uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<keyword>" --json`
+   - **中文零结果→英文关键词重试**（脚本会提示，例：甘特图→gantt chart）
+   - 仍无→`npx skills find <keyword>`（skills.sh，73+agent生态）
+3. **GitHub挖掘（最后手段，仅先于create）**：repo-skill-miner，明确告知用户是分钟级慢路径
+4. `/petfish create <name>`：从零创建
+
+命中后经skill-vault MCP的`vault_stage(source)`入库（source=该skill的SKILL.md文件级raw URL或本地路径）→`vault_fetch(name)`**本会话即用**→`--install`时`vault_install(name)`持久化（重启后原生可用）。
 
 无skill-vault MCP（未升级v3.3.0+）时降级为提示`/petfish install <pack>`常规安装。
 

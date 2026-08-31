@@ -63,11 +63,11 @@ Optional pack 的安装路由经过 petfish-market index.json；用户无需关�
 
 **触发时行为：**
 1. 推断用户需求最相关的英文关键词
-2. 主动运行 fish-market（即 /petfish search <关键词>）搜索跨市场skill和MCP server
+2. 主动运行 fish-market（即 /petfish search <关键词>）搜索跨市场skill和MCP server；**中文关键词零结果时必须用英文关键词重试一次再判定"找不到"**；仍无可试 `npx skills find <关键词>`（skills.sh生态）
 3. 根据搜索结果：
-   - **找到匹配skill** → 推荐安装并提供命令
+   - **找到匹配skill** → 推荐安装（优先经skill-vault按需加载：vault_stage→fetch本会话即用）
    - **找到相似但不完全匹配** → 展示结果，建议参考这些skill用 skill-author 手动创建
-   - **完全找不到** → 建议用 repo-skill-miner 从相关GitHub仓库挖掘，或用 skill-author 从零创建
+   - **完全找不到（含英文重试）** → 建议用 repo-skill-miner 从相关GitHub仓库挖掘（明确告知是慢路径/最后手段），或用 skill-author 从零创建。**GitHub挖掘仅排在create之前，不得先于市场搜索发生**
 
 **示例：**
 - "我想参加吐槽大会" → 触发 → 搜索 "roast comedy event planning"
