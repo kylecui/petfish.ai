@@ -502,7 +502,15 @@ def search_mcp_registry(query: str, limit: int) -> list[dict]:
                 "url": url,
             }
         )
-    return out[:limit]
+    # registry may return duplicate entries (weak q-filter) — dedupe by name+url
+    seen: set[str] = set()
+    deduped: list[dict] = []
+    for item in out:
+        key = f"{item['name']}|{item['url']}"
+        if key not in seen:
+            seen.add(key)
+            deduped.append(item)
+    return deduped[:limit]
 
 
 # ---------------------------------------------------------------------------
