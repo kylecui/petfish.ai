@@ -92,7 +92,15 @@ Replace `<PLATFORM>` with the detected platform (e.g. `opencode`, `claude`, `cod
 
 ## Step 3.5: Verify plugin and rules delivery (opencode only)
 
-The installer delivers two things this guide historically never verified. After Step 3, check both:
+**One-command visual check** — run this first; expect `10 PASS / 0 FAIL — 安装健康`:
+
+```bash
+uv run .opencode/skills/fish-brain/scripts/verify_install.py
+# 未升级也可用最新版体检任意项目:
+# uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/.opencode/skills/fish-brain/scripts/verify_install.py
+```
+
+Any FAIL line carries its own fix hint (usually re-run Step 3 with `--force`). The manual checks below remain as the fallback when the script is unavailable:
 
 1. **Plugin files** — `.opencode/plugin/` must contain:
 

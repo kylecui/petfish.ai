@@ -1,6 +1,6 @@
 {
   "name": "petfish-companion-skill",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "legacy_names": ["companion"],
   "description": "PEtFiSh Brain (鱼伴) — Sensing, routing, registry query, and marketplace search",
   "compatibility": "opencode",
@@ -20,6 +20,7 @@
   "contents": [
     "AGENTS.md",
     ".opencode/skills/fish-brain/SKILL.md",
+    ".opencode/skills/fish-brain/scripts/verify_install.py",
     ".opencode/skills/fish-brain/references/skill-catalog.md",
     ".opencode/skills/fish-brain/scripts/catalog_query.py",
     ".opencode/skills/fish-brain/scripts/check_installed.py",

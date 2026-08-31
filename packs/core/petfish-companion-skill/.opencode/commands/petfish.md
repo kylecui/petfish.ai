@@ -5,7 +5,7 @@ description: >
   跨市场搜索skill、创建新skill、验证skill质量、
   获取安装建议、检测当前平台。
   Trigger: /petfish [subcommand]
-  Subcommands: status, catalog, suggest, install <alias>, load <name|keyword>, detect, search <keyword>, create <name>, lint [path], mine <repo>, audit <path>, gate <path>, optimize <path>, eval <path>, stats
+  Subcommands: status, verify, catalog, suggest, install <alias>, load <name|keyword>, detect, search <keyword>, create <name>, lint [path], mine <repo>, audit <path>, gate <path>, optimize <path>, eval <path>, stats
 ---
 
 # /petfish — 胖鱼PEtFiSh Companion
@@ -21,6 +21,16 @@ description: >
 ```bash
 uv run .opencode/skills/petfish-companion/scripts/check_installed.py --target .
 ```
+
+### /petfish verify
+
+升级后可视化体检——10项检查表验证全部新能力是否真正参与运行（插件/注册/MCP/vault自检/网关版本/规则文件/索引质量/版本/新命令/course能力）：
+
+```bash
+uv run .opencode/skills/fish-brain/scripts/verify_install.py
+```
+
+期望`10 PASS / 0 FAIL — 安装健康`；任何FAIL附修复指引（通常重跑升级--force）。
 
 将输出格式化为状态卡片展示：
 - 当前检测到的平台
