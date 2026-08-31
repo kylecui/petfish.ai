@@ -1246,10 +1246,41 @@ def update_registry(
     registry["packs"][pack_name] = entry
 
 
-def _generate_skill_index(skills_dir: Path, target: Path):
+def _http_get_json(url: str, timeout: float = 10.0):
+    """Best-effort JSON GET; returns None on any failure."""
+    try:
+        req = Request(url, headers={"User-Agent": "petfish-installer/1.0"})
+        with urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+
+
+def _generate_skill_index(skills_dir: Path, target: Path, registry: dict | None = None):
     """Generate .opencode/skill-index.json from installed SKILL.md files.
-    Used by companion-gateway.ts for programmatic Skill Sense."""
-    index = {"generated_at": datetime.now(timezone.utc).isoformat(), "skill_count": 0, "skills": []}
+
+    Used by companion-gateway.ts for programmatic Skill Sense. Emits:
+    - skills[] (name/description/path + pack attribution from registry)
+    - domains map (from catalog_query TRIGGERS — single source; catalog_query
+      ships with the fish-brain skill in installed projects, best-effort)
+    - available_packs (best-effort market fetch, silent offline)
+    """
+    import importlib.util
+
+    index = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "skill_count": 0,
+        "skills": [],
+    }
+
+    # pack attribution: skill name -> pack name from the in-memory registry
+    attribution: dict[str, str] = {}
+    for pack_name, entry in ((registry or {}).get("packs") or {}).items():
+        if isinstance(entry, dict):
+            for s in entry.get("skills") or []:
+                if isinstance(s, str) and s:
+                    attribution[s] = pack_name
+
     for skill_dir in sorted(skills_dir.iterdir()):
         if not skill_dir.is_dir():
             continue
@@ -1269,12 +1300,64 @@ def _generate_skill_index(skills_dir: Path, target: Path):
         desc = fm.get("description", "")
         if not name:
             continue
-        index["skills"].append({"name": name, "description": desc, "path": str(skill_dir.relative_to(target))})
+        entry_out = {
+            "name": name,
+            "description": desc,
+            "path": str(skill_dir.relative_to(target)),
+        }
+        if name in attribution:
+            entry_out["pack"] = attribution[name]
+        index["skills"].append(entry_out)
     index["skill_count"] = len(index["skills"])
+
+    # domains map from catalog_query (shipped in fish-brain skill)
+    domains: dict = {}
+    catalog_path = skills_dir / "fish-brain" / "scripts" / "catalog_query.py"
+    try:
+        if catalog_path.is_file():
+            spec = importlib.util.spec_from_file_location("petfish_catalog_query", catalog_path)
+            if spec and spec.loader:
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+                alias_map = getattr(mod, "ALIAS_MAP", {}) or {}
+                for alias, keywords in (getattr(mod, "TRIGGERS", {}) or {}).items():
+                    domains[alias] = {
+                        "keywords": list(keywords),
+                        "pack": alias_map.get(alias, alias),
+                    }
+    except Exception:
+        pass
+    if domains:
+        index["domains"] = domains
+
+    # available_packs: best-effort market fetch (silent offline)
+    market_packs: list = []
+    try:
+        market_index = _http_get_json(
+            "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json", timeout=5
+        )
+        if isinstance(market_index, dict):
+            for p in market_index.get("packs", []) or []:
+                if isinstance(p, dict):
+                    market_packs.append(
+                        {
+                            "name": p.get("name", ""),
+                            "alias": (p.get("alias") or [None])[0],
+                            "description": p.get("description", ""),
+                            "version": p.get("version", ""),
+                            "skill_count": p.get("skill_count", 0),
+                            "source": "market",
+                        }
+                    )
+    except Exception:
+        pass
+    if market_packs:
+        index["available_packs"] = {"market": market_packs, "community": []}
+
     index_path = target / ".opencode" / "skill-index.json"
     index_path.parent.mkdir(parents=True, exist_ok=True)
     index_path.write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
-    log_success(f"skill-index.json ({index['skill_count']} skills)")
+    log_success(f"skill-index.json ({index['skill_count']} skills, {len(domains)} domains)")
 
 
 # ---------------------------------------------------------------------------
@@ -3124,7 +3207,7 @@ def main():
         skills_dir_path = plat_dirs.get("skills_dir")
         if skills_dir_path and Path(skills_dir_path).is_dir():
             try:
-                _generate_skill_index(Path(skills_dir_path), target)
+                _generate_skill_index(Path(skills_dir_path), target, registry)
             except Exception:
                 pass  # best-effort, don't fail install
 
