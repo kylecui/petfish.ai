@@ -6,6 +6,8 @@ MUST pass before `gh release create`. Checks:
 2. All packs install to a clean temp directory
 3. Contract validators pass in INSTALLED context (not source repo)
 4. Market index refs point to the latest tag
+5. agents-rules copies in sync (repo root vs pack dirs)
+6. Pack content drift requires pack-manifest version bump
 
 Usage: uv run python scripts/pre_release_check.py [--tag vX.Y.Z]
 Exit: 0 = all checks pass, 1 = BLOCKED (fix before release)
@@ -178,6 +180,61 @@ def check_agents_rules_sync():
         print("  PASS: all agents-rules copies in sync")
 
 
+def check_pack_version_drift():
+    """6. Pack content changed since latest tag => pack-manifest version must bump.
+
+    Guards against silent content updates (the companion pack stayed at 1.3.0
+    from 2026-06-18 through v3.x while gaining companion-gateway.ts), which
+    make non-forced upgrades and check-updates blind.
+    """
+    print("[6/6] Checking pack version drift (content change requires version bump)...")
+    r = run(["git", "describe", "--abbrev=0", "--tags"], check=False)
+    latest_tag = r.stdout.strip()
+    if r.returncode != 0 or not latest_tag:
+        print("  SKIP: no previous tag found")
+        return
+
+    flagged = []
+    for packs_root in (REPO_ROOT / "packs" / "core", REPO_ROOT / "packs" / "optional"):
+        if not packs_root.is_dir():
+            continue
+        for pack_dir in sorted(packs_root.iterdir()):
+            if not pack_dir.is_dir():
+                continue
+            manifest = pack_dir / "pack-manifest.json"
+            if not manifest.is_file():
+                continue
+            diff = run(
+                ["git", "diff", "--name-only", latest_tag, "--", str(pack_dir)],
+                check=False,
+            )
+            if not diff.stdout.strip():
+                continue
+            rel = manifest.relative_to(REPO_ROOT).as_posix()
+            show = run(["git", "show", f"{latest_tag}:{rel}"], check=False)
+            if show.returncode != 0:
+                continue  # pack is new since tag
+            try:
+                ver_tag = json.loads(show.stdout).get("version")
+                ver_now = json.loads(manifest.read_text(encoding="utf-8")).get("version")
+            except (json.JSONDecodeError, OSError):
+                continue
+            if ver_now == ver_tag:
+                flagged.append(
+                    f"{pack_dir.name}: content changed since {latest_tag} but version still {ver_now}"
+                )
+
+    if flagged:
+        for f in flagged:
+            failures.append(f"Version drift: {f}")
+        print(f"  FAIL: {len(flagged)} pack(s) need a version bump:")
+        for f in flagged:
+            print(f"    └─ {f}")
+        print('  Fix: bump "version" in the pack\'s pack-manifest.json (semver)')
+    else:
+        print("  PASS: no version drift")
+
+
 def main():
     print("=" * 60)
     print("PRE-RELEASE VERIFICATION GATE")
@@ -195,6 +252,8 @@ def main():
     check_market_refs()
     print()
     check_agents_rules_sync()
+    print()
+    check_pack_version_drift()
 
     print()
     print("=" * 60)

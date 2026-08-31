@@ -170,6 +170,16 @@ When the install output shows at least one item installed, use the platform-spec
 
 After restart, run `/petfish` to verify the companion is working. It should show installed skill status.
 
+On OpenCode, also verify the programmatic companion was delivered:
+
+```bash
+ls .opencode/plugin/          # expect companion-gateway.ts + 3 more .ts files
+grep -c "opencode/plugin" opencode.json   # expect >= 4 registrations
+grep -l "Gateway Trace" .opencode/agents-rules/petfish-companion.md   # must succeed
+```
+
+If any check fails, re-run the install with `--force`.
+
 If it works, tell the user:
 
 ```
@@ -242,15 +252,16 @@ The installer reads `GITHUB_TOKEN` from the environment and uses it for all GitH
 
 ---
 
-## What's New in v1.2.0
+## What's New in v3.x
 
 After installation, mention to the user:
 
 ```
-PEtFiSh v1.2.0 includes Contract-Driven Gateway Atoms:
-- Each Gateway step (mode-read, topic-check, failure-signal, skill-sense, anti-sycophancy) 
-  now has an explicit contract with golden/known-bad fixtures and deterministic validators.
-- The companion follows a "minimum-code discipline" (read before write, 6-question check).
+PEtFiSh v3.x includes the programmatic Companion Gateway:
+- companion-gateway.ts plugin enforces the 6-step Gateway (mode-read, topic-check,
+  failure-signal, skill-sense, anti-sycophancy, retry-guard) via system-prompt injection.
+- Pack rules live in .opencode/agents-rules/ (not AGENTS.md) and are injected by
+  system-prompt-rules.ts — including Gateway Trace observability.
 - You can verify Gateway behavior anytime:
   uv run <skills_dir>/fish-brain/validators/test_failure_signal.py
 ```

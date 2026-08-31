@@ -1,6 +1,6 @@
 {
   "name": "petfish-companion-skill",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "legacy_names": ["companion"],
   "description": "PEtFiSh Brain (鱼伴) — Sensing, routing, registry query, and marketplace search",
   "compatibility": "opencode",
@@ -29,6 +29,7 @@
     ".opencode/skills/fish-market/scripts/marketplace_search.py",
     ".opencode/commands/petfish.md",
     ".opencode/mcp/skill-registry/server.py",
-    ".opencode/mcp/usage-cost/server.py"
+    ".opencode/mcp/usage-cost/server.py",
+    ".opencode/plugin/companion-gateway.ts"
   ]
 }

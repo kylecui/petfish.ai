@@ -1419,7 +1419,7 @@ L1_PACK_MAP: dict[str, str] = {
     "repo-deploy-ops-skill-pack": "deploy-ops.md",
     "petfish-style-skill": "petfish-style.md",
     "petfish-companion-skill": "petfish-companion.md",
-    "petfish-toolchain-skill": "petfish-companion.md",  # shares same rules file
+    "petfish-toolchain-skill": "petfish-toolchain.md",
     "judgment-calibration-pack": "anti-sycophancy.md",
     "fish-trail": "fish-trail.md",
     "research-skill-pack": "research.md",
@@ -1581,9 +1581,14 @@ def install_plugin_files(source_root: Path, target: Path):
 
 
 def register_plugin_in_config(config_file: Path):
-    """Register plugin tuples in opencode.json (idempotent)."""
+    """Register plugin tuples in opencode.json (idempotent).
+
+    Creates a minimal config if the project has no opencode.json yet, so
+    plugin registration is never silently skipped (L1 delivery chain fix).
+    """
     if not config_file.is_file():
-        return
+        config_file.parent.mkdir(parents=True, exist_ok=True)
+        config_file.write_text('{\n  "plugin": []\n}\n', encoding="utf-8")
 
     with open(config_file, "r", encoding="utf-8") as f:
         data = json.load(f)

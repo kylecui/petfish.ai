@@ -741,6 +741,7 @@ before proceeding. Use the Read tool on the listed path.
 | Deployment & Ops | deploy, Docker, 部署, 回滚, 运维 | `.opencode/agents-rules/deploy-ops.md` |
 | Writing style | 润色, 说人话, 去AI味, 风格 | `.opencode/agents-rules/petfish-style.md` |
 | PEtFiSh companion | /petfish, skill创建, skill搜索 | `.opencode/agents-rules/petfish-companion.md` |
+| Skill Toolchain | lint skill, quality gate, publish, skill生命周期 | `.opencode/agents-rules/petfish-toolchain.md` |
 | Review/Calibration | 评审, review, critique, calibration | `.opencode/agents-rules/anti-sycophancy.md` |
 | Topic governance | 话题治理, topic管理, 上下文污染 | `.opencode/agents-rules/fish-trail.md` |
 | Research | 研究, 调研, 文献, evidence, 综述 | `.opencode/agents-rules/research.md` |
