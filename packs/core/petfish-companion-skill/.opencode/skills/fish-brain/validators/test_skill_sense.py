@@ -8,7 +8,7 @@ from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SKILL_ROOT / "scripts"))
-from gateway_classifiers import classify_skill_sense as classify  # noqa: E402
+from gateway_classifiers import classify_skill_sense as classify, domains_from_index  # noqa: E402
 
 FIXTURES = json.loads((SKILL_ROOT / "fixtures" / "step2-skill-sense" / "fixtures.json").read_text(encoding="utf-8"))
 failures = []
@@ -42,6 +42,22 @@ kb = FIXTURES["known_bad_invalid_skill"]
 TRIGGERS_KEYS = {"deploy", "course", "petfish", "ppt", "testdocs", "calibrate", "research", "context", "trust"}
 check(f"{kb['id']} skill='cloud' not in TRIGGERS keys",
       kb["bad_output"]["predicted_skill"] not in TRIGGERS_KEYS)
+
+print("\n[index-format] domains_from_index new format (domains map):")
+new_fmt = {"domains": {"research": {"keywords": ["研究", "research"], "pack": "research-skill-pack"}}}
+got = domains_from_index(new_fmt)
+check("new-format domains extracted", got == {"research": ["研究", "research"]}, f"got {got}")
+
+print("\n[index-format] legacy per-skill domain aggregation:")
+legacy_fmt = {"skills": [{"name": "a", "domain": "deploy", "triggers": ["部署"]},
+                         {"name": "b", "domain": "deploy", "triggers": ["docker"]}]}
+got = domains_from_index(legacy_fmt)
+check("legacy aggregation groups by domain", got == {"deploy": ["部署", "docker"]}, f"got {got}")
+
+print("\n[index-format] old format (no domains, no per-skill domain) degrades:")
+old_fmt = {"skills": [{"name": "a", "triggers": ["研究"]}]}
+got = domains_from_index(old_fmt)
+check("old format returns empty (silent degradation)", got == {}, f"got {got}")
 
 print()
 if failures:
