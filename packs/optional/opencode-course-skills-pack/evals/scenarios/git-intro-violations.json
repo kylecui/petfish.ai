@@ -1,0 +1,18 @@
+{
+  "id": "git-intro-violations",
+  "course_type": "standard-training",
+  "brief": "git-intro-standard 的破坏版场景：模块数 15 超上限、实验配比为 0、lesson 缺 3 个结构标记、模块 15 无目标。用于验证评测链路对违规课程的必挂行为。",
+  "golden": "golden/git-intro-violations",
+  "expect": "fail",
+  "expected_constraints": {
+    "module_count": { "min": 2, "max": 12 },
+    "total_hours": { "min": 4, "max": 48 },
+    "lab_ratio": { "min": 0.2, "max": 0.6 },
+    "required_assessment_types": ["quiz", "assignment"]
+  },
+  "pedagogy_rules": [
+    { "id": "module-objectives", "description": "每模块有目标" },
+    { "id": "first-module-introduction", "description": "首模块导论" },
+    { "id": "lab-ratio-in-range", "description": "实验配比在约束区间内" }
+  ]
+}

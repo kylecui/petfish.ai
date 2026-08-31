@@ -1,0 +1,18 @@
+{
+  "id": "git-intro-standard-strict",
+  "course_type": "standard-training",
+  "brief": "在 Git 入门golden课程基础上施加更严格的期望约束（恰好 3 模块、10-14 课时），验证 runner 约束校验的灵敏度：合规课程在收紧但仍合理的约束下仍须通过。",
+  "golden": "golden/git-intro-standard",
+  "expect": "pass",
+  "expected_constraints": {
+    "module_count": { "min": 3, "max": 3 },
+    "total_hours": { "min": 10, "max": 14 },
+    "lab_ratio": { "min": 0.3, "max": 0.4 },
+    "required_assessment_types": ["quiz", "assignment"]
+  },
+  "pedagogy_rules": [
+    { "id": "module-objectives", "description": "每模块有目标" },
+    { "id": "first-module-introduction", "description": "首模块导论" },
+    { "id": "lab-ratio-in-range", "description": "实验配比在约束区间内" }
+  ]
+}
