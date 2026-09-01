@@ -1,11 +1,12 @@
 ---
 name: fish-market
 description: >
-  Search/discover skills and MCP servers across PEtFiSh, PEtFiSh Market (community),
-  Glama, Smithery, SkillKit, anthropics/skills, and GitHub. Use for /petfish search, “find a
-  skill for…”, “search marketplace”, “is there a skill that…”, “MCP server
-  for…”, “discover tools for…”, or when local capabilities are missing. Returns
-  ranked cross-source results plus install/config guidance.
+  Search/discover skills and MCP servers across 13 sources — PEtFiSh (own/market/community),
+  ClaudSkills, skills.sh (Vercel), ClawHub (OpenClaw), PulseMCP, MCP Official Registry,
+  Glama, Smithery, SkillKit, anthropics/skills, GitHub (last resort). Use for /petfish search,
+  "find a skill for…", "search marketplace", "is there a skill that…", "MCP server
+  for…", "discover tools for…", or when local capabilities are missing. Returns
+  ranked cross-source results plus install/config guidance. 市场优先于GitHub挖掘。
 metadata:
   author: petfish-team
   version: 0.2.0
@@ -29,13 +30,15 @@ metadata:
 | 2 | PEtFiSh Market (社区) | Community skill | 无需 |
 | 3 | PEtFiSh Community注册表 | Community | 无需 |
 | 4 | ClaudSkills | **SKILL.md聚合 69K+**（每日2刷，含中文内容） | 无需（24h本地缓存） |
-| 5 | PulseMCP | MCP server（策展、日更） | 无需 |
-| 6 | MCP Official Registry | MCP server（官方权威源） | 无需 |
-| 7 | Glama | MCP server（最大索引48K） | `GLAMA_API_KEY`（2026起401） |
-| 8 | Smithery | MCP server | `SMITHERY_API_KEY` |
-| 9 | SkillKit | 本地聚合器（需本地:3737运行） | 本地 |
-| 10 | anthropics/skills | 官方参考skill（30个精选） | 无需 |
-| 11 | **GitHub搜索（最后手段）** | SKILL.md repos | 无需（限速） |
+| 5 | **skills.sh (Vercel)** | **npm式skill注册表**（安装量排序，`/api/search`公开API） | 无需 |
+| 6 | **ClawHub (OpenClaw官方)** | **skill注册表 10.7K+**（文档化API，含中文skill） | 无需（3000/min） |
+| 7 | PulseMCP | MCP server（策展、日更） | 无需 |
+| 8 | MCP Official Registry | MCP server（官方权威源） | 无需 |
+| 9 | Glama | MCP server（最大索引48K） | `GLAMA_API_KEY`（2026起401） |
+| 10 | Smithery | MCP server | `SMITHERY_API_KEY` |
+| 11 | SkillKit | 本地聚合器（需本地:3737运行） | 本地 |
+| 12 | anthropics/skills | 官方参考skill（30个精选） | 无需 |
+| 13 | **GitHub搜索（最后手段）** | SKILL.md repos | 无需（限速） |
 
 ## 2.5 无结果时的升级梯子（强制顺序）
 

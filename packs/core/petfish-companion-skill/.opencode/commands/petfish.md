@@ -59,7 +59,7 @@ uv run .opencode/skills/petfish-companion/scripts/catalog_query.py --search "<ke
 按需加载技能（skill-vault动态加载链，v3.3.0+）。**发现路径按"市场优先、GitHub垫底"强制排序**：
 
 1. `<keyword>`时先查已装近似能力（零成本，若够用直接建议）
-2. **市场搜索**（11源按优先级：ClaudSkills/PulseMCP/官方Registry/Glama/Smithery…）：`uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<keyword>" --json`
+2. **市场搜索**（13源按优先级：ClaudSkills/skills.sh/ClawHub/PulseMCP/官方Registry/Glama/Smithery…）：`uv run .opencode/skills/fish-market/scripts/marketplace_search.py --query "<keyword>" --json`
    - **中文零结果→英文关键词重试**（脚本会提示，例：甘特图→gantt chart）
    - 仍无→`npx skills find <keyword>`（skills.sh，73+agent生态）
 3. **GitHub挖掘（最后手段，仅先于create）**：repo-skill-miner，明确告知用户是分钟级慢路径

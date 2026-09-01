@@ -450,6 +450,67 @@ def search_claudskills(query: str, limit: int) -> list[dict]:
     return out
 
 
+def search_skills_sh(query: str, limit: int) -> list[dict]:
+    """skills.sh (Vercel Skills registry — npm-style, 73+ agents incl. OpenCode).
+
+    Live-verified public API: GET /api/search?q=<kw>&limit=<n> returns
+    {"skills": [{id: "owner/repo/skill", name, installs, source}]}.
+    Install counts give ranking signal; canonical install is the skills CLI.
+    """
+    data = _http_get(f"https://skills.sh/api/search?q={quote(query)}&limit={limit}")
+    if not isinstance(data, dict):
+        return []
+    items = data.get("skills") or []
+    out: list[dict] = []
+    for it in items if isinstance(items, list) else []:
+        if not isinstance(it, dict):
+            continue
+        sid = str(it.get("id") or "")
+        out.append(
+            {
+                "name": str(it.get("name") or it.get("skillId") or "?"),
+                "description": f"from {it.get('source', '?')} — {it.get('installs', 0)} installs",
+                "type": "skill",
+                "source": "skills-sh",
+                "use_count": it.get("installs"),
+                "url": f"https://skills.sh/{sid}" if sid else "",
+                "install": f"npx skills add {sid}" if sid else "",
+            }
+        )
+    return out[:limit]
+
+
+def search_clawhub(query: str, limit: int) -> list[dict]:
+    """ClawHub (OpenClaw official skill registry, 10.7K+ skills, 2026).
+
+    Documented public API (docs/api.md + docs/http-api.md): GET /api/v1/search,
+    no auth for reads, 3000 req/min per IP, 429 carries Retry-After.
+    Rich fields: displayName/summary/install.reference/metrics/trust.
+    """
+    data = _http_get(f"https://clawhub.ai/api/v1/search?q={quote(query)}&limit={limit}")
+    if not isinstance(data, dict):
+        return []
+    items = data.get("results") or []
+    out: list[dict] = []
+    for it in items if isinstance(items, list) else []:
+        if not isinstance(it, dict):
+            continue
+        install = it.get("install") if isinstance(it.get("install"), dict) else {}
+        owner = str(it.get("ownerHandle") or "")
+        slug = str(it.get("slug") or "")
+        out.append(
+            {
+                "name": str(it.get("displayName") or slug or "?"),
+                "description": str(it.get("summary") or "")[:200],
+                "type": "skill",
+                "source": "clawhub",
+                "url": f"https://clawhub.ai/{owner}/skills/{slug}" if owner and slug else "",
+                "install": str(install.get("reference") or ""),
+            }
+        )
+    return out[:limit]
+
+
 def search_pulsemcp(query: str, limit: int) -> list[dict]:
     """PulseMCP (curated MCP registry, daily updates; one of the two default
     names builders reach for per 2026 community research)."""
@@ -525,6 +586,8 @@ ALL_SOURCES = {
     "petfish-market": search_petfish_market,
     "community": search_community_registry,
     "claudskills": search_claudskills,
+    "skills-sh": search_skills_sh,
+    "clawhub": search_clawhub,
     "pulsemcp": search_pulsemcp,
     "mcp-registry": search_mcp_registry,
     "glama": search_glama,
@@ -539,6 +602,8 @@ SOURCE_LABELS = {
     "community": "🐟 PEtFiSh Community (注册表)",
     "petfish-market": "🐟 PEtFiSh Market (社区)",
     "claudskills": "📚 ClaudSkills (SKILL聚合 69K+)",
+    "skills-sh": "⚡ skills.sh (Vercel, npm式)",
+    "clawhub": "🦞 ClawHub (OpenClaw官方注册表 10.7K+)",
     "pulsemcp": "🌐 PulseMCP (MCP)",
     "mcp-registry": "🏛️ MCP Official Registry",
     "glama": "🌐 Glama (MCP)",
