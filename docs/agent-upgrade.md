@@ -298,6 +298,7 @@ For very old installations (pre-v0.4, no context-router at all), Steps 4-7 can b
 - **Plugin files missing after upgrade**: The installer deploys `lib/plugin/*.ts` on every L1 pack install (project scope, opencode platform). If `.opencode/plugin/` is missing files, re-run Step 3 with `--force`. Note: remote installs before 2026-07-06 silently skipped ALL plugins (#267) — always upgrade with the current `install.py`.
 - **No "Gateway Trace" in `.opencode/agents-rules/petfish-companion.md`**: Upgrades between 2026-06-18 and the v3.x fix overwrote this file with toolchain rules (L1 filename collision: both packs mapped to `petfish-companion.md`). Re-run Step 3 with `--force` to restore companion rules and create the separate `petfish-toolchain.md`.
 - **opencode.json lost custom plugin entries**: `--force` upgrades deep-merge pack example configs and may replace the `plugin` array wholesale; re-add your own plugin entries manually afterwards.
+- **升级会覆盖插件文件的手工本地修改**: `--force` 重装会用 pack 内版本覆盖 `.opencode/plugin/*.ts`（含你在本地手工打的补丁）。本地修复请在升级后重新应用，或提 issue 促使修复进 pack 主线。
 
 ---
 

@@ -490,7 +490,7 @@ const plugin: Plugin = async ({ directory }, options) => {
           `**Web-Grounding**: For library/framework/API questions, use context7 or web-search-prime BEFORE answering from training data. Cite sources for factual claims.\n`
         )
 
-        output.system += sections.join("")
+        output.system.push(sections.join(""))
       } catch {
         // Graceful degradation — never break the session
       }
