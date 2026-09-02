@@ -235,6 +235,55 @@ def check_pack_version_drift():
         print("  PASS: no version drift")
 
 
+def check_plugin_contracts():
+    """7. Plugin trigger-hook output contracts: mutate, never rebind.
+
+    opencode passes SHARED output objects through registered hooks in order.
+    Reassigning output fields (array += string poisons every later hook's
+    .push; P0 incident 2026-09-02). Allowed: .push()/mutation + documented
+    settable fields (output.prompt in experimental.session.compacting).
+    """
+    print("[7/7] Checking plugin output-rebinding contracts...")
+    import re as _re
+
+    plugin_files = list((REPO_ROOT / "lib" / "plugin").glob("*.ts"))
+    for packs_root in (REPO_ROOT / "packs" / "core", REPO_ROOT / "packs" / "optional"):
+        if packs_root.is_dir():
+            plugin_files += packs_root.rglob(".opencode/plugin/*.ts")
+    # dedupe by resolved path
+    seen = set()
+    uniq = []
+    for f in plugin_files:
+        r = f.resolve()
+        if r not in seen:
+            seen.add(r)
+            uniq.append(f)
+    plugin_files = uniq
+
+    # forbidden: output.<field> = / += where field is a shared hook output
+    # (system/args/env/context). Allow .push / .<prop> mutation.
+    bad = _re.compile(r"output\.(system|args|env|context)(\s*\+?=)")
+    offenders = []
+    for f in plugin_files:
+        try:
+            text = f.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for i, line in enumerate(text.split("\n"), 1):
+            if bad.search(line):
+                offenders.append(f"{f.relative_to(REPO_ROOT)}:{i}: {line.strip()}")
+
+    if offenders:
+        for o in offenders:
+            failures.append(f"Plugin contract violation: {o}")
+        print(f"  FAIL: {len(offenders)} rebinding violation(s):")
+        for o in offenders:
+            print(f"    └─ {o}")
+        print("  Fix: use output.<field>.push(...) — never reassign shared hook outputs")
+    else:
+        print(f"  PASS: {len(plugin_files)} plugin file(s), no output rebinding")
+
+
 def main():
     print("=" * 60)
     print("PRE-RELEASE VERIFICATION GATE")
@@ -254,6 +303,8 @@ def main():
     check_agents_rules_sync()
     print()
     check_pack_version_drift()
+    print()
+    check_plugin_contracts()
 
     print()
     print("=" * 60)
