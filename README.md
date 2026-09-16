@@ -355,17 +355,17 @@ petfish.ai/
 │       ├── research-skill-pack/                  # research
 │       └── fish-reflection-pack/                 # reflect
 ├── platforms.json                                # platform registry
-├── install.py                                    # unified Python installer (PEP 723)
-├── install.ps1                                   # local PowerShell installer (legacy)
-├── install.sh                                    # local shell installer (legacy)
-├── remote-install.ps1                            # remote PowerShell installer (legacy)
-├── remote-install.sh                             # remote shell installer (legacy)
+├── install.py                                    # unified Python installer (PEP 723) — the sole installer
 └── README.md
 ```
 
 ---
 
 ## Version History
+
+### v3.4 — Market + Gateway Hardening
+
+- **v3.4.9**: fish-trail topic plugins are now **opt-in and scoped to the `context` pack**. Topic context injection and message filtering no longer install for projects that only add another L1 pack, and both register with `"enabled": false`. The topic-aware compaction plugin was shelved (no measurable production improvement). Also corrected public copy that still advertised the shipped compaction plugin, replaced commands for the installers deleted in v3.0, and repaired a pre-existing syntax error in the pack copy of `system-prompt-context-inject.ts`.
 
 ### v3.2 — Flexible Skills Management + Role-Based Profiles
 

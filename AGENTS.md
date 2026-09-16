@@ -42,7 +42,7 @@ rigor: false          # true | false (forced true when depth=thorough)
 
 ### Step 1: Topic Check（话题归属）
 
-Topic context由 `system-prompt-context-inject` 插件自动注入到system prompt的cached prefix中。每轮交互时，从注入的 `## Active Topic Context` 块读取当前话题状态，无需调用MCP工具。
+Topic context由 `system-prompt-context-inject` 插件注入到system prompt的cached prefix中（**v3.1 起默认关闭，需在 `opencode.json` 插件 tuple 中显式设置 `"enabled": true` 才启用**）。插件启用时，每轮交互从注入的 `## Active Topic Context` 块读取当前话题状态，无需调用MCP工具；插件关闭时（默认），应在需要话题状态时**按需调用** MCP 工具（`topic_list` / `topic_show` / `get_memory_context`），不得假设上下文已被注入。
 
 根据注入的topic context判断：
 

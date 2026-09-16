@@ -154,12 +154,9 @@
     <h2><span class="copy-zh">30秒装上</span><span class="copy-en">30-second install</span></h2>
 
     <pre>
-# macOS / Linux / WSL
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack init,companion --detect
-
-# Windows PowerShell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack "init,companion" -Detect</pre>
+# macOS / Linux / Windows / WSL (uv is required)
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py \
+  --pack init,companion --detect</pre>
 
     <p><span class="copy-zh">装完输入<code>/initproject</code>。胖鱼问你项目类型，帮你装好匹配的能力包。从这一刻起，它就在了。</span><span class="copy-en">After install, type <code>/initproject</code>. PEtFiSh asks your project type, installs matching packs. From this moment, it's there.</span></p>
 
