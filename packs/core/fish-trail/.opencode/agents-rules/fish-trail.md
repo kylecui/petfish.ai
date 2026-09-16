@@ -20,7 +20,12 @@
 
 ### 机制
 
-Topic context由 `system-prompt-context-inject` 插件自动注入到system prompt的cached prefix中。**你无需也不应在每轮交互中调用 `topic_detect` 或 `get_memory_context`**——插件已处理。
+Topic context由 `system-prompt-context-inject` 插件注入到system prompt的cached prefix中。**该插件自 v3.1 起默认关闭（opt-in）**——需在 `opencode.json` 的插件 tuple 中显式设置 `"enabled": true` 才会生效。
+
+- **插件开启时**：**你无需也不应在每轮交互中调用 `topic_detect` 或 `get_memory_context`**——插件已处理。
+- **插件关闭时（默认）**：topic context 不再自动注入。此时**应当**在需要话题上下文时按需调用 MCP 工具（`topic_list` / `topic_show` / `get_memory_context`），不得假设上下文已被注入。
+
+同步地，`topic-context-filter`（消息级过滤与归档）与 `fish-trail-compaction`（压缩提示词替换）自 v3.1 起亦默认关闭；前者两次触发 P0（数据丢失、workspace 崩溃），后者实测无正向收益。三者均为 opt-in。
 
 ### 3-Block注入结构（#164+#166+#167）
 

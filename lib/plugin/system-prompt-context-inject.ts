@@ -955,6 +955,10 @@ class TopicDetector {
 const FISH_TRAIL_DIR = ".petfish/fish-trail"
 
 interface PluginOptions {
+  // v3.1: master switch for topic-context injection. Default OFF — injection is
+  // opt-in. Read from opencode.json because OpenCode does not deliver plugin
+  // options at runtime (#158).
+  enabled?: boolean
   maxTopics?: number
   maxSummaryLen?: number
   // "disk" (default): reads previous turn's topic state from disk. Zero overhead, one-turn delay.
@@ -1686,6 +1690,7 @@ let _debugEnabled = false
 
 async function resolvePluginOptions(directory: string, fnOptions: unknown): Promise<Required<PluginOptions>> {
   const defaults: Required<PluginOptions> = {
+    enabled: false,
     maxTopics: 5,
     maxSummaryLen: 200,
     detectionMode: "disk",
@@ -1701,6 +1706,7 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
     const rawMode = raw.detectionMode as string | undefined
     const rawCompress = raw.compressionLevel as string | undefined
     return {
+      enabled: raw.enabled === true,
       maxTopics: (raw.maxTopics as number) ?? defaults.maxTopics,
       maxSummaryLen: (raw.maxSummaryLen as number) ?? defaults.maxSummaryLen,
       detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
@@ -1727,6 +1733,7 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
             const rawMode = opts.detectionMode as string | undefined
             const rawCompress = opts.compressionLevel as string | undefined
             return {
+              enabled: opts.enabled === true,
               maxTopics: (opts.maxTopics as number) ?? defaults.maxTopics,
               maxSummaryLen: (opts.maxSummaryLen as number) ?? defaults.maxSummaryLen,
               detectionMode: rawMode === "realtime" || rawMode === "experimental.realtime" ? "realtime" : "disk",
@@ -1756,6 +1763,13 @@ async function resolvePluginOptions(directory: string, fnOptions: unknown): Prom
 const plugin: Plugin = async ({ directory, client, serverUrl }, options) => {
   // Resolve options with full fallback chain (#158)
   const pluginOptsPromise = resolvePluginOptions(directory, options)
+
+  // v3.1: master switch — default OFF. When disabled, return an inert plugin so
+  // OpenCode still registers the module but no topic blocks are injected.
+  const _resolvedOpts = await pluginOptsPromise
+  if (!_resolvedOpts.enabled) {
+    return { name: "system-prompt-context-inject" }
+  }
 
   return {
     name: "system-prompt-context-inject",

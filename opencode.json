@@ -28,6 +28,7 @@
     [
       ".opencode/plugin/system-prompt-context-inject.ts",
       {
+        "enabled": false,
         "maxTopics": 5,
         "maxSummaryLen": 200,
         "detectionMode": "disk",
@@ -37,7 +38,7 @@
     [
       ".opencode/plugin/topic-context-filter.ts",
       {
-        "enabled": true,
+        "enabled": false,
         "safetyWindow": 5,
         "minMessages": 15
       }

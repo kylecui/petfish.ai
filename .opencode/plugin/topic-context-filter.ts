@@ -148,14 +148,73 @@ async function readJSON<T>(path: string): Promise<T | null> {
   }
 }
 
-const plugin: Plugin = async ({ directory }, options) => {
-  const opts = (options ?? {}) as PluginOptions
-  const enabled = opts.enabled !== false
-  const safetyWindow = opts.safetyWindow ?? 3
-  const minMessages = opts.minMessages ?? 10
-  const debugMode = opts.debug === true
+const PLUGIN_FILENAME = "topic-context-filter"
 
-  if (!enabled) {
+/**
+ * Resolve plugin options.
+ *
+ * OpenCode does not deliver plugin tuple options to the plugin function at
+ * runtime (#158), so we read our own opencode.json tuple as a fallback.
+ * Resolution order: explicit options → opencode.json entry → defaults.
+ *
+ * v3.1: `enabled` defaults to FALSE. This plugin mutates the message stream,
+ * so it is opt-in only — set "enabled": true in the opencode.json tuple to use it.
+ */
+async function resolvePluginOptions(
+  directory: string,
+  fnOptions: unknown,
+): Promise<Required<PluginOptions>> {
+  const defaults: Required<PluginOptions> = {
+    enabled: false,
+    safetyWindow: 3,
+    minMessages: 10,
+    debug: false,
+  }
+
+  const fromRaw = function (raw: Record<string, unknown>): Required<PluginOptions> {
+    return {
+      enabled: raw.enabled === true,
+      safetyWindow: (raw.safetyWindow as number) ?? defaults.safetyWindow,
+      minMessages: (raw.minMessages as number) ?? defaults.minMessages,
+      debug: raw.debug === true,
+    }
+  }
+
+  // Layer 1: explicit options (unit tests / future OpenCode support)
+  if (fnOptions && typeof fnOptions === "object" && Object.keys(fnOptions as Record<string, unknown>).length > 0) {
+    return fromRaw(fnOptions as Record<string, unknown>)
+  }
+
+  // Layer 2: read our tuple from opencode.json (#158 fallback)
+  try {
+    const rawCfg = await readFile(join(directory, "opencode.json"), "utf-8")
+    const config = JSON.parse(rawCfg) as Record<string, unknown>
+    const plugins = config.plugin
+    if (Array.isArray(plugins)) {
+      for (const entry of plugins) {
+        if (Array.isArray(entry) && entry.length === 2 && String(entry[0]).includes(PLUGIN_FILENAME)) {
+          const opts = entry[1]
+          if (opts && typeof opts === "object") {
+            return fromRaw(opts as Record<string, unknown>)
+          }
+        }
+      }
+    }
+  } catch {
+    /* no opencode.json — remain disabled */
+  }
+
+  // Layer 3: defaults (disabled)
+  return defaults
+}
+
+const plugin: Plugin = async ({ directory }, options) => {
+  const opts = await resolvePluginOptions(directory, options)
+  const safetyWindow = opts.safetyWindow
+  const minMessages = opts.minMessages
+  const debugMode = opts.debug
+
+  if (!opts.enabled) {
     return { name: "topic-context-filter" }
   }
 

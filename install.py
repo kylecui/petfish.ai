@@ -1687,11 +1687,23 @@ def deploy_extra_agents_rules(pack_opencode: Path, target: Path):
 # ---------------------------------------------------------------------------
 # Phase 2: Plugin deployment
 # ---------------------------------------------------------------------------
-def install_plugin_files(source_root: Path, target: Path):
+# Plugins that implement the fish-trail (context) capability. They are default-off
+# and belong to the fish-trail pack only — they must NOT be deployed to projects
+# that merely install another L1 pack (v3.1 context-scope fix).
+TOPIC_PLUGIN_FILES = {
+    "system-prompt-context-inject.ts",
+    "topic-context-filter.ts",
+    "fish-trail-compaction.ts",
+}
+
+
+def install_plugin_files(source_root: Path, target: Path, pack_name: str = ""):
     """Deploy lib/plugin/*.ts to target/.opencode/plugin/ (skip topic-detector.ts).
 
-    In remote mode (uv run https://...), source_root (SCRIPT_ROOT) is a temp dir
-    without lib/plugin/. Fall back to the extracted core repo which has lib/plugin/.
+    Topic (fish-trail) plugins are deployed only when the fish-trail pack itself
+    is being installed. In remote mode (uv run https://...), source_root
+    (SCRIPT_ROOT) is a temp dir without lib/plugin/. Fall back to the extracted
+    core repo which has lib/plugin/.
     """
     src_plugin_dir = source_root / "lib" / "plugin"
     if not src_plugin_dir.is_dir():
@@ -1710,15 +1722,21 @@ def install_plugin_files(source_root: Path, target: Path):
         # and must NOT be deployed as a standalone plugin (causes constructor crash)
         if src.name == "topic-detector.ts":
             continue
+        # Topic plugins ship only with the fish-trail pack
+        if src.name in TOPIC_PLUGIN_FILES and pack_name != "fish-trail":
+            continue
         shutil.copy2(src, dst_plugin_dir / src.name)
         log_success(f".opencode/plugin/{src.name}")
 
 
-def register_plugin_in_config(config_file: Path):
+def register_plugin_in_config(config_file: Path, pack_name: str = ""):
     """Register plugin tuples in opencode.json (idempotent).
 
     Creates a minimal config if the project has no opencode.json yet, so
     plugin registration is never silently skipped (L1 delivery chain fix).
+
+    Topic (fish-trail) plugins are registered only for the fish-trail pack, and
+    registered with "enabled": False — context management is opt-in (v3.1).
     """
     if not config_file.is_file():
         config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -1732,10 +1750,13 @@ def register_plugin_in_config(config_file: Path):
 
     plugins_to_register = [
         [".opencode/plugin/system-prompt-rules.ts", {"mode": "all"}],
-        [".opencode/plugin/system-prompt-context-inject.ts", {"maxTopics": 5, "maxSummaryLen": 200}],
         [".opencode/plugin/companion-gateway.ts", {"enabled": True}],
-        [".opencode/plugin/topic-context-filter.ts", {"enabled": True, "safetyWindow": 5, "minMessages": 15}],
     ]
+    if pack_name == "fish-trail":
+        plugins_to_register.extend([
+            [".opencode/plugin/system-prompt-context-inject.ts", {"enabled": False, "maxTopics": 5, "maxSummaryLen": 200}],
+            [".opencode/plugin/topic-context-filter.ts", {"enabled": False, "safetyWindow": 5, "minMessages": 15}],
+        ])
 
     changed = False
     for plugin_tuple in plugins_to_register:
@@ -2070,7 +2091,7 @@ def install_single_pack(
 
         # Install plugin files (idempotent, runs for each L1 pack)
         # Plugin registration in config deferred until after opencode.json merge (Step 5)
-        install_plugin_files(SCRIPT_ROOT, target)
+        install_plugin_files(SCRIPT_ROOT, target, pack_name)
 
     # Step 3: Deploy MCP servers
     if is_opencode and not use_global:
@@ -2124,7 +2145,10 @@ def install_single_pack(
     if is_opencode and is_l1_pack and not use_global:
         config_file = plat_dirs.get("config_file")
         if config_file:
-            register_plugin_in_config(Path(config_file) if Path(config_file).is_absolute() else target / config_file)
+            register_plugin_in_config(
+                Path(config_file) if Path(config_file).is_absolute() else target / config_file,
+                pack_name,
+            )
 
     # Step 6: Translate instructions for secondary platforms
     if platforms_data and not use_global and instructions_file:
