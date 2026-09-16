@@ -20,13 +20,11 @@
 
 ## 快速安装
 
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack doc-reader
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack doc-reader --platform <PLATFORM>
 ```
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack doc-reader
-```
+需要 `uv`；`<PLATFORM>` 是目标平台（例如 `opencode` 或 `claude`）。
 
 ## 环境依赖
 

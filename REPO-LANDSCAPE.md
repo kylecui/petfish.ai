@@ -59,8 +59,7 @@ petfish.ai/
 │       ├── trustskills-governance-pack/       # trust — 1 skill (fish-guard 鱼卫)
 │       └── fish-reflection-pack/              # reflect — 1 skill (fish-reflection)
 │
-├── install.ps1 / install.sh                  # ★ 本地安装器（动态扫描packs/）
-├── remote-install.ps1 / remote-install.sh    # ★ 远程安装器（静态ALL_PACKS数组）
+├── install.py                                # ★ 统一的Python安装器（PEP 723）— 唯一安装器
 ├── platforms.json                            # 8平台注册表
 ├── community-packs.json                      # 社区pack注册表（空，有schema）
 ├── connector.yaml                            # 远程连接器: wss://remote.petfish.ai
@@ -149,7 +148,7 @@ petfish_remote/
                     petfish.ai (主仓库)
                     ┌────────────────┐
                     │ packs/ (core 4 + optional 9) │
-                    │ installers (4)  │
+                    │ installer (1)   │
                     │ CI/CD (4)       │
                     └──┬─────┬───────┘
                        │     │
@@ -188,8 +187,8 @@ petfish_remote/
 | market → petfish.ai | CI clone latest release tag 的 `skill-lint/scripts/lint_skill.py` | market: `.github/workflows/validate-submission.yml` (via gate) |
 | petfish.ai → market | `marketplace_search.py` 查询 `petfish-market/main/index.json` | ai: `packs/.../fish-market/scripts/marketplace_search.py` L159 |
 | petfish.ai → market | `marketplace_search.py` 查询 `petfish.ai/master/community-packs.json` | ai: `packs/.../fish-market/scripts/marketplace_search.py` L120 |
-| remote installer → market | `query_market_index()` / `Query-MarketIndex` 查询 `petfish-market/main/index.json` 解析可选包 | ai: `remote-install.sh` L775, `remote-install.ps1` L158 (v1.4.1起已接入下载路径) |
-| remote → petfish.ai | 通过 `install.ps1/sh` 安装 skills 到 `.opencode/skills/` | remote: `opencode.json`, `.opencode/installed-packs.json` |
+| installer → market | `query_market_index()` 查询 `petfish-market/main/index.json` 解析可选包 | ai: `install.py` (v1.4.1起已接入下载路径) |
+| installer → petfish.ai | 通过 `install.py` 安装 skills 到 `.opencode/skills/` | ai: `opencode.json`, `.opencode/installed-packs.json` |
 | ai → opencode fork | `patch_opencode.py` 构建本地patch | ai: `scripts/patch_opencode.py` L50 |
 | ai → trustskills | `fish-guard` 通过 `uv add trustskills` 引用 | ai: `packs/optional/trustskills-governance-pack/README.md` |
 | ai → petfish_tester | eval benchmark数据源 | ai: `dev_reference/eval-handoff-extracted/` |

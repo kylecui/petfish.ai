@@ -74,13 +74,11 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 
 ## Install
 
-```powershell
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack research
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack research --platform <PLATFORM>
 ```
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack research
-```
+`uv` is required; `<PLATFORM>` is your target platform (e.g. `opencode` or `claude`).
 
 ## Quick Start
 

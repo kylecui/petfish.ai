@@ -110,9 +110,9 @@ Any FAIL line carries its own fix hint (usually re-run Step 3 with `--force`). T
    ls .opencode/plugin/
    ```
 
-   Expected: `system-prompt-rules.ts`, `system-prompt-context-inject.ts`, `companion-gateway.ts`, `topic-context-filter.ts`, `fish-trail-compaction.ts`. If any are missing, re-run Step 3 with `--force`.
+   Expected baseline: `system-prompt-rules.ts`, `companion-gateway.ts`. If the `context` pack is installed you will also see `system-prompt-context-inject.ts` and `topic-context-filter.ts` (both ship opt-in, registered with `"enabled": false`). The topic-aware compaction plugin is shelved and ships as `fish-trail-compaction.ts.disabled` — it is never loaded. If any baseline file is missing, re-run Step 3 with `--force`.
 
-2. **opencode.json plugin registration** — the `plugin` array must contain 4 registrations (`fish-trail-compaction.ts` is intentionally NOT registered):
+2. **opencode.json plugin registration** — the `plugin` array must contain at least 2 registrations (`system-prompt-rules.ts`, `companion-gateway.ts`). Installing the `context` pack adds 2 more (`system-prompt-context-inject.ts`, `topic-context-filter.ts`), both registered with `"enabled": false`; the shelved `fish-trail-compaction` is never registered:
 
    ```bash
    grep -c "opencode/plugin" opencode.json

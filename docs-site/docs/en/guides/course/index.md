@@ -12,12 +12,11 @@ Rather than treating course creation as merely writing words, this pack enforces
 This pack bridges the gap between "a folder of drafts" and "a professionally governed course product." Whether you are building a 3-day Kubernetes bootcamp or restructuring a semester-long university curriculum, the course pack ensures structural consistency, audience isolation, and traceable quality decisions.
 
 ```bash
-# Install the course pack (macOS / Linux)
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack course
-
-# Install the course pack (Windows PowerShell)
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack course
+# Install the course pack (cross-platform; uv is required)
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack course --platform <PLATFORM>
 ```
+
+`<PLATFORM>` is your target platform, e.g. `opencode` or `claude`.
 
 ---
 

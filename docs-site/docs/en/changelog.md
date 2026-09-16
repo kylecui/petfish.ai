@@ -2,25 +2,93 @@
 
 Full release notes are available on [GitHub Releases](https://github.com/kylecui/petfish.ai/releases).
 
+> Note: this changelog is not exhaustive. Older releases, including the v1.x and v2.x lines, are covered by the README Version History and GitHub Releases.
+
 ---
 
-## v3.0 — Companion Overhaul
+## v3.4 — Market + Gateway Hardening
+
+### v3.4.10
+
+Repository alignment. The topic (fish-trail) plugins in `lib/plugin/` and `.opencode/plugin/` were synced to the pack copies, closing a delivery gap: since 6f7223c only the pack copies carried the cache-first context-injection rewrite and the three `topic-context-filter` fixes (parallel topic reads, single-topic guard correction, archive-failure abort), so installs never received them. Removed two dead artifacts aimed at the installers deleted in v3.0 (`scripts/check_installer_parity.py`, `tests/test_migration_e2e.py`); the latter is replaced by `tests/test_installer_migration.py`, which exercises `install.py`'s v0.9 migration directly. Fixed `verify_install.py`, which expected the shelved `fish-trail-compaction.ts` and required 4 plugin registrations, so `/petfish verify` failed on every install. Corrected stale installer commands and package claims across the docs site, pack READMEs, and website; filled the v2.x and v3.x gaps in the README version history and both changelogs. `pre_release_check.py` now baselines pack version drift on the highest released tag instead of `git describe`, which resolved to a stale tag on `dev`. Packs: fish-trail 1.4.0, petfish-companion-skill 1.9.3, research-skill-pack 1.0.2, doc-reader-skill 1.0.1.
+
+### v3.4.9
+
+fish-trail topic plugins (context injection and message filtering) are now opt-in and scoped to the `context` pack, registered with `"enabled": false`; previously they were default-on for any L1 pack and could not be disabled on OpenCode v1.18.3. The topic-aware compaction plugin was shelved after a measured null result (p=0.928). Also fixed a pre-existing syntax error in the pack copy of `system-prompt-context-inject.ts` and corrected public copy that still advertised the shipped compaction plugin. `fish-trail` 1.2.0 → 1.3.0.
+
+### v3.4.8
+
+P0 fix for a companion-gateway contract violation: `output.system` is a shared string[] that plugins may only `push` to, but the gateway used `+=`, poisoning every later plugin's `push` call and silently discarding its own injected content since release. One-line fix (`output.system.push()`) applied across 3 copies, plus a 7th permanent release gate that statically scans all pack plugins for `output` field rebinding. Companion 1.9.2.
+
+### v3.4.7
+
+Integrated skills.sh and ClawHub as first-class `fish-market` sources (13 total). skills.sh uses the official CLI search endpoint (`/api/search`); ClawHub is the OpenClaw registry (10.7K+ skills, documented `/v1/search`, 3000/min unauthenticated, includes Chinese skills). Testing hit a Chinese Gantt-chart generator via ClawHub and four dedicated skills via skills.sh. Companion 1.9.1.
+
+### v3.4.6
+
+MCP Official Registry dedupe now keys on plain `name`, because multiple remote entries for the same server share a display name.
+
+### v3.4.5
+
+MCP Official Registry results are deduplicated by `name`+`url`, since its weak `q` filter returned duplicate entries.
+
+### v3.4.4
+
+Reworked `/petfish load` discovery into a marketplaces-first ladder after three root causes pushed it into minute-long GitHub mining: 4 of 8 search sources had been dead since launch (an `urllib.request.quote` AttributeError silently swallowed per-source), Chinese queries against English indexes returned zero results with no retry hint, and there was no enforced "marketplace before mining" step. Added ClaudSkills (69K+ SKILL.md, Chinese-capable), PulseMCP, and the official MCP Registry; Chinese zero-result queries now retry in English. Companion 1.9.0 / toolchain 0.3.1.
+
+### v3.4.3
+
+Upgrade flow rewritten natural-language-first: the one-liner is the default entry and the agent runs all commands, so users stay in chat. Step 8's closing report now includes an install health matrix, current capabilities, per-platform restart guidance, and a post-restart conversational example.
+
+### v3.4.2
+
+Added `/petfish verify`, a one-command visual verification built on `verify_install.py`: a 10-item PASS/FAIL checklist (plugins, registration, MCP, vault self-test, gateway markers, L1 rule repair, index quality, version comparison, commands, course capability) with per-item remediation and a gate-compatible exit code. Un-upgraded projects can run it from the raw master URL. Companion 1.8.0.
+
+### v3.4.1
+
+Fixed `install.py` writing a legacy minimal `skill-index.json`, which disabled gateway domain matching in user projects after v3.4.0. The installer now emits `domains` (from the shipped `catalog_query.py` single source), per-skill pack attribution, and best-effort market `available_packs`. Verified live at 110 skills / 23 domains / 107 attributed / 15 market packs.
+
+### v3.4.0
+
+Completed all remaining phases of dynamic skill loading (P2+P3) and the courseware upgrade (P1+P2+P3). Skill loading gained gap-aware discovery, `/petfish load <name|keyword> [--install]`, semantic repo mining with golden-repo benchmarks, market-side trigger derivation, and vault usage tracking. Courseware gained a pedagogy reference layer plus `course-assessment-design`, an LLM-as-judge evals harness with CI gate, three offline teaching artifacts, and `course-delivery-review`. Companion 1.7.0 / toolchain 0.3.0 / course 1.5.0.
+
+## v3.3 — Dynamic Skill Loading + Courseware
+
+### v3.3.0
+
+First milestone of dynamic skill loading (P1) and the courseware upgrade (P0). The new skill-vault MCP server delivers skill content as tool return values to bypass per-session skill discovery caching, exposing `vault_index`, `vault_fetch`, `vault_stage`, and `vault_install`; the Gateway injects a top-3 discovery block only when a capability gap has uninstalled candidates. Courseware P0 added machine-checked outline constraints, dual confirmation gates, and an authoring completion checklist. Companion 1.5.0 → 1.6.0 / course 1.3.2 → 1.4.0.
+
+## v3.2 — Skill Machinery Foundation + Installer Hardening
+
+### v3.2.1
+
+Skill machinery foundation fixes (F1-F6): single-source triggers (`skill-index.json` gains a `domains` map, the gateway reads the index instead of a hardcoded table, and `gateway_classifiers.py` imports the catalog directly), `--skill NAME` granular install, a marketplace index `packs`/`skills` dual-key fix, project-aware `suggest` ranking, doc alignment, and a regression fix for calibrate eval phrases. Companion 1.5.0 / toolchain 0.2.0 / init 1.2.1. Pre-release gate 6/6 PASS.
+
+### v3.2.0
+
+Fixed a systematic upgrade bug where `L1_PACK_MAP` mapped companion and toolchain to the same rules file, so `--pack all` (alphabetical) let toolchain overwrite companion's Gateway Trace rules on every upgrade; the L1 mapping was split and the stale pack copy removed. Added release gate item 6, requiring a pack-manifest version bump when pack content changes versus the latest tag, which immediately caught two existing drifts. Extended the upgrade doc with Step 3.5 delivery verification. Companion 1.3.0 → 1.4.0 / fish-trail 1.1.0 → 1.2.0.
+
+## v3.1 — Performance & Cache Architecture
 
 ### v3.1.0
 
 Multi-agent orchestration (Phases 0-5): task() spike validated (1.43x parallel speedup), skill I/O contracts (3 pilot skills), orchestration hints in companion-gateway, dispatch tracking, result aggregation with conflict detection, autonomy levels (suggest/delegate/auto). Documentation/website updated. Council-thinking references trimmed.
 
+## v3.0 — Companion Overhaul
+
 ### v3.0.0
 
 Programmatic companion-gateway.ts (6-step enforcement via TypeScript plugin). topic-context-filter fixes (placeholder bug, effective topic detection, per-topic message archiving). Legacy installers deleted (install.py sole entry). skill-index.json (100 skills). Market CLI. Web-grounding rules. 13/13 registry consolidated to monorepo. 102/102 agentskills.io compliant. 2 new packs: drawio-radar-chart, typst-pdf-builder.
-
-## v1.9 — Testing Team Issue Resolution + Delivery Pipeline Fix
 
 ## v2.2 — Council Thinking + Pack Rename
 
 ### v2.2.0
 
 Pack rename `anti-sycophancy-calibration-pack` → `judgment-calibration-pack`; added `council-thinking` skill (5+1 multi-perspective adversarial reasoning); pack now contains 2 skills (fish-calibrate + council-thinking); alias `calibrate` unchanged; `legacy_names` preserves upgrade compatibility.
+
+## v1.9 — Testing Team Issue Resolution + Delivery Pipeline Fix
+
+## v0.11 — Companion Gateway Enhancement: Proactive Intelligence
 
 ### v0.11.7
 

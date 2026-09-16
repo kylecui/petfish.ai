@@ -139,7 +139,7 @@
 │  └──────────────────┼──────────────────────────────────┘     │
 │                     ↓                                         │
 │  ┌──────────────────────────────────────────────────────┐    │
-│  │  /petfish (15 subcommands)   install.ps1 / .sh       │    │
+│  │  /petfish (15 subcommands)   install.py              │    │
 │  └──────────────────┬──────────────────────────────────┘     │
 │                     ↓                                         │
 │  ┌──────────────────────────────────────────────────────┐    │
@@ -168,8 +168,8 @@
       </tr>
       <tr>
         <td><span class="copy-zh">用户接口层</span><span class="copy-en">User Interface Layer</span></td>
-        <td><code>/petfish</code> <span class="copy-zh">15个子命令（含<code>/petfish upgrade</code>） + 4个install脚本</span><span class="copy-en">15 subcommands (including <code>/petfish upgrade</code>) + 4 install scripts</span></td>
-        <td><code>install.ps1/sh</code>, <code>remote-install.ps1/sh</code></td>
+        <td><code>/petfish</code> <span class="copy-zh">15个子命令（含<code>/petfish upgrade</code>） + 1个install脚本</span><span class="copy-en">15 subcommands (including <code>/petfish upgrade</code>) + 1 install script</span></td>
+        <td><code>install.py</code></td>
       </tr>
       <tr>
         <td><span class="copy-zh">Companion层</span><span class="copy-en">Companion Layer</span></td>
@@ -675,9 +675,9 @@ mine → author → lint → audit → gate → optimize → eval
         <td><span class="copy-zh">开发环境读packs/，用户机器读installed-packs.json</span><span class="copy-en">Dev env reads packs/, user machines read installed-packs.json</span></td>
       </tr>
       <tr>
-        <td><span class="copy-zh">安装脚本</span><span class="copy-en">Install scripts</span></td>
-        <td><span class="copy-zh">PowerShell + Bash双版本</span><span class="copy-en">PowerShell + Bash dual versions</span></td>
-        <td><span class="copy-zh">覆盖Windows + macOS/Linux</span><span class="copy-en">Covers Windows + macOS/Linux</span></td>
+        <td><span class="copy-zh">安装脚本</span><span class="copy-en">Install script</span></td>
+        <td><span class="copy-zh">单一跨平台 Python 安装器（uv 引导）</span><span class="copy-en">Single cross-platform Python installer (uv-bootstrapped)</span></td>
+        <td><code>install.py</code></td>
       </tr>
       <tr>
         <td><span class="copy-zh">指令合并</span><span class="copy-en">Instructions merge</span></td>

@@ -12,17 +12,11 @@ PPT pack 以编程方式读取、审计和生成 PowerPoint 演示文稿。它�
 
 ### 安装
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack ppt --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack ppt
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack ppt
-    ```
+运行安装器需要 `uv`；`<PLATFORM>` 是目标平台（例如 `opencode` 或 `claude`）。
 
 ### 功能介绍
 
@@ -71,17 +65,11 @@ Calibrate pack 可防止 AI 盲目赞同你。它将结构化的评估纪律注�
 
 ### 安装
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack calibrate --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack calibrate
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack calibrate
-    ```
+运行安装器需要 `uv`；`<PLATFORM>` 是目标平台（例如 `opencode` 或 `claude`）。
 
 ### 功能介绍
 
@@ -131,17 +119,11 @@ Petfish Style pack 将文本重写为清晰、结构化、工程导向的语气�
 
 ### 安装
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack petfish --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack petfish
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack petfish
-    ```
+运行安装器需要 `uv`；`<PLATFORM>` 是目标平台（例如 `opencode` 或 `claude`）。
 
 ### 功能介绍
 
@@ -193,17 +175,11 @@ TestDocs pack 根据实际代码库代码生成测试用例和使用文档，而
 
 ### 安装
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack testdocs --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack testdocs
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack testdocs
-    ```
+运行安装器需要 `uv`；`<PLATFORM>` 是目标平台（例如 `opencode` 或 `claude`）。
 
 ### 功能介绍
 
@@ -242,17 +218,11 @@ Context pack 提供话题治理（topic governance）功能 —— 当您在同�
 
 ### 安装
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack context --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack context
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack context
-    ```
+运行安装器需要 `uv`；`<PLATFORM>` 是目标平台（例如 `opencode` 或 `claude`）。
 
 ### 功能介绍
 

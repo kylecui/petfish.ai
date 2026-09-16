@@ -25,11 +25,13 @@ Use `--detect` and the installer checks for platform markers in this order:
 
 ```bash
 # Auto-detect
-curl -fsSL ... | bash -s -- --pack companion --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion --detect
 
 # Explicit (overrides detection)
-curl -fsSL ... | bash -s -- --pack companion --platform opencode
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion --platform opencode
 ```
+
+The installer is the unified Python `install.py` and requires `uv`.
 
 You can also run `/petfish detect` after installation to see what platform PEtFiSh detected.
 
@@ -46,7 +48,7 @@ The installer supports group targets to install across multiple platforms at onc
 
 ```bash
 # Install to all CLI-based platforms
-./install.sh --pack companion --platform cli
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion --platform cli
 ```
 
 ## Per-Platform Details
@@ -107,8 +109,8 @@ The `init` and `companion` packs default to global install since they're useful 
 
 ```bash
 # Global install (default for init/companion)
-./install.sh --pack init --global
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init --global
 
 # Project install (default for everything else)
-./install.sh --pack deploy --target /path/to/project
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy --target /path/to/project
 ```

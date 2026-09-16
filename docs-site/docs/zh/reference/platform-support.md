@@ -25,11 +25,13 @@ PEtFiSh 支持 8 款 AI 编程平台。每个平台使用不同的技能目录�
 
 ```bash
 # 自动检测
-curl -fsSL ... | bash -s -- --pack companion --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion --detect
 
 # 显式指定（覆盖自动检测）
-curl -fsSL ... | bash -s -- --pack companion --platform opencode
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion --platform opencode
 ```
+
+安装器是统一的 Python `install.py`，运行需要 `uv`。
 
 安装完成后，你也可以运行 `/petfish detect` 来查看 PEtFiSh 检测到了哪个平台。
 
@@ -46,7 +48,7 @@ curl -fsSL ... | bash -s -- --pack companion --platform opencode
 
 ```bash
 # 安装到所有基于 CLI 的平台
-./install.sh --pack companion --platform cli
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion --platform cli
 ```
 
 ## 各平台详情
@@ -107,8 +109,8 @@ curl -fsSL ... | bash -s -- --pack companion --platform opencode
 
 ```bash
 # 全局安装（init/companion 的默认行为）
-./install.sh --pack init --global
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack init --global
 
 # 项目安装（其他所有 pack 的默认行为）
-./install.sh --pack deploy --target /path/to/project
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy --target /path/to/project
 ```

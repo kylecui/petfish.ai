@@ -332,12 +332,10 @@
       <span class="copy-en">Same command as core packs — installer resolves the source automatically</span>
     </p>
     <pre><span class="copy-zh"># 安装研究包</span><span class="copy-en"># Install research pack</span>
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack research
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack research --platform &lt;PLATFORM&gt;
 
 <span class="copy-zh"># 安装全部市场包</span><span class="copy-en"># Install all packs</span>
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack all</pre>
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack all --platform &lt;PLATFORM&gt;</pre>
   </div>
 </section>
 

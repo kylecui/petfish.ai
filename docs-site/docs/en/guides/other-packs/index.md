@@ -12,17 +12,11 @@ The PPT pack reads, audits, and generates PowerPoint decks programmatically. It 
 
 ### Install
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack ppt --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack ppt
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack ppt
-    ```
+`uv` is required to run the installer; `<PLATFORM>` is your target platform (e.g. `opencode` or `claude`).
 
 ### What It Does
 
@@ -71,17 +65,11 @@ The Calibrate pack prevents the AI from blindly agreeing with you and enhances d
 
 ### Install
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack calibrate --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack calibrate
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack calibrate
-    ```
+`uv` is required to run the installer; `<PLATFORM>` is your target platform (e.g. `opencode` or `claude`).
 
 ### What It Does
 
@@ -148,17 +136,11 @@ The Petfish Style pack rewrites text into a clear, structured, engineering-orien
 
 ### Install
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack petfish --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack petfish
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack petfish
-    ```
+`uv` is required to run the installer; `<PLATFORM>` is your target platform (e.g. `opencode` or `claude`).
 
 ### What It Does
 
@@ -210,17 +192,11 @@ The TestDocs pack generates test cases and usage documentation grounded in actua
 
 ### Install
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack testdocs --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack testdocs
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack testdocs
-    ```
+`uv` is required to run the installer; `<PLATFORM>` is your target platform (e.g. `opencode` or `claude`).
 
 ### What It Does
 
@@ -259,17 +235,11 @@ The Context pack provides topic governance — it prevents cross-topic contamina
 
 ### Install
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack context --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack context
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack context
-    ```
+`uv` is required to run the installer; `<PLATFORM>` is your target platform (e.g. `opencode` or `claude`).
 
 ### What It Does
 

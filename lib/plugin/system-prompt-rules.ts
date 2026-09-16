@@ -69,6 +69,21 @@ const TOPIC_TO_RULES: Record<string, string[]> = {
   guard: ["safety-guard.md"],
   security: ["safety-guard.md"],
   research: ["research.md"],
+  pdf: ["doc-reader.md"],
+  docx: ["doc-reader.md"],
+  document: ["doc-reader.md"],
+  convert: ["doc-reader.md"],
+  ppt: ["ppt-skills.md"],
+  pptx: ["ppt-skills.md"],
+  slides: ["ppt-skills.md"],
+  presentation: ["ppt-skills.md"],
+  testcase: ["testcases-docs.md"],
+  "test case": ["testcases-docs.md"],
+  "usage doc": ["testcases-docs.md"],
+  readme: ["testcases-docs.md"],
+  trust: ["trustskills.md"],
+  governance: ["trustskills.md"],
+  manifest: ["trustskills.md"],
 }
 
 function matchRuleFiles(topic: TopicData): Set<string> {

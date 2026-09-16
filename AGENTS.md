@@ -516,8 +516,8 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 
 | # | 触点 | 文件位置 | 说明 |
 |---|------|---------|------|
-| 1 | 本地安装器别名 | `install.py` + `install.ps1`, `install.sh` | 添加pack别名到安装器的ALIASES映射表。`install.py`（统一Python安装器）为首选；shell安装器为遗留兼容 |
-| 2 | 远程安装器ALL_PACKS数组 | `remote-install.ps1`, `remote-install.sh` | **遗留**。`install.py` 通过 petfish-market 动态解析可选pack，无需静态数组 |
+| 1 | 安装器别名 | `install.py` | 添加pack别名到安装器的ALIASES映射表。`install.py` 是**唯一**安装器 |
+| 2 | ~~远程安装器ALL_PACKS数组~~ | — | **已废弃**。4个legacy shell安装器已于v3.0删除；可选pack由 `install.py` 通过 petfish-market 动态解析，无需静态数组 |
 | 3 | Companion catalog PROFILES | `catalog_query.py` PROFILES dict | 将新pack加入相关profile（至少加入`comprehensive`） |
 | 4 | project-initializer | `project-initializer/SKILL.md` + `init_project.py` | 在初始化向导中添加新profile或将pack关联到现有profile |
 | 5 | README profile表 | `README.md` | 更新Pack列表、Profile → Auto-Install Mapping表 |
@@ -527,14 +527,13 @@ Todo系统追踪的是agent可自主完成的工作，不是用户决策或外�
 | 9 | 归档文档 | `docs/archive/` 下相关文件 | 更新白皮书、介绍文档中的pack计数和列表 |
 | 10 | petfish-market注册（v1.4新增，仅可选pack） | `petfish-market/registry/official/` + `petfish-market/index.json` | 可选pack必须注册到market的官方目录并更新`index.json` |
 
-### 关键陷阱：本地 vs 远程安装器架构差异
+### 关键陷阱：安装器唯一化后的触点
 
-- **统一Python安装器**（`install.py`，首选）：通过 `uv run` 远程执行，PEP 723 inline script自动引导，内置镜像回退（`ghfast.top` → `ghproxy.com`），通过 petfish-market 动态解析可选 pack。
-- **本地安装器**（`install.ps1`, `install.sh`）：动态扫描`packs/core/`和`packs/optional/`目录发现可用pack。新增pack目录后自动可见，但别名映射仍需注册。
-- **远程安装器**（`remote-install.ps1`, `remote-install.sh`，遗留）：使用**硬编码的静态数组**（`$AllPacks` / `ALL_PACKS`）。新增pack必须手动添加到数组中，否则`--pack all`会静默跳过。
-- **v1.4市场分发**：可选pack（`packs/optional/`）通过petfish-market分发，`install.py` 和远程安装器通过`query_market_index()` / `Query-MarketIndex`自动解析。核心pack（`packs/core/`）仍直接从petfish.ai仓库下载。
+- **统一Python安装器**（`install.py`，唯一）：通过 `uv run` 远程执行，PEP 723 inline script自动引导，内置镜像回退（`ghfast.top` → `ghproxy.com`），通过 petfish-market 动态解析可选 pack。
+- **4个legacy shell安装器**（`install.ps1`、`install.sh`、`remote-install.ps1`、`remote-install.sh`）已于 **v3.0 删除**。任何文档、脚本或工具仍引用它们即为过时。
+- **v1.4市场分发**：可选pack（`packs/optional/`）通过petfish-market分发，`install.py` 通过 `query_market_index()` 自动解析。核心pack（`packs/core/`）仍直接从petfish.ai仓库下载。
 
-这一不对称是v0.10.7遗漏的根本原因。开发时使用本地安装器测试通过，但用户通过远程安装器安装时该pack不存在。
+这一不对称（本地测试通过、分发通道未同步）是v0.10.7遗漏的根本原因。安装器唯一化后"多安装器不一致"的问题消失，但**核心pack vs 可选pack的触点差异**依然存在，见下方v1.4小节。
 
 ### 检查方法
 
@@ -674,11 +673,11 @@ v0.11.10的修复通过PowerShell SSH会话测试，看起来正确，但PowerSh
 
 规则：bash脚本必须在真实bash环境中测试，PowerShell脚本在真实PowerShell中测试。不要通过代理shell测试另一种shell的行为——中间层会吞掉或改变转义字符，产生误导性的"通过"结果。
 
-### 安装器同步变更
+### 安装器唯一化（v3.0起）
 
-项目有 `install.py`（统一Python安装器，首选）和 4个遗留安装器（`install.sh`、`install.ps1`、`remote-install.sh`、`remote-install.ps1`）。`install.py` 是主要维护对象，逻辑变更优先确保 `install.py` 正确。遗留安装器按需同步，但功能语义必须一致。
+`install.py` 是唯一的安装器。4个遗留shell安装器（`install.sh`、`install.ps1`、`remote-install.sh`、`remote-install.ps1`）已于v3.0删除，不再需要同步，也不存在"多安装器不一致"的风险。
 
-v0.11.9（uninstall功能）和v0.11.10/v0.11.11（rstrip修复）都涉及4个安装器的同步变更。遗漏任何一个会导致用户通过不同安装方式得到不一致的行为。
+历史教训：v0.11.9（uninstall功能）和v0.11.10/v0.11.11（rstrip修复）都曾涉及4个安装器的同步变更，遗漏任何一个都会导致用户通过不同安装方式得到不一致的行为。v3.0删除shell安装器后，这类问题不再可能发生。
 
 ### v1.4市场优先分发：核心pack vs 可选pack的触点差异
 
