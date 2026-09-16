@@ -1690,10 +1690,12 @@ def deploy_extra_agents_rules(pack_opencode: Path, target: Path):
 # Plugins that implement the fish-trail (context) capability. They are default-off
 # and belong to the fish-trail pack only — they must NOT be deployed to projects
 # that merely install another L1 pack (v3.1 context-scope fix).
+# NOTE: fish-trail-compaction is shelved — it ships as
+# `fish-trail-compaction.ts.disabled`, which the `*.ts` glob below never matches,
+# so it is intentionally absent from this set (and never deployed).
 TOPIC_PLUGIN_FILES = {
     "system-prompt-context-inject.ts",
     "topic-context-filter.ts",
-    "fish-trail-compaction.ts",
 }
 
 

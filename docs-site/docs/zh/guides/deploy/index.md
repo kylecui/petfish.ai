@@ -12,12 +12,11 @@ description: 使用 PEtFiSh 部署技能包进行仓库部署的完整指南。
 这个包弥合了本地开发与生产现实之间的差距。无论你是在笔记本电脑上快速启动一个 Docker Compose 技术栈，还是在远程 Ubuntu 服务器上执行零宕机的蓝绿部署（Blue/Green deployment），deploy 包都能确保一致性、安全性与运维的严谨性。
 
 ```bash
-# 安装 deploy 包 (macOS / Linux)
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack deploy
-
-# 安装 deploy 包 (Windows PowerShell)
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack deploy
+# 安装 deploy 包（跨平台；需要 uv）
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy --platform <PLATFORM>
 ```
+
+`<PLATFORM>` 是目标平台，例如 `opencode` 或 `claude`。
 
 ---
 

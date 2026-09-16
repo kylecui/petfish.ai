@@ -101,15 +101,15 @@ fish-trail topic 系统已经在追踪你正在处理的工作 —— 哪些 top
 
 ## 可用性
 
-这两款插件均随 PEtFiSh 提供：
+**system prompt 规则插件**随 PEtFiSh 提供，并默认启用（属于 `companion` pack）。
 
-- **System prompt 插件**：包含在 `companion` pack 中
-- **Topic-aware compaction 插件**：包含在 `context` pack (fish-trail) 中
+**话题上下文感知**随 `context` pack（fish-trail）提供，但为**可选开启（opt-in）**——需要在 `opencode.json` 的插件元组上设置 `"enabled": true` 才会激活。
+
+**topic-aware compaction 插件已搁置**：它在生产环境中没有带来可测量的改进，因此未部署。
 
 ```bash
-# Install both plugins
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack companion,context --detect
+# 安装 companion 与 context pack（需要 uv）
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion,context --platform <PLATFORM>
 ```
 
 完整的实验数据、A/B 测试脚手架以及原始结果均可参见 [GitHub 仓库](https://github.com/kylecui/petfish.ai)：

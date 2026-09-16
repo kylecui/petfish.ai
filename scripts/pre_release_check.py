@@ -188,8 +188,13 @@ def check_pack_version_drift():
     make non-forced upgrades and check-updates blind.
     """
     print("[6/6] Checking pack version drift (content change requires version bump)...")
-    r = run(["git", "describe", "--abbrev=0", "--tags"], check=False)
-    latest_tag = r.stdout.strip()
+    # Baseline must be the highest released VERSION tag. `git describe --tags` is
+    # wrong here: release tags live on master-side merge commits, none of which are
+    # reachable from `dev`, so describe() reports a stale tag (e.g. v3.4.7 while
+    # v3.4.9 is Latest) and the drift comparison silently uses the wrong baseline.
+    r = run(["git", "tag", "--sort=-v:refname"], check=False)
+    tags = [t.strip() for t in (r.stdout or "").splitlines() if t.strip()]
+    latest_tag = tags[0] if tags else ""
     if r.returncode != 0 or not latest_tag:
         print("  SKIP: no previous tag found")
         return

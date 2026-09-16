@@ -8,19 +8,13 @@ With **54 specialized skills** spanning **8 research domains**, it enforces a si
 
 ## Quick Start: Install
 
-Install the research pack globally using the PEtFiSh remote installer:
+Install the research pack using the unified Python installer (`uv` is required):
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack research --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack research
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack research
-    ```
+`<PLATFORM>` is your target platform, e.g. `opencode` or `claude`.
 
 ---
 

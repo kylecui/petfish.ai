@@ -57,31 +57,44 @@ def head(msg: str) -> None:
 # ---------------------------------------------------------------- 1. 插件文件
 head("🐟 PEtFiSh 安装体检 (verify_install)")
 print("─" * 62)
-EXPECTED_PLUGINS = [
+# 必需插件：任何安装都应存在（v3.1 起的基线）
+REQUIRED_PLUGINS = [
     "companion-gateway.ts",
     "system-prompt-rules.ts",
+]
+# 话题插件：只随 fish-trail(context) pack 分发，且默认 enabled:false（opt-in）。
+# fish-trail-compaction 已封存（随包分发为 .ts.disabled，不再部署），故不列入期望。
+OPTIONAL_TOPIC_PLUGINS = [
     "system-prompt-context-inject.ts",
     "topic-context-filter.ts",
-    "fish-trail-compaction.ts",
 ]
 plugin_dir = O / "plugin"
 if plugin_dir.is_dir():
-    present = [p for p in EXPECTED_PLUGINS if (plugin_dir / p).is_file()]
-    extra = [p.name for p in plugin_dir.glob("*.ts") if p.name not in EXPECTED_PLUGINS]
-    if len(present) == len(EXPECTED_PLUGINS):
-        record(PASS, "插件文件", f"{len(present)}/{len(EXPECTED_PLUGINS)} 齐" + (f"（额外: {', '.join(extra)}）" if extra else ""))
+    present = [p for p in REQUIRED_PLUGINS if (plugin_dir / p).is_file()]
+    topic_present = [p for p in OPTIONAL_TOPIC_PLUGINS if (plugin_dir / p).is_file()]
+    known = set(REQUIRED_PLUGINS) | set(OPTIONAL_TOPIC_PLUGINS)
+    extra = [p.name for p in plugin_dir.glob("*.ts") if p.name not in known]
+    if len(present) == len(REQUIRED_PLUGINS):
+        detail = f"{len(present)}/{len(REQUIRED_PLUGINS)} 必需齐"
+        if topic_present:
+            detail += f"；topic {len(topic_present)}/2（context pack，默认关闭）"
+        else:
+            detail += "；未装 topic 插件（正常：未装/未启用 context pack）"
+        if extra:
+            detail += f"（额外: {', '.join(extra)}）"
+        record(PASS, "插件文件", detail)
     else:
-        missing = [p for p in EXPECTED_PLUGINS if p not in present]
+        missing = [p for p in REQUIRED_PLUGINS if p not in present]
         record(FAIL, "插件文件", f"缺 {', '.join(missing)} — 重跑升级 --force")
 else:
     record(FAIL, "插件文件", ".opencode/plugin/ 目录不存在")
-    del EXPECTED_PLUGINS[:]  # 后续插件检查会跳过
+    del REQUIRED_PLUGINS[:]  # 后续插件检查会跳过
 
 # ---------------------------------------------------------------- 2. 插件注册
 cfg = read_json(ROOT / "opencode.json")
 if cfg and isinstance(cfg.get("plugin"), list):
     n = len(cfg["plugin"])
-    record(PASS if n >= 4 else FAIL, "插件注册", f"opencode.json 注册 {n} 项" + ("" if n >= 4 else " — 应≥4，重跑升级 --force"))
+    record(PASS if n >= 2 else FAIL, "插件注册", f"opencode.json 注册 {n} 项" + ("" if n >= 2 else " — 应≥2（rules+gateway），重跑升级 --force"))
 elif cfg:
     record(FAIL, "插件注册", "opencode.json 无 plugin 数组")
 else:

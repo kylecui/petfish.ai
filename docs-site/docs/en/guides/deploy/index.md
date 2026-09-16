@@ -12,12 +12,11 @@ Rather than assuming a one-size-fits-all deployment strategy, this pack acts as 
 This pack bridges the gap between local development and production reality. Whether you are spinning up a quick Docker Compose stack on your laptop, or performing a zero-downtime Blue/Green deployment to a remote Ubuntu server, the deploy pack ensures consistency, safety, and operational rigor.
 
 ```bash
-# Install the deploy pack (macOS / Linux)
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack deploy
-
-# Install the deploy pack (Windows PowerShell)
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack deploy
+# Install the deploy pack (cross-platform; uv is required)
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy --platform <PLATFORM>
 ```
+
+`<PLATFORM>` is your target platform, e.g. `opencode` or `claude`.
 
 ---
 

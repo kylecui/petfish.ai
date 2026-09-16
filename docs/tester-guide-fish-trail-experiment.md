@@ -24,23 +24,14 @@ Fish Trail is a topic governance system that tracks what you're working on, dete
 
 ### Step 1: Install the context pack
 
-From the petfish.ai repo root (or via remote installer):
+The installer is cross-platform and requires `uv`.
 
 ```bash
-# Local install (if you have the repo cloned)
-./install.sh --pack context --target /path/to/your/test-project --platform opencode
+# Remote install
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack context --target /path/to/your/test-project --platform opencode
 
-# OR remote install
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack context --target /path/to/your/test-project
-```
-
-```powershell
-# PowerShell (local)
-.\install.ps1 -Pack context -Target C:\path\to\your\test-project -Platform opencode
-
-# OR remote
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack context -Target C:\path\to\your\test-project
+# Or from a cloned repo (local install)
+uv run ./install.py --pack context --target /path/to/your/test-project --platform opencode
 ```
 
 This installs the `fish-trail` skill and its MCP server into your project.
@@ -139,8 +130,7 @@ test-plugin/            ← Plugin enabled
 ```bash
 mkdir test-baseline && cd test-baseline
 # Install petfish context pack
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack context --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack context --platform opencode
 # Create some topics (see "Seeding Multi-Topic Data" below)
 ```
 
@@ -350,8 +340,7 @@ This is why both the MCP server and the plugin need the `.petfish/fish-trail/` d
 ### Install fish-trail (one command)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack context --detect
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack context --platform opencode
 ```
 
 ### Verify fish-trail is working

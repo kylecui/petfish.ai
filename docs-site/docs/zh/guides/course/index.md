@@ -12,12 +12,11 @@ description: 使用 PEtFiSh course skill pack 管理课程开发全生命周期�
 这个 pack 弥合了“一堆草稿文件夹”和“专业管理的课程产品”之间的差距。无论你是构建一个为期 3 天的 Kubernetes 训练营，还是重构一个学期长度的大学课程，course pack 都能确保结构一致性、受众隔离和可追踪的质量决策。
 
 ```bash
-# 安装 course pack (macOS / Linux)
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack course
-
-# 安装 course pack (Windows PowerShell)
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack course
+# 安装 course pack（跨平台；需要 uv）
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack course --platform <PLATFORM>
 ```
+
+`<PLATFORM>` 是目标平台，例如 `opencode` 或 `claude`。
 
 ---
 

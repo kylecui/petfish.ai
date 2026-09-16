@@ -8,19 +8,13 @@
 
 ## 快速开始：安装
 
-使用 PEtFiSh 远程安装器全局安装 research 技能包：
+使用统一 Python 安装器安装 research 技能包（需要 `uv`）：
 
-=== "Windows PowerShell"
+```bash
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack research --platform <PLATFORM>
+```
 
-    ```powershell
-    & ([scriptblock]::Create((irm https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.ps1))) -Pack research
-    ```
-
-=== "macOS / Linux / WSL"
-
-    ```bash
-    curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh | bash -s -- --pack research
-    ```
+`<PLATFORM>` 是目标平台，例如 `opencode` 或 `claude`。
 
 ---
 

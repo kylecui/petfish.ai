@@ -2,13 +2,79 @@
 
 完整的发布说明请参见 [GitHub Releases](https://github.com/kylecui/petfish.ai/releases)。
 
+> 注：本更新日志并非完整列表。更早的版本（包括 v1.x 与 v2.x 系列）请参见 README 版本历史与 GitHub Releases。
+
 ---
 
-## v3.0 — Companion 全面改造
+## v3.4 — Market + Gateway 加固
+
+### v3.4.10
+
+仓库对齐。`lib/plugin/` 与 `.opencode/plugin/` 中的话题（fish-trail）插件已同步到 pack 副本，补上一个交付缺口：自 6f7223c 起只有 pack 副本带有 cache-first 上下文注入重写与 `topic-context-filter` 的三项修复（并行读取 topic、single-topic 守卫修正、归档失败中止 splice），因此安装从未拿到这些修复。删除两个面向已删除安装器的死代码（`scripts/check_installer_parity.py`、`tests/test_migration_e2e.py`）；后者由 `tests/test_installer_migration.py` 取代，直接覆盖 `install.py` 的 v0.9 迁移。修复 `verify_install.py`：它期望已封存的 `fish-trail-compaction.ts` 并要求 4 项插件注册，导致 `/petfish verify` 在每次安装后都失败。修正文档站、pack README 与网站中的过期安装命令与包宣称；补齐 README 版本历史与中英 changelog 中 v2.x、v3.x 的空档。`pre_release_check.py` 的 pack 版本漂移基准改为"最高已发布 tag"，不再使用 `git describe`（在 `dev` 上会解析到过期 tag）。Pack 版本：fish-trail 1.4.0、petfish-companion-skill 1.9.3、research-skill-pack 1.0.2、doc-reader-skill 1.0.1。
+
+### v3.4.9
+
+fish-trail 话题插件（上下文注入与消息过滤）改为按需启用，且仅作用于 `context` pack，注册时使用 `"enabled": false`；此前它们对任意 L1 pack 默认强制安装，并在 OpenCode v1.18.3 上无法关闭。话题感知 compaction 插件因实测无效果（p=0.928）被搁置。同时修复了 pack 副本中 `system-prompt-context-inject.ts` 既有的语法错误，并更正了仍在宣传已上线 compaction 插件的公开文案。`fish-trail` 1.2.0 → 1.3.0。
+
+### v3.4.8
+
+修复 companion-gateway 的 P0 契约违规：`output.system` 是共享的 string[]，插件只能 `push`，而 gateway 用 `+=` 把它隐式转成字符串并重新赋值，导致后注册插件的 `push` 全部被毒化，且 gateway 自身注入的内容自发布起从未到达模型。单行修复（`output.system.push()`）同步 3 处副本，并新增第 7 项永久发布门禁：静态扫描所有 pack 插件的 `output` 字段重绑定。companion 1.9.2。
+
+### v3.4.7
+
+将 skills.sh 与 ClawHub 集成为 `fish-market` 的一等来源（共 13 个）。skills.sh 使用官方 CLI 同款端点（`/api/search`）；ClawHub 是 OpenClaw 官方注册表（10.7K+ skills，文档化 `/v1/search`，3000/分钟免认证，含中文 skill）。实测经 ClawHub 命中中文甘特图生成 skill，经 skills.sh 命中 4 个专用 skill。companion 1.9.1。
+
+### v3.4.6
+
+MCP Official Registry 去重键改为纯 `name`，因为同一 server 的多个 remote 条目共享显示名。
+
+### v3.4.5
+
+按 `name`+`url` 对 MCP Official Registry 结果去重，因其较弱的 `q` 过滤会返回重复条目。
+
+### v3.4.4
+
+将 `/petfish load` 发现流程改为「市场优先」梯子，起因是三个问题让它在 GitHub 挖掘上耗时数分钟：8 个搜索源中有 4 个自上线即失效（`urllib.request.quote` 抛 AttributeError，被逐源容错静默吞掉）、中文查询打英文索引零结果且无重试提示、缺少强制的「先市场后挖掘」步骤。新增 ClaudSkills（69K+ SKILL.md，可命中中文）、PulseMCP 与官方 MCP Registry；中文零结果时改为英文重试。companion 1.9.0 / toolchain 0.3.1。
+
+### v3.4.3
+
+升级流程改为自然语言优先：oneliner 为默认入口，所有命令由 agent 执行，用户全程留在对话中。Step 8 收尾报告新增安装体检矩阵、当前能力清单、分平台重启指引以及重启后的对话式示例。
+
+### v3.4.2
+
+新增 `/petfish verify` 一键可视化验收，基于 `verify_install.py`：10 项 PASS/FAIL 检查表（插件、注册、MCP、vault 自检、网关标记、L1 规则修复、索引质量、版本对照、命令、course 能力），单项 FAIL 附修复指引，退出码可接入门禁。未升级项目可从 raw master URL 直接运行。companion 1.8.0。
+
+### v3.4.1
+
+修复 `install.py` 仍写入 legacy 精简版 `skill-index.json`，导致用户项目在 v3.4.0 后失去 gateway 域匹配能力。安装器现在写入 `domains`（来自随包分发的 `catalog_query.py` 单一源）、per-skill pack 归属与尽力而为的市场 `available_packs`。实测 110 skills / 23 domains / 107 attributed / 15 market packs。
+
+### v3.4.0
+
+完成动态技能加载（P2+P3）与 Courseware 升级（P1+P2+P3）的全部剩余阶段。技能加载新增缺口感知发现、`/petfish load <name|keyword> [--install]`、带 golden-repo 基准的语义化挖掘、市场侧触发词派生与 vault 用量追踪。Courseware 新增教学法参考层与 `course-assessment-design`、LLM-as-judge 的 evals harness 及 CI 门禁、三类离线教学件与 `course-delivery-review`。companion 1.7.0 / toolchain 0.3.0 / course 1.5.0。
+
+## v3.3 — 动态技能加载 + Courseware
+
+### v3.3.0
+
+动态技能加载（P1）与 Courseware 升级（P0）的首个里程碑。新的 skill-vault MCP server 将技能内容作为工具返回值按需送达，绕过平台按会话静态缓存 skill 发现的机制，暴露 `vault_index`、`vault_fetch`、`vault_stage`、`vault_install`；Gateway 仅在能力缺口存在未安装候选时注入 top-3 发现块。Courseware P0 新增机器检查的大纲约束、双确认门与创作完成清单。companion 1.5.0 → 1.6.0 / course 1.3.2 → 1.4.0。
+
+## v3.2 — 技能机制地基 + 安装器加固
+
+### v3.2.1
+
+技能机制地基修复（F1-F6）：触发词单一源（`skill-index.json` 新增 `domains` 映射，gateway 改读 index 而非硬编码表，`gateway_classifiers.py` 直接 import catalog）、`--skill NAME` 粒度安装、市场索引 `packs`/`skills` 双键修复、项目感知的 `suggest` 排序、文档口径统一，以及 calibrate 评测问句的回归修复。companion 1.5.0 / toolchain 0.2.0 / init 1.2.1。发布门禁 6/6 PASS。
+
+### v3.2.0
+
+修复系统性升级 bug：`L1_PACK_MAP` 将 companion 与 toolchain 映射到同一规则文件，`--pack all` 按字母序安装时 toolchain 每次都覆盖 companion 的 Gateway Trace 规则；现拆分 L1 映射并删除残留的 pack 副本。发布门禁新增第 6 项：pack 内容相对最新 tag 有变更时必须 bump pack-manifest 版本，首跑即抓到两个既有漂移。升级文档新增 Step 3.5 交付验证。companion 1.3.0 → 1.4.0 / fish-trail 1.1.0 → 1.2.0。
+
+## v3.1 — 性能与缓存架构
 
 ### v3.1.0
 
 多agent编排（Phase 0-5）：task()并行验证（1.43x加速）、skill I/O contracts（3个pilot skills）、companion-gateway中的orchestration hint、dispatch tracking、结果聚合+冲突检测、autonomy levels（suggest/delegate/auto）。文档/网站更新。council-thinking references精简。
+
+## v3.0 — Companion 全面改造
 
 ### v3.0.0
 

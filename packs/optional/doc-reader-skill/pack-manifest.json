@@ -1,6 +1,6 @@
 {
   "name": "doc-reader-skill",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "legacy_names": [],
   "description": "统一文档读取 — PDF/DOCX/XLSX/HTML/PPTX/EPUB转Markdown，基于markitdown",
   "compatibility": "opencode",

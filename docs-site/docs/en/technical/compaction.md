@@ -101,15 +101,15 @@ This is why Phase 3 (pre-computed summaries that skip the LLM) was shelved: it c
 
 ## Availability
 
-Both plugins ship with PEtFiSh:
+The **system-prompt rules plugin** ships with PEtFiSh and is active by default (it is part of the `companion` pack).
 
-- **System prompt plugin**: Included in the `companion` pack
-- **Topic-aware compaction plugin**: Included in the `context` pack (fish-trail)
+**Topic context awareness** ships with the `context` pack (fish-trail) but is **opt-in** — set `"enabled": true` on the plugin tuple in `opencode.json` to activate it.
+
+The **topic-aware compaction plugin** is **shelved**: it produced no measurable improvement in production and is not deployed.
 
 ```bash
-# Install both plugins
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack companion,context --detect
+# Install the companion and context packs (uv is required)
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack companion,context --platform <PLATFORM>
 ```
 
 Full research data, A/B test harness, and raw results are in the [GitHub repo](https://github.com/kylecui/petfish.ai):
