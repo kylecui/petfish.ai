@@ -355,11 +355,7 @@ petfish.ai/
 │       ├── research-skill-pack/                  # research
 │       └── fish-reflection-pack/                 # reflect
 ├── platforms.json                                # platform registry
-├── install.py                                    # unified Python installer (PEP 723)
-├── install.ps1                                   # local PowerShell installer (legacy)
-├── install.sh                                    # local shell installer (legacy)
-├── remote-install.ps1                            # remote PowerShell installer (legacy)
-├── remote-install.sh                             # remote shell installer (legacy)
+├── install.py                                    # unified Python installer (PEP 723) — the sole installer
 └── README.md
 ```
 

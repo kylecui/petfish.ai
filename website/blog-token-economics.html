@@ -188,12 +188,14 @@
 
     <h2>Try It</h2>
 
-    <p>Both plugins ship with PEtFiSh. The system prompt plugin is included in the <code>companion</code> pack. The topic-aware compaction plugin is included in the <code>context</code> pack (fish-trail).</p>
+    <p>The system prompt plugin ships with PEtFiSh (included in the <code>companion</code> pack) and is active by default. <strong>The topic-aware compaction plugin described above is not shipped</strong> — it was shelved after producing no measurable improvement in production (null result, p=0.928), despite the controlled A/B numbers below. Topic context awareness still ships with the <code>context</code> pack (fish-trail), but it is <strong>opt-in</strong>: set <code>"enabled": true</code> on the plugin tuple in <code>opencode.json</code> to enable it.</p>
 
     <pre>
-# Install PEtFiSh with both plugins
-curl -fsSL https://raw.githubusercontent.com/kylecui/petfish.ai/master/remote-install.sh \
-  | bash -s -- --pack companion,context --detect</pre>
+# Install PEtFiSh with the companion and context packs
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py \
+  --pack companion,context --platform opencode</pre>
+
+    <p style="font-size: 13px; color: var(--text-muted);"><strong>Update:</strong> the Experiment 2 result below was measured on a controlled 21-message harness (<code>claude-sonnet-4</code>). The production plugin reproduced neither the token nor the behavioural effect, so it was shelved pending a reproducible positive result. The harness, raw data, and the null result are all in the repo.</p>
 
     <p>Full research data, A/B test harness, and raw results are in the <a href="https://github.com/kylecui/petfish.ai">GitHub repo</a>:</p>
     <ul>
