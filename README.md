@@ -363,6 +363,10 @@ petfish.ai/
 
 ## Version History
 
+### v3.4 — Market + Gateway Hardening
+
+- **v3.4.9**: fish-trail topic plugins are now **opt-in and scoped to the `context` pack**. Topic context injection and message filtering no longer install for projects that only add another L1 pack, and both register with `"enabled": false`. The topic-aware compaction plugin was shelved (no measurable production improvement). Also corrected public copy that still advertised the shipped compaction plugin, replaced commands for the installers deleted in v3.0, and repaired a pre-existing syntax error in the pack copy of `system-prompt-context-inject.ts`.
+
 ### v3.2 — Flexible Skills Management + Role-Based Profiles
 
 - **v3.2.0**: Flexible skills management overhaul. `catalog_query.py` rewritten with 7 role-based profiles: `starter`, `developer`, `researcher`, `writer`, `educator`, `ops-engineer`, `power-user` (all legacy profiles preserved for backward compat). Custom profile CRUD: `--profile-save`, `--profile-delete`, `--profile-install`, `--profile list`. Recommends system: `pack-manifest.json` `recommends`/`recommends_reason` shown on install. Refactored registry I/O (`_find_registry_path` + `_load_registry_data` + `_save_registry_data`) for read-write support. `custom_profiles` field added to `installed-packs.json`. Cache-first context architecture (fish-trail P0 bug fixes). Token consumption optimized for prompt cache efficiency. Updated README profile table + `docs/agent-install.md` + `fish-init/SKILL.md`.
