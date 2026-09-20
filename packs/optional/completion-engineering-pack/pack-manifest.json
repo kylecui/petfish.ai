@@ -1,0 +1,23 @@
+{
+  "name": "completion-engineering-pack",
+  "version": "1.0.0",
+  "legacy_names": [],
+  "description": "完成工程 — 任务的完成标准契约化与交付验收：done-gate在开工时写契约（外部锚定+可验证谓词）、在宣称完成之前过门（真实证据+恒真谓词拦截+独立校验）；done-ledger把遗留强制分流（范围外进backlog不进todo防无限循环，等用户的项明示等待）。任务宣称完成时拿到的是可复核的证据链，绕过会被记录可见。适用于长任务、多文件、自主运行场景",
+  "compatibility": "opencode",
+  "skill_count": 2,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": ["done-gate", "done-ledger"],
+  "commands": [],
+  "agents": [],
+  "contents": [
+    "AGENTS.md",
+    ".opencode/skills/done-gate/SKILL.md",
+    ".opencode/skills/done-gate/scripts/check_contract.py",
+    ".opencode/skills/done-gate/references/contract-template.md",
+    ".opencode/skills/done-gate/evals/trigger/evals.json",
+    ".opencode/skills/done-ledger/SKILL.md",
+    ".opencode/skills/done-ledger/references/backlog-template.md",
+    ".opencode/skills/done-ledger/evals/trigger/evals.json"
+  ]
+}

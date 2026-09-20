@@ -88,7 +88,7 @@ Replace `<PLATFORM>` with the detected platform (e.g. `opencode`, `claude`, `cod
 
 > **What `--force` does**: Re-installs all packs even if they appear current. This ensures renamed and restructured packs get properly migrated.
 
-> **What `--pack all` does**: Installs/upgrades every available pack. If the user only wants specific packs, replace `all` with a comma-separated list (e.g. `companion,context,petfish`).
+> **What `--pack all` does**: Installs/upgrades every available pack. If the user only wants specific packs, replace `all` with a comma-separated list (e.g. `companion,context,petfish,done`).
 
 ---
 

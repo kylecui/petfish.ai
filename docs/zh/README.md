@@ -101,7 +101,7 @@ Companion Gateway在每条消息前**程序化执行**（v3.0+ 通过 companion-
 | `petfish` | 工程写作风格套件 — 3 skills: `petfish-style-rewriter`、`de-ai-detector`、`style-extractor` | 3 skills |
 | `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
 
-## 12个可选包（通过 petfish-market 获取）
+## 13个可选包（通过 petfish-market 获取）
 > 可选包通过 [petfish-market](https://github.com/kylecui/petfish-market) 分发。安装命令自动解析，用户无感知。
 
 | 别名 | 定位 | 规模 |
@@ -118,6 +118,7 @@ Companion Gateway在每条消息前**程序化执行**（v3.0+ 通过 companion-
 | `drawio` | Draw.io雷达图生成器——精确顶点坐标计算 | 1 skill |
 | `typst` | Typst PDF构建——Markdown转PDF，中文排版 | 1 skill |
 | `style-governor` | 系列文档风格一致性治理——术语漂移检测 | 1 skill |
+| `done` | 完成门禁与遗留分流——开工写完成契约，宣称完成前过门，遗留强制分流 | 2 skills |
 
 ---
 
@@ -212,6 +213,10 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v3.5 — 完成工程
+
+- **v3.5.0**: 新增可选包 `completion-engineering-pack`（别名 `done`）：`done-gate`（完成契约，外部锚定 + 恒真谓词拦截 + 独立校验档 + 5值verdict含SKIPPED绕过留痕）+ `done-ledger`（遗留分流；gate触顶的遗留项进backlog.md，永不进todo——关闭todo-continuation循环事故类）+ companion-gateway Step DG（开放契约提醒、意图动词stub注入带预填锚点、gate轮次状态、14天契约TTL）。注册到 developer/power-user/comprehensive profiles；L1规则 `completion.md`。设计经 Oracle + 5顾问 Council 评审（.sisyphus/plans/completion-engineering-design.md v1.2）。
 
 ### v3.2 — 灵活 Skills 管理 + 角色化 Profiles
 

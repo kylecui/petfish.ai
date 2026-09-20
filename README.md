@@ -126,7 +126,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `petfish` | Writing style and rewrite guidance — 3 skills: `petfish-style-rewriter`, `de-ai-detector`, `style-extractor` | Global default |
 | `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
 
-## 12 Optional Packs (via petfish-market)
+## 13 Optional Packs (via petfish-market)
 > Optional packs are distributed through [petfish-market](https://github.com/kylecui/petfish-market). Install commands resolve automatically — no user-visible difference.
 | Alias | Purpose | Scale |
 |---|---|---|
@@ -142,6 +142,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `drawio` | Draw.io radar chart generation with precise vertex calculation | Project |
 | `typst` | Typst-based PDF building from Markdown via pandoc pipeline | Project |
 | `style-governor` | Cross-document style consistency, terminology drift detection, conservative rewriting | Project |
+| `done` | Completion gate and leftover triage — done contracts at task start, evidence gate before claiming done, forced leftover triage | Project |
 
 ## Profile → Auto-Install Mapping
 
@@ -150,12 +151,12 @@ Role-based profiles (recommended):
 | Profile | Auto-installed Packs | Best For |
 |---|---|---|
 | `starter` | `petfish` | Just getting started |
-| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate` | Daily coding |
+| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate`, `done` | Daily coding |
 | `researcher` | `petfish`, `research`, `doc-reader`, `calibrate` | Academic / research |
 | `writer` | `petfish`, `ppt`, `doc-reader`, `research` | Content creation |
 | `educator` | `petfish`, `course`, `ppt`, `doc-reader`, `testdocs` | Course development |
 | `ops-engineer` | `petfish`, `deploy`, `trust`, `calibrate` | DevOps / security |
-| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader` | Full-featured setup |
+| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader`, `done` | Full-featured setup |
 
 Legacy profiles (kept for backward compatibility):
 
@@ -169,7 +170,7 @@ Legacy profiles (kept for backward compatibility):
 | `research` | `petfish`, `research`, `doc-reader` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor`, `done` |
 
 > Use `uv run catalog_query.py --profile list` to see all profiles including custom ones you've saved.
 
@@ -344,7 +345,7 @@ petfish.ai/
 │   │           ├── skill-description-optimizer/  # description tuning
 │   │           ├── skill-trigger-evaluator/      # trigger testing
 │   │           └── skill-usage-tracker/          # usage analytics
-│   └── optional/                                 # 9 optional packs, distributed via petfish-market
+│   └── optional/                                 # 13 optional packs, distributed via petfish-market
 │       ├── opencode-course-skills-pack/          # course
 │       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
 │       ├── repo-deploy-ops-skill-pack/           # deploy
@@ -353,7 +354,8 @@ petfish.ai/
 │       ├── fish-trail/                           # context
 │       ├── trustskills-governance-pack/          # trust
 │       ├── research-skill-pack/                  # research
-│       └── fish-reflection-pack/                 # reflect
+│       ├── fish-reflection-pack/                 # reflect
+│       └── completion-engineering-pack/          # done — completion gate & leftover triage
 ├── platforms.json                                # platform registry
 ├── install.py                                    # unified Python installer (PEP 723) — the sole installer
 └── README.md
@@ -362,6 +364,10 @@ petfish.ai/
 ---
 
 ## Version History
+
+### v3.5 — Completion Engineering
+
+- **v3.5.0**: New optional pack `completion-engineering-pack` (alias `done`): `done-gate` (completion contracts with external anchoring, tautology-predicate interception, independent verifier tier, 5-value verdicts incl. SKIPPED bypass trail) + `done-ledger` (leftover triage; gate-capped leftovers go to backlog.md, never todos — closing the todo-continuation loop incident class) + companion-gateway Step DG (open-contract reminders, intent-verb stub injection with pre-filled anchor, gate-round status, 14-day contract TTL). Registered in developer/power-user/comprehensive profiles; L1 rules `completion.md`. Design reviewed by Oracle + 5-advisor Council (.sisyphus/plans/completion-engineering-design.md v1.2).
 
 ### v3.4 — Market + Gateway Hardening
 

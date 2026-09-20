@@ -14,6 +14,7 @@
 #
 
 import argparse
+import io
 import json
 import os
 import platform
@@ -32,12 +33,12 @@ from urllib.request import Request, urlopen
 # ---------------------------------------------------------------------------
 # UTF-8 setup
 # ---------------------------------------------------------------------------
-if sys.stdout:
+if isinstance(sys.stdout, io.TextIOWrapper):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
-if sys.stderr:
+if isinstance(sys.stderr, io.TextIOWrapper):
     try:
         sys.stderr.reconfigure(encoding="utf-8")
     except Exception:
@@ -79,6 +80,7 @@ ALIASES: dict[str, str] = {
     "toolchain": "petfish-toolchain-skill",
     "series-style": "series-style-governor-pack",
     "doc-reader": "doc-reader-skill",
+    "done": "completion-engineering-pack",
 }
 
 CORE_PACKS = {
@@ -1003,9 +1005,9 @@ def resolve_pack_names(raw: str) -> list[str]:
             # Also query market index for packs not available locally
             # (e.g. typst-pdf-builder lives in a separate repo)
             try:
-                raw = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10)
-                if raw:
-                    data = json.loads(raw)
+                payload = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10)
+                if payload:
+                    data = json.loads(payload)
                     for pack in data.get("packs", []):
                         name = pack.get("name")
                         if name and name not in local_packs:
@@ -1031,10 +1033,10 @@ def resolve_pack_names(raw: str) -> list[str]:
                             result.append(pname)
         # Also query market index for optional packs (may include packs not in
         # the core repo snapshot, or community packs)
-        raw = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10)
-        if raw:
+        payload = fetch_url_with_mirrors(MARKET_INDEX_URL, timeout=10)
+        if payload:
             try:
-                data = json.loads(raw)
+                data = json.loads(payload)
                 for pack in data.get("packs", []):
                     name = pack.get("name")
                     if name and name not in result:
@@ -1559,6 +1561,7 @@ L1_PACK_MAP: dict[str, str] = {
     "research-skill-pack": "research.md",
     "fish-reflection-pack": "fish-reflection.md",
     "series-style-governor-pack": "series-style-governor.md",
+    "completion-engineering-pack": "completion.md",
 }
 
 

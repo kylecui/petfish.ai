@@ -11,6 +11,7 @@
  *   Step 2.5: Anti-Sycophancy Check (detect evaluative questions)
  *   Step 3: Retry Guard (track consecutive tool failures via tool.execute.after)
  *   Step WG: Web-Grounding reminder (always injected)
+ *   Step DG: Done-Gate (open contracts / intent-verb stub / gate rounds from .petfish/done)
  *
  * Hooks:
  *   experimental.chat.system.transform — inject gateway results into system prompt
@@ -21,7 +22,7 @@
  */
 
 import type { Plugin } from "@opencode-ai/plugin"
-import { readFile, writeFile, mkdir, readdir } from "node:fs/promises"
+import { readFile, writeFile, mkdir, readdir, stat } from "node:fs/promises"
 import { join } from "node:path"
 
 interface PluginMessage {
@@ -302,6 +303,119 @@ async function checkOrchestrationHint(
 }
 
 // ---------------------------------------------------------------------------
+// Done-Gate (Step DG) — completion-engineering semi-enforcement channel.
+// State root: .petfish/done/<task-slug>/{contract.json, verdict.json, .closed}
+// Lifecycle: TTL 14d on contract.json mtime; .closed marker or final verdict
+// (VERIFIED_DONE/SKIPPED) hides a contract; NOT_DONE/PARTIAL/BLOCKED_ON_USER
+// stay visible; malformed JSON is silently skipped (self-heal, v2.5.1 pattern).
+// ---------------------------------------------------------------------------
+const DONE_STATE_DIR = ".petfish/done"
+const DONE_TTL_MS = 14 * 24 * 60 * 60 * 1000
+const DONE_FINAL_VERDICTS = new Set(["VERIFIED_DONE", "SKIPPED"])
+const DONE_INTENT_RE = /(实现|修复|交付|重构|\brefactor\b|\bimplement\b|\bfix\b|\bbuild\b|\bdeliver\b)/i
+
+let doneGateStubInjected = false
+
+interface DoneContractState {
+  slug: string
+  outcome: string
+  open: boolean // contract.json present, verdict.json absent
+  round: number | null // verdict.json "round" when < 3
+}
+
+async function scanDoneContracts(doneDir: string): Promise<DoneContractState[]> {
+  const active: DoneContractState[] = []
+  try {
+    for (const entry of await readdir(doneDir, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith(".")) continue
+      try {
+        const dir = join(doneDir, entry.name)
+        // .closed marker — closed/superseded contract
+        if ((await readFile(join(dir, ".closed"), "utf-8").catch(() => null)) !== null) continue
+        const contractPath = join(dir, "contract.json")
+        const cst = await stat(contractPath).catch(() => null)
+        if (!cst) continue // no contract — nothing to gate
+        if (Date.now() - cst.mtimeMs > DONE_TTL_MS) continue // TTL expired
+        let contract: { outcome?: unknown }
+        try {
+          contract = JSON.parse(await readFile(contractPath, "utf-8"))
+        } catch {
+          continue // malformed contract — silent skip
+        }
+        const verdictRaw = await readFile(join(dir, "verdict.json"), "utf-8").catch(() => null)
+        let open = false
+        let round: number | null = null
+        if (verdictRaw === null) {
+          open = true // contract without verdict — gate not passed yet
+        } else {
+          try {
+            const v = JSON.parse(verdictRaw) as { verdict?: unknown; round?: unknown }
+            if (typeof v.verdict === "string" && DONE_FINAL_VERDICTS.has(v.verdict)) continue
+            if (typeof v.round === "number" && Number.isFinite(v.round) && v.round < 3) {
+              round = v.round
+            }
+          } catch {
+            continue // malformed verdict — silent skip
+          }
+        }
+        active.push({
+          slug: entry.name,
+          outcome: typeof contract.outcome === "string" ? contract.outcome : "",
+          open,
+          round,
+        })
+      } catch {
+        // per-dir failure — skip silently
+      }
+    }
+  } catch {
+    // .petfish/done missing — no-op
+  }
+  return active
+}
+
+async function runDoneGate(userMessage: string, directory: string): Promise<string[]> {
+  const lines: string[] = []
+  try {
+    const doneDir = join(directory, DONE_STATE_DIR)
+    const active = await scanDoneContracts(doneDir)
+
+    // Open-contract reminders (max 3)
+    for (const c of active.filter((x) => x.open).slice(0, 3)) {
+      lines.push(
+        `[done-gate] 开放契约未过门: ${c.slug} — outcome: ${c.outcome.slice(0, 60)}; 宣称完成前运行 done-gate 收尾检查\n`,
+      )
+    }
+    // Round status (max 3)
+    for (const c of active.filter((x) => x.round !== null).slice(0, 3)) {
+      lines.push(`[done-gate] gate rounds ${c.round}/3: ${c.slug}\n`)
+    }
+
+    // Intent-verb stub — once per session, only with no active contract,
+    // suppressed while .petfish/done/.skipped-session marker exists
+    if (!doneGateStubInjected && active.length === 0 && DONE_INTENT_RE.test(userMessage)) {
+      const skippedMarker = await readFile(join(doneDir, ".skipped-session"), "utf-8").catch(() => null)
+      if (skippedMarker === null) {
+        doneGateStubInjected = true
+        const anchor = userMessage
+          .trim()
+          .slice(0, 80)
+          .replace(/\\/g, "\\\\")
+          .replace(/"/g, '\\"')
+          .replace(/\r?\n/g, " ")
+        lines.push(
+          `[done-gate] 检测到意图动词且无活跃契约 — 开工前将契约落盘到 .petfish/done/<task-slug>/contract.json（anchor已预填，勿改写锚内容）：\n` +
+            `{"revision":1,"amendments":[],"critical":false,"anchor":{"type":"user_request","ref":"${anchor}"},"outcome":"<结果导向的完成陈述>","constraints":[],"verifications":[{"type":"command","run":"<真实验证命令>","expect":"exit 0"}],"blocked_if":[],"out_of_scope":[]}\n`,
+        )
+      }
+    }
+  } catch {
+    // never throw — missing/malformed done state is a no-op
+  }
+  return lines
+}
+
+// ---------------------------------------------------------------------------
 // Plugin
 // ---------------------------------------------------------------------------
 
@@ -462,6 +576,12 @@ const plugin: Plugin = async ({ directory }, options) => {
             }
           }
         } catch { /* best-effort */ }
+
+        // Step DG: Done-Gate — completion-engineering semi-enforcement channel
+        const doneGateLines = await runDoneGate(userMessage, directory)
+        for (const line of doneGateLines) {
+          sections.push(line)
+        }
 
         // Anti-Sycophancy
         if (evaluative) {
