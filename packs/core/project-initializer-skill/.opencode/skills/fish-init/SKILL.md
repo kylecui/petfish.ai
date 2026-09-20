@@ -396,12 +396,12 @@ Profiles define the project's NEEDS. The agent resolves these needs against the 
 | Profile | Semantic Needs | Typical Resolution |
 |---|---|---|
 | `starter` | Writing style only | petfish |
-| `developer` | Development, testing, deployment, style, decision review | deploy, testdocs, calibrate, petfish |
+| `developer` | Development, testing, deployment, style, decision review, task completion gating | deploy, testdocs, calibrate, done, petfish |
 | `researcher` | Research workbench, document reading, style, judgment calibration | research, doc-reader, calibrate, petfish |
 | `writer` | Writing, presentations, document reading, research, style | ppt, doc-reader, research, petfish |
 | `educator` | Course development, presentations, document reading, testing, style | course, ppt, doc-reader, testdocs, petfish |
 | `ops-engineer` | Operations, deployment, trust governance, decision calibration, style | deploy, trust, calibrate, petfish |
-| `power-user` | Full-featured (all except course/context) | deploy, testdocs, trust, research, calibrate, reflect, ppt, doc-reader, petfish |
+| `power-user` | Full-featured (all except course/context), task completion gating | deploy, testdocs, trust, research, calibrate, reflect, ppt, doc-reader, done, petfish |
 | `minimal` | Writing style only (legacy alias for starter) | petfish |
 | `course` | Course development + style (legacy) | course, petfish |
 | `code` | Development, testing, deployment, style (legacy alias for developer) | deploy, testdocs, petfish |

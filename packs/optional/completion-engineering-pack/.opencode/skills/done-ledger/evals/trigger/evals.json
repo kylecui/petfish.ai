@@ -1,0 +1,80 @@
+[
+  {
+    "query": "任务结束了，做一下遗留分流。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "显式'遗留分流'，done-ledger核心触发。"
+  },
+  {
+    "query": "还有下一步吗？把剩下的整理出来。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "含组合词'还有下一步吗'，收尾时盘点剩余工作。"
+  },
+  {
+    "query": "收尾整理：把范围外建议都记到backlog里。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "含'收尾整理'与'backlog'，范围外建议进backlog正是分流表规则。"
+  },
+  {
+    "query": "Do a leftover triage before we close this task.",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文触发词'leftover triage'。"
+  },
+  {
+    "query": "Let's wrap up and log the remaining work.",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文触发词'wrap up'与remaining work语义。"
+  },
+  {
+    "query": "把end-of-task leftovers记下来，别弄丢了。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文触发词'end-of-task leftovers'，遗留留档场景。"
+  },
+  {
+    "query": "gate触顶了，剩下的遗留怎么处理？",
+    "should_trigger": true,
+    "category": "edge",
+    "description": "gate 3轮用尽后的遗留去向是分流表核心行：进backlog，永不进todo。"
+  },
+  {
+    "query": "把遗留事项都加到todo里吧。",
+    "should_trigger": true,
+    "category": "edge",
+    "description": "用户建议把遗留写成todo——done-ledger必须介入纠正：触顶遗留与范围外建议禁建todo，改记backlog并说明原因。"
+  },
+  {
+    "query": "帮我翻译这段话成英文。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "纯翻译任务，无遗留可分流。"
+  },
+  {
+    "query": "done",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "裸词done被消毒，禁止独立触发。"
+  },
+  {
+    "query": "写一个登录功能，支持OAuth和密码两种方式。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "开工意图（写新功能）归done-gate Phase A建契约，不是遗留分流场景。"
+  },
+  {
+    "query": "在宣称完成之前，先跑一遍收尾检查和测试。",
+    "should_trigger": false,
+    "category": "edge",
+    "description": "含'宣称完成之前'与'收尾检查'，是done-gate的门阶段职责，不是done-ledger。"
+  },
+  {
+    "query": "TCP三次握手是什么？",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "简单事实问答，与遗留分流无关。"
+  }
+]

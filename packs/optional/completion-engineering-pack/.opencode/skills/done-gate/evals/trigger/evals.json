@@ -1,0 +1,92 @@
+[
+  {
+    "query": "这个多文件重构要做任务收尾了，先核对完成标准再交付。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "含组合词'任务收尾'与'完成标准'，过门前核对完成标准是done-gate核心场景。"
+  },
+  {
+    "query": "在宣称完成之前，先跑一遍收尾检查。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "含组合词'宣称完成之前'与'收尾检查'，直接命中门阶段触发。"
+  },
+  {
+    "query": "帮我做交付检查，对照用户最初的要求验收核对。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "含'交付检查'与'验收核对'，对照外部锚定做验收是gate职责。"
+  },
+  {
+    "query": "跑一下completion gate再宣布结果。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文组合词'completion gate'显式触发。"
+  },
+  {
+    "query": "Do a done check before we claim this task is finished.",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文组合词'done check'与'before we claim'命中before declaring done语义。"
+  },
+  {
+    "query": "为这个功能先写一份done contract再开工。",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "显式要求开工前写契约，命中Phase A与英文触发词'done contract'。"
+  },
+  {
+    "query": "别走流程了，跳过收尾检查直接给结果。",
+    "should_trigger": true,
+    "category": "edge",
+    "description": "用户明确跳过流程：done-gate的SKIPPED留痕路径仍被触发，写一行SKIPPED verdict即合规。"
+  },
+  {
+    "query": "写个新功能：支持CSV导出，做完过一遍completion gate。",
+    "should_trigger": true,
+    "category": "edge",
+    "description": "开工意图动词场景（写新功能）+显式completion gate，Phase A建契约。"
+  },
+  {
+    "query": "done",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "裸词done被消毒，禁止独立触发（开发者消息高频词）。"
+  },
+  {
+    "query": "完成了。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "单独的'完成'二字被消毒，无组合词不触发skill匹配。"
+  },
+  {
+    "query": "帮我翻译这段话成英文。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "纯翻译任务，非平凡判定不成立，不建契约不跑门。"
+  },
+  {
+    "query": "修复这个typo。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "单文件typo级trivial任务，按设计跳过契约与门。"
+  },
+  {
+    "query": "TCP三次握手是什么？",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "简单事实问答，与完成判定无关。"
+  },
+  {
+    "query": "任务结束了，做一下遗留分流，剩下的记到backlog。",
+    "should_trigger": false,
+    "category": "edge",
+    "description": "含'遗留分流'与'backlog'，属于done-ledger职责，不是done-gate。"
+  },
+  {
+    "query": "把这份清单按优先级排一下。",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "普通整理排序请求，'清单'不等于'任务收尾清单'，不触发。"
+  }
+]

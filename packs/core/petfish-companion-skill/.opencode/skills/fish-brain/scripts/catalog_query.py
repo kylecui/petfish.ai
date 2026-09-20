@@ -54,6 +54,7 @@ ALIAS_MAP = {
     "research": "research-skill-pack",
     "reflect": "fish-reflection-pack",
     "doc-reader": "doc-reader-skill",
+    "done": "completion-engineering-pack",
     "de-ai-detector": "petfish-style-skill",
     "style-extractor": "petfish-style-skill",
 }
@@ -222,6 +223,18 @@ TRIGGERS = {
         "extract my voice",
         "nuwa style",
     ],
+    "done": [
+        "完成标准",
+        "收尾检查",
+        "宣称完成",
+        "交付检查",
+        "遗留分流",
+        "还有下一步",
+        "验收一个任务",
+        "completion gate",
+        "done check",
+        "leftover triage",
+    ],
     # v1.3/v1.4 aliases share triggers with canonical
     "fish-init": ["初始化", "新项目", "project init", "scaffold", "创建项目"],
     "fish-brain": ["/petfish", "what skills", "what can you do", "help with"],
@@ -337,7 +350,7 @@ def query_market(alias: str) -> dict | None:
 PROFILES: dict[str, list[str]] = {
     # --- Role-based profiles (v2) ---
     "starter": ["petfish"],
-    "developer": ["petfish", "deploy", "testdocs", "calibrate"],
+    "developer": ["petfish", "deploy", "testdocs", "calibrate", "done"],
     "researcher": ["petfish", "research", "doc-reader", "calibrate"],
     "writer": ["petfish", "ppt", "doc-reader", "research"],
     "educator": ["petfish", "course", "ppt", "doc-reader", "testdocs"],
@@ -352,6 +365,7 @@ PROFILES: dict[str, list[str]] = {
         "reflect",
         "ppt",
         "doc-reader",
+        "done",
     ],
     # --- Kept for backward compatibility ---
     "minimal": ["petfish"],
@@ -373,6 +387,7 @@ PROFILES: dict[str, list[str]] = {
         "research",
         "reflect",
         "doc-reader",
+        "done",
     ],
 }
 
@@ -732,7 +747,11 @@ def save_profile(name: str, as_json: bool = False, target: Path | None = None):
     # Map installed pack names back to aliases
     pack_to_alias = {v: k for k, v in ALIAS_MAP.items() if k in ALIAS_MAP}
     aliases = sorted(
-        set(pack_to_alias.get(pname, pname) for pname in installed.keys())
+        {
+            pack_to_alias.get(pname, pname)
+            for pname in installed.keys()
+            if isinstance(pname, str)
+        }
     )
     if not aliases:
         msg = "No packs installed. Install some packs first, then save a profile."
