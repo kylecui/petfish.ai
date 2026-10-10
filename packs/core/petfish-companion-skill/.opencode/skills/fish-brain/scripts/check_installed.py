@@ -37,6 +37,7 @@ PLATFORM_REGISTRY_PATHS = {
 KNOWN_PACKS = {
     "init": "project-initializer-skill",
     "companion": "petfish-companion-skill",
+    "toolchain": "petfish-toolchain-skill",
     "course": "opencode-course-skills-pack",
     "deploy": "repo-deploy-ops-skill-pack",
     "petfish": "petfish-style-skill",
@@ -46,6 +47,12 @@ KNOWN_PACKS = {
     "context": "fish-trail",
     "research": "research-skill-pack",
     "trust": "trustskills-governance-pack",
+    "reflect": "fish-reflection-pack",
+    "series-style": "series-style-governor-pack",
+    "doc-reader": "doc-reader-skill",
+    "drawio": "drawio-radar-chart",
+    "typst": "typst-pdf-builder",
+    "done": "completion-engineering-pack",
 }
 
 
@@ -226,21 +233,6 @@ def check_updates(
             print(f"⚠️ Could not check updates: {message}")
         return
 
-    # Fetch market index to resolve pack repos (optional packs may live in
-    # separate repos, not in petfish.ai monorepo)
-    market_index: dict[str, dict] = {}
-    try:
-        market_data = _fetch_json(
-            "https://raw.githubusercontent.com/kylecui/petfish-market/main/index.json",
-            timeout=10,
-        )
-        for pack in market_data.get("packs", []):
-            name = pack.get("name")
-            if name:
-                market_index[name] = pack
-    except Exception:
-        pass  # Market unavailable — fall back to monorepo for all packs
-
     for alias, pack_name in KNOWN_PACKS.items():
         info = installed.get(pack_name)
         if not isinstance(info, dict):
@@ -248,32 +240,40 @@ def check_updates(
 
         installed_version = str(info.get("version", "unknown"))
 
-        # Determine source repo and path for this pack
-        # Core packs: from petfish.ai monorepo
-        # Optional/market packs: from their respective repos (market index)
-        market_entry = market_index.get(pack_name, {})
-        source_repo = market_entry.get("repo", repo)  # default: monorepo
-        source_ref = market_entry.get("ref", latest_tag)  # default: latest tag
-        source_path = market_entry.get("path", f"packs/{pack_name}")  # default: monorepo path
+        # Tier-aware manifest fetch (#253): packs live under packs/core/ or
+        # packs/optional/ (legacy layout used flat packs/). Probe each tier
+        # until one resolves; a 404 moves to the next tier, other errors abort.
+        manifest = None
+        last_err: Exception | None = None
+        for tier in ("optional", "core", ""):
+            tier_seg = f"{tier}/" if tier else ""
+            manifest_url = (
+                f"https://raw.githubusercontent.com/{repo}/{latest_tag}/packs/"
+                f"{tier_seg}{pack_name}/pack-manifest.json"
+            )
+            try:
+                manifest = _fetch_json(manifest_url, timeout=10)
+                break
+            except urllib_error.HTTPError as exc:
+                last_err = exc
+                if exc.code == 404:
+                    continue
+                break
+            except (
+                urllib_error.URLError,
+                TimeoutError,
+                OSError,
+                json.JSONDecodeError,
+                ValueError,
+            ) as exc:
+                last_err = exc
+                break
 
-        manifest_url = (
-            f"https://raw.githubusercontent.com/{source_repo}/{source_ref}/"
-            f"{source_path}/pack-manifest.json"
-        )
-
-        try:
-            manifest = _fetch_json(manifest_url, timeout=10)
-            source_version = str(manifest.get("version", "unknown"))
-        except (
-            urllib_error.URLError,
-            urllib_error.HTTPError,
-            TimeoutError,
-            OSError,
-            json.JSONDecodeError,
-            ValueError,
-        ) as exc:
-            errors.append(f"{alias}: {exc}")
+        if manifest is None:
+            errors.append(f"{alias}: {last_err}")
             continue
+
+        source_version = str(manifest.get("version", "unknown"))
 
         comparison = compare_semver(installed_version, source_version)
         row = {
@@ -305,13 +305,16 @@ def check_updates(
     if updates:
         for row in updates:
             print(f"⬆️  {row['alias']} {row['installed']} → {row['available']}")
-    elif errors and not up_to_date:
-        print(f"⚠️ Could not check updates: {errors[0]}")
-    else:
+    elif up_to_date:
         print(f"✅ All packs are up to date (latest release: {latest_tag})")
 
-    if errors and (updates or up_to_date):
-        print(f"⚠️ Could not check updates: {errors[0]}")
+    # Report every failure — never mask all-failed behind a single error (#253)
+    if errors:
+        print(f"⚠️ Could not check updates for {len(errors)} pack(s):")
+        for err in errors:
+            print(f"   - {err}")
+    elif not updates and not up_to_date:
+        print(f"✅ All packs are up to date (latest release: {latest_tag})")
 
 
 def check(target: Path, platform: str | None = None, as_json: bool = False):

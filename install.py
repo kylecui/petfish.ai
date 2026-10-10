@@ -80,6 +80,8 @@ ALIASES: dict[str, str] = {
     "toolchain": "petfish-toolchain-skill",
     "series-style": "series-style-governor-pack",
     "doc-reader": "doc-reader-skill",
+    "drawio": "drawio-radar-chart",
+    "typst": "typst-pdf-builder",
     "done": "completion-engineering-pack",
 }
 
@@ -1000,7 +1002,16 @@ def find_pack_dir_enhanced(
             # Return staging root itself if it has .opencode
             if (staging / ".opencode").is_dir():
                 return staging
-            return staging
+            # (#265) Downloaded but no identifiable pack dir — say exactly why
+            # instead of returning a manifest-less dir that fails later with a
+            # confusing "No pack-manifest.json" error.
+            log_warn(
+                f"[market] {pack_name}: downloaded from "
+                f"{meta.get('repo', '?')}@{meta.get('ref', 'main')} but no pack "
+                "directory found (missing pack-manifest.json / .opencode). "
+                "Market entry may point at a stale path."
+            )
+            return None
 
     return None
 
@@ -3280,6 +3291,7 @@ def main():
     )
 
     success_count = 0
+    failed_packs: list[str] = []
 
     if should_split:
         init_packs = [p for p in pack_names if p == INIT_PACK_NAME]
@@ -3307,6 +3319,8 @@ def main():
                     )
                     if install_ok:
                         success_count += 1
+                    else:
+                        failed_packs.append(pack_name)
                 except Exception as exc:
                     log_error(f"{pack_name}: {exc}")
             save_registry(global_reg_path, global_registry)
@@ -3318,6 +3332,7 @@ def main():
                     result = download_community_pack(pack_name, github_token=args.github_token)
                     if result is None:
                         log_error(f"Failed to download community pack: {pack_name}")
+                        failed_packs.append(pack_name)
                         continue
                     staged_name, staged_path = result
                     install_ok = install_single_pack(
@@ -3331,6 +3346,8 @@ def main():
                     )
                     if install_ok:
                         success_count += 1
+                    else:
+                        failed_packs.append(pack_name)
                     continue
 
                 install_ok = install_single_pack(
@@ -3344,6 +3361,8 @@ def main():
                 )
                 if install_ok:
                     success_count += 1
+                else:
+                    failed_packs.append(pack_name)
             except Exception as exc:
                 log_error(f"{pack_name}: {exc}")
     else:
@@ -3355,6 +3374,7 @@ def main():
                     result = download_community_pack(pack_name, github_token=args.github_token)
                     if result is None:
                         log_error(f"Failed to download community pack: {pack_name}")
+                        failed_packs.append(pack_name)
                         continue
                     staged_name, staged_path = result
                     install_ok = install_single_pack(
@@ -3368,6 +3388,8 @@ def main():
                     )
                     if install_ok:
                         success_count += 1
+                    else:
+                        failed_packs.append(pack_name)
                     continue
 
                 install_ok = install_single_pack(
@@ -3381,6 +3403,8 @@ def main():
                 )
                 if install_ok:
                     success_count += 1
+                else:
+                    failed_packs.append(pack_name)
             except Exception as exc:
                 log_error(f"{pack_name}: {exc}")
 
@@ -3402,8 +3426,20 @@ def main():
 
     # Final summary
     banner(f"Done: {success_count}/{len(pack_names)} pack(s) processed")
+    if failed_packs:
+        # (#265) Never let a partial "all" run look like success: list what was
+        # skipped and fail the run so automated agents get a real signal.
+        log_warn(
+            f"{len(failed_packs)} pack(s) NOT processed: {', '.join(failed_packs)}"
+        )
+        log_warn(
+            "Re-run with --pack "
+            + ",".join(failed_packs)
+            + " (plus --force if needed) after reviewing the warnings above."
+        )
+        return 1
 
-    return 0 if success_count > 0 else 1
+    return 0
 
 
 # ---------------------------------------------------------------------------
