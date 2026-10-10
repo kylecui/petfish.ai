@@ -832,6 +832,15 @@ def download_community_pack(
         agents_path = staged_pack / ".opencode" / "agents"
         if agents_path.is_dir():
             agents = sorted(d.name for d in agents_path.iterdir() if d.is_dir())
+        plugins_path = staged_pack / ".opencode" / "plugin"
+        if plugins_path.is_dir():
+            plugins = sorted(
+                f".opencode/plugin/{f.name}"
+                for f in plugins_path.iterdir()
+                if f.is_file() and f.suffix == ".ts"
+            )
+        else:
+            plugins = []
         auto_manifest = {
             "name": pack_dir_name,
             "version": "0.0.0",
@@ -839,9 +848,11 @@ def download_community_pack(
             "skills": skills,
             "commands": commands,
             "agents": agents,
+            "plugins": plugins,
             "skill_count": len(skills),
             "command_count": len(commands),
             "agent_count": len(agents),
+            "plugin_count": len(plugins),
         }
         manifest_file.write_text(
             json.dumps(auto_manifest, indent=2, ensure_ascii=False) + "\n",
@@ -1231,18 +1242,22 @@ def update_registry(
     installed_skills: list[str],
     installed_commands: list[str],
     installed_agents: list[str],
+    installed_plugins: "list[str] | None" = None,
 ):
     """Update registry entry for a pack."""
     now = datetime.now(timezone.utc).isoformat()
+    plugins = installed_plugins or []
     entry = {
         "installed_at": now,
         "version": manifest.get("version", "0.0.0"),
         "skills": installed_skills,
         "commands": installed_commands,
         "agents": installed_agents,
+        "plugins": plugins,
         "skill_count": manifest.get("skill_count", len(installed_skills)),
         "command_count": manifest.get("command_count", len(installed_commands)),
         "agent_count": manifest.get("agent_count", len(installed_agents)),
+        "plugin_count": manifest.get("plugin_count", len(plugins)),
         "description": manifest.get("description", ""),
     }
     registry["packs"][pack_name] = entry
@@ -1735,13 +1750,100 @@ def install_plugin_files(source_root: Path, target: Path, pack_name: str = ""):
 
 
 def register_plugin_in_config(config_file: Path, pack_name: str = ""):
-    """Register plugin tuples in opencode.json (idempotent).
+    """(Legacy L1 channel) register hardcoded plugin tuples.
+
+    Delegates to register_plugins_in_config; kept for packs installed via the
+    lib/plugin pipeline that have no manifest `plugins` declaration.
+
+    Topic (fish-trail) plugins are registered only for the fish-trail pack, and
+    registered with "enabled": False -- context management is opt-in (v3.1).
+    """
+    entries = [
+        [".opencode/plugin/system-prompt-rules.ts", {"mode": "all"}],
+        [".opencode/plugin/companion-gateway.ts", {"enabled": True}],
+    ]
+    if pack_name == "fish-trail":
+        entries.extend([
+            [".opencode/plugin/system-prompt-context-inject.ts", {"enabled": False, "maxTopics": 5, "maxSummaryLen": 200}],
+            [".opencode/plugin/topic-context-filter.ts", {"enabled": False, "safetyWindow": 5, "minMessages": 15}],
+        ])
+    register_plugins_in_config(config_file, entries)
+
+
+def _normalize_plugin_entry(entry) -> "tuple[str, str, dict | None]":
+    """Normalize a pack-manifest plugins entry to (source, target, options).
+
+    String form uses the mirrored-payload convention (source == target, both
+    relative to the install root). Dict form is {"source", "target"?,
+    "options"?}; "path"/"src" are accepted as aliases for "source" (same
+    convention as `contents` entries).
+    """
+    if isinstance(entry, str):
+        return entry, entry, None
+    if isinstance(entry, dict):
+        source = entry.get("source") or entry.get("path") or entry.get("src")
+        target = entry.get("target") or source
+        if not source or not target:
+            raise ValueError(f"invalid plugin entry (need source/target): {entry!r}")
+        options = entry.get("options")
+        return source, target, options if isinstance(options, dict) else None
+    raise ValueError(f"invalid plugin entry (must be str or dict): {entry!r}")
+
+
+def copy_plugin(src_file: Path, dest_file: Path, force: bool) -> bool:
+    """Copy a single plugin file. Returns True when a copy happened."""
+    if dest_file.exists() and not force:
+        return False
+    dest_file.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src_file, dest_file)
+    return True
+
+
+def install_pack_plugins(
+    pack_dir: Path,
+    target: Path,
+    plat_dirs: dict,
+    force: bool,
+    manifest: dict,
+) -> "list[str]":
+    """Install pack-manifest plugins entries (the pack plugin channel, #289).
+
+    Copies payload files into the install root and registers them in the
+    platform opencode.json `plugin` array. Returns the registered target
+    paths (install-root-relative), regardless of whether a copy was needed.
+    """
+    declared = manifest.get("plugins") or []
+    if not declared:
+        return []
+    registered: "list[str]" = []
+    config_entries: list = []
+    for entry in declared:
+        source_rel, target_rel, options = _normalize_plugin_entry(entry)
+        src = pack_dir / source_rel
+        if not src.is_file():
+            log(f"    ! plugin source missing, skipped: {source_rel}")
+            continue
+        dst = target / target_rel
+        if copy_plugin(src, dst, force):
+            log_success(target_rel)
+        registered.append(target_rel)
+        config_entries.append([target_rel, options] if options else target_rel)
+    config_file = plat_dirs.get("config_file")
+    if config_file and config_entries:
+        cfg_path = Path(config_file) if Path(config_file).is_absolute() else target / config_file
+        register_plugins_in_config(cfg_path, config_entries)
+    return registered
+
+
+def register_plugins_in_config(config_file: Path, plugin_entries: list):
+    """Append plugin entries to opencode.json `plugin` array (idempotent).
 
     Creates a minimal config if the project has no opencode.json yet, so
     plugin registration is never silently skipped (L1 delivery chain fix).
-
-    Topic (fish-trail) plugins are registered only for the fish-trail pack, and
-    registered with "enabled": False — context management is opt-in (v3.1).
+    Dedup rule: an entry is skipped when the config already references the
+    same target path -- as a plain string or as a [path, options] tuple.
+    A pre-existing tuple always wins over a manifest plain-string so that
+    legacy options are preserved.
     """
     if not config_file.is_file():
         config_file.parent.mkdir(parents=True, exist_ok=True)
@@ -1750,28 +1852,19 @@ def register_plugin_in_config(config_file: Path, pack_name: str = ""):
     with open(config_file, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    if "plugin" not in data:
+    if "plugin" not in data or not isinstance(data["plugin"], list):
         data["plugin"] = []
 
-    plugins_to_register = [
-        [".opencode/plugin/system-prompt-rules.ts", {"mode": "all"}],
-        [".opencode/plugin/companion-gateway.ts", {"enabled": True}],
-    ]
-    if pack_name == "fish-trail":
-        plugins_to_register.extend([
-            [".opencode/plugin/system-prompt-context-inject.ts", {"enabled": False, "maxTopics": 5, "maxSummaryLen": 200}],
-            [".opencode/plugin/topic-context-filter.ts", {"enabled": False, "safetyWindow": 5, "minMessages": 15}],
-        ])
-
     changed = False
-    for plugin_tuple in plugins_to_register:
-        plugin_path = plugin_tuple[0]
+    for entry in plugin_entries:
+        target_path = entry[0] if isinstance(entry, list) and entry else entry
         already_exists = any(
-            isinstance(entry, list) and len(entry) >= 1 and entry[0] == plugin_path
-            for entry in data["plugin"]
+            e == target_path
+            or (isinstance(e, list) and len(e) >= 1 and e[0] == target_path)
+            for e in data["plugin"]
         )
         if not already_exists:
-            data["plugin"].append(plugin_tuple)
+            data["plugin"].append(entry)
             changed = True
 
     if changed:
@@ -1779,6 +1872,39 @@ def register_plugin_in_config(config_file: Path, pack_name: str = ""):
             json.dump(data, f, indent=2, ensure_ascii=False)
             f.write("\n")
         log_success("opencode.json (plugins registered)")
+
+
+
+
+def remove_plugins_from_config(config_file: Path, plugin_targets: "list[str]"):
+    """Remove plugin entries matching the given target paths (uninstall).
+
+    Matches both plain-string entries and [path, options] tuples; leaves all
+    other entries untouched. No-op when the config or the plugin array is
+    absent.
+    """
+    if not config_file.is_file() or not plugin_targets:
+        return
+    with open(config_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    plugins = data.get("plugin")
+    if not isinstance(plugins, list):
+        return
+    targets = set(plugin_targets)
+    kept = [
+        e
+        for e in plugins
+        if not (
+            (isinstance(e, str) and e in targets)
+            or (isinstance(e, list) and len(e) >= 1 and e[0] in targets)
+        )
+    ]
+    if len(kept) != len(plugins):
+        data["plugin"] = kept
+        with open(config_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        log_success(f"opencode.json ({len(plugins) - len(kept)} plugins de-registered)")
 
 
 # ---------------------------------------------------------------------------
@@ -2155,6 +2281,14 @@ def install_single_pack(
                 pack_name,
             )
 
+    # Step 5.6: pack-manifest `plugins` channel (#289) — per-pack plugin
+    # delivery, independent of the legacy lib/plugin L1 pipeline above.
+    installed_plugins: list = []
+    if is_opencode and not use_global and manifest.get("plugins"):
+        installed_plugins = install_pack_plugins(
+            pack_dir, target, plat_dirs, force, manifest
+        )
+
     # Step 6: Translate instructions for secondary platforms
     if platforms_data and not use_global and instructions_file:
         src_agents = target / instructions_file if not Path(instructions_file).is_absolute() else Path(instructions_file)
@@ -2175,6 +2309,7 @@ def install_single_pack(
         reg_skills,
         installed_commands,
         installed_agents,
+        installed_plugins=installed_plugins,
     )
 
     # Summary
@@ -2377,6 +2512,14 @@ def uninstall_pack(
     skills_list = entry.get("skills") or (manifest or {}).get("skills", [])
     commands_list = entry.get("commands") or (manifest or {}).get("commands", [])
     agents_list = entry.get("agents") or (manifest or {}).get("agents", [])
+    plugins_list = entry.get("plugins") or []
+    if not plugins_list and manifest:
+        plugins_list = [
+            target_rel
+            for _source, target_rel, _options in (
+                _normalize_plugin_entry(e) for e in (manifest.get("plugins") or [])
+            )
+        ]
 
     # F2: granular skill removal — only the filtered skills, registry kept
     # while other skills remain
@@ -2434,6 +2577,23 @@ def uninstall_pack(
                 shutil.rmtree(agent_dir, ignore_errors=True)
                 log(f"    - agents/{agent_name}")
                 removed += 1
+
+    # Remove pack-declared plugin files + their opencode.json registrations (#289)
+    if plugins_list:
+        for rel in plugins_list:
+            plugin_file = target / rel
+            if plugin_file.is_file():
+                plugin_file.unlink(missing_ok=True)
+                log(f"    - {rel}")
+                removed += 1
+        plugin_config_rel = plat_dirs.get("config_file")
+        if plugin_config_rel and not is_community:
+            plugin_cfg_path = (
+                Path(plugin_config_rel)
+                if Path(plugin_config_rel).is_absolute()
+                else target / plugin_config_rel
+            )
+            remove_plugins_from_config(plugin_cfg_path, plugins_list)
 
     # Remove AGENTS.md inline section
     instructions_file = plat_dirs.get("instructions_file")

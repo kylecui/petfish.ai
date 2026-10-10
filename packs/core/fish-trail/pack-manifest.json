@@ -13,6 +13,19 @@
   "commands": [],
   "agents": [],
   "mcps": ["context-state"],
+  "plugins": [
+    {
+      "source": ".opencode/plugin/system-prompt-context-inject.ts",
+      "target": ".opencode/plugin/system-prompt-context-inject.ts",
+      "options": {"enabled": false, "maxTopics": 5, "maxSummaryLen": 200}
+    },
+    {
+      "source": ".opencode/plugin/topic-context-filter.ts",
+      "target": ".opencode/plugin/topic-context-filter.ts",
+      "options": {"enabled": false, "safetyWindow": 5, "minMessages": 15}
+    }
+  ],
+  "plugin_count": 2,
   "contents": [
     "AGENTS.md",
     "opencode.example.json",

@@ -12,8 +12,13 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PACKS_DIR = REPO_ROOT / "packs"
 
 
-def _discover_manifests() -> list[Path]:
-    return sorted(PACKS_DIR.glob("*/pack-manifest.json"))
+def _discover_manifests() -> "list[Path]":
+    # Packs live at packs/<tier>/<name>/pack-manifest.json (core/optional/plans);
+    # the legacy packs/<name>/ layout is still accepted for back-compat.
+    return sorted(
+        list(PACKS_DIR.glob("*/pack-manifest.json"))
+        + list(PACKS_DIR.glob("*/*/pack-manifest.json"))
+    )
 
 
 MANIFESTS = _discover_manifests()
@@ -100,6 +105,65 @@ class TestContentsExist:
         assert not missing, (
             f"{manifest_path.parent.name}: missing content files: {missing}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Plugins field (#289)
+# ---------------------------------------------------------------------------
+
+
+class TestPluginsField:
+    def test_plugin_entries_wellformed(self, manifest_path):
+        data = _load(manifest_path)
+        for entry in data.get("plugins", []):
+            if isinstance(entry, str):
+                source, target = entry, entry
+                options = None
+            elif isinstance(entry, dict):
+                source = entry.get("source") or entry.get("path") or entry.get("src")
+                target = entry.get("target", source)
+                options = entry.get("options")
+                assert source, (
+                    f"{manifest_path.parent.name}: plugin dict entry missing 'source': {entry!r}"
+                )
+                assert options is None or isinstance(options, dict), (
+                    f"{manifest_path.parent.name}: plugin 'options' must be an object: {entry!r}"
+                )
+            else:
+                pytest.fail(
+                    f"{manifest_path.parent.name}: plugin entry must be str or dict: {entry!r}"
+                )
+            target_path = Path(target)
+            assert not target_path.is_absolute(), (
+                f"{manifest_path.parent.name}: plugin target must be relative: {target}"
+            )
+            assert ".." not in target_path.parts, (
+                f"{manifest_path.parent.name}: plugin target must not escape install root: {target}"
+            )
+
+    def test_plugin_sources_exist(self, manifest_path):
+        data = _load(manifest_path)
+        pack_dir = manifest_path.parent
+        missing = []
+        for entry in data.get("plugins", []):
+            source = (
+                entry
+                if isinstance(entry, str)
+                else (entry.get("source") or entry.get("path") or entry.get("src"))
+            )
+            if source and not (pack_dir / source).exists():
+                missing.append(source)
+        assert not missing, (
+            f"{manifest_path.parent.name}: missing plugin payload files: {missing}"
+        )
+
+    def test_plugin_count_matches(self, manifest_path):
+        data = _load(manifest_path)
+        if "plugins" in data and "plugin_count" in data:
+            assert data["plugin_count"] == len(data["plugins"]), (
+                f"{manifest_path.parent.name}: plugin_count {data['plugin_count']} "
+                f"!= len(plugins) {len(data['plugins'])}"
+            )
 
 
 # ---------------------------------------------------------------------------

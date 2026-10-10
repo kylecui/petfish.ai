@@ -9,6 +9,10 @@
   "agent_count": 0,
   "mcp_count": 2,
   "mcps": ["skill-registry", "usage-cost"],
+  "plugins": [
+    ".opencode/plugin/companion-gateway.ts"
+  ],
+  "plugin_count": 1,
   "skills": [
     "fish-brain",
     "fish-market"
