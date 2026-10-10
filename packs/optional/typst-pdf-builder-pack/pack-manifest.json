@@ -6,17 +6,17 @@
     "typst-pdf-builder"
   ],
   "contents": [
-    "SKILL.md",
-    "scripts/build_pdf.py",
-    "scripts/add_table_captions.py",
-    "scripts/export_drawio.py",
-    "templates/book-template.typ",
-    "references/typography-spec.md",
-    "references/format-conventions.md",
-    "references/pandoc-pitfalls.md",
-    "references/thuthesis-compliance.md",
-    "references/directory-conventions.md",
-    "evals/evals.json"
+    ".opencode/skills/typst-pdf-builder/SKILL.md",
+    ".opencode/skills/typst-pdf-builder/scripts/build_pdf.py",
+    ".opencode/skills/typst-pdf-builder/scripts/add_table_captions.py",
+    ".opencode/skills/typst-pdf-builder/scripts/export_drawio.py",
+    ".opencode/skills/typst-pdf-builder/templates/book-template.typ",
+    ".opencode/skills/typst-pdf-builder/references/typography-spec.md",
+    ".opencode/skills/typst-pdf-builder/references/format-conventions.md",
+    ".opencode/skills/typst-pdf-builder/references/pandoc-pitfalls.md",
+    ".opencode/skills/typst-pdf-builder/references/thuthesis-compliance.md",
+    ".opencode/skills/typst-pdf-builder/references/directory-conventions.md",
+    ".opencode/skills/typst-pdf-builder/evals/evals.json"
   ],
   "skill_count": 1
 }
