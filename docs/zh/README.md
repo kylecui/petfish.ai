@@ -101,7 +101,7 @@ Companion Gateway在每条消息前**程序化执行**（v3.0+ 通过 companion-
 | `petfish` | 工程写作风格套件 — 3 skills: `petfish-style-rewriter`、`de-ai-detector`、`style-extractor` | 3 skills |
 | `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
 
-## 13个可选包（通过 petfish-market 获取）
+## 14个可选包（通过 petfish-market 获取）
 > 可选包通过 [petfish-market](https://github.com/kylecui/petfish-market) 分发。安装命令自动解析，用户无感知。
 
 | 别名 | 定位 | 规模 |
@@ -119,6 +119,7 @@ Companion Gateway在每条消息前**程序化执行**（v3.0+ 通过 companion-
 | `typst` | Typst PDF构建——Markdown转PDF，中文排版 | 1 skill |
 | `style-governor` | 系列文档风格一致性治理——术语漂移检测 | 1 skill |
 | `done` | 完成门禁与遗留分流——开工写完成契约，宣称完成前过门，遗留强制分流 | 2 skills |
+| `resilience` | OpenCode崩溃四分类诊断与长任务发射前校验/watchdog恢复 | 2 skills |
 
 ---
 
@@ -213,6 +214,10 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v3.6 — OpenCode韧性
+
+- **v3.6.0**: 新增可选包 `opencode-resilience-pack`（别名 `resilience`）：`opencode-crash-taxonomy`（基于2026-10-10事故分析的4类崩溃签名——模型解析、agent身份、存储、配额——含脱敏样本、只读DB取证手册、上游issue映射、classify_crash.py标准库分类器）+ `opencode-session-doctor`（L1发射前模型/别名审计 preflight_model_audit.py，L2日志watchdog按类处置、重试≤1次，L3配置修改启发式 + fish-reflection交棒）。实现 #293 + #294。纯只读工具：零写入、零网络、不改opencode.db。
 
 ### v3.5 — 完成工程
 

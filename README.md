@@ -126,7 +126,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `petfish` | Writing style and rewrite guidance — 3 skills: `petfish-style-rewriter`, `de-ai-detector`, `style-extractor` | Global default |
 | `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
 
-## 13 Optional Packs (via petfish-market)
+## 14 Optional Packs (via petfish-market)
 > Optional packs are distributed through [petfish-market](https://github.com/kylecui/petfish-market). Install commands resolve automatically — no user-visible difference.
 | Alias | Purpose | Scale |
 |---|---|---|
@@ -143,6 +143,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `typst` | Typst-based PDF building from Markdown via pandoc pipeline | Project |
 | `style-governor` | Cross-document style consistency, terminology drift detection, conservative rewriting | Project |
 | `done` | Completion gate and leftover triage — done contracts at task start, evidence gate before claiming done, forced leftover triage | Project |
+| `resilience` | OpenCode crash taxonomy and session pre-flight/watchdog — 4-class crash diagnosis, pre-flight model audit, long-task recovery | Project |
 
 ## Profile → Auto-Install Mapping
 
@@ -151,12 +152,12 @@ Role-based profiles (recommended):
 | Profile | Auto-installed Packs | Best For |
 |---|---|---|
 | `starter` | `petfish` | Just getting started |
-| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate`, `done` | Daily coding |
+| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate`, `done`, `resilience` | Daily coding |
 | `researcher` | `petfish`, `research`, `doc-reader`, `calibrate` | Academic / research |
 | `writer` | `petfish`, `ppt`, `doc-reader`, `research` | Content creation |
 | `educator` | `petfish`, `course`, `ppt`, `doc-reader`, `testdocs` | Course development |
 | `ops-engineer` | `petfish`, `deploy`, `trust`, `calibrate` | DevOps / security |
-| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader`, `done` | Full-featured setup |
+| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader`, `done`, `resilience` | Full-featured setup |
 
 Legacy profiles (kept for backward compatibility):
 
@@ -170,7 +171,7 @@ Legacy profiles (kept for backward compatibility):
 | `research` | `petfish`, `research`, `doc-reader` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor`, `done` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor`, `done`, `resilience` |
 
 > Use `uv run catalog_query.py --profile list` to see all profiles including custom ones you've saved.
 
@@ -345,7 +346,7 @@ petfish.ai/
 │   │           ├── skill-description-optimizer/  # description tuning
 │   │           ├── skill-trigger-evaluator/      # trigger testing
 │   │           └── skill-usage-tracker/          # usage analytics
-│   └── optional/                                 # 13 optional packs, distributed via petfish-market
+│   └── optional/                                 # 14 optional packs, distributed via petfish-market
 │       ├── opencode-course-skills-pack/          # course
 │       ├── opencode-skill-pack-testcases-usage-docs/ # testdocs
 │       ├── repo-deploy-ops-skill-pack/           # deploy
@@ -355,7 +356,8 @@ petfish.ai/
 │       ├── trustskills-governance-pack/          # trust
 │       ├── research-skill-pack/                  # research
 │       ├── fish-reflection-pack/                 # reflect
-│       └── completion-engineering-pack/          # done — completion gate & leftover triage
+│       ├── completion-engineering-pack/          # done — completion gate & leftover triage
+│       └── opencode-resilience-pack/             # resilience — crash taxonomy & session watchdog
 ├── platforms.json                                # platform registry
 ├── install.py                                    # unified Python installer (PEP 723) — the sole installer
 └── README.md
@@ -364,6 +366,10 @@ petfish.ai/
 ---
 
 ## Version History
+
+### v3.6 — OpenCode Resilience
+
+- **v3.6.0**: New optional pack `opencode-resilience-pack` (alias `resilience`): `opencode-crash-taxonomy` (4-class crash signatures from the 2026-10-10 incident analysis — model resolution, agent identity, storage, quota — with sanitized samples, read-only DB forensics playbook, upstream issue map, classify_crash.py stdlib classifier) + `opencode-session-doctor` (L1 pre-flight model/alias audit with preflight_model_audit.py, L2 log watchdog with per-class disposition and ≤1 retry, L3 config-edit heuristic + fish-reflection handoff). Implements #293 + #294. Read-only tooling: zero writes, zero network, no opencode.db mutations.
 
 ### v3.5 — Completion Engineering
 

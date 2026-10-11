@@ -53,6 +53,7 @@ KNOWN_PACKS = {
     "drawio": "drawio-radar-chart",
     "typst": "typst-pdf-builder",
     "done": "completion-engineering-pack",
+    "resilience": "opencode-resilience-pack",
 }
 
 
