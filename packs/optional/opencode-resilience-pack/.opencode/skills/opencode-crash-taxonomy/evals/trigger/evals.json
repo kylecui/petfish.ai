@@ -1,0 +1,62 @@
+[
+  {
+    "query": "贴一段crash日志帮我分析 UnknownError",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "贴日志+UnknownError 求分析，直接命中 crash 分类核心场景。"
+  },
+  {
+    "query": "后台任务老是失败 prompt_async failed",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "含'后台任务老是失败'与'prompt_async failed'，长任务崩溃归因场景。"
+  },
+  {
+    "query": "session又崩了，模型解析失败怎么查",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "session crash + 模型解析失败，命中类1诊断路径。"
+  },
+  {
+    "query": "opencode.log里全是SqliteError",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "SqliteError 签名直接命中类3存储层故障。"
+  },
+  {
+    "query": "The session died again — here is the crash log analysis I need",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文触发词 session died + crash log analysis。"
+  },
+  {
+    "query": "后台子任务崩溃，日志显示已达到 5 小时的使用上限",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "后台子任务崩溃 + 使用上限，命中类4配额诊断。"
+  },
+  {
+    "query": "帮我修这个pytest失败",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "项目自身代码的测试失败，与 OpenCode 运行层 crash 无关。"
+  },
+  {
+    "query": "写个课程大纲",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "课程开发任务，无 crash 诊断意图。"
+  },
+  {
+    "query": "部署到10.0.0.5",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "部署运维请求，属 deploy pack，不是 OpenCode crash 分析。"
+  },
+  {
+    "query": "帮我润色这段报错说明文案",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "写作润色请求，不含诊断意图，路由 petfish-style-rewriter。"
+  }
+]

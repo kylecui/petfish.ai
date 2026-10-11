@@ -749,6 +749,7 @@ before proceeding. Use the Read tool on the listed path.
 | Test & Docs | test case, usage doc, README | `.opencode/agents-rules/testcases-docs.md` |
 | Trust Governance | trust, governance, manifest, redline | `.opencode/agents-rules/trustskills.md` |
 | Completion engineering | 完成标准, 收尾检查, 交付检查, 遗留, 验收, done gate | `.opencode/agents-rules/completion.md` |
+| OpenCode resilience | session crash, 模型解析失败, 并行任务, watchdog, prompt_async failed | `.opencode/agents-rules/opencode-resilience.md` |
 
 **Rules:**
 1. If task clearly matches ONE pack → read that file immediately

@@ -83,6 +83,7 @@ ALIASES: dict[str, str] = {
     "drawio": "drawio-radar-chart",
     "typst": "typst-pdf-builder",
     "done": "completion-engineering-pack",
+    "resilience": "opencode-resilience-pack",
 }
 
 CORE_PACKS = {
@@ -1588,6 +1589,7 @@ L1_PACK_MAP: dict[str, str] = {
     "fish-reflection-pack": "fish-reflection.md",
     "series-style-governor-pack": "series-style-governor.md",
     "completion-engineering-pack": "completion.md",
+    "opencode-resilience-pack": "opencode-resilience.md",
 }
 
 
