@@ -126,7 +126,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `petfish` | Writing style and rewrite guidance — 3 skills: `petfish-style-rewriter`, `de-ai-detector`, `style-extractor` | Global default |
 | `toolchain` | Skill lifecycle pipeline — 9 skills for authoring, linting, auditing, publishing, and market distribution | Global default |
 
-## 14 Optional Packs (via petfish-market)
+## 15 Optional Packs (via petfish-market)
 > Optional packs are distributed through [petfish-market](https://github.com/kylecui/petfish-market). Install commands resolve automatically — no user-visible difference.
 | Alias | Purpose | Scale |
 |---|---|---|
@@ -144,6 +144,7 @@ mine → author → lint → audit → gate → publish → optimize → eval
 | `style-governor` | Cross-document style consistency, terminology drift detection, conservative rewriting | Project |
 | `done` | Completion gate and leftover triage — done contracts at task start, evidence gate before claiming done, forced leftover triage | Project |
 | `resilience` | OpenCode crash taxonomy and session pre-flight/watchdog — 4-class crash diagnosis, pre-flight model audit, long-task recovery | Project |
+| `annotate` | 全量审查注释流水线 — every function gets 用途/调用/返回 headers, //bugbug security marks, zero deletions | Project |
 
 ## Profile → Auto-Install Mapping
 
@@ -152,12 +153,12 @@ Role-based profiles (recommended):
 | Profile | Auto-installed Packs | Best For |
 |---|---|---|
 | `starter` | `petfish` | Just getting started |
-| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate`, `done`, `resilience` | Daily coding |
+| `developer` | `petfish`, `deploy`, `testdocs`, `calibrate`, `done`, `resilience`, `annotate` | Daily coding |
 | `researcher` | `petfish`, `research`, `doc-reader`, `calibrate` | Academic / research |
 | `writer` | `petfish`, `ppt`, `doc-reader`, `research` | Content creation |
 | `educator` | `petfish`, `course`, `ppt`, `doc-reader`, `testdocs` | Course development |
 | `ops-engineer` | `petfish`, `deploy`, `trust`, `calibrate` | DevOps / security |
-| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader`, `done`, `resilience` | Full-featured setup |
+| `power-user` | `petfish`, `deploy`, `testdocs`, `trust`, `research`, `calibrate`, `reflect`, `ppt`, `doc-reader`, `done`, `resilience`, `annotate` | Full-featured setup |
 
 Legacy profiles (kept for backward compatibility):
 
@@ -171,7 +172,7 @@ Legacy profiles (kept for backward compatibility):
 | `research` | `petfish`, `research`, `doc-reader` |
 | `writing` | `petfish`, `ppt` |
 | `skills-package` | `petfish`, `testdocs` |
-| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor`, `done`, `resilience` |
+| `comprehensive` | `course`, `deploy`, `petfish`, `ppt`, `testdocs`, `trust`, `context`, `research`, `reflect`, `drawio`, `typst`, `style-governor`, `done`, `resilience`, `annotate` |
 
 > Use `uv run catalog_query.py --profile list` to see all profiles including custom ones you've saved.
 
@@ -357,7 +358,8 @@ petfish.ai/
 │       ├── research-skill-pack/                  # research
 │       ├── fish-reflection-pack/                 # reflect
 │       ├── completion-engineering-pack/          # done — completion gate & leftover triage
-│       └── opencode-resilience-pack/             # resilience — crash taxonomy & session watchdog
+│       ├── opencode-resilience-pack/             # resilience — crash taxonomy & session watchdog
+│       └── code-review-annotate-skill/           # annotate — full-repo review annotation pipeline
 ├── platforms.json                                # platform registry
 ├── install.py                                    # unified Python installer (PEP 723) — the sole installer
 └── README.md
@@ -366,6 +368,10 @@ petfish.ai/
 ---
 
 ## Version History
+
+### v3.7 — Code Review Annotate
+
+- **v3.7.0**: New optional pack `code-review-annotate-skill` (alias `annotate`): full-repo review annotation pipeline — every function declaration gets 用途/调用/返回 doc comments, security smells marked in-place with //bugbug, zero-deletion gate enforced per batch (git diff --numstat) plus verify_annotations.py one-command cross-platform verification; batch sizing / concurrency-slot discipline and platform failure recovery for 50K-200K line codebases; language adaptations reference (C/Go/Rust/Python/Java comment formats + per-language bugbug categories). User-contributed battle-tested workflow.
 
 ### v3.6 — OpenCode Resilience
 

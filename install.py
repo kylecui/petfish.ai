@@ -84,6 +84,7 @@ ALIASES: dict[str, str] = {
     "typst": "typst-pdf-builder",
     "done": "completion-engineering-pack",
     "resilience": "opencode-resilience-pack",
+    "annotate": "code-review-annotate-skill",
 }
 
 CORE_PACKS = {

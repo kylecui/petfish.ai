@@ -54,6 +54,7 @@ KNOWN_PACKS = {
     "typst": "typst-pdf-builder",
     "done": "completion-engineering-pack",
     "resilience": "opencode-resilience-pack",
+    "annotate": "code-review-annotate-skill",
 }
 
 
