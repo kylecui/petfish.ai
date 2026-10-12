@@ -59,12 +59,12 @@ Ask: "What type of project is this?"
 
 Offer these choices (role-based profiles, recommended):
 1. **starter** — Just getting started (installs: petfish only)
-2. **developer** — Daily coding (installs: deploy, petfish, testdocs, calibrate, done, resilience)
+2. **developer** — Daily coding (installs: deploy, petfish, testdocs, calibrate, done, resilience, annotate)
 3. **researcher** — Academic/research (installs: petfish, research, doc-reader, calibrate)
 4. **writer** — Content creation (installs: petfish, ppt, doc-reader, research)
 5. **educator** — Course development (installs: petfish, course, ppt, doc-reader, testdocs)
 6. **ops-engineer** — DevOps/security (installs: petfish, deploy, trust, calibrate)
-7. **power-user** — Full-featured (installs: petfish, deploy, testdocs, trust, research, calibrate, reflect, ppt, doc-reader, done, resilience)
+7. **power-user** — Full-featured (installs: petfish, deploy, testdocs, trust, research, calibrate, reflect, ppt, doc-reader, done, resilience, annotate)
 8. **custom** — Let me choose specific packs
 
 Legacy profiles (still supported):
@@ -101,10 +101,11 @@ If user chooses **custom**, show available packs:
 - `reflect` — Structured reflection — capture what went wrong, why, and corrective actions (1 skill)
 - `done` — Completion engineering — completion contract at task start, evidence-gated done claims, leftover triage (2 skills: done-gate + done-ledger). Enforcement is OpenCode-only (gateway plugin); other platforms are advisory-level.
 - `resilience` — OpenCode resilience — 4-class crash taxonomy + session pre-flight/watchdog/recovery (2 skills: opencode-crash-taxonomy + opencode-session-doctor). Read-only diagnostics; OpenCode-platform-specific.
+- `annotate` — Full-repo review annotation pipeline (1 skill: code-review-annotate). Every function gets 用途/调用/返回 doc headers, security smells marked in-place with //bugbug, zero-deletion gate enforced per batch.
 
 Ask which packs they want. If they include `research`, ask the research domain follow-up question above.
 
-> **Note**: Packs are split into **core** (init, companion, petfish, toolchain — shipped on petfish.ai) and **optional** (course, deploy, testdocs, ppt, calibrate, context, trust, research, reflect, done, resilience — distributed via petfish-market). Install commands resolve automatically — no user-visible difference.
+> **Note**: Packs are split into **core** (init, companion, petfish, toolchain — shipped on petfish.ai) and **optional** (course, deploy, testdocs, ppt, calibrate, context, trust, research, reflect, done, resilience, annotate — distributed via petfish-market). Install commands resolve automatically — no user-visible difference.
 
 ---
 
@@ -141,13 +142,13 @@ uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --
 Example — **developer** profile (init + companion already installed in 3a):
 
 ```bash
-uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs,calibrate,done,resilience --platform claude
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs,calibrate,done,resilience,annotate --platform claude
 ```
 
 Example — **power-user** profile (all packs at once, init+companion already done):
 
 ```bash
-uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs,trust,research,calibrate,reflect,ppt,doc-reader,done,resilience --platform opencode
+uv run https://raw.githubusercontent.com/kylecui/petfish.ai/master/install.py --pack deploy,petfish,testdocs,trust,research,calibrate,reflect,ppt,doc-reader,done,resilience,annotate --platform opencode
 ```
 
 > **Core vs Optional**: Core packs (init, companion, petfish, toolchain) download directly from the petfish.ai release. Optional packs (course, research, etc.) resolve via petfish-market — same command, same experience. The installer queries the market index automatically when a pack is not found in the core set.
@@ -274,4 +275,4 @@ PEtFiSh v3.x includes the programmatic Companion Gateway:
 
 **GitHub**: https://github.com/kylecui/petfish.ai
 **Website**: https://petfish.ai
-**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track. 4 core packs + 11 optional packs via petfish-market.
+**What it does**: Manages AI skill lifecycle across 8 platforms — discover, create, validate, optimize, install, track. 4 core packs + 12 optional packs via petfish-market.

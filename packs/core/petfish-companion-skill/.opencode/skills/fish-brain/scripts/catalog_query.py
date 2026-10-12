@@ -56,6 +56,7 @@ ALIAS_MAP = {
     "doc-reader": "doc-reader-skill",
     "done": "completion-engineering-pack",
     "resilience": "opencode-resilience-pack",
+    "annotate": "code-review-annotate-skill",
     "de-ai-detector": "petfish-style-skill",
     "style-extractor": "petfish-style-skill",
 }
@@ -250,6 +251,19 @@ TRIGGERS = {
         "crash log",
         "看日志",
     ],
+    "annotate": [
+        "逐行code review",
+        "函数注释",
+        "加注释",
+        "全量审查",
+        "长程review",
+        "只加注释",
+        "修注释不改代码",
+        "bugbug标注",
+        "annotate every function",
+        "line-by-line review",
+        "全量审查注释",
+    ],
     # v1.3/v1.4 aliases share triggers with canonical
     "fish-init": ["初始化", "新项目", "project init", "scaffold", "创建项目"],
     "fish-brain": ["/petfish", "what skills", "what can you do", "help with"],
@@ -365,7 +379,7 @@ def query_market(alias: str) -> dict | None:
 PROFILES: dict[str, list[str]] = {
     # --- Role-based profiles (v2) ---
     "starter": ["petfish"],
-    "developer": ["petfish", "deploy", "testdocs", "calibrate", "done", "resilience"],
+    "developer": ["petfish", "deploy", "testdocs", "calibrate", "done", "resilience", "annotate"],
     "researcher": ["petfish", "research", "doc-reader", "calibrate"],
     "writer": ["petfish", "ppt", "doc-reader", "research"],
     "educator": ["petfish", "course", "ppt", "doc-reader", "testdocs"],
@@ -382,6 +396,7 @@ PROFILES: dict[str, list[str]] = {
         "doc-reader",
         "done",
         "resilience",
+        "annotate",
     ],
     # --- Kept for backward compatibility ---
     "minimal": ["petfish"],
@@ -405,6 +420,7 @@ PROFILES: dict[str, list[str]] = {
         "doc-reader",
         "done",
         "resilience",
+        "annotate",
     ],
 }
 

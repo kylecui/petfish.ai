@@ -1,0 +1,19 @@
+{
+  "name": "code-review-annotate-skill",
+  "version": "1.0.0",
+  "legacy_names": [],
+  "description": "全量代码审查与文档注释流水线 — 为每个函数声明/定义写 用途/调用/返回 注释头，就地 //bugbug 标注安全问题，零删改门禁逐批强制（git diff --numstat deletions==0）。附 verify_annotations.py 跨平台一键验证、批次划分与并发槽纪律（50K-200K行大库适配）、平台故障恢复经验、C/Go/Rust/Python/Java 注释格式与逐语言bugbug清单",
+  "compatibility": "any",
+  "skill_count": 1,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": ["code-review-annotate"],
+  "commands": [],
+  "agents": [],
+  "contents": [
+    ".opencode/skills/code-review-annotate/SKILL.md",
+    ".opencode/skills/code-review-annotate/references/language-adaptations.md",
+    ".opencode/skills/code-review-annotate/scripts/verify_annotations.py",
+    ".opencode/skills/code-review-annotate/evals/trigger/evals.json"
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "query": "对这个代码库做全量审查加注释",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "全量审查+加注释，直接命中流水线核心场景。"
+  },
+  {
+    "query": "逐行code review，20万行的大库",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "逐行code review + 大代码库，命中批次划分与并发槽纪律。"
+  },
+  {
+    "query": "给所有函数加注释，用途调用返回那种格式",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "函数注释 + 用途/调用/返回 格式，注释流水线核心诉求。"
+  },
+  {
+    "query": "把安全问题用bugbug标注出来，但别改任何代码",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "bugbug标注 + 只加注释零删改约束。"
+  },
+  {
+    "query": "annotate every function in this repo, line-by-line review",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文触发词 annotate every function + line-by-line review。"
+  },
+  {
+    "query": "上一轮注解任务超时挂了一半，续作怎么搞",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "平台故障恢复场景：续作任务从 diff 前沿继续。"
+  },
+  {
+    "query": "帮我小范围review这个函数的逻辑",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "小范围单文件review，SKILL.md 边界明确排除。"
+  },
+  {
+    "query": "实现一个新的导出功能",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "功能开发任务，非审查注释场景。"
+  },
+  {
+    "query": "修复这个空指针崩溃",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "bug修复任务，本流水线只标注不修码。"
+  },
+  {
+    "query": "生成这个项目的使用文档",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "文档生成任务，属 generate-usage-docs，非代码注释。"
+  }
+]

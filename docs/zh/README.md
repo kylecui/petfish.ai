@@ -101,7 +101,7 @@ Companion Gateway在每条消息前**程序化执行**（v3.0+ 通过 companion-
 | `petfish` | 工程写作风格套件 — 3 skills: `petfish-style-rewriter`、`de-ai-detector`、`style-extractor` | 3 skills |
 | `toolchain` | Skill生命周期工具链——9个skill，从创作到上架 | 9 skills |
 
-## 14个可选包（通过 petfish-market 获取）
+## 15个可选包（通过 petfish-market 获取）
 > 可选包通过 [petfish-market](https://github.com/kylecui/petfish-market) 分发。安装命令自动解析，用户无感知。
 
 | 别名 | 定位 | 规模 |
@@ -120,6 +120,7 @@ Companion Gateway在每条消息前**程序化执行**（v3.0+ 通过 companion-
 | `style-governor` | 系列文档风格一致性治理——术语漂移检测 | 1 skill |
 | `done` | 完成门禁与遗留分流——开工写完成契约，宣称完成前过门，遗留强制分流 | 2 skills |
 | `resilience` | OpenCode崩溃四分类诊断与长任务发射前校验/watchdog恢复 | 2 skills |
+| `annotate` | 全量审查注释流水线——每个函数用途/调用/返回注释头，//bugbug就地标注安全问题，零删改门禁 | 1 skill |
 
 ---
 
@@ -214,6 +215,10 @@ Upgrade PEtFiSh by following: https://raw.githubusercontent.com/kylecui/petfish.
 ---
 
 ## 版本历史
+
+### v3.7 — 代码审查注释
+
+- **v3.7.0**: 新增可选包 `code-review-annotate-skill`（别名 `annotate`）：全量审查注释流水线——每个函数声明生成 用途/调用/返回 文档注释，安全坏味道就地用 //bugbug 标注，零删改门禁按批次强制（git diff --numstat），并附 verify_annotations.py 一键跨平台验证；面向 5万-20万行代码库的批次划分/并发槽纪律与平台故障恢复；语言适配参考（C/Go/Rust/Python/Java 注释格式 + 按语言的 bugbug 分类）。用户贡献的实战工作流。
 
 ### v3.6 — OpenCode韧性
 
