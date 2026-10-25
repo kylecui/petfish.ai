@@ -1,0 +1,19 @@
+{
+  "name": "review-roaster-pack",
+  "version": "0.1.0",
+  "legacy_names": [],
+  "description": "将已完成的技术review报告改写为有梗但可追溯的吐槽大会摘要。提取findings并保留证据引用，确保好笑但不胡说。支持mild/roast/nuclear三档辣度，输出结构包含开场白、分段吐槽、说句公道话、最终判决播报与散会。",
+  "compatibility": "opencode",
+  "skill_count": 1,
+  "command_count": 0,
+  "agent_count": 0,
+  "skills": ["review-roaster"],
+  "commands": [],
+  "agents": [],
+  "contents": [
+    "AGENTS.md",
+    ".opencode/skills/review-roaster/SKILL.md",
+    ".opencode/skills/review-roaster/references/rhetoric-arsenal.md",
+    ".opencode/skills/review-roaster/evals/evals.json"
+  ]
+}
