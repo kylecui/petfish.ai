@@ -84,11 +84,11 @@ uv run verify_annotations.py --paths <files...>   # 或不带 --paths 检查全�
 
 输出：每文件 numstat（deletions 必须 0）、行注释内嵌 `/*` 的 `-Werror=comment` 风险行、剩余 `TODO-ANNOTATE` 计数；有违规退出码 1。
 
-手动等价检查：
+跨平台自查清单（工具化检查一律走上面的脚本；以下为逐项判定标准，不依赖任何平台 shell）：
 
-- **每批**：`git diff --numstat <files>` deletion 列必须为 0；>0 立即定位修复（常见根因：扩写替换了原注释行）
-- **全量**：`git diff | grep '^-' | grep -v '^---'` 必须为空；`grep -rn "TODO-ANNOTATE"` 收口到 0（或转为情报性 caveat 并在报告中说明）
-- **编译**：`make`（或等价构建）+ lint 全绿。注释也能炸构建：块注释内嵌 `/*`（如写 `bpf/*.bpf.c`）触发 `-Werror=comment`；务必全树扫描 `git diff | grep '^+' | awk -F'/\*' 'NF>2'`
+- **每批**：diff 中只允许新增注释行——出现任何被删除/被修改的行即违规，立即定位（常见根因：扩写替换了原注释行）
+- **全量**：全树不得存在被删除行；`TODO-ANNOTATE` 收口到 0（或转为情报性 caveat 并在报告中说明）
+- **编译**：`make`（或等价构建）+ lint 全绿。注释也能炸构建：块注释内嵌 `/*`（如写 `bpf/*.bpf.c`）触发 `-Werror=comment`——脚本的风险行扫描覆盖此判据，构建期再兜底一次
 - **报告**：发现结构化落盘（严重级/类别/模块矩阵 + 全量表格），人工复核的结论性发现单独成节
 
 ## 6. 平台故障恢复（实测经验）

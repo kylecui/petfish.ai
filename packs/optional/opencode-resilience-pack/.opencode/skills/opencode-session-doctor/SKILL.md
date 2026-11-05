@@ -37,12 +37,12 @@ uv run .opencode/skills/opencode-session-doctor/scripts/preflight_model_audit.py
 
 ## L2 — Watchdog（运行时检测与受限自动恢复）
 
-tail opencode.log（默认 `~/.local/share/opencode/log/opencode.log`，路径随 OS 漂移，见 runbook），匹配 `prompt_async failed` 后按四类分诊（深度取证引用 `opencode-crash-taxonomy`）：
+用 `tail_opencode_log.py`（uv 脚本，跨平台）跟随 opencode.log（默认 `~/.local/share/opencode/log/opencode.log`，路径随 OS 漂移，见 runbook），按 `prompt_async failed` 过滤后四类分诊（深度取证引用 `opencode-crash-taxonomy`）：
 
 | 类 | 处置 | 重试 |
 |---|---|---|
 | 2 agent 解析失败 | 提取 sessionID → session resume + 正确注册键重发 continuation | 单 session 最多 1 次 |
-| 3 存储层 | 查 `df`；**不重试**；incident 式止血升级 | 禁止 |
+| 3 存储层 | 查磁盘剩余空间（各平台原生方式皆可）；**不重试**；incident 式止血升级 | 禁止 |
 | 4 配额 | 记重置时间，挂起该 provider 的任务发射 | 重置后恢复 |
 
 resume+重发分步流程、配额挂起机制、升级模板见 `references/watchdog-runbook.md`。

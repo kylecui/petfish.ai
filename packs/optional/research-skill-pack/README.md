@@ -2,7 +2,7 @@
 
 Research workbench for AI agents. Transforms vague research tasks into traceable, evidence-backed, quality-reviewed outputs.
 
-## Skills (54)
+## Skills (56)
 
 | Skill | Purpose |
 |---|---|
@@ -23,6 +23,8 @@ Research workbench for AI agents. Transforms vague research tasks into traceable
 | `scientific-experiment-planner` | Experiment design with baselines, ablation, and metrics |
 | `scientific-paper-writer` | Paper skeleton and draft from evidence and analysis |
 | `scientific-review-rebuttal` | Pre-submission self-review and reviewer rebuttal |
+| `research-mentor-cards` | Evidence-graded mentor advice cards (idea/evidence/writing) with adversarial questions |
+| `research-supervisor-bridge` | License-aware runtime access to upstream Supervisor-Skills/Ducktor + capability comparison |
 | `product-user-research` | User interviews, surveys, usability tests, and persona synthesis |
 | `product-competitor-analysis` | Competitor matrix, positioning, SWOT, and market sizing |
 | `product-opportunity-mapper` | JTBD, problem space mapping, and opportunity scoring |

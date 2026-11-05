@@ -1,6 +1,6 @@
 {
   "name": "opencode-resilience-pack",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "legacy_names": [],
   "description": "OpenCode 韧性 — 长任务故障的分类诊断与三层守护：opencode-crash-taxonomy 把 opencode.log 的 crash 签名分成四类（模型解析/agent身份解析/存储层/配额限流）并给出只读 DB 取证 playbook；opencode-session-doctor 提供 L1 发射前模型对账、L2 运行时 watchdog 与受限自动恢复、L3 配置变更治理。全部只读分析，0 写操作，恢复动作受限且留痕",
   "compatibility": "opencode",
@@ -21,6 +21,7 @@
     ".opencode/skills/opencode-session-doctor/SKILL.md",
     ".opencode/skills/opencode-session-doctor/references/watchdog-runbook.md",
     ".opencode/skills/opencode-session-doctor/scripts/preflight_model_audit.py",
+    ".opencode/skills/opencode-session-doctor/scripts/tail_opencode_log.py",
     ".opencode/skills/opencode-session-doctor/evals/trigger/evals.json"
   ]
 }
