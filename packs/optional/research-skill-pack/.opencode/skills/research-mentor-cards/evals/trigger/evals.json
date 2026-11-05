@@ -1,0 +1,62 @@
+[
+  {
+    "query": "我要开题了，导师卡片帮我过一遍选题",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "导师卡片+开题选题，直接命中 I 系列卡组场景。"
+  },
+  {
+    "query": "用研究建议卡检查一下我的论文写法",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "研究建议卡+论文写法，命中 W 系列卡组。"
+  },
+  {
+    "query": "有没有经验卡片教我怎么组织文献综述",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "经验卡片+文献综述组织，命中 R03 卡。"
+  },
+  {
+    "query": "我的idea靠谱吗，帮我评估一下",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "idea 评估诉求，命中 idea 阶段卡组与对抗式提问流程。"
+  },
+  {
+    "query": "mentor cards for writing my paper",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文触发词 mentor cards + 论文写作。"
+  },
+  {
+    "query": "写论文的时候有哪些方法论上的坑",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "写作方法论诉求，命中 W 卡组。"
+  },
+  {
+    "query": "帮我研究一下这个领域的现状",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "研究执行请求，走 research-router 正常流程，不是方法论指导。"
+  },
+  {
+    "query": "我想看HKUSTDial的原版导师技能",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "上游原版获取诉求，路由 research-supervisor-bridge。"
+  },
+  {
+    "query": "帮我修这个pytest失败",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "代码调试任务，与研究方法论无关。"
+  },
+  {
+    "query": "把这个PDF转成markdown",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "文档转换任务，路由 doc-reader。"
+  }
+]

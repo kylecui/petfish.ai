@@ -1,0 +1,62 @@
+[
+  {
+    "query": "我想用HKUSTDial的原版Supervisor-Skills",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "上游原版获取诉求，直接命中 bridge 核心场景。"
+  },
+  {
+    "query": "Ducktor怎么装到我的opencode里",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "Ducktor 安装诉求，命中运行时装载步骤。"
+  },
+  {
+    "query": "对比一下原版导师技能和我们自己的mentor cards",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "对照模式诉求，命中逐能力对照表。"
+  },
+  {
+    "query": "Supervisor-Skills是CC BY-NC-SA吗，我能商用吗",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "许可证告知场景，SKILL.md 核心职责之一。"
+  },
+  {
+    "query": "fetch the upstream mentor skills for me",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "英文触发词 fetch upstream mentor skills。"
+  },
+  {
+    "query": "figure-designer这种绘图技能我们有对应的吗",
+    "should_trigger": true,
+    "category": "positive",
+    "description": "能力缺口对照查询，命中对照表（标注为真实缺口）。"
+  },
+  {
+    "query": "给我一些论文写作的方法论建议",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "方法论建议诉求，路由 research-mentor-cards（自研卡组）。"
+  },
+  {
+    "query": "帮我把这段论文润色一下",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "润色诉求，路由 petfish-style-rewriter / paper-polish 场景，非桥接。"
+  },
+  {
+    "query": "帮我研究一下这个领域的现状",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "研究执行请求，走 research-router 流程。"
+  },
+  {
+    "query": "clone这个仓库到packs目录里",
+    "should_trigger": false,
+    "category": "negative",
+    "description": "要求把上游clone进pack路径是 MUST NOT 禁止项，bridge 应拒绝而非触发执行。"
+  }
+]
