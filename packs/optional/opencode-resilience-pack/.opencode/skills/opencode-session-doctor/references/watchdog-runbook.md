@@ -2,19 +2,24 @@
 
 > 深度分类与 DB 取证：`opencode-crash-taxonomy`（同 pack 姊妹 skill）。上游 issue 引用快照日期 2026-10-10，上游结论会漂移。
 
-## 0. 日志定位与 tail 命令
+## 0. 日志定位与跨平台 tail
 
 日志默认路径：`~/.local/share/opencode/log/opencode.log`（Linux/macOS）；Windows 下通常在 `%USERPROFILE%\.local\share\opencode\log\opencode.log`。路径随发行版与安装方式漂移——找不到时用 `opencode` CLI 或进程环境变量定位，不要臆造路径。
 
-```text
-# Linux / macOS
-tail -F ~/.local/share/opencode/log/opencode.log | grep --line-buffered "prompt_async failed"
+**跨平台 tail 一律走 uv 脚本**（跟随轮转、按签名过滤，Windows/macOS/Linux 同一命令）：
 
-# Windows PowerShell
-Get-Content "$env:USERPROFILE\.local\share\opencode\log\opencode.log" -Wait | Select-String "prompt_async failed"
+```bash
+# 持续跟随（默认过滤 prompt_async failed）
+uv run tail_opencode_log.py
+
+# 自定义过滤词 + 间隔
+uv run tail_opencode_log.py --filter "SqliteError" --interval 2.0
+
+# 一次性分诊模式（扫描现有日志即退出）
+uv run tail_opencode_log.py --once
 ```
 
-注意日志轮转：`tail -F`（大写）能跟随轮转后的新文件句柄，`tail -f` 不能；PowerShell `-Wait` 同理依赖文件句柄语义。
+实现说明：脚本用"size 缩小即重开"的判据处理日志轮转（跟随句柄语义），过滤为大小写不敏感子串匹配。不要在本流程里引入任何平台专属的日志跟随管道。
 
 ## 1. 分诊表（signature → class → action → retry policy）
 
